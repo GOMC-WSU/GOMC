@@ -55,6 +55,7 @@ public:
   double tolerance;               //Ewald sum terms
   double rswitch;                 //Switch distance
   double dielectric;              //dielectric for martini
+  double wolfAlpha[BOX_TOTAL], wolfA, wolfPower;               //alpha term for Wolf Electrostatic
   double scaling_14;              //!<Scaling factor for 1-4 pairs' ewald interactions
   double sc_alpha;                // Free energy parameter
   double sc_sigma, sc_sigma_6;    // Free energy parameter

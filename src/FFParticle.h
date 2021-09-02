@@ -115,7 +115,9 @@ protected:
   virtual double CalcEn(const double distSq, const uint index) const;
   virtual double CalcVir(const double distSq, const uint index) const;
   virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact,
-                             const uint b) const;
+                             const uint b, double lambda = 1.0) const;
+  double CalcCoulombWolf(const double dist, const double qi_qj_Fact,
+                            const uint b, double lambda = 1.0) const;
   virtual double CalcCoulombVir(const double distSq, const double qi_qj,
                                 uint b) const;
   //Find the index of the pair kind

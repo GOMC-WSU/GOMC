@@ -38,7 +38,10 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
-  sys.elect.wolfAlpha = DBL_MAX;
+  for(i = 0; i < BOX_TOTAL; i++) {
+    sys.elect.wolfAlpha[i] = DBL_MAX;
+    sys.elect.readWolfAlpha[i] = false;
+  }
   sys.memcVal.enable = false;
   sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
@@ -625,16 +628,23 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         if(CheckString(line[2], "Wolf")){
           printf("%-40s %-s \n", "Info: Wolf Electrostatic", sys.elect.enable ? "Active" : "Inactive");
           sys.elect.wolf = true;
-          if(line.size() > 3) {
-            sys.elect.wolfAlpha = stringtod(line[2]);          
-            printf("%-40s %-1.3E \n", "Info: Wolf Alpha", sys.elect.wolfAlpha);
-          } else {
-            sys.elect.wolfAlpha = 1.0;
-            printf("%-40s %-1.3E \n", "Default: Wolf Alpha", sys.elect.wolfAlpha);
-          }
         }
       } else {
         printf("%-40s %-s \n", "Info: Standard Electrostatic", sys.elect.enable ? "Active" : "Inactive");
+      }
+    } else if (CheckString(line[0], "WolfAlpha")){
+      if (line.size() != 3){
+          std::cout <<  "Error: Wolf Alpha incorrectly specified!" << std::endl <<
+                        "Usage : WolfAlpha (0,1) value" << std::endl;
+          exit(EXIT_FAILURE);
+      } else {
+        int b = stringtoi(line[1]); 
+        sys.elect.readWolfAlpha[b] = true;
+        sys.elect.wolfAlpha[b] = stringtod(line[2]);       
+        if (b == 0)
+          printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 0", sys.elect.wolfAlpha[b]);
+        else if (b == 1)
+          printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 1", sys.elect.wolfAlpha[b]);
       }
     } else if(CheckString(line[0], "Tolerance")) {
       sys.elect.tolerance = stringtod(line[1]);
@@ -1556,6 +1566,16 @@ void ConfigSetup::fillDefaults(void)
     }
   }
 
+  if (sys.elect.wolf){
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(!sys.elect.readWolfAlpha[b]) {
+        sys.elect.wolfAlpha[b] = 1.0;
+        sys.elect.readWolfAlpha[b] = true;
+        printf("%s %-d %-24s %4.4f A\n", "Default: Box ", b, " WolfAlpha", sys.elect.wolfAlpha[b]);
+      }
+    }
+  }
+
   if(sys.ff.cutoffLow == DBL_MAX) {
     sys.ff.cutoffLow = 0.00;
     printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
@@ -1625,11 +1645,6 @@ void ConfigSetup::verifyInputs(void)
 
   if(sys.elect.wolf && sys.elect.ewald){
     std::cout << "Error: Wolf Electrostatic and Ewald cannot both be used to approximate reciprocal space!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  if(sys.elect.wolf && sys.elect.wolfAlpha == DBL_MAX){
-    printf("Warning: Wolf Method used, but alpha not set.  Using default value.\n");
     exit(EXIT_FAILURE);
   }
 

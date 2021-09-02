@@ -10,7 +10,7 @@
  *   8282.
  */
 
-double FF_WOLF::CalcCoulomb(const double dist, const double qi_qj_Fact,
+double FF_WOLF::CalcCoulombWolf(const double dist, const double qi_qj_Fact,
                             const uint b, const double lambda) const{
     double wolf_electrostatic;
     wolf_electrostatic = erfc(alpha * dist)/dist;

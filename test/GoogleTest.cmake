@@ -40,6 +40,78 @@ function(add_GCMC_mpi_test name no_mpi_proc)
   add_test(NAME ${name} COMMAND ParallelTemperingTest)
 endfunction(add_GCMC_mpi_test)
 
+function(add_GEMC_mpi_test name no_mpi_proc)
+  set(GEMC_flags "-DENSEMBLE=1")
+      # My test are all called name_test.cpp
+      add_executable(${name} ${GOMCMPISources} ${GOMCMPIHeaders} ${libHeaders} ${libSources} ${MPITestSources})
+  # Make sure to link MPI here too:
+  target_link_libraries(${name} ${MPI_LIBRARIES} gtest_main)
+  set_target_properties(${name} PROPERTIES 
+      COMPILE_FLAGS "${GEMC_flags}")
+  #set(test_parameters " ${MPIEXEC_NUMPROC_FLAG} ${no_mpi_proc} ./${name}")
+  #add_test(NAME ${name} COMMAND "${MPIEXEC} ${test_parameters}")
+  add_test(NAME ${name} COMMAND ParallelTemperingTest)
+endfunction(add_GEMC_mpi_test)
+
+function(add_NVT_test name)
+      set(NVT_flags "-DENSEMBLE=1")
+      # My test are all called name_test.cpp
+      add_executable(${name} ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
+      target_link_libraries(${name} gtest_main)
+      set_target_properties(${name} PROPERTIES 
+      COMPILE_FLAGS "${NVT_flags}")
+      add_test(NAME BasicTypesTest COMMAND BasicTypesTest)
+      add_test(NAME CircuitTester COMMAND DialaTest)
+      add_test(NAME MolLookupTest COMMAND CheckConsensusBeta)
+      #add_test(NAME PSFParserTest COMMAND CheckProtAndWaterTest)
+      add_test(NAME WolfMethodTest COMMAND CheckElectrostatic)
+      add_test(NAME EndianTest COMMAND TestBitSwap)
+endfunction(add_NVT_mpi_test)
+
+function(add_NPT_test name)
+      set(NPT_flags "-DENSEMBLE=4")
+      # My test are all called name_test.cpp
+      add_executable(${name} ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
+      target_link_libraries(${name} gtest_main)
+      set_target_properties(${name} PROPERTIES 
+      COMPILE_FLAGS "${NPT_flags}")
+      add_test(NAME BasicTypesTest COMMAND BasicTypesTest)
+      add_test(NAME CircuitTester COMMAND DialaTest)
+      add_test(NAME MolLookupTest COMMAND CheckConsensusBeta)
+      #add_test(NAME PSFParserTest COMMAND CheckProtAndWaterTest)
+      add_test(NAME WolfMethodTest COMMAND CheckElectrostatic)
+      add_test(NAME EndianTest COMMAND TestBitSwap)
+endfunction(add_NPT_test)
+
+function(add_GCMC_test name)
+      set(GCMC_flags "-DENSEMBLE=3")
+      # My test are all called name_test.cpp
+      add_executable(${name} ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
+      target_link_libraries(${name} gtest_main)
+      set_target_properties(${name} PROPERTIES 
+      COMPILE_FLAGS "${GCMC_flags}")
+      add_test(NAME BasicTypesTest COMMAND BasicTypesTest)
+      add_test(NAME CircuitTester COMMAND DialaTest)
+      add_test(NAME MolLookupTest COMMAND CheckConsensusBeta)
+      #add_test(NAME PSFParserTest COMMAND CheckProtAndWaterTest)
+      add_test(NAME WolfMethodTest COMMAND CheckElectrostatic)
+      add_test(NAME EndianTest COMMAND TestBitSwap)
+endfunction(add_GCMC_test)
+
+function(add_GEMC_test name)
+      set(GEMC_flags "-DENSEMBLE=2")
+      # My test are all called name_test.cpp
+      add_executable(${name} ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
+      target_link_libraries(${name} gtest_main)
+      set_target_properties(${name} PROPERTIES 
+      COMPILE_FLAGS "${GEMC_flags}")
+      add_test(NAME BasicTypesTest COMMAND BasicTypesTest)
+      add_test(NAME CircuitTester COMMAND DialaTest)
+      add_test(NAME MolLookupTest COMMAND CheckConsensusBeta)
+      #add_test(NAME PSFParserTest COMMAND CheckProtAndWaterTest)
+      add_test(NAME WolfMethodTest COMMAND CheckElectrostatic)
+      add_test(NAME EndianTest COMMAND TestBitSwap)
+endfunction(add_GEMC_test)
 
 # Download and unpack googletest at configure time
 configure_file(${PROJECT_SOURCE_DIR}/test/CMakeLists.txt.in googletest-download/CMakeLists.txt)
@@ -80,18 +152,15 @@ if(GOMC_GTEST_MPI)
   add_NVT_mpi_test(GOMC_NVT_MPI_Test 2)
   add_NPT_mpi_test(GOMC_NPT_MPI_Test 2)
   add_GCMC_mpi_test(GOMC_GCMC_MPI_Test 2)
+  add_GEMC_mpi_test(GOMC_GEMC_MPI_Test 2)
   set(GOMC_GTEST_MPI 1)
 endif()
 
 if(GOMC_GTEST)
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(GOMC_Test ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
-target_link_libraries(GOMC_Test gtest_main)
-add_test(NAME BasicTypesTest COMMAND BasicTypesTest)
-add_test(NAME CircuitTester COMMAND DialaTest)
-add_test(NAME MolLookupTest COMMAND CheckConsensusBeta)
-#add_test(NAME PSFParserTest COMMAND CheckProtAndWaterTest)
-add_test(NAME WolfMethodTest COMMAND CheckElectrostatic)
-add_test(NAME EndianTest COMMAND TestBitSwap)
-add_test(NAME ConsistentTrajectoryTest COMMAND CheckPDBTrajCoordinates)
+  add_NVT_test(GOMC_NVT_Test)
+  add_NPT_test(GOMC_NPT_Test)
+  add_GCMC_test(GOMC_GCMC_Test)
+  add_GEMC_test(GOMC_GEMC_Test)
+  set(GOMC_GTEST 1)
 endif()

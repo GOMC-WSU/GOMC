@@ -59,9 +59,14 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
+  wolf = val.elect.wolf;
   tolerance = val.elect.tolerance;
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
+  // Not sure if we should assign sc_alpha and sc_power and to these
+  // Paper uses these hardcoded values
+  wolfA = 0.5;
+  wolfPower = 2.0;
 
   if(val.freeEn.enable) {
     sc_alpha = val.freeEn.scaleAlpha;
@@ -82,6 +87,9 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   sc_sigma_6 = pow(sc_sigma, 6.0);
 
   for(uint b = 0 ; b < BOX_TOTAL; b++) {
+    if (wolf)
+      wolfAlpha[b] = val.elect.wolfAlpha[b];
+
     rCutCoulomb[b] = val.elect.cutoffCoulomb[b];
     rCutCoulombSq[b] = rCutCoulomb[b] * rCutCoulomb[b];
     alpha[b] = sqrt(-log(tolerance)) / rCutCoulomb[b];

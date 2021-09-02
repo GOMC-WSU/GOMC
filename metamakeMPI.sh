@@ -138,9 +138,13 @@ else
         ENSEMBLES+="GOMC_NVT_MPI_Test "
 		ENSEMBLES+="GOMC_NPT_MPI_Test "
 		ENSEMBLES+="GOMC_GCMC_MPI_Test "
+		ENSEMBLES+="GOMC_GEMC_MPI_Test "
         CMAKEARGS+="-DGOMC_GTEST_MPI=on "
     else
-        ENSEMBLES+="GOMC_Test"
+        ENSEMBLES+="GOMC_NVT_Test"
+        ENSEMBLES+="GOMC_NPT_Test"
+        ENSEMBLES+="GOMC_GCMC_Test"
+        ENSEMBLES+="GOMC_GEMC_Test"
         CMAKEARGS+="-DGOMC_GTEST=on "
     fi
     export CC="$(which gcc 2> /dev/null)"
