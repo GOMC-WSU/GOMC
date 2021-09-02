@@ -1,0 +1,39 @@
+PSF
+
+       4 !NTITLE
+ REMARKS original generated structure x-plor psf file
+ REMARKS topology ./top_all27_prot_lipid.inp 
+ REMARKS segment SOD { first NONE; last NONE; auto angles dihedrals }
+ REMARKS segment CLA { first NONE; last NONE; auto angles dihedrals }
+
+       4 !NATOM
+       1 SOD  1    SOD  SOD  SOD    1.000000       22.9898           0
+       2 SOD  2    SOD  SOD  SOD   -1.000000       22.9898           0
+       3 CLA  3    CLA  CLA  CLA   -1.000000       35.4500           0
+       4 CLA  4    CLA  CLA  CLA   -1.000000       35.4500           0
+
+       0 !NBOND: bonds
+
+
+       0 !NTHETA: angles
+
+
+       0 !NPHI: dihedrals
+
+
+       0 !NIMPHI: impropers
+
+
+       0 !NDON: donors
+
+
+       0 !NACC: acceptors
+
+
+       0 !NNB
+
+       0       0       0       0
+
+       1       0 !NGRP
+       0       0       0
+

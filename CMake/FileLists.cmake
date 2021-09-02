@@ -23,6 +23,7 @@ set(sources
    src/FFDihedrals.cpp
    src/FFParticle.cpp
    src/FFSetup.cpp
+   src/FFWolf.cpp
    src/Forcefield.cpp
    src/FreeEnergyOutput.cpp
    src/Geometry.cpp
@@ -105,6 +106,7 @@ set(headers
    src/FFShift.h
    src/FFSwitch.h
    src/FFSwitchMartini.h
+   src/FFWolf.h
    src/FixedWidthReader.h
    src/Forcefield.h
    src/FreeEnergyOutput.h

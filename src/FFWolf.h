@@ -35,16 +35,18 @@ public:
   FF_WOLF(Forcefield &ff)
   {
     alpha = lambda = thermalWavelength = 0.0;
+    Rc = ff.rCut;
   }
 protected:
-    double alpha, lambda, thermalWavelength;
+    double alpha, lambda, thermalWavelength, Rc;
     virtual double CalcEn(const double distSq,
                           const uint kind1, const uint kind2,
                           const double lambda) const;
     virtual double CalcTailCorrection(const double distSq, const uint index) const;
-    virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact,
-                              const uint b) const;
-
+    virtual double CalcCoulomb(const double dist, const double qi_qj_Fact,
+                            const uint b, const double lambda = 1.0) const;
+    //!Returns Energy long-range correction term for a kind pair
+    virtual double EnergyLRC(const uint kind1, const uint kind2) const;
 
     double *shiftConst, *shiftConst_1_4;
 };

@@ -1,0 +1,6 @@
+REMARK original generated coordinate pdb file
+ATOM      1  SOD SOD X   1       0.000   0.000   0.250  1.00  0.00      SOD NA
+ATOM      2  SOD SOD X   2      -0.500  -0.433  -0.500  1.00  0.00      SOD NA
+ATOM      3  CLA CLA X   3       0.500  -0.433  -0.500  1.00  0.00      CLA CL
+ATOM      4  CLA CLA X   4       0.000   0.433  -0.500  1.00  0.00      CLA CL
+END

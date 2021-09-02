@@ -30,12 +30,16 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
+<<<<<<< a94f2136ac33acfc27842755a699763103120ec4
 <<<<<<< e2039ff3101122dc3f813616d3493e6adb6b4874
     src/MoleculeLookup.cpp
     src/Simulation.cpp
 =======
     src/Wolf.cpp
 >>>>>>> build wolf test
+=======
+    src/FFWolf.cpp
+>>>>>>> Pushing test for Wolf.  Test is 4 equidistant point charges, with 3 decimal places of accuracy.  I will test my electrostatic and vdw and tc moves tommorrow.
 )
 
 set(GOMCHeaders
@@ -51,7 +55,7 @@ set(GOMCHeaders
     src/InputFileReader.h
     lib/FloydWarshallCycle.h
     GOMC_Config.h
-    src/Wolf.h
+    src/FFWolf.h
 )
 
 set(GOMCMPISources
