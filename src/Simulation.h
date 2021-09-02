@@ -30,6 +30,8 @@ public:
       Coordinates& GetCoordinates(void);
       COM& GetCOMs(void);
       CellList& GetCellList(void);
+      StaticVals* GetStaticVals(void);
+      CalculateEnergy& GetCalcEn();
   #endif
   #if GOMC_GTEST_MPI
       void ExchangeReplicas(int worldRank);

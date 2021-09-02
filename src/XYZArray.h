@@ -175,6 +175,11 @@ public:
     return sqrt(x[i] * x[i] + y[i] * y[i] + z[i] * z[i]);
   }
 
+  double Norm(const uint i, const uint j) const
+  {
+    return sqrt(pow(x[i] - x[j], 2.0) + pow(y[i] - y[j], 2.0) + pow(z[i] - z[j], 2.0));
+  }
+
   //calculate the adjoint and return the determinant
   double AdjointMatrix(XYZArray &Inv);
 

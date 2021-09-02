@@ -94,7 +94,7 @@ protected:
   virtual double CalcEn(const double distSq, const uint index) const;
   virtual double CalcVir(const double distSq, const uint index) const;
   virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact,
-                             const uint b) const;
+                             const uint b, const double lambda = 1.0) const;
   virtual double CalcCoulombVir(const double distSq, const double qi_qj,
                                 uint b) const;
 };
@@ -298,12 +298,15 @@ inline double FF_EXP6::CalcCoulomb(const double distSq,
 
 inline double FF_EXP6::CalcCoulomb(const double distSq,
                                    const double qi_qj_Fact,
-                                   const uint b) const
+                                   const uint b,
+                                   const double lambda) const
 {
+  double dist = sqrt(distSq);
   if(forcefield.ewald) {
-    double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
     return qi_qj_Fact * erfc(val) / dist;
+  } else if (forcefield.wolf) {
+    return CalcCoulombWolf(dist, qi_qj_Fact, b, lambda);
   } else {
     double dist = sqrt(distSq);
     return qi_qj_Fact / dist;

@@ -203,6 +203,10 @@ public:
                     const std::vector<double> &lambda_Coul,
                     const uint iState, const uint molIndex,
                     const uint box) const;
+
+  #if GOMC_GTEST || GOMC_GTEST_MPI
+  double GetCharge(int atomIndex);
+  #endif
 private:
 
   //! Calculates full TC energy for one box in current system

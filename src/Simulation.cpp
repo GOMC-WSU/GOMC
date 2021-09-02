@@ -181,6 +181,13 @@ bool Simulation::RecalculateAndCheck(void)
       CellList& Simulation::GetCellList(void){
         return system->cellList;
       }
+      StaticVals* Simulation::GetStaticVals(void){
+        return staticValues;
+      }
+      CalculateEnergy& Simulation::GetCalcEn(){
+        return system->calcEnergy;
+      }
+
   #endif
 
   #if GOMC_GTEST_MPI
