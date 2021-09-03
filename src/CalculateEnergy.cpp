@@ -55,8 +55,10 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   molLookup(stat.molLookup),
 #endif
   currentAxes(sys.boxDimRef),
-  cellList(sys.cellList)
+  cellList(sys.cellList),
+  wolf(forcefield.wolf)
 {
+
 }
 
 
@@ -160,8 +162,9 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
 }
 
 
-// Calculate the inter energy for Box. Fractional molecule are not allowed in
-// this function. Need to implement the GPU function
+// Calculate the inter energy for Box. 
+// Fractional molecule are not allowed in this function. - FUNCTIONALITY ADDED
+// Need to implement the GPU function - DONE
 SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                                           XYZArray const& coords,
                                           BoxDimensions const& boxAxes,
@@ -214,7 +217,7 @@ reduction(+:tempREn, tempLJEn)
 reduction(+:tempREn, tempLJEn)
 #endif
 #endif
-  // loop over all particles
+  // loop over all atoms
   for(int currParticleIdx = 0; currParticleIdx < (int) cellVector.size(); currParticleIdx++) {
     int currParticle = cellVector[currParticleIdx];
     // find the which cell currParticle belong to
@@ -226,12 +229,13 @@ reduction(+:tempREn, tempLJEn)
 
       // find the ending index in neighboring cell
       int endIndex = cellStartIndex[neighborCell + 1];
-      // loop over particle inside neighboring cell
+      // loop over atoms inside neighboring cell
+      // cellStartIndex to endIndex -> atom indices
       for(int nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
         int nParticle = cellVector[nParticleIndex];
 
-        // avoid same particles and duplicate work
+        // avoid same atoms and duplicate work
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           double distSq;
           XYZ virComponents;
@@ -256,11 +260,16 @@ reduction(+:tempREn, tempLJEn)
     }
   }
 #endif
+  // This iterates over each atom once, hence shouldn't be included in the parallel for
+  // which iterates over all the pairwise dists < Rc and i < j
+  if(wolf)
+      tempREn += CalculateWolfCorrection(box);
 
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
   potential.boxEnergy[box].real = tempREn;
+    
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_INTER);
   // set correction energy and virial
@@ -1755,6 +1764,9 @@ reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaS
                             particleKind[nIndex[i]], qi_qj_fact,
                             lambda_Coul[iState], box);
             //Calculate du/dl in Coulomb for current state.
+            // If soft core, scales with lambda.  If not soft-core, 
+            // lambda argument is ignored and lambda == 1.0.
+            // Does this make sense?
             dudl_Coul += forcefield.particles->CalcCoulombdEndL(distSq, particleKind[atom],
                          particleKind[nIndex[i]], qi_qj_fact,
                          lambda_Coul[iState], box);
@@ -1837,6 +1849,32 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
     }
   }
 }
+
+// Calculate Eq 2 from scratch, serially
+// This method should be parallelized.
+// Also a method should be written to modify this value
+// instead of calculating it from scatch every step
+// Finally, we are iterating over all atoms in both boxes
+// This may or may not be neccessary.
+// Since a molecule can be in both boxes simulataneously,
+// I dont think the BoxIterator can be used here.
+double CalculateEnergy::CalculateWolfCorrection(uint box){
+  double sumOfSqares = 0.0;
+  double multiplicator, eq2;
+  double lambda = 1.0;
+  for (int i = 0; i < particleCharge.size(); ++i){
+    lambda = 1.0;
+    lambda *= lambdaRef.GetLambdaCoulomb(i, mols.GetMolKind(i), box);
+    sumOfSqares += pow(lambda*particleCharge[i],2.0);
+  }
+  multiplicator = erfc(forcefield.wolfAlpha[box] * forcefield.rCutCoulomb[box])/
+                    (2.0*forcefield.rCutCoulomb[box]);
+  multiplicator += (forcefield.wolfAlpha[box] / sqrt(M_PI));
+  multiplicator *= (-1.0)*num::qqFact;
+  eq2 = multiplicator * sumOfSqares;
+  return eq2;
+}
+
 
   #if GOMC_GTEST || GOMC_GTEST_MPI
   double CalculateEnergy::GetCharge(int atomIndex){

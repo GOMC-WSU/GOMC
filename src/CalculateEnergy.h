@@ -301,7 +301,7 @@ private:
   double GetLambdaVDW(uint molA, uint molB, uint box) const;
   double GetLambdaCoulomb(uint molA, uint molB, uint box) const;
   uint NumberOfParticlesInsideBox(uint box);
-
+  double CalculateWolfCorrection(uint box);
 
   const Forcefield& forcefield;
   const Molecules& mols;
@@ -313,8 +313,6 @@ private:
   XYZArray& molForceRef;
   bool multiParticleEnabled;
   bool electrostatic, ewald, wolf;
-
-  // stores kindIndex for each global atom idx
   std::vector<int> particleKind;
   // stores molIndex for each global atom idx
   std::vector<int> particleMol;
