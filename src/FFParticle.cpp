@@ -391,11 +391,11 @@ inline double FFParticle::CalcCoulomb(const double distSq,
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
     double softRsq = cbrt(softDist6);
-    en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b, lambda);
+    en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
   } else {
     // hard-core scaling, from wolf paper
     double scale = pow(0.5 * pow((1.0 - lambda), 2.0), 2.0);
-    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b, lambda);
+    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b);
   }
   return en;
 }
@@ -411,8 +411,19 @@ inline double FFParticle::CalcCoulomb(const double distSq,
     double val = forcefield.alpha[b] * dist;
     return qi_qj_Fact * erfc(val) / dist;
   } else if (forcefield.wolf){
+    // V_DSP -- (16) from Gezelter 2006
     double wolf_electrostatic = erfc(forcefield.wolfAlpha[b] * dist)/dist;
     wolf_electrostatic -= erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulomb[b];
+    // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
+    if(forcefield.multiparticleEnabled){
+      double derivativeTerm = erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulombSq[b];
+      // M_2_SQRTPI is 2/sqrt(PI)
+      double secondFactor = forcefield.wolfAlpha[b] *  M_2_SQRTPI;
+      secondFactor *= exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*forcefield.rCutCoulombSq[b])/forcefield.rCutCoulomb[b];
+      secondFactor *= (dist-forcefield.rCutCoulomb[b]);
+      derivativeTerm += secondFactor;
+      wolf_electrostatic += derivativeTerm;
+    } 
     wolf_electrostatic *= qi_qj_Fact;
     return wolf_electrostatic; 
   } else {  
@@ -462,6 +473,8 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = 1.0 - erf(forcefield.alpha[b] * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (forcefield.wolf){
+    // Placeholder
   } else {
     double dist = sqrt(distSq);
     double result = qi_qj / (distSq * dist);

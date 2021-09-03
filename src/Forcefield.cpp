@@ -39,6 +39,7 @@ void Forcefield::Init(const Setup& set)
   bonds.Init(set.ff.bond);
   angles->Init(set.ff.angle);
   dihedrals.Init(set.ff.dih);
+  multiparticleEnabled = set.config.sys.moves.multiParticleEnabled;
 }
 
 void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
