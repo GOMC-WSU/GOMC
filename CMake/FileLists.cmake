@@ -173,6 +173,7 @@ set(headers
    src/moves/IntraMoleculeExchange2.h
    src/moves/IntraMoleculeExchange3.h
    src/moves/IntraSwap.h
+   src/moves/IntraTargetedSwap.h
    src/moves/MoleculeExchange1.h
    src/moves/MoleculeExchange2.h
    src/moves/MoleculeExchange3.h

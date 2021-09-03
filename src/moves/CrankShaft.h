@@ -113,7 +113,7 @@ inline void CrankShaft::CalcEn()
   correct_old = 0.0;
   correct_new = 0.0;
 
-  if (newMol.GetWeight() != 0.0 && !overlap) {
+  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol, molIndex);
     correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
@@ -137,7 +137,7 @@ inline void CrankShaft::Accept(const uint rejectState, const ulong step)
     double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
       result = prng() < Wrat;
     } else
       result = false;
@@ -180,7 +180,7 @@ inline void CrankShaft::Accept(const uint rejectState, const ulong step)
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
       //molRef will not be changed. Also since no memcpy, doing restore
       //results in memory overwrite
-      if (newMol.GetWeight() != 0.0 && !overlap) {
+      if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
         calcEwald->RestoreMol(molIndex);
       }
     }
