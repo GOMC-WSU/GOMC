@@ -1763,10 +1763,6 @@ reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaS
             energyOldCoul = forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
                             particleKind[nIndex[i]], qi_qj_fact,
                             lambda_Coul[iState], box);
-            //Calculate du/dl in Coulomb for current state.
-            // If soft core, scales with lambda.  If not soft-core, 
-            // lambda argument is ignored and lambda == 1.0.
-            // Does this make sense?
             dudl_Coul += forcefield.particles->CalcCoulombdEndL(distSq, particleKind[atom],
                          particleKind[nIndex[i]], qi_qj_fact,
                          lambda_Coul[iState], box);
