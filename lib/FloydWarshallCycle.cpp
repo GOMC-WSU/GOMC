@@ -148,11 +148,14 @@ std::vector<int> FloydWarshallCycle::getPath(int connectionIndex)
 
 void FloydWarshallCycle::setDefaults()
 {
-  for (int i = 0; i < numberOfNodes; i++)
+  for (int i = 0; i < numberOfNodes; i++) {
     for (int j = 0; j < numberOfNodes; j++) {
       graph[i][j] = 10000;
       next[i][j] = -1;
     }
+    graph[i][i] = 0;
+    next[i][i] = i;
+  }
 }
 
 void FloydWarshallCycle::setValues(int exceptThisOne)
