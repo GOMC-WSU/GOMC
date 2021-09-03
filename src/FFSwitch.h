@@ -268,7 +268,7 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
   } else {
     // hard-core scaling, from wolf paper
     double scale = pow(0.5 * pow((1.0 - lambda), 2.0), 2.0);
-    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b, lambda);
+    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b);
   }
   return en;
 }

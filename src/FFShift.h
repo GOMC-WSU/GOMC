@@ -84,7 +84,7 @@ protected:
   virtual double CalcEn(const double distSq, const uint index) const;
   virtual double CalcVir(const double distSq, const uint index) const;
   virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact,
-                             const uint b, const double lambda = 1.0) const;
+                             const uint b) const;
   virtual double CalcCoulombVir(const double distSq, const double qi_qj,
                                 uint b) const;
 
@@ -255,13 +255,13 @@ inline double FF_SHIFT::CalcCoulomb(const double distSq,
   } else {
     // hard-core scaling, from wolf paper
     double scale = pow(0.5 * pow((1.0 - lambda), 2.0), 2.0);
-    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b, lambda);
+    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b);
   }
   return en;
 }
 
 inline double FF_SHIFT::CalcCoulomb(const double distSq, const double qi_qj_Fact,
-                             const uint b, double lambda) const
+                             const uint b) const
 {
   double dist = sqrt(distSq);
   if(forcefield.ewald) {

@@ -404,7 +404,7 @@ inline double FFParticle::CalcCoulomb(const double distSq,
    lambda differently in Wolf electrostatics */
 inline double FFParticle::CalcCoulomb(const double distSq,
                                       const double qi_qj_Fact,
-                                      const uint b, double lambda) const
+                                      const uint b) const
 {
   double dist = sqrt(distSq);
   if(forcefield.ewald) {
