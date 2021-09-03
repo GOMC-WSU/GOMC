@@ -251,9 +251,11 @@ inline double FF_SHIFT::CalcCoulomb(const double distSq,
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
     double softRsq = cbrt(softDist6);
-    en = CalcCoulomb(softRsq, qi_qj_Fact, b, lambda);
+    en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
   } else {
-    en = CalcCoulomb(distSq, qi_qj_Fact, b, lambda);
+    // hard-core scaling, from wolf paper
+    double scale = pow(0.5 * pow((1.0 - lambda), 2.0), 2.0);
+    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b, lambda);
   }
   return en;
 }
@@ -266,7 +268,10 @@ inline double FF_SHIFT::CalcCoulomb(const double distSq, const double qi_qj_Fact
     double val = forcefield.alpha[b] * dist;
     return qi_qj_Fact * erfc(val) / dist;
   }else if (forcefield.wolf){
-    return CalcCoulombWolf(dist, qi_qj_Fact, b, lambda);    
+    double wolf_electrostatic = erfc(forcefield.wolfAlpha[b] * dist)/dist;
+    wolf_electrostatic -= erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulomb[b];
+    wolf_electrostatic *= qi_qj_Fact;
+    return wolf_electrostatic; 
   } else {
     double dist = sqrt(distSq);
     return qi_qj_Fact * (1.0 / dist - 1.0 / forcefield.rCut);

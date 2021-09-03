@@ -382,8 +382,8 @@ inline double FFParticle::CalcCoulomb(const double distSq,
     return CalcCoulomb(distSq, qi_qj_Fact, b);
   }
   double en = 0.0;
-  // Not sure if this is compatible with wolf, so for now mutually exclude them
-  if(forcefield.sc_coul && !forcefield.wolf) {
+  // soft-cre scaling
+  if(forcefield.sc_coul) {
     uint index = FlatIndex(kind1, kind2);
     double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
     sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
@@ -391,29 +391,13 @@ inline double FFParticle::CalcCoulomb(const double distSq,
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
     double softRsq = cbrt(softDist6);
-    en = CalcCoulomb(softRsq, qi_qj_Fact, b, lambda);
+    en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b, lambda);
   } else {
-    en = CalcCoulomb(distSq, qi_qj_Fact, b, lambda);
+    // hard-core scaling, from wolf paper
+    double scale = pow(0.5 * pow((1.0 - lambda), 2.0), 2.0);
+    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b, lambda);
   }
   return en;
-}
-
-inline double FFParticle::CalcCoulombWolf(const double dist, const double qi_qj_Fact,
-                            const uint b, double lambda) const{
-    double wolf_electrostatic;
-    double scaled_dist;
-    if(lambda >= 0.999999) {
-      scaled_dist = dist;
-    } else {
-      // There's ambiguity whether the numerator and denominator of the first term
-      // in (1) from WOlf paper uses scaled_dist
-      // The ewald summation, only uses the scaled_dist in the numerator.
-      scaled_dist = forcefield.wolfA * pow((1.0 - lambda), forcefield.wolfPower);
-    }
-    wolf_electrostatic = erfc(forcefield.wolfAlpha[b] * scaled_dist)/scaled_dist;
-    wolf_electrostatic -= erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulomb[b];
-    wolf_electrostatic *= qi_qj_Fact;
-    return lambda * wolf_electrostatic; 
 }
 
 /* move the multiplication by lambda into the method, so we can use
@@ -425,11 +409,14 @@ inline double FFParticle::CalcCoulomb(const double distSq,
   double dist = sqrt(distSq);
   if(forcefield.ewald) {
     double val = forcefield.alpha[b] * dist;
-    return lambda * qi_qj_Fact * erfc(val) / dist;
+    return qi_qj_Fact * erfc(val) / dist;
   } else if (forcefield.wolf){
-    return CalcCoulombWolf(dist, qi_qj_Fact, b, lambda);
+    double wolf_electrostatic = erfc(forcefield.wolfAlpha[b] * dist)/dist;
+    wolf_electrostatic -= erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulomb[b];
+    wolf_electrostatic *= qi_qj_Fact;
+    return wolf_electrostatic; 
   } else {  
-    return lambda * qi_qj_Fact / dist;
+    return qi_qj_Fact / dist;
   }
 }
 

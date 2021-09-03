@@ -63,10 +63,6 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   tolerance = val.elect.tolerance;
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
-  // Not sure if we should assign sc_alpha and sc_power and to these
-  // Paper uses these hardcoded values
-  wolfA = 0.5;
-  wolfPower = 2.0;
 
   if(val.freeEn.enable) {
     sc_alpha = val.freeEn.scaleAlpha;
