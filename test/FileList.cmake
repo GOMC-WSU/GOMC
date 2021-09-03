@@ -11,6 +11,7 @@ set(TestSources
 
 set(TestHeaders
     src/ReplicaCommunicator.h
+    lib/NumLib.h
 )
 
 set(MPITestSources

@@ -66,7 +66,7 @@ function(add_NVT_test name)
       #add_test(NAME PSFParserTest_NVT COMMAND CheckProtAndWaterTest)
       add_test(NAME WolfMethodTest_NVT COMMAND CheckElectrostatic)
       add_test(NAME EndianTest_NVT COMMAND TestBitSwap)
-endfunction(add_NVT_mpi_test)
+endfunction(add_NVT_test)
 
 function(add_NPT_test name)
       set(NPT_flags "-DENSEMBLE=4")

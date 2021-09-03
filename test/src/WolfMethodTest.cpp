@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "Simulation.h"
 #include "FFWolf.h"
-
+#include "NumLib.h"
 TEST(WolfMethodTest, CheckLennardJones) {
     EXPECT_EQ(true, true);
 }
@@ -41,7 +41,12 @@ TEST(WolfMethodTest, CheckElectrostatic) {
     double summand_1_3 = q_1*q_3*((erfc(wolfAlpha_box_0*r_ij_1_3)/r_ij_1_3) - (erfc(wolfAlpha_box_0*Rc_box_0)/Rc_box_0));
     double summand_2_3 = q_2*q_3*((erfc(wolfAlpha_box_0*r_ij_2_3)/r_ij_2_3) - (erfc(wolfAlpha_box_0*Rc_box_0)/Rc_box_0));
 
-    EXPECT_EQ(true, true);
+    double sum = summand_0_1 + summand_0_2 + summand_0_3 + summand_1_2 + summand_1_3 + summand_2_3;
+    sum *= num::qqFact;
+
+    SystemPotential sysPot = sim1.GetCalcEn().SystemTotal();
+
+    EXPECT_DOUBLE_EQ(sum, sysPot.totalEnergy.totalElect);
 }
 
 TEST(WolfMethodTest, CheckLRC) {
