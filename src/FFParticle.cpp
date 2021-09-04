@@ -393,9 +393,7 @@ inline double FFParticle::CalcCoulomb(const double distSq,
     double softRsq = cbrt(softDist6);
     en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
   } else {
-    // hard-core scaling, from wolf paper
-    double scale = pow(0.5 * pow((1.0 - lambda), 2.0), 2.0);
-    en = lambda * CalcCoulomb(scale*distSq, qi_qj_Fact, b);
+    en = lambda * CalcCoulomb(distSq, qi_qj_Fact, b);
   }
   return en;
 }
@@ -472,12 +470,10 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
       // F_DSP -- (17) from Gezelter 2006
       double wolf_electrostatic_force = erfc(forcefield.wolfAlpha[b] * dist)/distSq;
       // M_2_SQRTPI is 2/sqrt(PI)
-      double secondFactor = forcefield.wolfAlpha[b] *  M_2_SQRTPI;
-      secondFactor *= exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*distSq)/dist;
-      wolf_electrostatic_force += secondFactor;
+      wolf_electrostatic_force += forcefield.wolfFactor3[b]*exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*distSq)/dist;
       // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
       if(forcefield.coulKind){
-        wolf_electrostatic_force -= forcefield.wolfFactor2[b]
+        wolf_electrostatic_force -= forcefield.wolfFactor2[b];
       } 
       wolf_electrostatic_force *= qi_qj;
       return wolf_electrostatic_force; 

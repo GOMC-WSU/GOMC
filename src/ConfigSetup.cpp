@@ -1586,10 +1586,10 @@ void ConfigSetup::fillDefaults(void)
     if (!sys.elect.readWolfType){
       sys.elect.readWolfType = true;
       if (sys.moves.multiParticleEnabled){
-        printf("%-40s %-40s \n", "Default: Wolf with multiparticle enabled: ", sys.ff.COUL_DSF.c_str());
+        printf("%-40s %-40s \n", "Default: Wolf with multiparticle enabled: ", sys.elect.COUL_DSF.c_str());
         sys.elect.COUL_KIND = sys.elect.COUL_DSF_KIND;
       } else {
-        printf("%-40s %-40s \n", "Default: Wolf without multiparticle enabled: ", sys.ff.COUL_DSP.c_str());
+        printf("%-40s %-40s \n", "Default: Wolf without multiparticle enabled: ", sys.elect.COUL_DSP.c_str());
         sys.elect.COUL_KIND = sys.elect.COUL_DSP_KIND;
       }
     }
