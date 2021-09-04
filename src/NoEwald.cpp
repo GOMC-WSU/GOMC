@@ -112,8 +112,7 @@ double NoEwald::BoxSelf(uint box) const
       }
 
       // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-      self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  
-                0.5 * ff.wolfFactor1[box]);
+      self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
       self *= -1.0 * num::qqFact;
 
       GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
@@ -194,8 +193,7 @@ void NoEwald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
       en_self += (particleCharge[i + start] * particleCharge[i + start]);
     }
     // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-    en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  
-              0.5 * ff.wolfFactor1[box]);
+    en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
     en_self *= -1.0 * num::qqFact;
 
     //Calculate the energy difference for each lambda state
