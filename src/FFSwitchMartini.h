@@ -482,10 +482,7 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
       wolf_electrostatic_force += secondFactor;
       // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
       if(forcefield.coulKind){
-        double thirdFactor = erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulombSq[b];
-        double fourthFactor = forcefield.wolfAlpha[b] *  M_2_SQRTPI;
-        fourthFactor *= exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*forcefield.rCutCoulombSq[b])/forcefield.rCutCoulomb[b];
-        wolf_electrostatic_force -= (thirdFactor + fourthFactor);
+        wolf_electrostatic_force -= forcefield.wolfFactor2[b]
       } 
       wolf_electrostatic_force *= qi_qj;
       return wolf_electrostatic_force; 
