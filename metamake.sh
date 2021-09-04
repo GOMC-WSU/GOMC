@@ -4,6 +4,7 @@ use_cuda=0
 use_profiler=0
 use_gtest=0
 use_mpi=0
+use_debug=0
 MPI="off"
 ENSEMBLES=""
 CMAKEARGS=""
@@ -83,7 +84,7 @@ then
 	fi
 fi
 
-while getopts 'mpt' opt; do
+while getopts 'mptd' opt; do
     case "$opt" in
         p)
             use_profiler=1;;
@@ -92,11 +93,14 @@ while getopts 'mpt' opt; do
             CMAKEARGS+="-DGOMC_MPI=on ";;
         t)
             use_gtest=1;;
+        d)
+            use_debug=1;;
         *)  echo 'Error in command line options' >&2
             echo "Available options are: "
             echo "-p (NVTX tags),"
             echo "-t (disables Intel compiler to allow GTests to compile),"
             echo "-m, enables MPI support (Required for Parallel Tempering)"
+            echo "-d, enables Debug Mode compilation"
             echo "For combined usage: -ptm"
             exit 1
     esac
@@ -162,5 +166,10 @@ if (( $use_profiler )); then
     fi
 fi
 
-cmake .. $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug
+if (( $use_debug )); then
+	echo "Enabling Debug Compilation "
+	CMAKEARGS+="-DCMAKE_BUILD_TYPE=Debug "
+fi
+
+cmake .. $CMAKEARGS
 make -j8 $ENSEMBLES
