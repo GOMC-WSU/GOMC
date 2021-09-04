@@ -113,7 +113,7 @@ double NoEwald::BoxSelf(uint box) const
 
       // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
       self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  
-                0.5 * (erfc(ff.wolfAlpha[box]*ff.rCutCoulomb[box])/ff.rCutCoulomb[box]));
+                0.5 * ff.wolfFactor1[box]);
       self *= -1.0 * num::qqFact;
 
       GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
@@ -184,7 +184,30 @@ void NoEwald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
                          const uint iState, const uint molIndex,
                          const uint box) const
 {
-  return;
+  if(ff.wolf){
+    uint atomSize = mols.GetKind(molIndex).NumAtoms();
+    uint start = mols.MolStart(molIndex);
+    uint lambdaSize = lambda_Coul.size();
+    double coefDiff, en_self = 0.0;
+    //Calculate the self energy with lambda = 1
+    for (uint i = 0; i < atomSize; i++) {
+      en_self += (particleCharge[i + start] * particleCharge[i + start]);
+    }
+    // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
+    en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  
+              0.5 * ff.wolfFactor1[box]);
+    en_self *= -1.0 * num::qqFact;
+
+    //Calculate the energy difference for each lambda state
+    for (uint s = 0; s < lambdaSize; s++) {
+      coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+      energyDiff[s].self += coefDiff * en_self;
+    }
+    //Calculate du/dl of self for current state, for linear scaling
+    dUdL_Coul.self += en_self;
+  } else {
+    return;
+  }
 }
 
 //It's called in free energy calculation to calculate the change in

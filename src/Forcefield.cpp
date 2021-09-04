@@ -84,15 +84,19 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   sc_sigma_6 = pow(sc_sigma, 6.0);
 
   for(uint b = 0 ; b < BOX_TOTAL; b++) {
-    if (wolf)
-      wolfAlpha[b] = val.elect.wolfAlpha[b];
-
     rCutCoulomb[b] = val.elect.cutoffCoulomb[b];
     rCutCoulombSq[b] = rCutCoulomb[b] * rCutCoulomb[b];
     alpha[b] = sqrt(-log(tolerance)) / rCutCoulomb[b];
     alphaSq[b] = alpha[b] * alpha[b];
     recip_rcut[b] = -2.0 * log(tolerance) / rCutCoulomb[b];
     recip_rcut_Sq[b] = recip_rcut[b] * recip_rcut[b];
+    if (wolf){
+      wolfAlpha[b] = val.elect.wolfAlpha[b];
+      wolfFactor1[b] = erfc(wolfAlpha[b]*rCutCoulomb[b])/rCutCoulomb[b]);
+      wolfFactor2[b] = forcefield.wolfAlpha[b] *  M_2_SQRTPI;
+      wolfFactor2[b] *= exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*forcefield.rCutCoulombSq[b])/forcefield.rCutCoulomb[b];
+      wolfFactor2[b] += wolfFactor1[b]/rCutCoulomb[b];
+    }
   }
 
   vdwGeometricSigma = val.ff.vdwGeometricSigma;
