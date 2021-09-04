@@ -339,8 +339,8 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq,
 inline double FF_SWITCH::CalcCoulombVir(const double distSq, const double qi_qj,
                                         const uint b) const
 {
+  double dist = sqrt(distSq);
   if(forcefield.ewald) {
-    double dist = sqrt(distSq);
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = forcefield.alpha[b] * M_2_SQRTPI;
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);

@@ -5,6 +5,7 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "NoEwald.h"
+#include "GOMCEventsProfile.h"
 
 
 NoEwald::NoEwald(StaticVals & stat, System & sys) :
@@ -77,10 +78,10 @@ double NoEwald::BoxSelf(uint box) const
 {
   if (!ff.wolf){
     return 0.0;
-  else {
-    if (box >= BOXES_WITH_U_NB)
+  } else {
+    if (box >= BOXES_WITH_U_NB){
       return 0.0;
-
+    } else {
       GOMC_EVENT_START(1, GomcProfileEvent::SELF_BOX);
       double self = 0.0;
       double molSelfEnergy;

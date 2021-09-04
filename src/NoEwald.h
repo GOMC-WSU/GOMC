@@ -8,7 +8,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define NOEWALD_H
 
 #include "Ewald.h"
+#include "Lambda.h"
 
+class Lambda;
 
 class NoEwald : public Ewald
 {

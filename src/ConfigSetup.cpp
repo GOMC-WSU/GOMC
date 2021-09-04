@@ -624,18 +624,15 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     } else if(CheckString(line[0], "ElectroStatic")) {
       sys.elect.enable = checkBool(line[1]);
       sys.elect.readElect = true;
-      if(line.size() > 2) {
-        if(CheckString(line[2], "Wolf")){
-          printf("%-40s %-s \n", "Info: Wolf Electrostatic", sys.elect.enable ? "Active" : "Inactive");
-          sys.elect.wolf = true;
-        }
-      } else {
-        printf("%-40s %-s \n", "Info: Standard Electrostatic", sys.elect.enable ? "Active" : "Inactive");
-      }
-    } else if (CheckString(line[0], "WolfAlpha")){
+      printf("%-40s %-s \n", "Info: Electrostatic", sys.elect.enable ? "Active" : "Inactive");
+    } else if (CheckString(line[0], "Wolf")){
+          sys.elect.wolf = checkBool(line[1]);
+          printf("%-40s %-s \n", "Info: Wolf Electrostatic", sys.elect.wolf ? "Active" : "Inactive");
+    } else if (CheckString(line[0], "WolfAlpha")) {
       if (line.size() != 3){
           std::cout <<  "Error: Wolf Alpha incorrectly specified!" << std::endl <<
-                        "Usage : WolfAlpha (0,1) value" << std::endl;
+                        "Usage : WolfAlpha\tBox(0,1)\tvalue" << std::endl <<
+                        "Example : WolfAlpha\t0\t1.0" << std::endl;
           exit(EXIT_FAILURE);
       } else {
         int b = stringtoi(line[1]); 
@@ -645,6 +642,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 0", sys.elect.wolfAlpha[b]);
         else if (b == 1)
           printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 1", sys.elect.wolfAlpha[b]);
+        else{
+          std::cout <<  "Error: Only (0/1) for box is supported!" << std::endl <<
+          "You entered : WolfAlpha\t" << b << "\tvalue" << std::endl;
+        }
       }
     } else if(CheckString(line[0], "Tolerance")) {
       sys.elect.tolerance = stringtod(line[1]);
@@ -1566,12 +1567,21 @@ void ConfigSetup::fillDefaults(void)
     }
   }
 
-  if (sys.elect.wolf){
+// Adapted from Cassandra
+  if (sys.elect.enable && sys.elect.wolf){
     for(uint b = 0; b < BOX_TOTAL; b++) {
       if(!sys.elect.readWolfAlpha[b]) {
-        sys.elect.wolfAlpha[b] = 1.0;
-        sys.elect.readWolfAlpha[b] = true;
-        printf("%s %-d %-24s %4.4f A\n", "Default: Box ", b, " WolfAlpha", sys.elect.wolfAlpha[b]);
+        if (sys.elect.cutoffCoulomb[b] == DBL_MAX){
+          std::cout << "Error: Coulombic Cutoff & Cutoff are not specified!  One is needed to automatically set WolfAlpha." << std::endl;
+          exit(EXIT_FAILURE);
+        } else {
+          printf("%s%d%s\n", "No damping alpha was specified for box ", b, ". Assume depends linearly with Coulomb cutoff.");
+          sys.elect.wolfAlpha[b] = ((double)0.425) - (sys.elect.cutoffCoulomb[b]*((double)0.02));
+          if (sys.elect.wolfAlpha[b] < 0.0)
+            sys.elect.wolfAlpha[b] = ((double)3.3930702)/sys.elect.cutoffCoulomb[b];
+          sys.elect.readWolfAlpha[b] = true;
+          printf("%s %-d %-24s %4.4f A\n", "Default: Box ", b, " WolfAlpha", sys.elect.wolfAlpha[b]);
+        }
       }
     }
   }
