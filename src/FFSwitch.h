@@ -286,7 +286,7 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
     double wolf_electrostatic = erfc(forcefield.wolfAlpha[b] * dist)/dist;
     wolf_electrostatic -= erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulomb[b];
     // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-    if(forcefield.multiparticleEnabled){
+    if(forcefield.coulKind){
       double derivativeTerm = erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulombSq[b];
       // M_2_SQRTPI is 2/sqrt(PI)
       double secondFactor = forcefield.wolfAlpha[b] *  M_2_SQRTPI;
@@ -354,7 +354,7 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq, const double qi_qj,
       secondFactor *= exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*distSq)/dist;
       wolf_electrostatic_force += secondFactor;
       // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
-      if(forcefield.multiparticleEnabled){
+      if(forcefield.coulKind){
         double thirdFactor = erfc(forcefield.wolfAlpha[b] * forcefield.rCutCoulomb[b])/forcefield.rCutCoulombSq[b];
         double fourthFactor = forcefield.wolfAlpha[b] *  M_2_SQRTPI;
         fourthFactor *= exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*forcefield.rCutCoulombSq[b])/forcefield.rCutCoulomb[b];

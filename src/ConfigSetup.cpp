@@ -1583,6 +1583,16 @@ void ConfigSetup::fillDefaults(void)
 
 // Adapted from Cassandra
   if (sys.elect.enable && sys.elect.wolf){
+    if (!sys.elect.readWolfType){
+      sys.elect.readWolfType = true;
+      if (sys.moves.multiParticleEnabled){
+        printf("%-40s %-40s \n", "Default: Wolf with multiparticle enabled: ", sys.ff.COUL_DSF);
+        sys.elect.COUL_KIND = sys.elect.COUL_DSF_KIND;
+      } else {
+        printf("%-40s %-40s \n", "Default: Wolf without multiparticle enabled: ", sys.ff.COUL_DSP);
+        sys.elect.COUL_KIND = sys.elect.COUL_DSP_KIND;
+      }
+    }
     for(uint b = 0; b < BOX_TOTAL; b++) {
       if(!sys.elect.readWolfAlpha[b]) {
         if (sys.elect.cutoffCoulomb[b] == DBL_MAX){
@@ -1670,6 +1680,12 @@ void ConfigSetup::verifyInputs(void)
   if(sys.elect.wolf && sys.elect.ewald){
     std::cout << "Error: Wolf Electrostatic and Ewald cannot both be used to approximate reciprocal space!" << std::endl;
     exit(EXIT_FAILURE);
+  }
+
+  if(sys.elect.wolf && sys.elect.COUL_KIND == sys.elect.COUL_DSP_KIND && sys.moves.multiParticleEnabled){
+    printf("Warning: Wolf Damped Shifted Potential (DSP) set with Multiparticle enabled.");
+    printf("The force using DSP is discontinuous at the cutoff.  We recommend DSF with MP enabled.\n");
+    //exit(EXIT_FAILURE);
   }
 
   if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
