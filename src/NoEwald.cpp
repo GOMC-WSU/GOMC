@@ -75,7 +75,50 @@ double NoEwald::ChangeLambdaRecip(XYZArray const& molCoords, const double lambda
 //calculate self term for a box
 double NoEwald::BoxSelf(uint box) const
 {
-  return 0.0;
+  if (!ff.wolf){
+    return 0.0;
+  else {
+    if (box >= BOXES_WITH_U_NB)
+      return 0.0;
+
+      GOMC_EVENT_START(1, GomcProfileEvent::SELF_BOX);
+      double self = 0.0;
+      double molSelfEnergy;
+      uint i, j, length, molNum;
+      double lambdaCoef = 1.0;
+
+      for (i = 0; i < mols.GetKindsCount(); i++) {
+        MoleculeKind const& thisKind = mols.kinds[i];
+        length = thisKind.NumAtoms();
+        molNum = molLookup.NumKindInBox(i, box);
+        molSelfEnergy = 0.0;
+        if(lambdaRef.KindIsFractional(i, box)) {
+          //If a molecule is fractional, we subtract the fractional molecule and
+          // add it later
+          --molNum;
+          //returns lambda and not sqrt(lambda)
+          lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
+        }
+
+        for (j = 0; j < length; j++) {
+          molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
+        }
+        self += (molSelfEnergy * molNum);
+        if(lambdaRef.KindIsFractional(i, box)) {
+          //Add the fractional molecule part
+          self += (molSelfEnergy * lambdaCoef);
+        }
+      }
+
+      // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
+      self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  
+                0.5 * (erfc(ff.wolfAlpha[box]*ff.rCutCoulomb[box])/ff.rCutCoulomb[box]));
+      self *= -1.0 * num::qqFact;
+
+      GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
+      return self;
+    }
+  }
 }
 
 
