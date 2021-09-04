@@ -1860,7 +1860,7 @@ double CalculateEnergy::CalculateWolfCorrection(uint box){
   double lambda = 1.0;
   for (int i = 0; i < particleCharge.size(); ++i){
     lambda = 1.0;
-    lambda *= lambdaRef.GetLambdaCoulomb(i, mols.GetMolKind(i), box);
+    lambda *= lambdaRef.GetLambdaCoulomb(mols.GetMolKind(i), box);
     sumOfSqares += pow(lambda*particleCharge[i],2.0);
   }
   multiplicator = erfc(forcefield.wolfAlpha[box] * forcefield.rCutCoulomb[box])/

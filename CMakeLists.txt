@@ -71,13 +71,6 @@ configure_file(
 	"${PROJECT_BINARY_DIR}/GOMC_Config.h"
 )
 
-# Enable google test
-# for now we will disable testing for intel compiler
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  enable_testing()
-  include(test/GoogleTest.cmake)
-endif()
-
 # Find if CUDA exists and what is the version number
 include(CheckLanguage)
 check_language(CUDA)

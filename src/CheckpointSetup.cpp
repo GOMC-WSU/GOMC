@@ -30,7 +30,6 @@ std::string CheckpointSetup::getFileName(){
   return filename;
 }
 
-<<<<<<< 3a8246d639fe64bf97df426a1a753b1350ab1813
 void CheckpointSetup::loadCheckpointFile(ulong & startStep){
   // create and open a character archive for intput
   std::ifstream ifs(filename);
@@ -38,19 +37,6 @@ void CheckpointSetup::loadCheckpointFile(ulong & startStep){
     fprintf(stderr, "Error opening checkpoint input file %s\n",
             filename.c_str());
     exit(EXIT_FAILURE);
-=======
-void CheckpointSetup::readGOMCVersion()
-{
-  if(isLegacy()) {
-    // Return cursor to beginning of the file
-    fseek(inputFile, 0, SEEK_SET);
-    sprintf(gomc_version, "0.00");
-  } else {
-    int i;
-    i = fscanf(inputFile, "%[^$]", gomc_version);
-    // Move the cursor past the $ sign
-    fseek(inputFile, 1, SEEK_CUR);
->>>>>>> making and targeted swap and checkpoint
   }
   #if GOMC_BOOST_LIB
     boost::archive::text_iarchive ia(ifs);

@@ -31,19 +31,8 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
-<<<<<<< fabab12b6cf65bc96af9519c3efead64d2c89dca
-<<<<<<< a94f2136ac33acfc27842755a699763103120ec4
-<<<<<<< e2039ff3101122dc3f813616d3493e6adb6b4874
     src/MoleculeLookup.cpp
     src/Simulation.cpp
-=======
-    src/Wolf.cpp
->>>>>>> build wolf test
-=======
-    src/FFWolf.cpp
->>>>>>> Pushing test for Wolf.  Test is 4 equidistant point charges, with 3 decimal places of accuracy.  I will test my electrostatic and vdw and tc moves tommorrow.
-=======
->>>>>>> build 4 ensembles for testing mpi and nonmpi.  Also, sets an alpha for every box in wolf
 )
 
 set(GOMCHeaders
@@ -264,7 +253,7 @@ set(sources
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
    src/DCDlib.cpp
-   src/DCDOutput.cpp
+   src/ExtendedSystemOutput.cpp
    src/EnPartCntSampleOutput.cpp
    src/ExtendedSystem.cpp
    src/Ewald.cpp
@@ -335,7 +324,7 @@ set(headers
    src/CoordinateSetup.h
    src/CPUSide.h
    src/DCDlib.h
-   src/DCDOutput.h
+   src/ExtendedSystemOutput.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h

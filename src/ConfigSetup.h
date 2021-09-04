@@ -161,8 +161,8 @@ struct FFValues {
   bool doTailCorr, vdwGeometricSigma;
   std::string kind;
 
-  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
-  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND;
+  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6, COUL_DSP, COUL_DSF;
+  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND, COUL_DSP_KIND, COUL_DSF_KIND;
 };
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -200,6 +200,7 @@ struct ElectroStatic {
   bool readElect;
   bool readCache;
   bool readWolfAlpha[BOX_TOTAL];
+  bool readWolfType;
   bool enable;
   bool ewald;
   bool wolf;
@@ -210,6 +211,9 @@ struct ElectroStatic {
   double dielectric;
   double cutoffCoulomb[BOX_TOTAL];
   double wolfAlpha[BOX_TOTAL];
+  uint COUL_KIND;
+  static const std::string COUL_DSP, COUL_DSF;
+  static const uint COUL_DSP_KIND, COUL_DSF_KIND;
   ElectroStatic(void)
   {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);

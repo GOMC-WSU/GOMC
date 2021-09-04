@@ -68,6 +68,8 @@ public:
   bool freeEnergy, sc_coul;       // Free energy parameter
   bool multiparticleEnabled;      // If true, Linear Electrostatic Calculation will use potential with force continuous at cutoff
   uint vdwKind;                   //To define VdW type, standard, shift or switch
+  uint coulKind;                   //To define Coul type (if Wolf), dampened shift potential or dampened shift force
+
   uint exckind;                   //To define  exclude kind, 1-2, 1-3, 1-4
   uint sc_power;                  // Free energy parameter
 #if ENSEMBLE == GCMC

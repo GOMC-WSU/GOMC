@@ -34,6 +34,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.ewald = false;
   sys.elect.enable = false;
   sys.elect.wolf = false;
+  sys.elect.COUL_KIND = UINT_MAX;
   sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
@@ -628,6 +629,19 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     } else if (CheckString(line[0], "Wolf")){
           sys.elect.wolf = checkBool(line[1]);
           printf("%-40s %-s \n", "Info: Wolf Electrostatic", sys.elect.wolf ? "Active" : "Inactive");
+          if (line.size() > 2){
+            if (CheckString(line[2], "DSP")){
+              sys.elect.COUL_KIND = sys.elect.COUL_DSP_KIND;
+              printf("%-40s %-s \n", "Info: Wolf Dampened Shifted Potential", "Active");
+              sys.elect.readWolfType = true;
+            } else if (CheckString(line[2], "DSF")){              
+              sys.elect.COUL_KIND = sys.elect.COUL_DSF_KIND;
+              printf("%-40s %-s \n", "Info: Wolf Dampened Shifted Force", "Active");
+              sys.elect.readWolfType = true;
+            } else {
+
+            }
+          }
     } else if (CheckString(line[0], "WolfAlpha")) {
       if (line.size() != 3){
           std::cout <<  "Error: Wolf Alpha incorrectly specified!" << std::endl <<
@@ -2432,6 +2446,8 @@ const std::string config_setup::FFValues::VDW = "VDW";
 const std::string config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT";
 const std::string config_setup::FFValues::VDW_EXP6 = "VDW_EXP6";
 const std::string config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH";
+const std::string config_setup::ElectroStatic::COUL_DSP = "COUL_DSP";
+const std::string config_setup::ElectroStatic::COUL_DSF = "COUL_DSF";
 const std::string config_setup::Exclude::EXC_ONETWO = "1-2";
 const std::string config_setup::Exclude::EXC_ONETHREE = "1-3";
 const std::string config_setup::Exclude::EXC_ONEFOUR = "1-4";
@@ -2440,6 +2456,8 @@ const uint config_setup::FFValues::VDW_STD_KIND = 0;
 const uint config_setup::FFValues::VDW_SHIFT_KIND = 1;
 const uint config_setup::FFValues::VDW_SWITCH_KIND = 2;
 const uint config_setup::FFValues::VDW_EXP6_KIND = 3;
+const uint config_setup::ElectroStatic::COUL_DSP_KIND = 0;
+const uint config_setup::ElectroStatic::COUL_DSF_KIND = 1;
 const uint config_setup::Exclude::EXC_ONETWO_KIND = 0;
 const uint config_setup::Exclude::EXC_ONETHREE_KIND = 1;
 const uint config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
