@@ -76,49 +76,7 @@ double NoEwald::ChangeLambdaRecip(XYZArray const& molCoords, const double lambda
 //calculate self term for a box
 double NoEwald::BoxSelf(uint box) const
 {
-  if (!ff.wolf){
-    return 0.0;
-  } else {
-    if (box >= BOXES_WITH_U_NB){
-      return 0.0;
-    } else {
-      GOMC_EVENT_START(1, GomcProfileEvent::SELF_BOX);
-      double self = 0.0;
-      double molSelfEnergy;
-      uint i, j, length, molNum;
-      double lambdaCoef = 1.0;
-
-      for (i = 0; i < mols.GetKindsCount(); i++) {
-        MoleculeKind const& thisKind = mols.kinds[i];
-        length = thisKind.NumAtoms();
-        molNum = molLookup.NumKindInBox(i, box);
-        molSelfEnergy = 0.0;
-        if(lambdaRef.KindIsFractional(i, box)) {
-          //If a molecule is fractional, we subtract the fractional molecule and
-          // add it later
-          --molNum;
-          //returns lambda and not sqrt(lambda)
-          lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
-        }
-
-        for (j = 0; j < length; j++) {
-          molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
-        }
-        self += (molSelfEnergy * molNum);
-        if(lambdaRef.KindIsFractional(i, box)) {
-          //Add the fractional molecule part
-          self += (molSelfEnergy * lambdaCoef);
-        }
-      }
-
-      // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-      self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
-      self *= -1.0 * num::qqFact;
-
-      GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
-      return self;
-    }
-  }
+  return 0.0;
 }
 
 
@@ -183,29 +141,7 @@ void NoEwald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
                          const uint iState, const uint molIndex,
                          const uint box) const
 {
-  if(ff.wolf){
-    uint atomSize = mols.GetKind(molIndex).NumAtoms();
-    uint start = mols.MolStart(molIndex);
-    uint lambdaSize = lambda_Coul.size();
-    double coefDiff, en_self = 0.0;
-    //Calculate the self energy with lambda = 1
-    for (uint i = 0; i < atomSize; i++) {
-      en_self += (particleCharge[i + start] * particleCharge[i + start]);
-    }
-    // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-    en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
-    en_self *= -1.0 * num::qqFact;
-
-    //Calculate the energy difference for each lambda state
-    for (uint s = 0; s < lambdaSize; s++) {
-      coefDiff = lambda_Coul[s] - lambda_Coul[iState];
-      energyDiff[s].self += coefDiff * en_self;
-    }
-    //Calculate du/dl of self for current state, for linear scaling
-    dUdL_Coul.self += en_self;
-  } else {
-    return;
-  }
+  return;
 }
 
 //It's called in free energy calculation to calculate the change in
