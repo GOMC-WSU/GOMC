@@ -128,4 +128,10 @@ public:
 
   virtual void UpdateVectorsAndRecipTerms(bool output);
 
+  private: 
+    double wolfAlpha[BOX_TOTAL], wolfFactor1[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
+
+
 };
+
+#endif /*WOLF_H*/

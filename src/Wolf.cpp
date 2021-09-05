@@ -5,11 +5,36 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "Wolf.h"
+#include "Ewald.h"
+#include "CalculateEnergy.h"
+#include "EnergyTypes.h"            //Energy structs
+#include "EnsemblePreprocessor.h"   //Flags
+#include "BasicTypes.h"             //uint
+#include "System.h"                 //For init
+#include "StaticVals.h"             //For init
+#include "Forcefield.h"
+#include "MoleculeKind.h"
+#include "Coordinates.h"
+#include "BoxDimensions.h"
+#include "TrialMol.h"
+#include "GeomLib.h"
+#include "NumLib.h"
+#include <cassert>
+#ifdef GOMC_CUDA
+#include "CalculateEwaldCUDAKernel.cuh"
+#include "CalculateForceCUDAKernel.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#endif
 #include "GOMCEventsProfile.h"
 
 
 Wolf::Wolf(StaticVals & stat, System & sys) :
-  Ewald(stat, sys) {}
+  Ewald(stat, sys) {
+    for(uint b = 0 ; b < BOX_TOTAL; b++) {
+        wolfAlpha[b] = ff.wolfAlpha[b];
+        wolfFactor1[b] = ff.wolfFactor1[b];
+    }
+}
 
 void Wolf::Init() {}
 
@@ -141,12 +166,12 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
       currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box);
       dist = sqrt(distSq);
-      // Eq (5) Gezelter 2006, 2nd term
-      dampenedCorr = erfc(forcefield.wolfAlpha[box] * dist)/dist;
-      dampenedCorr -= forcefield.wolfFactor1[box];
-      // Eq (5) Gezelter 2006, 3rd term
+      // Eq (5) Rahbari 2019, 2nd term
+      dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+      dampenedCorr -= wolfFactor1[box];
+      // Eq (5) Rahbari 2019, 3rd term
       undampenedCorr = 1.0/dist;
-      correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr);
+      correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
     }
   }
 

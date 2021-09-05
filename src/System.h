@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EwaldCached.h"
 #include "Ewald.h"
 #include "NoEwald.h"
+#include "Wolf.h"
 
 //Member variables
 #include "EnergyTypes.h"
