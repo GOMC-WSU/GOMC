@@ -260,10 +260,6 @@ reduction(+:tempREn, tempLJEn)
     }
   }
 #endif
-  // This iterates over each atom once, hence shouldn't be included in the parallel for
-  // which iterates over all the pairwise dists < Rc and i < j
-  if(wolf)
-      tempREn += CalculateWolfCorrection(box);
 
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
@@ -1845,32 +1841,6 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
     }
   }
 }
-
-// Calculate Eq 2 from scratch, serially
-// This method should be parallelized.
-// Also a method should be written to modify this value
-// instead of calculating it from scatch every step
-// Finally, we are iterating over all atoms in both boxes
-// This may or may not be neccessary.
-// Since a molecule can be in both boxes simulataneously,
-// I dont think the BoxIterator can be used here.
-double CalculateEnergy::CalculateWolfCorrection(uint box){
-  double sumOfSqares = 0.0;
-  double multiplicator, eq2;
-  double lambda = 1.0;
-  for (int i = 0; i < particleCharge.size(); ++i){
-    lambda = 1.0;
-    lambda *= lambdaRef.GetLambdaCoulomb(mols.GetMolKind(i), box);
-    sumOfSqares += pow(lambda*particleCharge[i],2.0);
-  }
-  multiplicator = erfc(forcefield.wolfAlpha[box] * forcefield.rCutCoulomb[box])/
-                    (2.0*forcefield.rCutCoulomb[box]);
-  multiplicator += (forcefield.wolfAlpha[box] / sqrt(M_PI));
-  multiplicator *= (-1.0)*num::qqFact;
-  eq2 = multiplicator * sumOfSqares;
-  return eq2;
-}
-
 
   #if GOMC_GTEST || GOMC_GTEST_MPI
   double CalculateEnergy::GetCharge(int atomIndex){

@@ -1,10 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "MoleculeLookup.h"
-<<<<<<< 17218619a054b32c714376b7df1aa553d8749d72
 
-=======
->>>>>>> added the rest of files to cmakelists for gtest
 
 TEST(MolLookupTest, CheckConsensusBeta) {
     /*
