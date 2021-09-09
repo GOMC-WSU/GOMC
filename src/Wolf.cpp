@@ -268,7 +268,25 @@ double Wolf::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
 //calculate self term after swap move
 double Wolf::SwapSelf(const cbmc::TrialMol& trialMol) const
 {
-  return 0.0;
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::SELF_SWAP);
+  MoleculeKind const& thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  double en_self = 0.0;
+
+  for (uint i = 0; i < atomSize; i++) {
+    en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
+  }    
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
+  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
+  // Vlugt
+  //self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
+  // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
+  return (en_self *= -0.5 * ff.wolfFactor1[box] * num::qqFact);
 }
 
 //calculate correction term after swap move
