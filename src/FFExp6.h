@@ -371,8 +371,11 @@ inline double FF_EXP6::CalcCoulombVir(const double distSq, const double qi_qj,
       if(forcefield.coulKind){
         wolf_electrostatic_force -= forcefield.wolfFactor2[b];
       } 
-      wolf_electrostatic_force *= qi_qj;
-      return wolf_electrostatic_force; 
+      wolf_electrostatic_force *= qi_qj;      
+      //      return wolf_electrostatic_force; 
+      // Since GOMC converts the force vectors to unit vectors
+      // Divide by the magnitude
+      return wolf_electrostatic_force/dist; 
   } else {
     double dist = sqrt(distSq);
     return qi_qj / (distSq * dist);

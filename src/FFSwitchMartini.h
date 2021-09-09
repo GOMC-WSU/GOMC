@@ -478,8 +478,11 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
       if(forcefield.coulKind){
         wolf_electrostatic_force -= forcefield.wolfFactor2[b];
       } 
-      wolf_electrostatic_force *= qi_qj;
-      return wolf_electrostatic_force; 
+      wolf_electrostatic_force *= qi_qj;      
+      //      return wolf_electrostatic_force; 
+      // Since GOMC converts the force vectors to unit vectors
+      // Divide by the magnitude
+      return wolf_electrostatic_force/dist; 
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
