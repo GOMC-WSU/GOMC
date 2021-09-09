@@ -72,6 +72,7 @@ void Wolf::Init() {
     for (i = 0; i < mols.GetKindsCount(); i++) {
       MoleculeKind const& thisKind = mols.kinds[i];
       length = thisKind.NumAtoms();
+      molSelfEnergy = 0.0;
       for (j = 0; j < length; j++) {
           molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
       }
