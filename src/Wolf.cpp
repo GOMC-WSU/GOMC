@@ -209,16 +209,23 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
     if(particleHasNoCharge[start + i]) {
       continue;
     }
+    // This term only needs to be calculated once, if the molecules are rigid
+    // Or of the maximum radius of gyration < RCutCoulomb
+    // Otherwise, parts of the molecule may extend out of range of each other
     for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box);
-      dist = sqrt(distSq);
-      // Eq (5) Rahbari 2019, 2nd term
-      dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-      dampenedCorr -= wolfFactor1[box];
-      // Eq (5) Rahbari 2019, 3rd term
-      undampenedCorr = 1.0/dist;
-      correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
+      // Need to check for cutoff
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box)){
+        // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
+        //dist = sqrt(distSq);
+        // Eq (5) Rahbari 2019, 2nd term
+        //dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+        //dampenedCorr -= wolfFactor1[box];
+        // Eq (5) Rahbari 2019, 3rd term
+        //undampenedCorr = 1.0/dist;
+        //correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
+        correction += -1.0 * thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];
+      }
     }
   }
 
@@ -290,7 +297,6 @@ void Wolf::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
     //Vlugt
     //en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * );
     // We eliminate the alpha/root(pi) using Wolf,mod
-    // Multiply once
     en_self *= -0.5 * ff.wolfFactor1[box] * num::qqFact;
 
     //Calculate the energy difference for each lambda state
@@ -309,7 +315,42 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
                                const uint iState, const uint molIndex,
                                const uint box) const
 {
-  return;
+  uint atomSize = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_Coul.size();
+  double coefDiff, distSq, dist, correction = 0.0;
+  XYZ virComponents;
+
+  //Calculate the correction energy with lambda = 1
+  for (uint i = 0; i < atomSize; i++) {
+    if(particleHasNoCharge[start + i]) {
+      continue;
+    }
+
+    for (uint j = i + 1; j < atomSize; j++) {
+      distSq = 0.0;
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box)){
+        // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
+        //dist = sqrt(distSq);
+        // Eq (5) Rahbari 2019, 2nd term
+        //dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+        //dampenedCorr -= wolfFactor1[box];
+        // Eq (5) Rahbari 2019, 3rd term
+        //undampenedCorr = 1.0/dist;
+        //correction += particleCharge[i + start] * particleCharge[j + start] * (dampenedCorr - undampenedCorr));
+        correction += particleCharge[i + start] * particleCharge[j + start] * wolfFactor1[box];
+      }
+    }
+  }
+  correction *= -1.0 * num::qqFact;
+  //Calculate the energy difference for each lambda state
+  for (uint s = 0; s < lambdaSize; s++) {
+    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+    energyDiff[s].correction += coefDiff * correction;
+  }
+  //Calculate du/dl of correction for current state, for linear scaling
+  dUdL_Coul.correction += correction;
 }
 
 //It's called in free energy calculation to calculate the change in
