@@ -158,6 +158,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
+    if(var->Performed(mv::INTRA_TARGETED_SWAP)) {
+      sub = mv::INTRA_TARGETED_SWAP;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
+    }
+
 #if ENSEMBLE == GCMC
   }
 #endif
@@ -414,6 +421,12 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("CRANKSHAFT", elementWidth);
     printElement("CRKSHAFTACCEPT", elementWidth);
     printElement("CRKSHAFTACCEPT%", elementWidth);
+  }
+
+  if(var->Performed(mv::INTRA_TARGETED_SWAP)) {
+    printElement("INTRATARGET", elementWidth);
+    printElement("INTARGACCEPT", elementWidth);
+    printElement("INTARGACCEPT%", elementWidth);
   }
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC

@@ -58,7 +58,7 @@ public:
 #ifdef  VARIABLE_PARTICLE_NUMBER
   config_setup::MEMCVal   memcVal;
   config_setup::NEMTMCVal  neMTMCVal;
-  config_setup::TargetSwapCollection targetedSwapVal;
+  config_setup::TargetSwapCollection targetedSwapVal, intraTargetedSwapVal;
 #endif
 
   bool IsEquil(const ulong step)

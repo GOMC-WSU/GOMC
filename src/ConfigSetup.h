@@ -185,7 +185,7 @@ struct Step {
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
   double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft,
-         multiParticle, multiParticleBrownian;
+         multiParticle, multiParticleBrownian, intraTargetedSwap;
   bool multiParticleEnabled; // for both multiparticle and multiparticleBrownian
 #ifdef VARIABLE_VOLUME
   double volume;
@@ -812,6 +812,7 @@ struct SystemVals {
   NEMTMCVal neMTMCVal;
   FreeEnergy freeEn;
   TargetSwapCollection targetedSwapCollection;
+  TargetSwapCollection intraTargetedSwapCollection;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT

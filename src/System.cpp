@@ -32,6 +32,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "IntraMoleculeExchange2.h"
 #include "IntraMoleculeExchange3.h"
 #include "CrankShaft.h"
+#include "IntraTargetedSwap.h"
 #include "NeMTMC.h"
 #include "TargetedSwap.h"
 #include "GOMCEventsProfile.h"
@@ -77,6 +78,7 @@ System::~System()
   delete moves[mv::REGROWTH];
   delete moves[mv::INTRA_MEMC];
   delete moves[mv::CRANKSHAFT];
+  delete moves[mv::INTRA_TARGETED_SWAP];
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   delete moves[mv::VOL_TRANSFER];
 #endif
@@ -174,6 +176,7 @@ void System::InitMoves(Setup const& set)
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
   moves[mv::REGROWTH] = new Regrowth(*this, statV);
   moves[mv::CRANKSHAFT] = new CrankShaft(*this, statV);
+  moves[mv::INTRA_TARGETED_SWAP] = new IntraTargetedSwap(*this, statV);
   if(set.config.sys.intraMemcVal.MEMC1) {
     moves[mv::INTRA_MEMC] = new IntraMoleculeExchange1(*this, statV);
   } else if (set.config.sys.intraMemcVal.MEMC2) {
@@ -345,6 +348,7 @@ void System::PrintTime()
   printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
   printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
   printf("%-36s %10.4f    sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
+  printf("%-36s %10.4f    sec.\n", "Intra-Targeted-Transfer:", moveTime[mv::INTRA_TARGETED_SWAP]);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",

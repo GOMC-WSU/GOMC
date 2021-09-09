@@ -148,11 +148,14 @@ std::vector<int> FloydWarshallCycle::getPath(int connectionIndex)
 
 void FloydWarshallCycle::setDefaults()
 {
-  for (int i = 0; i < numberOfNodes; i++)
+  for (int i = 0; i < numberOfNodes; i++) {
     for (int j = 0; j < numberOfNodes; j++) {
       graph[i][j] = 10000;
       next[i][j] = -1;
     }
+    graph[i][i] = 0;
+    next[i][i] = i;
+  }
 }
 
 void FloydWarshallCycle::setValues(int exceptThisOne)
@@ -255,12 +258,16 @@ int FloydWarshallCycle::GetCentricNode()
 
   // values of eccentricity
   std::vector<int> ecc(numberOfNodes, 0);
+  //Find the number of edges to each node
+  std::vector<int> edgeNum(numberOfNodes, 0);
   int i, j, raduse;
   setDefaults();
   
   for (j = 0; j < (int) connections.size(); j++) {
     int zero = connections[j][0];
     int one = connections[j][1];
+    ++edgeNum[zero];
+    ++edgeNum[one];
     graph[zero][one] = 1;
     graph[one][zero] = 1;
   }
@@ -288,7 +295,8 @@ int FloydWarshallCycle::GetCentricNode()
 
   // Center of graph is set of nodes with eccentricity equal to the radius of graph:
   for (i = 0; i < numberOfNodes; i++) {
-    if (raduse == ecc[i]) {
+    // Make sure that picked node is connected to more than one edge
+    if (raduse == ecc[i] && edgeNum[i] > 1) {
       return i;
     }
   }

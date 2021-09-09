@@ -82,6 +82,7 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.multiParticleBrownian = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
   sys.moves.crankShaft = DBL_MAX;
+  sys.moves.intraTargetedSwap = DBL_MAX;
   sys.moves.intraMemc = DBL_MAX;
   out.state.settings.enable = false;
   out.restart.settings.enable = false;
@@ -384,6 +385,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         int idx = stringtoi(line[1]); 
         uint b = stringtoi(line[2]);
         sys.targetedSwapCollection.AddsubVolumeBox(idx, b);
+        sys.intraTargetedSwapCollection.AddsubVolumeBox(idx, b);
       } else {
         printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumeBox, but received",
                 line.size() -1);
@@ -397,6 +399,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
         sys.targetedSwapCollection.AddsubVolumeCenter(idx, temp);
+        sys.intraTargetedSwapCollection.AddsubVolumeCenter(idx, temp);
       } else {
         printf("%-40s %-lu !\n", "Error: Expected 4 values for SubVolumeCenter, but received",
                 line.size() -1);
@@ -406,6 +409,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(line.size() >= 3) {
         int idx = stringtoi(line[1]); 
         sys.targetedSwapCollection.AddsubVolumePBC(idx, line[2]);
+        sys.intraTargetedSwapCollection.AddsubVolumePBC(idx, line[2]);
       } else {
         printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumePBC, but received",
                 line.size() -1);
@@ -419,6 +423,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           temp.push_back(line[k]);
         }
         sys.targetedSwapCollection.AddsubVolumeAtomList(idx, temp);
+        sys.intraTargetedSwapCollection.AddsubVolumeAtomList(idx, temp);
       } else {
         printf("%-40s %-lu !\n", "Error: Expected atleast 3 values for SubVolumeCenterList, but received",
                 line.size() -1);
@@ -432,6 +437,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
         sys.targetedSwapCollection.AddsubVolumeDimension(idx, temp);
+        sys.intraTargetedSwapCollection.AddsubVolumeDimension(idx, temp);
       } else {
         printf("%-40s %-lu !\n", "Error: Expected 4 values for SubVolumeDim, but received",
                 line.size() -1);
@@ -445,8 +451,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         for(int k = 2; k < (int) line.size(); k++) {
           temp.push_back(line[k]);
         }
-        
         sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
+        sys.intraTargetedSwapCollection.AddsubVolumeResKind(idx, temp);
       } else {
         printf("%-40s %-lu !\n", "Error: Expected atleast 2 values for SubVolumeResidueKind, but received",
                 line.size() -1);
@@ -457,6 +463,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         int idx = stringtoi(line[1]); 
         bool isRigid = checkBool(line[2]);
         sys.targetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
+        sys.intraTargetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
       } else {
         printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumeRigidSwap, but received",
                 line.size() -1);
@@ -729,6 +736,13 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       sys.moves.crankShaft = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Crank-Shaft move frequency",
              sys.moves.crankShaft);
+    } else if(CheckString(line[0], "IntraTargetedSwapFreq")) {
+      sys.moves.intraTargetedSwap = stringtod(line[1]);
+      if(sys.moves.intraTargetedSwap > 0.0) {
+        sys.intraTargetedSwapCollection.enable = true;
+      }
+      printf("%-40s %-4.4f \n", "Info: Intra-Targeted-Swap move frequency",
+             sys.moves.intraTargetedSwap);
     } else if(CheckString(line[0], "RotFreq")) {
       sys.moves.rotate = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
@@ -809,7 +823,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(sys.moves.targetedSwap > 0.0) {
         sys.targetedSwapCollection.enable = true;
       }
-      printf("%-40s %-4.4f \n", "Info: Targeted Swap move frequency",
+      printf("%-40s %-4.4f \n", "Info: Targeted-Swap move frequency",
              sys.moves.targetedSwap);
     } else if(CheckString(line[0], "NeMTMCFreq")) {
       sys.moves.neMolTransfer = stringtod(line[1]);
@@ -1342,6 +1356,12 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.crankShaft);
   }
 
+  if(sys.moves.intraTargetedSwap == DBL_MAX) {
+    sys.moves.intraTargetedSwap = 0.0;
+    printf("%-40s %-4.4f \n", "Default: Targeted-Swap move frequency",
+           sys.moves.intraTargetedSwap);
+  }
+
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   if(sys.moves.memc == DBL_MAX) {
     sys.moves.memc = 0.0;
@@ -1357,7 +1377,7 @@ void ConfigSetup::fillDefaults(void)
 
   if(sys.moves.targetedSwap == DBL_MAX) {
     sys.moves.targetedSwap = 0.0;
-    printf("%-40s %-4.4f \n", "Default: Targeted Swap move frequency",
+    printf("%-40s %-4.4f \n", "Default: Targeted-Swap move frequency",
            sys.moves.targetedSwap);
   }
 
@@ -1598,6 +1618,14 @@ void ConfigSetup::verifyInputs(void)
     }
   }
   #endif
+
+  if(sys.intraTargetedSwapCollection.enable) {
+    for (i = 0; i < (int) sys.intraTargetedSwapCollection.targetedSwap.size(); i++) {
+      // make sure all required parameter has been set
+      sys.intraTargetedSwapCollection.targetedSwap[i].VerifyParm();
+    }
+  }
+
   if(abs(sys.moves.multiParticle) > 0.0000001 && 
     abs(sys.moves.multiParticleBrownian) > 0.0000001) {
     std::cout << "Error: Both multi-Particle and multi-Particle Brownian! " <<
@@ -1791,7 +1819,8 @@ void ConfigSetup::verifyInputs(void)
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.multiParticleBrownian + 
-              sys.moves.neMolTransfer + sys.moves.targetedSwap - 1.0) > 0.001) {
+              sys.moves.neMolTransfer + sys.moves.targetedSwap + 
+              sys.moves.intraTargetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1810,7 +1839,8 @@ void ConfigSetup::verifyInputs(void)
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
               sys.moves.crankShaft + sys.moves.multiParticle +
-              sys.moves.multiParticleBrownian - 1.0) > 0.001) {
+              sys.moves.multiParticleBrownian + 
+              sys.moves.intraTargetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1830,14 +1860,16 @@ void ConfigSetup::verifyInputs(void)
               sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
               sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.multiParticleBrownian + 
-              sys.moves.neMolTransfer + sys.moves.targetedSwap - 1.0) > 0.001) {
+              sys.moves.neMolTransfer + sys.moves.targetedSwap +
+              sys.moves.intraTargetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
-              sys.moves.multiParticle + sys.moves.multiParticleBrownian - 1.0) > 0.001) {
+              sys.moves.multiParticle + sys.moves.multiParticleBrownian +
+              sys.moves.intraTargetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }

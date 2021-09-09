@@ -582,7 +582,7 @@ void DCGraph::BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   }
 
   if(current == -1) {
-    std::cout << "Error: In TargetedSwap move, atom " 
+    std::cout << "Error: In TargetedSwap or IntraTargetedSwap move, atom " 
               << newMol.GetKind().atomNames[sIndex] <<
               " in " << newMol.GetKind().name << " must be a node.\n";
     std::cout << "       This atom must be bounded to two or more atoms! \n";
