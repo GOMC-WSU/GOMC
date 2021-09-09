@@ -212,6 +212,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
     // This term only needs to be calculated once, if the molecules are rigid
     // Or of the maximum radius of gyration < RCutCoulomb
     // Otherwise, parts of the molecule may extend out of range of each other
+    // For now assume the latter.
     for (uint j = i + 1; j < atomSize; j++) {
       // Need to check for cutoff
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
@@ -272,13 +273,59 @@ double Wolf::SwapSelf(const cbmc::TrialMol& trialMol) const
 //calculate correction term after swap move
 double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
 {
-  return 0.0;
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
+  double dist, distSq;
+  double correction = 0.0;
+  XYZ virComponents;
+  const MoleculeKind& thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+
+  for (uint i = 0; i < atomSize; i++) {
+    for (uint j = i + 1; j < atomSize; j++) {
+      if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box)){
+        correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];
+      }
+    }
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
+  return num::qqFact * correction;
 }
 //calculate correction term after swap move
 double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
                                const uint molIndex) const
 {
-  return 0.0;
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
+  double dist, distSq;
+  double correction = 0.0;
+  XYZ virComponents;
+  const MoleculeKind& thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  double lambdaCoef = GetLambdaCoef(molIndex, box);
+
+  for (uint i = 0; i < atomSize; i++) {
+    if(particleHasNoCharge[start + i]) {
+      continue;
+    }
+    for (uint j = i + 1; j < atomSize; j++) {
+      if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box)){
+        correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                      wolfFactor1[box];
+      }
+    }
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
+  return num::qqFact * correction * lambdaCoef * lambdaCoef;
 }
 
 //It's called in free energy calculation to calculate the change in
