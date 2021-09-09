@@ -40,14 +40,14 @@ void Wolf::Init() {
     for(uint m = 0; m < mols.count; ++m) {
         const MoleculeKind& molKind = mols.GetKind(m);
         for(uint a = 0; a < molKind.NumAtoms(); ++a) {
-        particleKind.push_back(molKind.AtomKind(a));
-        particleMol.push_back(m);
-        particleCharge.push_back(molKind.AtomCharge(a));
-        if(std::abs(molKind.AtomCharge(a)) < 0.000000001) {
-            particleHasNoCharge.push_back(true);
-        } else {
-            particleHasNoCharge.push_back(false);
-        }
+          particleKind.push_back(molKind.AtomKind(a));
+          particleMol.push_back(m);
+          particleCharge.push_back(molKind.AtomCharge(a));
+          if(std::abs(molKind.AtomCharge(a)) < 0.000000001) {
+              particleHasNoCharge.push_back(true);
+          } else {
+              particleHasNoCharge.push_back(false);
+          }
         }
     }
 
@@ -58,6 +58,25 @@ void Wolf::Init() {
     for(int atom = 0; atom < (int) currentCoords.Count(); atom++) {
         startMol[atom] = mols.MolStart(particleMol[atom]);
         lengthMol[atom] = mols.MolLength(particleMol[atom]);
+    }
+
+    double molSelfEnergy;
+    uint i, j, length;
+    molSelfEnergies.resize(mols.kindsCount);
+
+// Each thread calculates a kind
+#ifdef _OPENMP
+    #pragma omp parallel for default(none) private(molSelfEnergy, i, j, length) \
+    shared(mols, molLookup, lambdaRef, molSelfEnergies)
+#endif
+    for (i = 0; i < mols.GetKindsCount(); i++) {
+      MoleculeKind const& thisKind = mols.kinds[i];
+      length = thisKind.NumAtoms();
+      for (j = 0; j < length; j++) {
+          molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
+      }
+      // Store this for quick access in ChangeSelf
+      molSelfEnergies[i] = molSelfEnergy;
     }
 }
 
@@ -133,31 +152,36 @@ double Wolf::BoxSelf(uint box) const
         uint i, j, length, molNum;
         double lambdaCoef = 1.0;
 
+// Each thread calculates a kind
+#ifdef _OPENMP
+    #pragma omp parallel for default(none) private(molSelfEnergy, i, j, length, molNum, lambdaCoef) \
+    shared(box, mols, molLookup, lambdaRef, molSelfEnergies) \
+    reduction(+:self)
+#endif
         for (i = 0; i < mols.GetKindsCount(); i++) {
-        MoleculeKind const& thisKind = mols.kinds[i];
-        length = thisKind.NumAtoms();
-        molNum = molLookup.NumKindInBox(i, box);
-        molSelfEnergy = 0.0;
-        if(lambdaRef.KindIsFractional(i, box)) {
-            //If a molecule is fractional, we subtract the fractional molecule and
-            // add it later
-            --molNum;
-            //returns lambda and not sqrt(lambda)
-            lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
-        }
-
-        for (j = 0; j < length; j++) {
-            molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
-        }
-        self += (molSelfEnergy * molNum);
-        if(lambdaRef.KindIsFractional(i, box)) {
-            //Add the fractional molecule part
-            self += (molSelfEnergy * lambdaCoef);
-        }
+          MoleculeKind const& thisKind = mols.kinds[i];
+          molNum = molLookup.NumKindInBox(i, box);
+          molSelfEnergy = 0.0;
+          if(lambdaRef.KindIsFractional(i, box)) {
+              //If a molecule is fractional, we subtract the fractional molecule and
+              // add it later
+              --molNum;
+              //returns lambda and not sqrt(lambda)
+              lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
+          }
+          // Store this for quick access in ChangeSelf
+          molSelfEnergy = molSelfEnergies[i];
+          self += (molSelfEnergy * molNum);
+          if(lambdaRef.KindIsFractional(i, box)) {
+              //Add the fractional molecule part
+              self += (molSelfEnergy * lambdaCoef);
+          }
         }
         // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-        self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
-        self *= -1.0 * num::qqFact;
+        // Vlugt
+        //self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
+        // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
+        self *= -0.5 * ff.wolfFactor1[box] * num::qqFact;
 
         GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
         return self;
@@ -257,17 +281,17 @@ void Wolf::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
                          const uint iState, const uint molIndex,
                          const uint box) const
 {
-    uint atomSize = mols.GetKind(molIndex).NumAtoms();
-    uint start = mols.MolStart(molIndex);
     uint lambdaSize = lambda_Coul.size();
     double coefDiff, en_self = 0.0;
-    //Calculate the self energy with lambda = 1
-    for (uint i = 0; i < atomSize; i++) {
-      en_self += (particleCharge[i + start] * particleCharge[i + start]);
-    }
+    //Load the self energy with lambda = 1
+    en_self = molSelfEnergies[molIndex];
+    
     // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-    en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
-    en_self *= -1.0 * num::qqFact;
+    //Vlugt
+    //en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * );
+    // We eliminate the alpha/root(pi) using Wolf,mod
+    // Multiply once
+    en_self *= -0.5 * ff.wolfFactor1[box] * num::qqFact;
 
     //Calculate the energy difference for each lambda state
     for (uint s = 0; s < lambdaSize; s++) {
