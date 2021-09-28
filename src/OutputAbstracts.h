@@ -45,7 +45,6 @@ public:
 
   virtual void Output(const ulong step) final
   {
-    /* merged psf only prints on first step */
     if ((!enableOut && !enableRestOut && !forceOutput)) {
       return;
     } else {
@@ -54,6 +53,7 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
+    /* merged psf only prints on first step  - onlyPrintOnFirstStep == true for merged psf*/
     if ((onlyPrintOnFirstStep && step == 1) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
       DoOutput(step);
       firstPrint = false;

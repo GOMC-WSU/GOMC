@@ -38,6 +38,14 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   if(totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
+
+  if(set.config.sys.step.initStepRead){
+    startStep = set.config.sys.step.start;
+  } 
+  if (set.config.sys.step.appendRunSteps)
+    totalSteps += startStep;
+  }
+
 #if GOMC_LIB_MPI
   // set.config.sys.step.parallelTemp is a boolean for enabling/disabling parallel tempering
   PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq, set.config.sys.step.parallelTemperingAttemptsPerExchange) : NULL;
