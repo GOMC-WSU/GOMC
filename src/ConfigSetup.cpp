@@ -675,14 +675,14 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-lu \n", "Info: Move adjustment frequency",
              sys.step.adjustment);
     } else if(CheckString(line[0], "InitStep")) {
-      sys.step.start = stringtoi(line[1]);
+      sys.step.initStep = stringtoi(line[1]);
       sys.step.initStepRead = true;
       printf("%-40s %-lu \n", "Info: InitStep",
              sys.step.initStep);
     } else if(CheckString(line[0], "AppendRunSteps")) {
       sys.step.appendRunSteps = checkBool(line[1]);
-      printf("%-40s %-lu \n", "Info: AppendRunSteps",
-              sys.step.appendRunSteps);
+      printf("%-40s %-s \n", "Info: AppendRunSteps", sys.step.appendRunSteps ? 
+        "Active" : "Inactive");
     } else if(CheckString(line[0], "PressureCalc")) {
       sys.step.pressureCalc = checkBool(line[1]);
       if(line.size() == 3)
@@ -1786,7 +1786,8 @@ void ConfigSetup::verifyInputs(void)
   if(sys.step.appendRunSteps && sys.step.initStepRead) {
     std::cout << "Warning: appendRunSteps active and InitStep " <<
               "are active!  The order of operations is as follows:" << std::endl;
-              "Init Step " << std::endl;
+    std::cout << "StartStep = Init Step " << std::endl;
+    std::cout << "LastStep = StartStep + RunSteps " << std::endl;
 
     exit(EXIT_FAILURE);
   }

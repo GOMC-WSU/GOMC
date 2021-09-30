@@ -38,11 +38,10 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   if(totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
-
   if(set.config.sys.step.initStepRead){
     startStep = set.config.sys.step.start;
   } 
-  if (set.config.sys.step.appendRunSteps)
+  if (set.config.sys.step.appendRunSteps){
     totalSteps += startStep;
   }
 
