@@ -75,13 +75,13 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
     uint frameNum = 1;
 
     pdbStart.Init(rsStart, pdbnamesSTART);
+    //pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
+    //pdb1.Init(rs1, pdbnames1, frameNum);
+    //pdbN.Init(rsN, pdbnamesN, frameNum);
+
+    frameNum = 11;
+
     pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
-    pdb1.Init(rs1, pdbnames1, frameNum);
-    pdbN.Init(rsN, pdbnamesN, frameNum);
-
-    frameNum = 3;
-
-    pdbBase.Init(rsBase, pdbnamesBase, 2);    
     pdb1.Init(rs1, pdbnames1, frameNum);
     pdbN.Init(rsN, pdbnamesN, frameNum);
 
