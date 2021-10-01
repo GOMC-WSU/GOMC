@@ -182,7 +182,6 @@ struct Step {
   bool pressureCalc;
   bool parallelTemp;
   bool initStepRead;
-  bool appendRunSteps;
 };
 
 //Holds the percentage of each kind of move for this ensemble.

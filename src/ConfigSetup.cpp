@@ -51,7 +51,6 @@ ConfigSetup::ConfigSetup(void)
   sys.step.parallelTempFreq = ULONG_MAX;
   sys.step.parallelTemperingAttemptsPerExchange = 0;
   sys.step.pressureCalc = false;
-  sys.step.appendRunSteps = false;
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
@@ -679,10 +678,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       sys.step.initStepRead = true;
       printf("%-40s %-lu \n", "Info: InitStep",
              sys.step.initStep);
-    } else if(CheckString(line[0], "AppendRunSteps")) {
-      sys.step.appendRunSteps = checkBool(line[1]);
-      printf("%-40s %-s \n", "Info: AppendRunSteps", sys.step.appendRunSteps ? 
-        "Active" : "Inactive");
     } else if(CheckString(line[0], "PressureCalc")) {
       sys.step.pressureCalc = checkBool(line[1]);
       if(line.size() == 3)
@@ -1775,20 +1770,6 @@ void ConfigSetup::verifyInputs(void)
   if(sys.step.equil > sys.step.total && !in.restart.recalcTrajectory) {
     std::cout << "Error: Equilibration steps cannot exceed " <<
               "Total run steps!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  if(sys.step.appendRunSteps && !in.restart.restartFromCheckpoint) {
-    std::cout << "Error: appendRunSteps active but " <<
-              "Checkpoint is not active!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  if(sys.step.appendRunSteps && sys.step.initStepRead) {
-    std::cout << "Warning: appendRunSteps active and InitStep " <<
-              "are active!  The order of operations is as follows:" << std::endl;
-    std::cout << "StartStep = Init Step " << std::endl;
-    std::cout << "LastStep = StartStep + RunSteps " << std::endl;
-
     exit(EXIT_FAILURE);
   }
 

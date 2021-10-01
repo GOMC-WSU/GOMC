@@ -114,6 +114,10 @@ void System::Init(Setup & set, ulong & startStep)
   if(set.config.in.restart.restartFromCheckpoint) {
     checkpointSet.loadCheckpointFile(startStep);
   }
+  // overwrite startStep with initStep
+  if(set.config.sys.step.initStepRead){
+    startStep = set.config.sys.step.initStep;
+  }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   // set coordinates and velocities for atoms in system

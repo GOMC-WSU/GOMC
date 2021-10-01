@@ -7,6 +7,7 @@
 #include "FFConst.h"
 #include "Reader.h"
 #include "InputFileReader.h"
+#include "Simulation.h"
 
 /* There are 4 cases for restarting from checkpoint 
 
@@ -25,6 +26,13 @@
 
 */
 TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
+
+    Simulation base("./test/input/ConsistentTrajectory/Base/in.conf");
+    base.RunSimulation();
+    Simulation K_1("./test/input/ConsistentTrajectory/K_1/in.conf");
+    K_1.RunSimulation();
+    Simulation K_N("./test/input/ConsistentTrajectory/K_N/in.conf");
+    K_N.RunSimulation();
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;

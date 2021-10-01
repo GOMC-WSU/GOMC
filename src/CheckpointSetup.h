@@ -79,7 +79,7 @@ private:
   bool & parallelTemperingIsEnabled;
   PRNG & prngPT;
 #endif
-  Checkpoint chkObj;
+  Checkpoint chkObj;  
 };
 
 #endif

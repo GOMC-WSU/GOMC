@@ -18,15 +18,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim): ms(multisim)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::INITIALIZE);
-  startStep = 0;
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   set.Init(configFileName, multisim);
   GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
+  startStep = 0;
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
   system = new System(*staticValues, set, multisim);
   staticValues->Init(set, *system);
   system->Init(set, startStep);
+  // This happens after checkpoint has possible changed startStep
+  // Note: InitStep overwrites checkpoint start step
+  totalSteps += startStep;
   //recalc Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
@@ -37,12 +40,6 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
             
   if(totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
-  }
-  if(set.config.sys.step.initStepRead){
-    startStep = set.config.sys.step.start;
-  } 
-  if (set.config.sys.step.appendRunSteps){
-    totalSteps += startStep;
   }
 
 #if GOMC_LIB_MPI
