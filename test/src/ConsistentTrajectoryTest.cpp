@@ -156,9 +156,48 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
         if(pdbBase_2.atoms.x[i] != pdb1_2.atoms.x[pos1])
             std::cout << pdbBase_2.atoms.x[i] << " " << i << " " << pdbBaseRestart.atoms.x[pos1] << " " << pos1 <<  std::endl;
         EXPECT_EQ(pdbBase_2.atoms.x[i] == pdb1_2.atoms.x[pos1], true);
-        EXPECT_EQ(pdb1_2.atoms.x[i] == pdbBase_2.atoms.x[pos2], true);
-        EXPECT_EQ(pos1 == pos2, true);
+        EXPECT_EQ(pdbBase_2.atoms.y[i] == pdb1_2.atoms.y[pos1], true);
+        EXPECT_EQ(pdbBase_2.atoms.z[i] == pdb1_2.atoms.z[pos1], true);
 
+        EXPECT_EQ(pdb1_2.atoms.x[i] == pdbBase_2.atoms.x[pos2], true);
+        EXPECT_EQ(pdb1_2.atoms.y[i] == pdbBase_2.atoms.y[pos2], true);
+        EXPECT_EQ(pdb1_2.atoms.z[i] == pdbBase_2.atoms.z[pos2], true);
+
+        EXPECT_EQ(pdbBase_2.atoms.chainLetter[i] == pdb1_2.atoms.chainLetter[pos1], true);
+        EXPECT_EQ(pdbBase_2.atoms.box[i] == pdb1_2.atoms.box[pos1], true);
+        EXPECT_EQ(pdbBase_2.atoms.resNames[i] == pdb1_2.atoms.resNames[pos1], true);
+        EXPECT_EQ(pdb1_2.atoms.beta[i] == pdbBase_2.atoms.beta[pos2], true);
+
+        EXPECT_EQ(pos1 == pos2, true);
     }
 
+    PDBSetup pdbBase_3;
+    // This is needed to get passed Remark 
+    // Not sure why.
+    frameNum = 1;
+    pdbBase_3.Init(rsBase, pdbnamesBase, frameNum);  
+
+    int middleFrame = 5;
+    pdbBase_3.Init(rsBase, pdbnamesBase, middleFrame);    
+
+    // Checks if the last frame the base traj match the first frame of K_1 traj
+    for (uint i = 0; i < pdbBase_3.atoms.count; ++i){
+        // Find mol i's chain index in restart output files 
+        ptrdiff_t pos1 = find(pdb1_2.atoms.chainLetter.begin(), 
+            pdb1_2.atoms.chainLetter.end(), pdbBase_3.atoms.chainLetter[i])
+            - pdb1_2.atoms.chainLetter.begin();
+         ptrdiff_t pos2 = find(pdbBase_3.atoms.chainLetter.begin(), 
+            pdbBase_3.atoms.chainLetter.end(), pdb1_2.atoms.chainLetter[i])
+            - pdbBase_3.atoms.chainLetter.begin();
+            
+        EXPECT_EQ(pdbBase_3.atoms.x[i] == pdb1_2.atoms.x[pos1], false);
+        EXPECT_EQ(pdbBase_3.atoms.y[i] == pdb1_2.atoms.y[pos1], false);
+        EXPECT_EQ(pdbBase_3.atoms.z[i] == pdb1_2.atoms.z[pos1], false);
+
+        EXPECT_EQ(pdb1_2.atoms.x[i] == pdbBase_3.atoms.x[pos2], false);
+        EXPECT_EQ(pdb1_2.atoms.y[i] == pdbBase_3.atoms.y[pos2], false);
+        EXPECT_EQ(pdb1_2.atoms.z[i] == pdbBase_3.atoms.z[pos2], false);
+
+        EXPECT_EQ(pos1 == pos2, true);
+    }
 }
