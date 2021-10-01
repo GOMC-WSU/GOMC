@@ -381,7 +381,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
   if (box == 0){
     startIdxAtomBoxOffset = 0;
   } else {
-    startIdxAtomBoxOffset = molVars.lastAtomIndexInBox0 + 1;
+    if (molVars.numberMolsInBox0 != 0){
+      startIdxAtomBoxOffset = molVars.lastAtomIndexInBox0 + 1;
+    } else {
+      startIdxAtomBoxOffset = 0;
+    }
   }
 
   for (std::vector< std::vector<uint> >::const_iterator it = moleculeXAtomIDY.cbegin();
@@ -595,11 +599,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
     }
     molVars.moleculeIteration++;
   }
-  molVars.numberMolsInBox0 = moleculeXAtomIDY.size();
-  if (molVars.numberMolsInBox0 != 0)
-    molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
-  else 
-    molVars.lastAtomIndexInBox0 = -1;
+  if (box == 0){
+    molVars.numberMolsInBox0 = moleculeXAtomIDY.size();
+    if (molVars.numberMolsInBox0 != 0)
+      molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
+  }
 }
 
 typedef std::map<std::string, mol_setup::MolKind> MolMap;
