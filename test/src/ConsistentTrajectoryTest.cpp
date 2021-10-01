@@ -133,25 +133,32 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
         EXPECT_EQ(pdbN.atoms.x[i] == pdbNRestart.atoms.x[pos], true);
     }
 
-    int firstFrame = 1;
+    PDBSetup pdbBase_2, pdb1_2, pdbN_2;
+
+    // This is needed to get passed Remark 
+    // Not sure why.
+    frameNum = 1;
+    pdbBase_2.Init(rsBase, pdbnamesBase, frameNum);    
+    pdb1_2.Init(rs1, pdbnames1, frameNum);
+
     int lastFrame = 11;
-    pdbBase.Init(rsBase, pdbnamesBase, lastFrame);    
-    pdb1.Init(rs1, pdbnames1, firstFrame);
+    pdbBase_2.Init(rsBase, pdbnamesBase, lastFrame);    
 
     // Checks if the last frame the base traj match the first frame of K_1 traj
-    for (uint i = 0; i < pdbBase.atoms.count; ++i){
-        /* Find mol i's chain index in restart output files */
-        ptrdiff_t pos1 = find(pdb1.atoms.chainLetter.begin(), 
-            pdb1.atoms.chainLetter.end(), pdbBase.atoms.chainLetter[i])
-            - pdb1.atoms.chainLetter.begin();
-         ptrdiff_t pos2 = find(pdbBase.atoms.chainLetter.begin(), 
-            pdbBase.atoms.chainLetter.end(), pdb1.atoms.chainLetter[i])
-            - pdbBase.atoms.chainLetter.begin();
-        if(pdbBase.atoms.x[i] != pdb1.atoms.x[pos1])
-            std::cout << pdbBase.atoms.x[i] << " " << i << " " << pdbBaseRestart.atoms.x[pos1] << " " << pos1 <<  std::endl;
-        EXPECT_EQ(pdbBase.atoms.x[i] == pdb1.atoms.x[pos1], true);
-        EXPECT_EQ(pdb1.atoms.x[i] == pdbBase.atoms.x[pos2], true);
+    for (uint i = 0; i < pdbBase_2.atoms.count; ++i){
+        // Find mol i's chain index in restart output files 
+        ptrdiff_t pos1 = find(pdb1_2.atoms.chainLetter.begin(), 
+            pdb1_2.atoms.chainLetter.end(), pdbBase_2.atoms.chainLetter[i])
+            - pdb1_2.atoms.chainLetter.begin();
+         ptrdiff_t pos2 = find(pdbBase_2.atoms.chainLetter.begin(), 
+            pdbBase_2.atoms.chainLetter.end(), pdb1_2.atoms.chainLetter[i])
+            - pdbBase_2.atoms.chainLetter.begin();
+        if(pdbBase_2.atoms.x[i] != pdb1_2.atoms.x[pos1])
+            std::cout << pdbBase_2.atoms.x[i] << " " << i << " " << pdbBaseRestart.atoms.x[pos1] << " " << pos1 <<  std::endl;
+        EXPECT_EQ(pdbBase_2.atoms.x[i] == pdb1_2.atoms.x[pos1], true);
+        EXPECT_EQ(pdb1_2.atoms.x[i] == pdbBase_2.atoms.x[pos2], true);
         EXPECT_EQ(pos1 == pos2, true);
 
     }
+
 }
