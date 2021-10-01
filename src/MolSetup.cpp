@@ -77,13 +77,13 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 //Builds kindMap from PSF file (does not include coordinates) kindMap
 // should be empty returns number of atoms in the file, or errors::READ_ERROR if
 // the read failed somehow
-int ReadPSF(const char* psfFilename, 
+int ReadPSF(const char* psfFilename,
+            const uint box,
             MoleculeVariables & molVars, 
             MolMap& kindMap, 
             SizeMap& sizeMap, 
             MolMap * kindMapFromBox1 = NULL, 
-            SizeMap * sizeMapFromBox1 = NULL,
-            const uint box);
+            SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
 int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms, MoleculeVariables & molVars);
@@ -284,7 +284,8 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
                               const bool* psfDefined, 
                               pdb_setup::Atoms& pdbAtoms)
 {
-  int errorcode = ReadPSF(psfFilename[0].c_str(), molVars, kindMap, sizeMap, 0);
+  uint box_0 = 0;
+  int errorcode = ReadPSF(psfFilename[box_0].c_str(), box_0, molVars, kindMap, sizeMap);
   int nAtoms = errorcode;
   if (errorcode < 0)
     return errorcode;
@@ -292,13 +293,14 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
   SizeMap sizeMap2;
   if ((int) pdbAtoms.count != nAtoms && BOX_TOTAL == 2 && psfDefined[1]) {    
     map2.clear();
-    errorcode = ReadPSF(psfFilename[1].c_str(), 
+    uint box_1 = 1;
+    errorcode = ReadPSF(psfFilename[box_1].c_str(), 
+                        box_1,
                         molVars, 
                         map2, 
                         sizeMap2, 
                         &kindMap, 
-                        &sizeMap,
-                        1);
+                        &sizeMap);
     nAtoms += errorcode;
     if (errorcode < 0)
       return errorcode;
@@ -898,12 +900,12 @@ namespace
 //Initializes system from PSF file (does not include coordinates)
 //returns number of atoms in the file, or errors::READ_ERROR if the read failed somehow
 int ReadPSF(const char* psfFilename, 
+            const uint box,
             MoleculeVariables & molVars, 
             MolMap& kindMap, 
             SizeMap & sizeMap, 
             MolMap * kindMapFromBox1, 
-            SizeMap * sizeMapFromBox1,
-            const uint box)
+            SizeMap * sizeMapFromBox1)
 {
   FILE* psf = fopen(psfFilename, "r");
   char* check;        //return value of fgets
