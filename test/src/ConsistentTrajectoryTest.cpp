@@ -26,7 +26,7 @@
 
 */
 TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
-    chdir("./test/input/ConsistentTrajectory/Base/");
+    chdir("./test/input/ConsistentTrajectory/AR_KR/Base/");
     Simulation base("in.conf");
     base.RunSimulation();
     chdir("../K_1");
@@ -35,7 +35,7 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
     chdir("../K_N");
     Simulation K_N("in.conf");
     K_N.RunSimulation();
-    chdir("../../../..");
+    chdir("../../../../..");
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
@@ -46,26 +46,26 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2];
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
 
-    pdbnamesSTART[0] = "./test/input/ConsistentTrajectory/Base/START_BOX_0.pdb";
-    pdbnamesSTART[1] = "./test/input/ConsistentTrajectory/Base/START_BOX_1.pdb";
+    pdbnamesSTART[0] = "./test/input/ConsistentTrajectory/AR_KR/Base/START_BOX_0.pdb";
+    pdbnamesSTART[1] = "./test/input/ConsistentTrajectory/AR_KR/Base/START_BOX_1.pdb";
 
-    pdbnamesBase[0] = "./test/input/ConsistentTrajectory/Base/base_BOX_0.pdb";
-    pdbnamesBase[1] = "./test/input/ConsistentTrajectory/Base/base_BOX_1.pdb";
+    pdbnamesBase[0] = "./test/input/ConsistentTrajectory/AR_KR/Base/base_BOX_0.pdb";
+    pdbnamesBase[1] = "./test/input/ConsistentTrajectory/AR_KR/Base/base_BOX_1.pdb";
 
-    pdbnames1[0] = "./test/input/ConsistentTrajectory/K_1/K_1_BOX_0.pdb";
-    pdbnames1[1] = "./test/input/ConsistentTrajectory/K_1/K_1_BOX_1.pdb";
+    pdbnames1[0] = "./test/input/ConsistentTrajectory/AR_KR/K_1/K_1_BOX_0.pdb";
+    pdbnames1[1] = "./test/input/ConsistentTrajectory/AR_KR/K_1/K_1_BOX_1.pdb";
 
-    pdbnamesN[0] = "./test/input/ConsistentTrajectory/K_N/K_N_BOX_0.pdb";
-    pdbnamesN[1] = "./test/input/ConsistentTrajectory/K_N/K_N_BOX_1.pdb";
+    pdbnamesN[0] = "./test/input/ConsistentTrajectory/AR_KR/K_N/K_N_BOX_0.pdb";
+    pdbnamesN[1] = "./test/input/ConsistentTrajectory/AR_KR/K_N/K_N_BOX_1.pdb";
 
-    pdbnamesBaseRestart[0] = "./test/input/ConsistentTrajectory/Base/base_BOX_0_restart.pdb";
-    pdbnamesBaseRestart[1] = "./test/input/ConsistentTrajectory/Base/base_BOX_1_restart.pdb";
+    pdbnamesBaseRestart[0] = "./test/input/ConsistentTrajectory/AR_KR/Base/base_BOX_0_restart.pdb";
+    pdbnamesBaseRestart[1] = "./test/input/ConsistentTrajectory/AR_KR/Base/base_BOX_1_restart.pdb";
 
-    pdbnames1Restart[0] = "./test/input/ConsistentTrajectory/K_1/K_1_BOX_0_restart.pdb";
-    pdbnames1Restart[1] = "./test/input/ConsistentTrajectory/K_1/K_1_BOX_1_restart.pdb";
+    pdbnames1Restart[0] = "./test/input/ConsistentTrajectory/AR_KR/K_1/K_1_BOX_0_restart.pdb";
+    pdbnames1Restart[1] = "./test/input/ConsistentTrajectory/AR_KR/K_1/K_1_BOX_1_restart.pdb";
 
-    pdbnamesNRestart[0] = "./test/input/ConsistentTrajectory/K_N/K_N_BOX_0_restart.pdb";
-    pdbnamesNRestart[1] = "./test/input/ConsistentTrajectory/K_N/K_N_BOX_1_restart.pdb";
+    pdbnamesNRestart[0] = "./test/input/ConsistentTrajectory/AR_KR/K_N/K_N_BOX_0_restart.pdb";
+    pdbnamesNRestart[1] = "./test/input/ConsistentTrajectory/AR_KR/K_N/K_N_BOX_1_restart.pdb";
 
     PDBSetup pdbStart, pdbBase, pdb1, pdbN;
     PDBSetup pdbBaseRestart, pdb1Restart, pdbNRestart;
