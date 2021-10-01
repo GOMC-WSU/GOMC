@@ -367,27 +367,6 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         EXPECT_EQ(pdbBase_Base_To_K_1.atoms.beta[i] == pdb1_Base_To_K_1.atoms.beta[i], true);
     }
 
-    PDBSetup pdbBase_Wrong_Frame_Base_To_K_1;
-    // This is needed to get passed Remark 
-    // Not sure why.
-    frameNum = 1;
-    pdbBase_Wrong_Frame_Base_To_K_1.Init(rsBase, pdbnamesBase, frameNum);  
-
-    int middleFrame = 5;
-    pdbBase_Wrong_Frame_Base_To_K_1.Init(rsBase, pdbnamesBase, middleFrame);    
-
-    // Checks if the last frame the base traj match the first frame of K_1 traj
-    for (uint i = 0; i < pdbBase_Wrong_Frame_Base_To_K_1.atoms.count; ++i){
-        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.x[i] == pdb1_Base_To_K_1.atoms.x[i], false);
-        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.y[i] == pdb1_Base_To_K_1.atoms.y[i], false);
-        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.z[i] == pdb1_Base_To_K_1.atoms.z[i], false);
-
-        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.chainLetter[i] == pdb1_Base_To_K_1.atoms.chainLetter[i], true);
-        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.resNames[i] == pdb1_Base_To_K_1.atoms.resNames[i], true);
-        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.beta[i] == pdb1_Base_To_K_1.atoms.beta[i], true);
-
-    }
-
     PDBSetup pdb1_K_1_To_K_N, pdnN_K_1_To_K_N;
 
     // This is needed to get passed Remark 
@@ -409,26 +388,5 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         EXPECT_EQ(pdb1_K_1_To_K_N.atoms.box[i] == pdnN_K_1_To_K_N.atoms.box[i], true);
         EXPECT_EQ(pdb1_K_1_To_K_N.atoms.resNames[i] == pdnN_K_1_To_K_N.atoms.resNames[i], true);
         EXPECT_EQ(pdb1_K_1_To_K_N.atoms.beta[i] == pdnN_K_1_To_K_N.atoms.beta[i], true);
-    }
-
-    PDBSetup pdb1_Wrong_Frame_K_1_To_K_N;
-    // This is needed to get passed Remark 
-    // Not sure why.
-    frameNum = 1;
-    pdb1_Wrong_Frame_K_1_To_K_N.Init(rs1, pdbnames1, frameNum);  
-
-    middleFrame = 5;
-    pdb1_Wrong_Frame_K_1_To_K_N.Init(rs1, pdbnames1, middleFrame);    
-
-    // Checks if the last frame the base traj match the first frame of K_1 traj
-    for (uint i = 0; i < pdb1_Wrong_Frame_K_1_To_K_N.atoms.count; ++i){
-
-        EXPECT_EQ(pdb1_Wrong_Frame_K_1_To_K_N.atoms.x[i] == pdnN_K_1_To_K_N.atoms.x[i], false);
-        EXPECT_EQ(pdb1_Wrong_Frame_K_1_To_K_N.atoms.y[i] == pdnN_K_1_To_K_N.atoms.y[i], false);
-        EXPECT_EQ(pdb1_Wrong_Frame_K_1_To_K_N.atoms.z[i] == pdnN_K_1_To_K_N.atoms.z[i], false);
-
-        EXPECT_EQ(pdb1_Wrong_Frame_K_1_To_K_N.atoms.chainLetter[i] == pdnN_K_1_To_K_N.atoms.chainLetter[i], true);
-        EXPECT_EQ(pdb1_Wrong_Frame_K_1_To_K_N.atoms.resNames[i] == pdnN_K_1_To_K_N.atoms.resNames[i], true);
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb1_Wrong_Frame_K_1_To_K_N.atoms.beta[i], true);
     }
 }
