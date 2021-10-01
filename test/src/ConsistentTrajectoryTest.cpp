@@ -133,71 +133,141 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
         EXPECT_EQ(pdbN.atoms.x[i] == pdbNRestart.atoms.x[pos], true);
     }
 
-    PDBSetup pdbBase_2, pdb1_2, pdbN_2;
+    PDBSetup pdbBase_Base_To_K_1, pdb1_Base_To_K_1;
 
     // This is needed to get passed Remark 
     // Not sure why.
     frameNum = 1;
-    pdbBase_2.Init(rsBase, pdbnamesBase, frameNum);    
-    pdb1_2.Init(rs1, pdbnames1, frameNum);
+    pdbBase_Base_To_K_1.Init(rsBase, pdbnamesBase, frameNum);    
+    pdb1_Base_To_K_1.Init(rs1, pdbnames1, frameNum);
 
     int lastFrame = 11;
-    pdbBase_2.Init(rsBase, pdbnamesBase, lastFrame);    
+    pdbBase_Base_To_K_1.Init(rsBase, pdbnamesBase, lastFrame);    
 
     // Checks if the last frame the base traj match the first frame of K_1 traj
-    for (uint i = 0; i < pdbBase_2.atoms.count; ++i){
+    for (uint i = 0; i < pdbBase_Base_To_K_1.atoms.count; ++i){
         // Find mol i's chain index in restart output files 
-        ptrdiff_t pos1 = find(pdb1_2.atoms.chainLetter.begin(), 
-            pdb1_2.atoms.chainLetter.end(), pdbBase_2.atoms.chainLetter[i])
-            - pdb1_2.atoms.chainLetter.begin();
-         ptrdiff_t pos2 = find(pdbBase_2.atoms.chainLetter.begin(), 
-            pdbBase_2.atoms.chainLetter.end(), pdb1_2.atoms.chainLetter[i])
-            - pdbBase_2.atoms.chainLetter.begin();
-        if(pdbBase_2.atoms.x[i] != pdb1_2.atoms.x[pos1])
-            std::cout << pdbBase_2.atoms.x[i] << " " << i << " " << pdbBaseRestart.atoms.x[pos1] << " " << pos1 <<  std::endl;
-        EXPECT_EQ(pdbBase_2.atoms.x[i] == pdb1_2.atoms.x[pos1], true);
-        EXPECT_EQ(pdbBase_2.atoms.y[i] == pdb1_2.atoms.y[pos1], true);
-        EXPECT_EQ(pdbBase_2.atoms.z[i] == pdb1_2.atoms.z[pos1], true);
+        ptrdiff_t pos1 = find(pdb1_Base_To_K_1.atoms.chainLetter.begin(), 
+            pdb1_Base_To_K_1.atoms.chainLetter.end(), pdbBase_Base_To_K_1.atoms.chainLetter[i])
+            - pdb1_Base_To_K_1.atoms.chainLetter.begin();
+         ptrdiff_t pos2 = find(pdbBase_Base_To_K_1.atoms.chainLetter.begin(), 
+            pdbBase_Base_To_K_1.atoms.chainLetter.end(), pdb1_Base_To_K_1.atoms.chainLetter[i])
+            - pdbBase_Base_To_K_1.atoms.chainLetter.begin();
+        if(pdbBase_Base_To_K_1.atoms.x[i] != pdb1_Base_To_K_1.atoms.x[pos1])
+            std::cout << pdbBase_Base_To_K_1.atoms.x[i] << " " << i << " " << pdbBaseRestart.atoms.x[pos1] << " " << pos1 <<  std::endl;
+        EXPECT_EQ(pdbBase_Base_To_K_1.atoms.x[i] == pdb1_Base_To_K_1.atoms.x[pos1], true);
+        EXPECT_EQ(pdbBase_Base_To_K_1.atoms.y[i] == pdb1_Base_To_K_1.atoms.y[pos1], true);
+        EXPECT_EQ(pdbBase_Base_To_K_1.atoms.z[i] == pdb1_Base_To_K_1.atoms.z[pos1], true);
 
-        EXPECT_EQ(pdb1_2.atoms.x[i] == pdbBase_2.atoms.x[pos2], true);
-        EXPECT_EQ(pdb1_2.atoms.y[i] == pdbBase_2.atoms.y[pos2], true);
-        EXPECT_EQ(pdb1_2.atoms.z[i] == pdbBase_2.atoms.z[pos2], true);
+        EXPECT_EQ(pdb1_Base_To_K_1.atoms.x[i] == pdbBase_Base_To_K_1.atoms.x[pos2], true);
+        EXPECT_EQ(pdb1_Base_To_K_1.atoms.y[i] == pdbBase_Base_To_K_1.atoms.y[pos2], true);
+        EXPECT_EQ(pdb1_Base_To_K_1.atoms.z[i] == pdbBase_Base_To_K_1.atoms.z[pos2], true);
 
-        EXPECT_EQ(pdbBase_2.atoms.chainLetter[i] == pdb1_2.atoms.chainLetter[pos1], true);
-        EXPECT_EQ(pdbBase_2.atoms.box[i] == pdb1_2.atoms.box[pos1], true);
-        EXPECT_EQ(pdbBase_2.atoms.resNames[i] == pdb1_2.atoms.resNames[pos1], true);
-        EXPECT_EQ(pdb1_2.atoms.beta[i] == pdbBase_2.atoms.beta[pos2], true);
+        EXPECT_EQ(pdbBase_Base_To_K_1.atoms.chainLetter[i] == pdb1_Base_To_K_1.atoms.chainLetter[pos1], true);
+        EXPECT_EQ(pdbBase_Base_To_K_1.atoms.box[i] == pdb1_Base_To_K_1.atoms.box[pos1], true);
+        EXPECT_EQ(pdbBase_Base_To_K_1.atoms.resNames[i] == pdb1_Base_To_K_1.atoms.resNames[pos1], true);
+        EXPECT_EQ(pdb1_Base_To_K_1.atoms.beta[i] == pdbBase_Base_To_K_1.atoms.beta[pos2], true);
 
         EXPECT_EQ(pos1 == pos2, true);
     }
 
-    PDBSetup pdbBase_3;
+    PDBSetup pdbBase_Wrong_Frame_Base_To_K_1;
     // This is needed to get passed Remark 
     // Not sure why.
     frameNum = 1;
-    pdbBase_3.Init(rsBase, pdbnamesBase, frameNum);  
+    pdbBase_Wrong_Frame_Base_To_K_1.Init(rsBase, pdbnamesBase, frameNum);  
 
     int middleFrame = 5;
-    pdbBase_3.Init(rsBase, pdbnamesBase, middleFrame);    
+    pdbBase_Wrong_Frame_Base_To_K_1.Init(rsBase, pdbnamesBase, middleFrame);    
 
     // Checks if the last frame the base traj match the first frame of K_1 traj
-    for (uint i = 0; i < pdbBase_3.atoms.count; ++i){
+    for (uint i = 0; i < pdbBase_Wrong_Frame_Base_To_K_1.atoms.count; ++i){
         // Find mol i's chain index in restart output files 
-        ptrdiff_t pos1 = find(pdb1_2.atoms.chainLetter.begin(), 
-            pdb1_2.atoms.chainLetter.end(), pdbBase_3.atoms.chainLetter[i])
-            - pdb1_2.atoms.chainLetter.begin();
-         ptrdiff_t pos2 = find(pdbBase_3.atoms.chainLetter.begin(), 
-            pdbBase_3.atoms.chainLetter.end(), pdb1_2.atoms.chainLetter[i])
-            - pdbBase_3.atoms.chainLetter.begin();
-            
-        EXPECT_EQ(pdbBase_3.atoms.x[i] == pdb1_2.atoms.x[pos1], false);
-        EXPECT_EQ(pdbBase_3.atoms.y[i] == pdb1_2.atoms.y[pos1], false);
-        EXPECT_EQ(pdbBase_3.atoms.z[i] == pdb1_2.atoms.z[pos1], false);
+        ptrdiff_t pos1 = find(pdb1_Base_To_K_1.atoms.chainLetter.begin(), 
+            pdb1_Base_To_K_1.atoms.chainLetter.end(), pdbBase_Wrong_Frame_Base_To_K_1.atoms.chainLetter[i])
+            - pdb1_Base_To_K_1.atoms.chainLetter.begin();
+         ptrdiff_t pos2 = find(pdbBase_Wrong_Frame_Base_To_K_1.atoms.chainLetter.begin(), 
+            pdbBase_Wrong_Frame_Base_To_K_1.atoms.chainLetter.end(), pdb1_Base_To_K_1.atoms.chainLetter[i])
+            - pdbBase_Wrong_Frame_Base_To_K_1.atoms.chainLetter.begin();
 
-        EXPECT_EQ(pdb1_2.atoms.x[i] == pdbBase_3.atoms.x[pos2], false);
-        EXPECT_EQ(pdb1_2.atoms.y[i] == pdbBase_3.atoms.y[pos2], false);
-        EXPECT_EQ(pdb1_2.atoms.z[i] == pdbBase_3.atoms.z[pos2], false);
+        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.x[i] == pdb1_Base_To_K_1.atoms.x[pos1], false);
+        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.y[i] == pdb1_Base_To_K_1.atoms.y[pos1], false);
+        EXPECT_EQ(pdbBase_Wrong_Frame_Base_To_K_1.atoms.z[i] == pdb1_Base_To_K_1.atoms.z[pos1], false);
+
+        EXPECT_EQ(pdb1_Base_To_K_1.atoms.x[i] == pdbBase_Wrong_Frame_Base_To_K_1.atoms.x[pos2], false);
+        EXPECT_EQ(pdb1_Base_To_K_1.atoms.y[i] == pdbBase_Wrong_Frame_Base_To_K_1.atoms.y[pos2], false);
+        EXPECT_EQ(pdb1_Base_To_K_1.atoms.z[i] == pdbBase_Wrong_Frame_Base_To_K_1.atoms.z[pos2], false);
 
         EXPECT_EQ(pos1 == pos2, true);
     }
+
+    PDBSetup pdb1_K_1_To_K_N, pdnN_K_1_To_K_N;
+
+    // This is needed to get passed Remark 
+    // Not sure why.
+    frameNum = 1;
+    pdb1_K_1_To_K_N.Init(rs1, pdbnames1, frameNum);    
+    pdnN_K_1_To_K_N.Init(rsN, pdbnamesN, frameNum);
+
+    lastFrame = 11;
+    pdb1_K_1_To_K_N.Init(rs1, pdbnames1, lastFrame);    
+
+    // Checks if the last frame the base traj match the first frame of K_1 traj
+    for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
+        // Find mol i's chain index in restart output files 
+        ptrdiff_t pos1 = find(pdnN_K_1_To_K_N.atoms.chainLetter.begin(), 
+            pdnN_K_1_To_K_N.atoms.chainLetter.end(), pdb1_K_1_To_K_N.atoms.chainLetter[i])
+            - pdnN_K_1_To_K_N.atoms.chainLetter.begin();
+         ptrdiff_t pos2 = find(pdb1_K_1_To_K_N.atoms.chainLetter.begin(), 
+            pdb1_K_1_To_K_N.atoms.chainLetter.end(), pdnN_K_1_To_K_N.atoms.chainLetter[i])
+            - pdb1_K_1_To_K_N.atoms.chainLetter.begin();
+        if(pdb1_K_1_To_K_N.atoms.x[i] != pdnN_K_1_To_K_N.atoms.x[pos1])
+            std::cout << pdb1_K_1_To_K_N.atoms.x[i] << " " << i << " " << pdbBaseRestart.atoms.x[pos1] << " " << pos1 <<  std::endl;
+        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.x[i] == pdnN_K_1_To_K_N.atoms.x[pos1], true);
+        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.y[i] == pdnN_K_1_To_K_N.atoms.y[pos1], true);
+        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.z[i] == pdnN_K_1_To_K_N.atoms.z[pos1], true);
+
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.x[i] == pdb1_K_1_To_K_N.atoms.x[pos2], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.y[i] == pdb1_K_1_To_K_N.atoms.y[pos2], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.z[i] == pdb1_K_1_To_K_N.atoms.z[pos2], true);
+
+        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.chainLetter[i] == pdnN_K_1_To_K_N.atoms.chainLetter[pos1], true);
+        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.box[i] == pdnN_K_1_To_K_N.atoms.box[pos1], true);
+        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.resNames[i] == pdnN_K_1_To_K_N.atoms.resNames[pos1], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb1_K_1_To_K_N.atoms.beta[pos2], true);
+
+        EXPECT_EQ(pos1 == pos2, true);
+    }
+
+    PDBSetup pdb1_Wrong_Frame_K_1_To_K_N;
+    // This is needed to get passed Remark 
+    // Not sure why.
+    frameNum = 1;
+    pdb1_Wrong_Frame_K_1_To_K_N.Init(rs1, pdbnames1, frameNum);  
+
+    middleFrame = 5;
+    pdb1_Wrong_Frame_K_1_To_K_N.Init(rs1, pdbnames1, middleFrame);    
+
+    // Checks if the last frame the base traj match the first frame of K_1 traj
+    for (uint i = 0; i < pdb1_Wrong_Frame_K_1_To_K_N.atoms.count; ++i){
+        // Find mol i's chain index in restart output files 
+        ptrdiff_t pos1 = find(pdnN_K_1_To_K_N.atoms.chainLetter.begin(), 
+            pdnN_K_1_To_K_N.atoms.chainLetter.end(), pdb1_Wrong_Frame_K_1_To_K_N.atoms.chainLetter[i])
+            - pdnN_K_1_To_K_N.atoms.chainLetter.begin();
+         ptrdiff_t pos2 = find(pdb1_Wrong_Frame_K_1_To_K_N.atoms.chainLetter.begin(), 
+            pdb1_Wrong_Frame_K_1_To_K_N.atoms.chainLetter.end(), pdnN_K_1_To_K_N.atoms.chainLetter[i])
+            - pdb1_Wrong_Frame_K_1_To_K_N.atoms.chainLetter.begin();
+
+        EXPECT_EQ(pdb1_Wrong_Frame_K_1_To_K_N.atoms.x[i] == pdnN_K_1_To_K_N.atoms.x[pos1], false);
+        EXPECT_EQ(pdb1_Wrong_Frame_K_1_To_K_N.atoms.y[i] == pdnN_K_1_To_K_N.atoms.y[pos1], false);
+        EXPECT_EQ(pdb1_Wrong_Frame_K_1_To_K_N.atoms.z[i] == pdnN_K_1_To_K_N.atoms.z[pos1], false);
+
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.x[i] == pdb1_Wrong_Frame_K_1_To_K_N.atoms.x[pos2], false);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.y[i] == pdb1_Wrong_Frame_K_1_To_K_N.atoms.y[pos2], false);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.z[i] == pdb1_Wrong_Frame_K_1_To_K_N.atoms.z[pos2], false);
+
+        EXPECT_EQ(pos1 == pos2, true);
+    }
+
+
 }
