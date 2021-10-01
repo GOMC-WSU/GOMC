@@ -99,6 +99,8 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
     pdb1Restart.Init(rs1Restart, pdbnames1Restart);
     pdbNRestart.Init(rsNRestart, pdbnamesNRestart);
     
+
+    // Checks if the coordinates of the traj match the restart file
     for (uint i = 0; i < pdbBase.atoms.count; ++i){
         /* Find mol i's chain index in restart output files */
         ptrdiff_t pos = find(pdbBaseRestart.atoms.chainLetter.begin(), 
@@ -109,6 +111,7 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
         EXPECT_EQ(pdbBase.atoms.x[i] == pdbBaseRestart.atoms.x[pos], true);
     }
 
+    // Checks if the coordinates of the traj match the restart file
     for (uint i = 0; i < pdb1.atoms.count; ++i){
         /* Find mol i's chain index in restart output files */
         ptrdiff_t pos = find(pdb1Restart.atoms.chainLetter.begin(), 
@@ -119,6 +122,7 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
         EXPECT_EQ(pdb1.atoms.x[i] == pdb1Restart.atoms.x[pos], true);
     }
 
+    // Checks if the coordinates of the traj match the restart file
     for (uint i = 0; i < pdbN.atoms.count; ++i){
         /* Find mol i's chain index in restart output files */
         ptrdiff_t pos = find(pdbNRestart.atoms.chainLetter.begin(), 
@@ -127,5 +131,27 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
         if(pdbN.atoms.x[i] != pdbNRestart.atoms.x[pos])
             std::cout << pdbN.atoms.x[i] << " " << i << " " << pdbNRestart.atoms.x[pos] << " " << pos <<  std::endl;
         EXPECT_EQ(pdbN.atoms.x[i] == pdbNRestart.atoms.x[pos], true);
+    }
+
+    int firstFrame = 1;
+    int lastFrame = 11;
+    pdbBase.Init(rsBase, pdbnamesBase, lastFrame);    
+    pdb1.Init(rs1, pdbnames1, firstFrame);
+
+    // Checks if the last frame the base traj match the first frame of K_1 traj
+    for (uint i = 0; i < pdbBase.atoms.count; ++i){
+        /* Find mol i's chain index in restart output files */
+        ptrdiff_t pos1 = find(pdb1.atoms.chainLetter.begin(), 
+            pdb1.atoms.chainLetter.end(), pdbBase.atoms.chainLetter[i])
+            - pdb1.atoms.chainLetter.begin();
+         ptrdiff_t pos2 = find(pdbBase.atoms.chainLetter.begin(), 
+            pdbBase.atoms.chainLetter.end(), pdb1.atoms.chainLetter[i])
+            - pdbBase.atoms.chainLetter.begin();
+        if(pdbBase.atoms.x[i] != pdb1.atoms.x[pos1])
+            std::cout << pdbBase.atoms.x[i] << " " << i << " " << pdbBaseRestart.atoms.x[pos1] << " " << pos1 <<  std::endl;
+        EXPECT_EQ(pdbBase.atoms.x[i] == pdb1.atoms.x[pos1], true);
+        EXPECT_EQ(pdb1.atoms.x[i] == pdbBase.atoms.x[pos2], true);
+        EXPECT_EQ(pos1 == pos2, true);
+
     }
 }
