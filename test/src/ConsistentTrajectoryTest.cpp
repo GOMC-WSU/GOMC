@@ -8,7 +8,7 @@
 #include "Reader.h"
 #include "InputFileReader.h"
 #include "Simulation.h"
-
+#include<unistd.h> 
 /* There are 4 cases for restarting from checkpoint 
 
 1) Base Case:
@@ -26,13 +26,16 @@
 
 */
 TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
-
-    Simulation base("./test/input/ConsistentTrajectory/Base/in.conf");
+    chdir("./test/input/ConsistentTrajectory/Base/");
+    Simulation base("in.conf");
     base.RunSimulation();
-    Simulation K_1("./test/input/ConsistentTrajectory/K_1/in.conf");
+    chdir("../K_1");
+    Simulation K_1("in.conf");
     K_1.RunSimulation();
-    Simulation K_N("./test/input/ConsistentTrajectory/K_N/in.conf");
+    chdir("../K_N");
+    Simulation K_N("in.conf");
     K_N.RunSimulation();
+    chdir("../../../..");
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
@@ -43,26 +46,26 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2];
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
 
-    pdbnamesSTART[0] = "./test/input/ConsistentTrajectory/START_BOX_0.pdb";
-    pdbnamesSTART[1] = "./test/input/ConsistentTrajectory/START_BOX_1.pdb";
+    pdbnamesSTART[0] = "./test/input/ConsistentTrajectory/Base/START_BOX_0.pdb";
+    pdbnamesSTART[1] = "./test/input/ConsistentTrajectory/Base/START_BOX_1.pdb";
 
-    pdbnamesBase[0] = "./test/input/ConsistentTrajectory/base_BOX_0.pdb";
-    pdbnamesBase[1] = "./test/input/ConsistentTrajectory/base_BOX_1.pdb";
+    pdbnamesBase[0] = "./test/input/ConsistentTrajectory/Base/base_BOX_0.pdb";
+    pdbnamesBase[1] = "./test/input/ConsistentTrajectory/Base/base_BOX_1.pdb";
 
-    pdbnames1[0] = "./test/input/ConsistentTrajectory/K_1_BOX_0.pdb";
-    pdbnames1[1] = "./test/input/ConsistentTrajectory/K_1_BOX_1.pdb";
+    pdbnames1[0] = "./test/input/ConsistentTrajectory/K_1/K_1_BOX_0.pdb";
+    pdbnames1[1] = "./test/input/ConsistentTrajectory/K_1/K_1_BOX_1.pdb";
 
-    pdbnamesN[0] = "./test/input/ConsistentTrajectory/K_N_BOX_0.pdb";
-    pdbnamesN[1] = "./test/input/ConsistentTrajectory/K_N_BOX_1.pdb";
+    pdbnamesN[0] = "./test/input/ConsistentTrajectory/K_N/K_N_BOX_0.pdb";
+    pdbnamesN[1] = "./test/input/ConsistentTrajectory/K_N/K_N_BOX_1.pdb";
 
-    pdbnamesBaseRestart[0] = "./test/input/ConsistentTrajectory/base_BOX_0_restart.pdb";
-    pdbnamesBaseRestart[1] = "./test/input/ConsistentTrajectory/base_BOX_1_restart.pdb";
+    pdbnamesBaseRestart[0] = "./test/input/ConsistentTrajectory/Base/base_BOX_0_restart.pdb";
+    pdbnamesBaseRestart[1] = "./test/input/ConsistentTrajectory/Base/base_BOX_1_restart.pdb";
 
-    pdbnames1Restart[0] = "./test/input/ConsistentTrajectory/K_1_BOX_0_restart.pdb";
-    pdbnames1Restart[1] = "./test/input/ConsistentTrajectory/K_1_BOX_1_restart.pdb";
+    pdbnames1Restart[0] = "./test/input/ConsistentTrajectory/K_1/K_1_BOX_0_restart.pdb";
+    pdbnames1Restart[1] = "./test/input/ConsistentTrajectory/K_1/K_1_BOX_1_restart.pdb";
 
-    pdbnamesNRestart[0] = "./test/input/ConsistentTrajectory/K_N_BOX_0_restart.pdb";
-    pdbnamesNRestart[1] = "./test/input/ConsistentTrajectory/K_N_BOX_1_restart.pdb";
+    pdbnamesNRestart[0] = "./test/input/ConsistentTrajectory/K_N/K_N_BOX_0_restart.pdb";
+    pdbnamesNRestart[1] = "./test/input/ConsistentTrajectory/K_N/K_N_BOX_1_restart.pdb";
 
     PDBSetup pdbStart, pdbBase, pdb1, pdbN;
     PDBSetup pdbBaseRestart, pdb1Restart, pdbNRestart;
@@ -72,15 +75,14 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
     rs1.recalcTrajectory = true;
     rsN.recalcTrajectory = true;
 
+    // This is needed to get passed Remark 
     uint frameNum = 1;
-
     pdbStart.Init(rsStart, pdbnamesSTART);
-    //pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
-    //pdb1.Init(rs1, pdbnames1, frameNum);
-    //pdbN.Init(rsN, pdbnamesN, frameNum);
+    pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
+    pdb1.Init(rs1, pdbnames1, frameNum);
+    pdbN.Init(rsN, pdbnamesN, frameNum);
 
     frameNum = 11;
-
     pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
     pdb1.Init(rs1, pdbnames1, frameNum);
     pdbN.Init(rsN, pdbnamesN, frameNum);
