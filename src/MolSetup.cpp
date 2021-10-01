@@ -380,11 +380,6 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
   AlphaNum uniqueSuffixGenerator;
   if (box == 0){
     startIdxAtomBoxOffset = 0;
-    //molVars.startIdxMolecules.clear();
-    //molVars.moleculeKinds.clear();
-    //molVars.moleculeKindNames.clear();
-    //molVars.moleculeNames.clear();
-    //molVars.moleculeSegmentNames.clear();
   } else {
     startIdxAtomBoxOffset = molVars.lastAtomIndexInBox0 + 1;
   }
