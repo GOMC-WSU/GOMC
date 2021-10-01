@@ -12,12 +12,7 @@ set(TestHeaders
     lib/NumLib.h
 )
 
-set(MPITestSources
-    test/src/ParallelTemperingTest.cpp
-    test/src/gtest-mpi-listener.hpp
-)
-
-set(GOMCSources
+set(GOMCSources 
    src/BlockOutput.cpp
    src/BondAdjacencyList.cpp
    src/BoxDimensions.cpp
@@ -86,7 +81,6 @@ set(GOMCSources
    src/cbmc/TrialMol.cpp)
 
 set(GOMCHeaders
-    GOMC_Config.h
    src/BlockOutput.h
    src/BondAdjacencyList.h
    src/BoxDimensions.h

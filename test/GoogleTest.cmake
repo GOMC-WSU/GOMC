@@ -3,7 +3,7 @@
 function(add_NVT_test name)
       set(NVT_flags "-DENSEMBLE=1")
       # My test are all called name_test.cpp
-      add_executable(${name} ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
+      add_executable(${name} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
       target_link_libraries(${name} gtest_main)
       set_target_properties(${name} PROPERTIES 
       COMPILE_FLAGS "${NVT_flags}")
@@ -17,7 +17,7 @@ endfunction(add_NVT_test)
 function(add_NPT_test name)
       set(NPT_flags "-DENSEMBLE=4")
       # My test are all called name_test.cpp
-      add_executable(${name} ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
+      add_executable(${name} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
       target_link_libraries(${name} gtest_main)
       set_target_properties(${name} PROPERTIES 
       COMPILE_FLAGS "${NPT_flags}")
@@ -31,7 +31,7 @@ endfunction(add_NPT_test)
 function(add_GCMC_test name)
       set(GCMC_flags "-DENSEMBLE=3")
       # My test are all called name_test.cpp
-      add_executable(${name} ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
+      add_executable(${name} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
       target_link_libraries(${name} gtest_main)
       set_target_properties(${name} PROPERTIES 
       COMPILE_FLAGS "${GCMC_flags}")
@@ -46,7 +46,7 @@ endfunction(add_GCMC_test)
 function(add_GEMC_test name)
       set(GEMC_flags "-DENSEMBLE=2")
       # My test are all called name_test.cpp
-      add_executable(${name} ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
+      add_executable(${name} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
       target_link_libraries(${name} gtest_main)
       set_target_properties(${name} PROPERTIES 
       COMPILE_FLAGS "${GEMC_flags}")
