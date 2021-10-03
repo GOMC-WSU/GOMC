@@ -336,6 +336,10 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     config_setup::RestartSettings rs1Restart;
     config_setup::RestartSettings rsNRestart;
 
+    rsBaseRestart.recalcTrajectory = false;
+    rs1Restart.recalcTrajectory = false;
+    rsNRestart.recalcTrajectory = false;
+
     rsBaseRestart.restartFromCheckpoint = true;
     rs1Restart.restartFromCheckpoint = true;
     rsNRestart.restartFromCheckpoint = true;
