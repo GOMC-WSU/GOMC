@@ -118,12 +118,6 @@ void System::Init(Setup & set, ulong & startStep)
   if(set.config.sys.step.initStepRead){
     startStep = set.config.sys.step.initStep;
   }
-  // True if either InitStep or Checkpoint is used.
-  // Frequency isn't a frequency, but the value of
-  // the startStep.
-  if(set.config.out.startedAtStepOtherThanZero.enable){
-    set.config.out.startedAtStepOtherThanZero.frequency = startStep;
-  }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   // set coordinates and velocities for atoms in system
