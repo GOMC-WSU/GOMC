@@ -68,7 +68,12 @@ public:
 #if ENSEMBLE == GCMC
   double * chemPot;
 #elif ENSEMBLE == GEMC
+  //Which box is the liquid in gibbs ensemble
+  uint liqBox, vapBox;
   double heatOfVap;
+  double heatOfVap_energy_term_box[BOX_TOTAL];
+  double heatOfVap_density_term_box[BOX_TOTAL];
+
 #endif
 };
 
