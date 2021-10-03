@@ -248,7 +248,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     middleFrame = 5;
     pdb1_Wrong_Frame_K_1_To_K_N.Init(rs1, pdbnames1, middleFrame);    
 
-    // Checks if the last frame the base traj match the first frame of K_1 traj
+    // Checks if the last frame the K_1 traj match the first frame of K_N traj
     for (uint i = 0; i < pdb1_Wrong_Frame_K_1_To_K_N.atoms.count; ++i){
         // Find mol i's chain index in restart output files 
         ptrdiff_t pos1 = find(pdnN_K_1_To_K_N.atoms.chainLetter.begin(), 
@@ -382,7 +382,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     lastFrame = 11;
     pdb1_K_1_To_K_N.Init(rs1, pdbnames1, lastFrame);    
 
-    // Checks if the last frame the base traj match the first frame of K_1 traj
+    // Checks if the last frame the K_1 traj match the first frame of K_N traj
     for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
         EXPECT_EQ(pdb1_K_1_To_K_N.atoms.x[i] == pdnN_K_1_To_K_N.atoms.x[i], true);
         EXPECT_EQ(pdb1_K_1_To_K_N.atoms.y[i] == pdnN_K_1_To_K_N.atoms.y[i], true);
