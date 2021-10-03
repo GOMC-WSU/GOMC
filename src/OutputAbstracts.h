@@ -140,6 +140,9 @@ public:
 
   //Contains references to various objects.
   OutputVars * var;
+
+  ulong startStep;
+  bool startStepWasntZero;
 };
 
 #endif /*OUTPUT_ABSTRACTS_H*/

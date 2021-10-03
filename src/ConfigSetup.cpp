@@ -1618,6 +1618,13 @@ void ConfigSetup::verifyInputs(void)
 {
   int i;
 
+  // We modify output behavior of objects which sample,
+  // if step doesn't start at 0, to not output a value
+  // that only sampled one point.  Block Avg and EnCptPrt
+  if(sys.step.initStepRead || in.restart.restartFromCheckpoint){
+    out.startedAtStepOtherThanZero.enable = true;
+  }
+
   #ifdef VARIABLE_PARTICLE_NUMBER
   if(sys.targetedSwapCollection.enable) {
     for (i = 0; i < (int) sys.targetedSwapCollection.targetedSwap.size(); i++) {

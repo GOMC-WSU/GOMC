@@ -886,7 +886,7 @@ struct Output {
   SysState state, restart, state_dcd, restart_dcd;
   SysState restart_vel;
   Statistics statistics;
-  EventSettings console, checkpoint;
+  EventSettings console, checkpoint, startedAtStepOtherThanZero;
 };
 
 }
