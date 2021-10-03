@@ -53,8 +53,9 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    /* merged psf only prints on first step  - onlyPrintOnFirstStep == true for merged psf*/
-    if ((onlyPrintOnFirstStep && step == 1) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
+    /* merged psf only prints on first step  - onlyPrintOnFirstStep == true for merged psf
+       onlyPrintOnFirstStep == false for all other output objects */
+    if ((enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
       DoOutput(step);
       firstPrint = false;
     }
@@ -67,10 +68,16 @@ public:
   }
 
   void Init(pdb_setup::Atoms const& atoms,
+            config_setup::Input const& input,
             config_setup::Output const& output,
+            config_setup::SystemVals const& sys,
+            const ulong startStep,
             const ulong tillEquil,
             const ulong totSteps)
   {
+    initStepRead = sys.step.initStepRead;
+    this->startStep = startStep;
+    restartFromCheckpoint = input.restart.restartFromCheckpoint;
     Init(tillEquil, totSteps, output.statistics.settings.uniqueStr.val);
     Init(atoms, output);
   }
@@ -135,11 +142,12 @@ public:
 #if GOMC_LIB_MPI
   std::string pathToReplicaOutputDirectory;
 #endif
-  ulong stepsPerOut = 0, stepsRestPerOut = 0, stepsTillEquil = 0, totSimSteps = 0;
+  ulong stepsPerOut = 0, stepsRestPerOut = 0, stepsTillEquil = 0, totSimSteps = 0, startStep = 0;
   bool enableOut = false, enableRestOut = false, firstPrint = true, forceOutput = false, onlyPrintOnFirstStep = false;
 
   //Contains references to various objects.
   OutputVars * var;
+  bool restartFromCheckpoint, initStepRead;
 };
 
 #endif /*OUTPUT_ABSTRACTS_H*/

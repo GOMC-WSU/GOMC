@@ -110,6 +110,9 @@ void PSFOutput::DoOutputRestart(const ulong step)
 
 /* Output (merged_psf) occurs in Constructor only */
 void PSFOutput::DoOutput(const ulong step){
+  (!restartFromCheckpoint && onlyPrintOnFirstStep && step == startStep) 
+    return;
+
   GOMC_EVENT_START(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
 
   CountMolecules();

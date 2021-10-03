@@ -25,7 +25,9 @@ CPUSide::CPUSide(System & sys, StaticVals & statV, Setup & set) :
 {}
 
 void CPUSide::Init( PDBSetup const& pdbSet, 
+                    config_setup::Input const& in,
                     config_setup::Output const& out,
+                    config_setup::SystemVals const& sys,
                     const ulong tillEquil, 
                     const ulong totSteps, 
                     ulong startStep)
@@ -54,7 +56,7 @@ void CPUSide::Init( PDBSetup const& pdbSet,
   //Calculate pressure, heat of vap. (if applicable), etc.
   varRef.CalcAndConvert(0);
   for (uint o = 0; o < outObj.size(); o++)
-    outObj[o]->Init(pdbSet.atoms, out, tillEquil, totSteps);
+    outObj[o]->Init(pdbSet.atoms, in, out, sys, startStep, tillEquil, totSteps);
 }
 
 void CPUSide::Output(const ulong step)

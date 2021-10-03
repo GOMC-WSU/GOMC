@@ -133,6 +133,8 @@ void BlockAverages::Sample(const ulong step)
 
 void BlockAverages::DoOutput(const ulong step)
 {
+  if ((restartFromCheckpoint || initStepRead) && step == startStep)
+    return;
   GOMC_EVENT_START(1, GomcProfileEvent::BLK_OUTPUT);
   ulong nextStep = step + 1;
   outBlock0 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << nextStep;
