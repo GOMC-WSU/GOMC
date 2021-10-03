@@ -133,6 +133,7 @@ void BlockAverages::Sample(const ulong step)
 
 void BlockAverages::DoOutput(const ulong step)
 {
+  // Prevent outputting a Blk value that is only sampled once
   if ((restartFromCheckpoint || initStepRead) && step == startStep)
     return;
   GOMC_EVENT_START(1, GomcProfileEvent::BLK_OUTPUT);

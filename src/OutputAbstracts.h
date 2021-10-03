@@ -53,16 +53,13 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    /* merged psf only prints on first step  - onlyPrintOnFirstStep == true for merged psf
-       onlyPrintOnFirstStep == false for all other output objects */
     if ((enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
       DoOutput(step);
       firstPrint = false;
     }
 
     /* We will output if the step number is every stepsRestPerOut */
-    /* (forceOutput && onlyPrintOnFirstStep) - only ever true for PSF files, which I want to see to test collation */
-    if ((enableRestOut && ((step + 1) % stepsRestPerOut == 0)) || (forceOutput && onlyPrintOnFirstStep)) {
+    if ((enableRestOut && ((step + 1) % stepsRestPerOut == 0)) || forceOutput) {
       DoOutputRestart(step);
     }
   }
@@ -143,7 +140,7 @@ public:
   std::string pathToReplicaOutputDirectory;
 #endif
   ulong stepsPerOut = 0, stepsRestPerOut = 0, stepsTillEquil = 0, totSimSteps = 0, startStep = 0;
-  bool enableOut = false, enableRestOut = false, firstPrint = true, forceOutput = false, onlyPrintOnFirstStep = false;
+  bool enableOut = false, enableRestOut = false, firstPrint = true, forceOutput = false;
 
   //Contains references to various objects.
   OutputVars * var;
