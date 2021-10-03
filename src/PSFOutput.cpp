@@ -51,7 +51,7 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
   outFName = set.config.out.state.files.psf.name;
   /* To eliminate arithmetic exceptions */
   stepsPerOut = 1;
-
+  printOnFirstStep = true;
 }
 
 

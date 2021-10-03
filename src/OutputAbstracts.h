@@ -53,7 +53,8 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    if ((enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
+    /* printOnFirstStep -- only true for PSFOutput */
+    if ((printOnFirstStep && step == startStep) || (enableOut && ((step + 1) % stepsPerOut == 0) || forceOutput)) {
       DoOutput(step);
       firstPrint = false;
     }
@@ -140,7 +141,7 @@ public:
   std::string pathToReplicaOutputDirectory;
 #endif
   ulong stepsPerOut = 0, stepsRestPerOut = 0, stepsTillEquil = 0, totSimSteps = 0, startStep = 0;
-  bool enableOut = false, enableRestOut = false, firstPrint = true, forceOutput = false;
+  bool enableOut = false, enableRestOut = false, firstPrint = true, forceOutput = false, printOnFirstStep = false;
 
   //Contains references to various objects.
   OutputVars * var;
