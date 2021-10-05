@@ -45,6 +45,8 @@ struct BlockAverage {
             std::ofstream *file1,
             const bool en,
             const double scl,
+            const double firstPrint_scl,
+            bool & firstPrint,
             std::string const& var,
             const uint bTot = BOX_TOTAL);
 
@@ -60,9 +62,8 @@ struct BlockAverage {
     dblSrc[b] = NULL;
   }
   void Sum(void);
-  void Write(const bool firstPrint, uint precision)
+  void Write(uint precision)
   {
-    first = firstPrint;
     if (enable)
       DoWrite(precision);
   }
@@ -79,12 +80,12 @@ private:
 
   std::ofstream* outBlock0;
   std::ofstream* outBlock1;
-  bool first;
+  bool * first;
   std::string name, varName;
   uint ** uintSrc, tot;
   double ** dblSrc;
-  double * block, scl;
-  uint samples;
+  double * block, scl, fp_scl;
+  uint samples = 0;
   bool enable;
 };
 /**********************************************************************/
@@ -120,7 +121,11 @@ private:
   void InitVals(config_setup::EventSettings const& event)
   {
     stepsPerOut = event.frequency;
+    firstInvSteps = 1.0 / startStep;
     invSteps = 1.0 / stepsPerOut;
+    // We only subtract the firstInvSteps on 
+    // first print with startStep != 0
+    // invSteps - firstInvSteps = 1/(stepsPerOut-startStep)
     enableOut = event.enable;
   }
   void AllocBlocks(void);
@@ -137,6 +142,7 @@ private:
   uint samplesWrites;
   //Constants
   double invSteps;
+  double firstInvSteps;
 };
 
 #endif /*BLOCK_OUTPUT_H*/

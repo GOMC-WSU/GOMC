@@ -21,6 +21,8 @@ void BlockAverage::Init(std::ofstream* file0,
                         std::ofstream* file1,
                         const bool en,
                         const double scale,
+                        const double firstPrint_scale,
+                        bool & firstPrint,
                         std::string const& var,
                         const uint bTot)
 {
@@ -32,6 +34,8 @@ void BlockAverage::Init(std::ofstream* file0,
   dblSrc = new double *[tot];
   enable = en;
   scl = scale;
+  fp_scl = firstPrint_scale;
+  first = &firstPrint;
   if (enable) {
     Zero();
     for (uint b = 0; b < tot; ++b) {
@@ -44,12 +48,19 @@ void BlockAverage::Init(std::ofstream* file0,
 
 void BlockAverage::Sum(void)
 {
-  if (enable && uintSrc[0] != NULL)
-    for (uint b = 0; b < tot; ++b)
+  if (enable && uintSrc[0] != NULL){
+    for (uint b = 0; b < tot; ++b){
       block[b] += (double)(*uintSrc[b]) * scl;
-  else if (enable)
-    for (uint b = 0; b < tot; ++b)
+      if(*first)
+        block[b] -= (double)(*uintSrc[b]) * fp_scl;
+    }
+  } else if (enable) {
+    for (uint b = 0; b < tot; ++b){
       block[b] += *dblSrc[b] * scl;
+      if(*first)
+        block[b] -= *dblSrc[b] * fp_scl;
+    }
+  }
 }
 
 void BlockAverage::DoWrite(uint precision)
@@ -142,9 +153,9 @@ void BlockAverages::DoOutput(const ulong step)
   outBlock1 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << nextStep;
   for (uint v = 0; v < totalBlocks; ++v) {
     if(v < out::TOTAL_SINGLE)
-      blocks[v].Write(firstPrint, 8);
+      blocks[v].Write(8);
     else
-      blocks[v].Write(firstPrint, 8);
+      blocks[v].Write(8);
   }
   outBlock0 << std::endl;
   if(outBlock1.is_open())
@@ -160,27 +171,27 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   if(outBlock1.is_open())
     outBlock1 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << "#STEPS";
   //Note: The order of Init should be same as order of SetRef
-  blocks[out::ENERGY_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_TOTAL, BOXES_WITH_U_NB);
-  blocks[out::ENERGY_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_INTER, BOXES_WITH_U_NB);
-  blocks[out::ENERGY_TC_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_TC, BOXES_WITH_U_NB);
-  blocks[out::ENERGY_INTRA_B_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_INTRA_B, BOXES_WITH_U_NB);
-  blocks[out::ENERGY_INTRA_NB_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_INTRA_NB, BOXES_WITH_U_NB);
-  blocks[out::ENERGY_ELECT_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_ELECT, BOXES_WITH_U_NB);
-  blocks[out::ENERGY_REAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_REAL, BOXES_WITH_U_NB);
-  blocks[out::ENERGY_RECIP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_RECIP, BOXES_WITH_U_NB);
-  blocks[out::VIRIAL_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::VIRIAL_TOTAL, BOXES_WITH_U_NB);
-  blocks[out::PRESSURE_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::PRESSURE, BOXES_WITH_U_NB);
-  blocks[out::MOL_NUM_IDX].Init(&outBlock0, &outBlock1, tracked.molNum.block, invSteps, out::MOL_NUM, BOXES_WITH_U_NB);
-  blocks[out::DENSITY_IDX].Init(&outBlock0, &outBlock1, tracked.density.block, invSteps, out::DENSITY, BOXES_WITH_U_NB);
-  blocks[out::COMPRESSIBILITY_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::COMPRESSIBILITY, BOXES_WITH_U_NB);
-  blocks[out::ENTHALPY_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::ENTHALPY, BOXES_WITH_U_NB);
-  blocks[out::SURF_TENSION_IDX].Init(&outBlock0, &outBlock1, tracked.surfaceTension.block, invSteps, out::SURF_TENSION, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_TOTAL, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_INTER, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_TC_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_TC, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_INTRA_B_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_INTRA_B, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_INTRA_NB_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_INTRA_NB, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_ELECT_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_ELECT, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_REAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_REAL, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_RECIP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_RECIP, BOXES_WITH_U_NB);
+  blocks[out::VIRIAL_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, firstInvSteps, firstPrint, out::VIRIAL_TOTAL, BOXES_WITH_U_NB);
+  blocks[out::PRESSURE_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, firstInvSteps, firstPrint, out::PRESSURE, BOXES_WITH_U_NB);
+  blocks[out::MOL_NUM_IDX].Init(&outBlock0, &outBlock1, tracked.molNum.block, invSteps, firstInvSteps, firstPrint, out::MOL_NUM, BOXES_WITH_U_NB);
+  blocks[out::DENSITY_IDX].Init(&outBlock0, &outBlock1, tracked.density.block, invSteps, firstInvSteps, firstPrint, out::DENSITY, BOXES_WITH_U_NB);
+  blocks[out::COMPRESSIBILITY_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, firstInvSteps, firstPrint, out::COMPRESSIBILITY, BOXES_WITH_U_NB);
+  blocks[out::ENTHALPY_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, firstInvSteps, firstPrint, out::ENTHALPY, BOXES_WITH_U_NB);
+  blocks[out::SURF_TENSION_IDX].Init(&outBlock0, &outBlock1, tracked.surfaceTension.block, invSteps, firstInvSteps, firstPrint, out::SURF_TENSION, BOXES_WITH_U_NB);
 #if ENSEMBLE == GEMC
-  blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, out::VOLUME, BOXES_WITH_U_NB);
-  blocks[out::HEAT_OF_VAP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::HEAT_OF_VAP, BOXES_WITH_U_NB);
+  blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, firstInvSteps, firstPrint, out::VOLUME, BOXES_WITH_U_NB);
+  blocks[out::HEAT_OF_VAP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::HEAT_OF_VAP, BOXES_WITH_U_NB);
 #endif
 #if ENSEMBLE == NPT
-  blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, out::VOLUME, BOXES_WITH_U_NB);
+  blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, firstInvSteps, firstPrint, out::VOLUME, BOXES_WITH_U_NB);
 #endif
 
   //Note: The order of Init should be same as order of Init
@@ -226,7 +237,7 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     if (var->numKinds > 1) {
       name = out::MOL_FRACTION + "_" + trimKindName;
       blocks[bkStart + out::MOL_FRACTION_IDX * var->numKinds].Init
-      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
+      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, firstInvSteps, firstPrint, name, BOXES_WITH_U_NB);
     }
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       uint kArrIdx = b * var->numKinds + k;
@@ -247,7 +258,7 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
       //Init mol density
       name = out::MOL_DENSITY + "_" + trimKindName;
       blocks[bkStart + out::MOL_DENSITY_IDX * var->numKinds].Init
-      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
+      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, firstInvSteps, firstPrint, name, BOXES_WITH_U_NB);
     }
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       uint kArrIdx = b * var->numKinds + k;
