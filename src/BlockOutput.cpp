@@ -50,25 +50,27 @@ void BlockAverage::Sum(void)
 {
   if (enable && uintSrc[0] != NULL){
     for (uint b = 0; b < tot; ++b){
-      block[b] += (double)(*uintSrc[b]) * scl;
       // We use a pointer because you can't pass
       // references in the constructor since 
       // initializing an array of objects
       // requires the default constructor.
       // This could be fixed by using vectors..
       if(*first)
-        block[b] -= (double)(*uintSrc[b]) * fp_scl;
+        block[b] += (double)(*uintSrc[b]) * fp_scl;
+      else
+        block[b] += (double)(*uintSrc[b]) * scl;
     }
   } else if (enable) {
     for (uint b = 0; b < tot; ++b){
-      block[b] += *dblSrc[b] * scl;
       // We use a pointer because you can't pass
       // references in the constructor since 
       // initializing an array of objects
       // requires the default constructor.
       // This could be fixed by using vectors..
       if(*first)
-        block[b] -= *dblSrc[b] * fp_scl;
+        block[b] += *dblSrc[b] * fp_scl;
+      else
+        block[b] += *dblSrc[b] * scl;
     }
   }
 }

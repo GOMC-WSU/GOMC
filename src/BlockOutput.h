@@ -121,11 +121,22 @@ private:
   void InitVals(config_setup::EventSettings const& event)
   {
     stepsPerOut = event.frequency;
-    firstInvSteps = 1.0 / startStep;
     invSteps = 1.0 / stepsPerOut;
+    if (startStep != 0){
+      ulong diff;
+      if (stepsPerOut >= startStep){
+        diff = stepsPerOut - startStep;
+      } else {
+        diff = startStep - stepsPerOut;
+      }
+      firstInvSteps = 1.0 / diff;
+    } else {
+      firstInvSteps = invSteps;
+    }
     // We only subtract the firstInvSteps on 
-    // first print with startStep != 0
+    // the first print with startStep != 0
     // invSteps - firstInvSteps = 1/(stepsPerOut-startStep)
+    // After the first print 
     enableOut = event.enable;
   }
   void AllocBlocks(void);
