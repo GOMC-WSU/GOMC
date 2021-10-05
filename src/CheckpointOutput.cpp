@@ -47,7 +47,7 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
 
-void CheckpointOutput::saveCheckpointFile(const ulong & startStep,
+void CheckpointOutput::saveCheckpointFile(const ulong & step,
                                           MoveSettings & movSetRef,
                                           PRNG & prng,
                                           const Molecules & molRef,
@@ -59,7 +59,8 @@ void CheckpointOutput::saveCheckpointFile(const ulong & startStep,
     exit(EXIT_FAILURE);
   }
 
-  Checkpoint chkObj(startStep,
+  Checkpoint chkObj(step,
+                    trueStepNumber + (step - startStep),
                     movSetRef,
                     prng,
                     molRef,
