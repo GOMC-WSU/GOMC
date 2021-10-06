@@ -54,7 +54,7 @@ private:
   // been overwritten by InitStep
   // If init step isn't used
   // trueStep == step
-  ulong  trueStepNumber;
+  ulong & trueStepRef;
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions & boxDimRef;

@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates),
+  coordCurrRef(sys.coordinates), trueStepRef(sys.checkpointSet.trueStepNumber),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
   enableParallelTemperingBool(sys.ms->parallelTemperingEnabled)
@@ -60,7 +60,7 @@ void CheckpointOutput::saveCheckpointFile(const ulong & step,
   }
 
   Checkpoint chkObj(step,
-                    trueStepNumber + (step - startStep),
+                    restartFromCheckpoint ? trueStepRef + (step - startStep) : step,
                     movSetRef,
                     prng,
                     molRef,

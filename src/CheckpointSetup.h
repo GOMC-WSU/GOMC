@@ -87,6 +87,7 @@ private:
   PRNG & prngPT;
 #endif
   Checkpoint chkObj;  
+  friend class CheckpointOutput;
 };
 
 #endif
