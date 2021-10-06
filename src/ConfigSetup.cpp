@@ -1767,7 +1767,7 @@ void ConfigSetup::verifyInputs(void)
               "Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.equil > sys.step.total && !in.restart.recalcTrajectory) {
+  if(sys.step.equil > (sys.step.initStep + sys.step.total) && !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
     std::cout << "Error: Equilibration steps cannot exceed " <<
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
