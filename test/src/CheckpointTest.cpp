@@ -26,7 +26,7 @@
 
 */
 TEST(CheckpointTest, CheckAR_KR) {
-    chdir("./test/input/Checkpoint/AR_KR/Base/");
+    chdir("./test/input/Systems/AR_KR/Base/");
     Simulation base("in.conf");
     base.RunSimulation();
     chdir("../K_1");

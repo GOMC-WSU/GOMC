@@ -26,7 +26,7 @@
 
 */
 TEST(ConsistentTrajectoryTest, CheckAR_KR) {
-    chdir("./test/input/ConsistentTrajectory/AR_KR/Base/");
+    chdir("./test/input/Systems/AR_KR/Base/");
     Simulation base("in.conf");
     base.RunSimulation();
     chdir("../K_1");
@@ -46,26 +46,26 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2];
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
 
-    pdbnamesSTART[0] = "./test/input/ConsistentTrajectory/AR_KR/Base/START_BOX_0.pdb";
-    pdbnamesSTART[1] = "./test/input/ConsistentTrajectory/AR_KR/Base/START_BOX_1.pdb";
+    pdbnamesSTART[0] = "./test/input/Systems/AR_KR/Base/START_BOX_0.pdb";
+    pdbnamesSTART[1] = "./test/input/Systems/AR_KR/Base/START_BOX_1.pdb";
 
-    pdbnamesBase[0] = "./test/input/ConsistentTrajectory/AR_KR/Base/base_BOX_0.pdb";
-    pdbnamesBase[1] = "./test/input/ConsistentTrajectory/AR_KR/Base/base_BOX_1.pdb";
+    pdbnamesBase[0] = "./test/input/Systems/AR_KR/Base/base_BOX_0.pdb";
+    pdbnamesBase[1] = "./test/input/Systems/AR_KR/Base/base_BOX_1.pdb";
 
-    pdbnames1[0] = "./test/input/ConsistentTrajectory/AR_KR/K_1/K_1_BOX_0.pdb";
-    pdbnames1[1] = "./test/input/ConsistentTrajectory/AR_KR/K_1/K_1_BOX_1.pdb";
+    pdbnames1[0] = "./test/input/Systems/AR_KR/K_1/K_1_BOX_0.pdb";
+    pdbnames1[1] = "./test/input/Systems/AR_KR/K_1/K_1_BOX_1.pdb";
 
-    pdbnamesN[0] = "./test/input/ConsistentTrajectory/AR_KR/K_N/K_N_BOX_0.pdb";
-    pdbnamesN[1] = "./test/input/ConsistentTrajectory/AR_KR/K_N/K_N_BOX_1.pdb";
+    pdbnamesN[0] = "./test/input/Systems/AR_KR/K_N/K_N_BOX_0.pdb";
+    pdbnamesN[1] = "./test/input/Systems/AR_KR/K_N/K_N_BOX_1.pdb";
 
-    pdbnamesBaseRestart[0] = "./test/input/ConsistentTrajectory/AR_KR/Base/base_BOX_0_restart.pdb";
-    pdbnamesBaseRestart[1] = "./test/input/ConsistentTrajectory/AR_KR/Base/base_BOX_1_restart.pdb";
+    pdbnamesBaseRestart[0] = "./test/input/Systems/AR_KR/Base/base_BOX_0_restart.pdb";
+    pdbnamesBaseRestart[1] = "./test/input/Systems/AR_KR/Base/base_BOX_1_restart.pdb";
 
-    pdbnames1Restart[0] = "./test/input/ConsistentTrajectory/AR_KR/K_1/K_1_BOX_0_restart.pdb";
-    pdbnames1Restart[1] = "./test/input/ConsistentTrajectory/AR_KR/K_1/K_1_BOX_1_restart.pdb";
+    pdbnames1Restart[0] = "./test/input/Systems/AR_KR/K_1/K_1_BOX_0_restart.pdb";
+    pdbnames1Restart[1] = "./test/input/Systems/AR_KR/K_1/K_1_BOX_1_restart.pdb";
 
-    pdbnamesNRestart[0] = "./test/input/ConsistentTrajectory/AR_KR/K_N/K_N_BOX_0_restart.pdb";
-    pdbnamesNRestart[1] = "./test/input/ConsistentTrajectory/AR_KR/K_N/K_N_BOX_1_restart.pdb";
+    pdbnamesNRestart[0] = "./test/input/Systems/AR_KR/K_N/K_N_BOX_0_restart.pdb";
+    pdbnamesNRestart[1] = "./test/input/Systems/AR_KR/K_N/K_N_BOX_1_restart.pdb";
 
     PDBSetup pdbStart, pdbBase, pdb1, pdbN;
     PDBSetup pdbBaseRestart, pdb1Restart, pdbNRestart;
@@ -271,7 +271,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 }
 
 TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
-    chdir("./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/Base/");
+    chdir("./test/input/Systems/ISOPEN_NEOPEN/Base/");
     Simulation base("in.conf");
     base.RunSimulation();
     chdir("../K_1");
@@ -291,26 +291,26 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2];
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
 
-    pdbnamesSTART[0] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/Base/START_BOX_0.pdb";
-    pdbnamesSTART[1] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/Base/START_BOX_1.pdb";
+    pdbnamesSTART[0] = "./test/input/Systems/ISOPEN_NEOPEN/Base/START_BOX_0.pdb";
+    pdbnamesSTART[1] = "./test/input/Systems/ISOPEN_NEOPEN/Base/START_BOX_1.pdb";
 
-    pdbnamesBase[0] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/Base/base_BOX_0.pdb";
-    pdbnamesBase[1] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/Base/base_BOX_1.pdb";
+    pdbnamesBase[0] = "./test/input/Systems/ISOPEN_NEOPEN/Base/base_BOX_0.pdb";
+    pdbnamesBase[1] = "./test/input/Systems/ISOPEN_NEOPEN/Base/base_BOX_1.pdb";
 
-    pdbnames1[0] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/K_1/K_1_BOX_0.pdb";
-    pdbnames1[1] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/K_1/K_1_BOX_1.pdb";
+    pdbnames1[0] = "./test/input/Systems/ISOPEN_NEOPEN/K_1/K_1_BOX_0.pdb";
+    pdbnames1[1] = "./test/input/Systems/ISOPEN_NEOPEN/K_1/K_1_BOX_1.pdb";
 
-    pdbnamesN[0] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/K_N/K_N_BOX_0.pdb";
-    pdbnamesN[1] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/K_N/K_N_BOX_1.pdb";
+    pdbnamesN[0] = "./test/input/Systems/ISOPEN_NEOPEN/K_N/K_N_BOX_0.pdb";
+    pdbnamesN[1] = "./test/input/Systems/ISOPEN_NEOPEN/K_N/K_N_BOX_1.pdb";
 
-    pdbnamesBaseRestart[0] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/Base/base_BOX_0_restart.pdb";
-    pdbnamesBaseRestart[1] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/Base/base_BOX_1_restart.pdb";
+    pdbnamesBaseRestart[0] = "./test/input/Systems/ISOPEN_NEOPEN/Base/base_BOX_0_restart.pdb";
+    pdbnamesBaseRestart[1] = "./test/input/Systems/ISOPEN_NEOPEN/Base/base_BOX_1_restart.pdb";
 
-    pdbnames1Restart[0] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/K_1/K_1_BOX_0_restart.pdb";
-    pdbnames1Restart[1] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/K_1/K_1_BOX_1_restart.pdb";
+    pdbnames1Restart[0] = "./test/input/Systems/ISOPEN_NEOPEN/K_1/K_1_BOX_0_restart.pdb";
+    pdbnames1Restart[1] = "./test/input/Systems/ISOPEN_NEOPEN/K_1/K_1_BOX_1_restart.pdb";
 
-    pdbnamesNRestart[0] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/K_N/K_N_BOX_0_restart.pdb";
-    pdbnamesNRestart[1] = "./test/input/ConsistentTrajectory/ISOPEN_NEOPEN/K_N/K_N_BOX_1_restart.pdb";
+    pdbnamesNRestart[0] = "./test/input/Systems/ISOPEN_NEOPEN/K_N/K_N_BOX_0_restart.pdb";
+    pdbnamesNRestart[1] = "./test/input/Systems/ISOPEN_NEOPEN/K_N/K_N_BOX_1_restart.pdb";
 
     PDBSetup pdbStart, pdbBase, pdb1, pdbN;
     PDBSetup pdbBaseRestart, pdb1Restart, pdbNRestart;
