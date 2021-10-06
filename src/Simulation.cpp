@@ -24,9 +24,9 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   startStep = 0;
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
-  system = new System(*staticValues, set, multisim);
+  system = new System(*staticValues, set, startStep, multisim);
   staticValues->Init(set, *system);
-  system->Init(set, startStep);
+  system->Init(set);
   // This happens after checkpoint has possible changed startStep
   // Note: InitStep overwrites checkpoint start step
   totalSteps += startStep;

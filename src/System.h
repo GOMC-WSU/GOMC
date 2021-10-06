@@ -41,9 +41,10 @@ class System
 {
 public:
   explicit System(StaticVals& statics, Setup const& set,
+                  ulong & startStep,
                   MultiSim const*const& multisim = NULL);
 
-  void Init(Setup & setupData, ulong & startStep);
+  void Init(Setup & setupData);
 
   /* To reinit the checkpointed original molecule starts */
   void InitOver(Setup & set, Molecules & molRef);
@@ -126,7 +127,8 @@ public:
 
   /* For checkpoint restoration */
   CheckpointSetup checkpointSet;
-
+  bool restartFromCheckpoint;
+  ulong & startStepRef, trueStep;
   //Procedure to run once move is picked... can also be called directly for
   //debugging...
   void RunMove(uint majKind, double draw, const ulong step);

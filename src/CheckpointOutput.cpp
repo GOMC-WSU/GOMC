@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates), trueStepRef(sys.checkpointSet.trueStepNumber),
+  coordCurrRef(sys.coordinates), trueStepRef(sys.trueStep),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
   enableParallelTemperingBool(sys.ms->parallelTemperingEnabled)

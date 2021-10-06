@@ -29,11 +29,11 @@ private:
   StaticVals * staticValues;
   System * system;
   CPUSide * cpu;
+  ulong startStep;
   ulong totalSteps;
   Setup set;
   std::vector<ulong> frameSteps;
   uint remarksCount;
-  ulong startStep;
   MultiSim const*const& ms;
 #if GOMC_LIB_MPI
   ParallelTemperingUtilities * PTUtils;

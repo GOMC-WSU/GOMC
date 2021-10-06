@@ -8,12 +8,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include "CheckpointSetup.h"
 
-CheckpointSetup::CheckpointSetup(MoleculeLookup & molLookup, 
+CheckpointSetup::CheckpointSetup(ulong & startStep,
+                                ulong & trueStep,
+                                MoleculeLookup & molLookup, 
                                 MoveSettings & moveSettings,
                                 Molecules & mol,
                                 PRNG & prng,
+                                Random123Wrapper & r123,
                                 Setup const& set) :
-  molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol), prngRef(prng)
+  molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol), prngRef(prng),
+  r123Ref(r123), startStepRef(startStep), trueStepRef(trueStep)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
@@ -30,7 +34,7 @@ std::string CheckpointSetup::getFileName(){
   return filename;
 }
 
-void CheckpointSetup::loadCheckpointFile(ulong & startStep){
+void CheckpointSetup::loadCheckpointFile(){
   // create and open a character archive for intput
   std::ifstream ifs(filename);
   if (!ifs.is_open()){
@@ -40,7 +44,7 @@ void CheckpointSetup::loadCheckpointFile(ulong & startStep){
   }
   cereal::BinaryInputArchive ia(ifs);
   ia >> chkObj;
-  SetCheckpointData(startStep);
+  SetCheckpointData();
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
@@ -49,79 +53,42 @@ void CheckpointSetup::InitOver(Molecules & molRef){
   SetMoleculeKindDictionary(molRef);
 }
 
-void CheckpointSetup::SetCheckpointData   (ulong & startStep,
-                                          MoveSettings & movSetRef,
-                                          PRNG & prng,
-                                          Molecules & molRef,
-                                          MoleculeLookup & molLookRef){
-  SetStepNumber(startStep);
-  SetMoveSettings(movSetRef);
-  SetPRNGVariables(prng);
-  SetMolecules(molRef);
-  SetMoleculeKindDictionary(molRef);
-  SetMoleculeIndices(molLookRef);
-}
-
-void CheckpointSetup::SetCheckpointData   (ulong & startStep){
-  SetStepNumber(startStep);
+void CheckpointSetup::SetCheckpointData   (){
+  SetStepNumber();
+  SetTrueStepNumber();
   SetMoveSettings();
   SetPRNGVariables();
+  SetR123Variables();
   SetMolecules();
   SetMoleculeKindDictionary();
   SetMoleculeIndices();
 }
 
 #if GOMC_LIB_MPI
-void CheckpointSetup::SetCheckpointData   (ulong & startStep,
-                                          MoveSettings & movSetRef,
-                                          PRNG & prng,
-                                          Molecules & molRef,
-                                          MoleculeLookup & molLookRef
-                                          bool & parallelTemperingIsEnabled,
+void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
                                           PRNG & prngPT){
-  SetStepNumber(startStep);
-  SetMoveSettings(movSetRef);
-  SetPRNGVariables(prng);
-  SetMolecules(molRef);
-  SetMoleculeKindDictionary(molRef);
-  SetMoleculeIndices(molLookRef);
+  SetStepNumber();
+  SetTrueStepNumber();
+  SetMoveSettings();
+  SetPRNGVariables();
+  SetR123Variables();
+  SetMolecules();
+  SetMoleculeKindDictionary();
+  SetMoleculeIndices();
   SetParallelTemperingWasEnabled();
   if(parallelTemperingIsEnabled && parallelTemperingWasEnabled)
-    SetPRNGVariablesPT(prngPT);
+    SetPRNGVariablesPT();
 }
 #endif
 
-void CheckpointSetup::SetStepNumber(ulong & startStep)
+void CheckpointSetup::SetStepNumber()
 {
-  startStep = chkObj.stepNumber;
+  startStepRef = chkObj.stepNumber;
 }
 
-void CheckpointSetup::SetTrueStepNumber(ulong & trueStep)
+void CheckpointSetup::SetTrueStepNumber()
 {
-  trueStep = chkObj.trueStepNumber;
-}
-
-
-void CheckpointSetup::SetMoveSettings(MoveSettings & movSetRef)
-{
-  movSetRef.scale = chkObj.scaleVec;
-  movSetRef.acceptPercent = chkObj.acceptPercentVec;
-  movSetRef.accepted = chkObj.acceptedVec;
-  movSetRef.tries = chkObj.triesVec;
-  movSetRef.tempAccepted = chkObj.tempAcceptedVec;
-  movSetRef.tempTries = chkObj.tempTriesVec;
-  movSetRef.mp_tries = chkObj.mp_triesVec;
-  movSetRef.mp_accepted = chkObj.mp_acceptedVec;
-  movSetRef.mp_t_max = chkObj.mp_t_maxVec;
-  movSetRef.mp_r_max = chkObj.mp_r_maxVec;
-}
-
-void CheckpointSetup::SetPRNGVariables(PRNG & prng)
-{
-  prng.GetGenerator()->load(chkObj.saveArray);
-  prng.GetGenerator()->pNext = prng.GetGenerator()->state + chkObj.seedLocation;
-  prng.GetGenerator()->left = chkObj.seedLeft;
-  prng.GetGenerator()->seedValue = chkObj.seedValue;
+  trueStepRef = chkObj.trueStepNumber;
 }
 
 void CheckpointSetup::SetMolecules(Molecules& mols)
@@ -132,13 +99,8 @@ void CheckpointSetup::SetMolecules(Molecules& mols)
   mols.originalKIndex = vect::transfer<uint32_t>(chkObj.originalKIndexVec);
 }
 
-void CheckpointSetup::SetMoleculeIndices(MoleculeLookup& molLookupRef){
-  /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-  molLookupRef.originalMoleculeIndices = vect::transfer<uint32_t>(chkObj.originalMoleculeIndicesVec);
-  /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
-  molLookupRef.permutedMoleculeIndices = vect::transfer<uint32_t>(chkObj.permutedMoleculeIndicesVec);
-}
-
+// Pass mol reference because the old reference might break after
+// the InitOver call..
 void CheckpointSetup::SetMoleculeKindDictionary(Molecules& mols){
   // Kind indices and name map
   std::map<std::string, uint32_t> nameIndexMap;
@@ -181,6 +143,11 @@ void CheckpointSetup::SetPRNGVariables()
   prngRef.GetGenerator()->pNext = prngRef.GetGenerator()->state + chkObj.seedLocation;
   prngRef.GetGenerator()->left = chkObj.seedLeft;
   prngRef.GetGenerator()->seedValue = chkObj.seedValue;
+}
+
+void CheckpointSetup::SetR123Variables()
+{
+  r123Ref.SetRandomSeed(chkObj.seedValue);
 }
 
 void CheckpointSetup::SetMolecules()
