@@ -74,6 +74,10 @@ private:
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
 
+#if GOMC_GTEST
+
+#endif
+
   std::string filename;
   // To avoid repeating Random numbers
   // on the GPU, when InitStep is set to 0

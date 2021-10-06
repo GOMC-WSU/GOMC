@@ -6,7 +6,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef SIMULATION_H
 #define SIMULATION_H
-
 //Member vars
 #include "CPUSide.h"
 #include "System.h"
@@ -24,7 +23,9 @@ public:
 
   void RunSimulation(void);
   bool RecalculateAndCheck(void);
-
+  #if GOMC_GTEST
+    MoleculeLookup & GetMolLookup();
+  #endif
 private:
   StaticVals * staticValues;
   System * system;

@@ -182,3 +182,9 @@ bool Simulation::RecalculateAndCheck(void)
 
   return compare;
 }
+
+#if GOMC_GTEST
+MoleculeLookup & Simulation::GetMolLookup(){
+    return system->molLookup;
+}
+#endif

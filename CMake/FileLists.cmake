@@ -14,9 +14,9 @@ set(sources
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
    src/DCDlib.cpp
-   src/ExtendedSystemOutput.cpp
    src/EnPartCntSampleOutput.cpp
    src/ExtendedSystem.cpp
+   src/ExtendedSystemOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
    src/FFConst.cpp
@@ -87,11 +87,11 @@ set(headers
    src/CoordinateSetup.h
    src/CPUSide.h
    src/DCDlib.h
-   src/ExtendedSystemOutput.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
    src/ExtendedSystem.h
+   src/ExtendedSystemOutput.h
    src/Ewald.h
    src/EwaldCached.h  
    src/FFAngles.h
