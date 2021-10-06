@@ -53,6 +53,7 @@ private:
 
   std::string getFileName();
   void SetStepNumber(ulong & startStep);
+  void SetTrueStepNumber(ulong & trueStep);
   void SetMoveSettings(MoveSettings & movSetRef);
   void SetPRNGVariables(PRNG & prng);
   void SetMolecules(Molecules& mols);
@@ -69,7 +70,13 @@ private:
 #endif
 
   std::string filename;
-  //ulong & startStep;
+  // To avoid repeating Random numbers
+  // on the GPU, when InitStep is set to 0
+  // we maintain the true step had it not
+  // been overwritten by InitStep
+  // If init step isn't used
+  // trueStep == step
+  ulong  trueStepNumber;
   MoveSettings & moveSetRef;
   PRNG & prngRef;
   Molecules & molRef;
