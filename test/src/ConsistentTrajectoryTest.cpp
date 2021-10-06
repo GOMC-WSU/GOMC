@@ -268,6 +268,11 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
         EXPECT_EQ(pos1 == pos2, true);
     }
+
+    chdir("./test/input/Systems/AR_KR");
+    system("exec rm -r ./BASE/base_*");
+    system("exec rm -r ./K_1/K_1_*");
+    system("exec rm -r ./K_N/K_N_*");
 }
 
 TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
