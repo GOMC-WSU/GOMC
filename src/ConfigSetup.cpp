@@ -664,6 +664,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(sys.step.total == 0) {
         in.restart.recalcTrajectory = true;
         printf("%-40s %-s \n", "Info: Recalculate Trajectory", "Active");
+        std::cout << "Error: Recalculate Trajectory is not currently supported!\n";
+        exit(EXIT_FAILURE);
       }
     } else if(CheckString(line[0], "EqSteps")) {
       sys.step.equil = stringtoi(line[1]);

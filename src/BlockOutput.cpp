@@ -150,6 +150,9 @@ void BlockAverages::AllocBlocks(void)
 
 void BlockAverages::Sample(const ulong step)
 {
+  if ((restartFromCheckpoint || initStepRead) && step == startStep){
+    return;
+  }
   for (uint v = 0; v < totalBlocks; ++v)
     blocks[v].Sum();
 }
@@ -159,7 +162,6 @@ void BlockAverages::DoOutput(const ulong step)
   // Prevent writing a Blk value that was written in the last
   // simulation.
   if ((restartFromCheckpoint || initStepRead) && step == startStep){
-    Zero();
     return;
   }
   GOMC_EVENT_START(1, GomcProfileEvent::BLK_OUTPUT);
