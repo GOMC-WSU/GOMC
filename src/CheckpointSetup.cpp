@@ -88,6 +88,7 @@ void CheckpointSetup::SetStepNumber()
 
 void CheckpointSetup::SetTrueStepNumber()
 {
+  printf("%-40s %-lu \n", "Info: Loading true step from checkpoint", chkObj.trueStepNumber);
   trueStepRef = chkObj.trueStepNumber;
 }
 
