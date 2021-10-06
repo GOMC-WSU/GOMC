@@ -26,7 +26,6 @@ class Checkpoint
 {
     public:
     Checkpoint(const ulong & startStep,
-                const ulong & trueStep,
                 MoveSettings & movSetRef,
                 PRNG & prng,
                 const Molecules & molRef,
@@ -34,7 +33,6 @@ class Checkpoint
 
 #if GOMC_LIB_MPI
     Checkpoint(const ulong & startStep,
-                const ulong & trueStep,
                 MoveSettings & movSetRef,
                 PRNG & prng,
                 const Molecules & molRef,
@@ -53,7 +51,6 @@ class Checkpoint
 
         void GatherGOMCVersion();
         void GatherStep(const ulong & startStep);
-        void GatherTrueStep(const ulong & trueStep);
         void GatherMolecules(const Molecules & molRef);
         void GatherMoleculeKindDictionary(const Molecules & molRef);
         void GatherMoveSettings(MoveSettings & movSetRef);
@@ -71,14 +68,6 @@ class Checkpoint
         char gomc_version[5];
 
         uint64_t stepNumber;
-
-        // To avoid repeating Random numbers
-        // on the GPU, when InitStep is set to 0
-        // we maintain the true step had it not
-        // been overwritten by InitStep
-        // If init step isn't used
-        // trueStep == step
-        uint64_t trueStepNumber;
 
         // Original molecule start positions.  Could be generated through kind,
         // but this allows for parallelized output.
@@ -119,7 +108,6 @@ class Checkpoint
             ar & gomc_version;
             // Step
             ar & stepNumber;
-            ar & trueStepNumber;
             // PRNG Vars
             ar & saveArray;
             ar & seedLocation;

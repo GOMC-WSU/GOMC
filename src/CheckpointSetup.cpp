@@ -96,12 +96,6 @@ void CheckpointSetup::SetStepNumber(ulong & startStep)
   startStep = chkObj.stepNumber;
 }
 
-void CheckpointSetup::SetTrueStepNumber(ulong & trueStep)
-{
-  trueStep = chkObj.trueStepNumber;
-}
-
-
 void CheckpointSetup::SetMoveSettings(MoveSettings & movSetRef)
 {
   movSetRef.scale = chkObj.scaleVec;

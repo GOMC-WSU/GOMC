@@ -48,13 +48,7 @@ private:
                         PRNG & prngPT);
   #endif
 
-  // To avoid repeating Random numbers
-  // on the GPU, when InitStep is set to 0
-  // we maintain the true step had it not
-  // been overwritten by InitStep
-  // If init step isn't used
-  // trueStep == step
-  ulong  trueStepNumber;
+
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions & boxDimRef;
@@ -68,7 +62,6 @@ private:
   bool enableParallelTemperingBool;
   std::string filename;
   ulong stepsPerCheckpoint;
-
 };
 
 #endif

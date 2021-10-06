@@ -8,14 +8,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <Checkpoint.h>  
   
 
-Checkpoint::Checkpoint(const ulong & step,
-                        const ulong & trueStep,
+Checkpoint::Checkpoint(const ulong & startStep,
                         MoveSettings & movSetRef,
                         PRNG & prngRef,
                         const Molecules & molRef,
                         MoleculeLookup & molLookupRef){
-    GatherStep(step);
-    GatherTrueStep(trueStep);
+    GatherStep(startStep);
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherMolecules(molRef);
@@ -24,16 +22,14 @@ Checkpoint::Checkpoint(const ulong & step,
 }
 
 #if GOMC_LIB_MPI
-Checkpoint::Checkpoint(const ulong & step,
-                        const ulong & trueStep,
+Checkpoint::Checkpoint(const ulong & startStep,
                         MoveSettings & movSetRef,
                         PRNG & prngRef,
                         const Molecules & molRef,
                         MoleculeLookup & molLookupRef,
                         bool & parallelTemperingIsEnabled,
                         PRNG & prngPTRef){
-    GatherStep(step);
-    GatherTrueStep(trueStep);
+    GatherStep(startStep);
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherMolecules(molRef);
@@ -54,12 +50,8 @@ void Checkpoint::GatherGOMCVersion()
 }
 
 
-void Checkpoint::GatherStep(const ulong & step){
-    stepNumber = step;
-}
-
-void Checkpoint::GatherTrueStep(const ulong & trueStep){
-    trueStepNumber = trueStep;
+void Checkpoint::GatherStep(const ulong & startStep){
+    stepNumber = startStep;
 }
 
 
