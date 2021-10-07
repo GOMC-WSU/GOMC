@@ -150,20 +150,12 @@ void BlockAverages::AllocBlocks(void)
 
 void BlockAverages::Sample(const ulong step)
 {
-  if (restartFromCheckpoint && step == startStep){
-    return;
-  }
   for (uint v = 0; v < totalBlocks; ++v)
     blocks[v].Sum();
 }
 
 void BlockAverages::DoOutput(const ulong step)
 {
-  // Prevent writing a Blk value that was written in the last
-  // simulation.
-  if (restartFromCheckpoint && step == startStep){
-    return;
-  }
   GOMC_EVENT_START(1, GomcProfileEvent::BLK_OUTPUT);
   ulong nextStep = step + 1;
   outBlock0 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << nextStep;

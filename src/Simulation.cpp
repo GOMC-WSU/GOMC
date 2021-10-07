@@ -189,6 +189,14 @@ SystemPotential &  Simulation::GetSystemEnergy(void){
 }
 
 MoleculeLookup & Simulation::GetMolLookup(){
-    return system->molLookup;
+  return system->molLookup;
+}
+
+ulong Simulation::GetTrueStep(){
+  return system->trueStep;
+}
+
+ulong Simulation::GetRunSteps(){
+  return totalSteps - startStep;
 }
 #endif

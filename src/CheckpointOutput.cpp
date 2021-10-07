@@ -42,7 +42,10 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
   std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-  saveCheckpointFile(step, moveSetRef, prngRef, molRef, molLookupRef);
+  // We want to begin the next simulation on the next step
+  // I.e. if we ran 1000 steps, 0-999
+  // We want to start on step 1000
+  saveCheckpointFile(step+1, moveSetRef, prngRef, molRef, molLookupRef);
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
