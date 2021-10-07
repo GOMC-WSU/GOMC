@@ -18,26 +18,30 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim): ms(multisim)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::INITIALIZE);
-  startStep = 0;
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   set.Init(configFileName, multisim);
   GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
+  startStep = 0;
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
-  system = new System(*staticValues, set, multisim);
+  system = new System(*staticValues, set, startStep, multisim);
   staticValues->Init(set, *system);
-  system->Init(set, startStep);
+  system->Init(set);
+  // This happens after checkpoint has possible changed startStep
+  // Note: InitStep overwrites checkpoint start step
+  totalSteps += startStep;
   //recalc Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
   system->InitOver(set, staticValues->mol);
   cpu = new CPUSide(*system, *staticValues, set);
-  cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
+  cpu->Init(set.pdb, set.config.in, set.config.out, set.config.sys, set.config.sys.step.equil,
             totalSteps, startStep);
             
   if(totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
+
 #if GOMC_LIB_MPI
   // set.config.sys.step.parallelTemp is a boolean for enabling/disabling parallel tempering
   PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq, set.config.sys.step.parallelTemperingAttemptsPerExchange) : NULL;
@@ -178,3 +182,21 @@ bool Simulation::RecalculateAndCheck(void)
 
   return compare;
 }
+
+#if GOMC_GTEST
+SystemPotential &  Simulation::GetSystemEnergy(void){
+  return system->potential;
+}
+
+MoleculeLookup & Simulation::GetMolLookup(){
+  return system->molLookup;
+}
+
+ulong Simulation::GetTrueStep(){
+  return system->trueStep;
+}
+
+ulong Simulation::GetRunSteps(){
+  return totalSteps - startStep;
+}
+#endif

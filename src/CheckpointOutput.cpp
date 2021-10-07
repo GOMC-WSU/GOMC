@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates),
+  coordCurrRef(sys.coordinates), trueStepRef(sys.trueStep),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
   enableParallelTemperingBool(sys.ms->parallelTemperingEnabled)
@@ -42,12 +42,15 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
   std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-  saveCheckpointFile(step, moveSetRef, prngRef, molRef, molLookupRef);
+  // We want to begin the next simulation on the next step
+  // I.e. if we ran 1000 steps, 0-999
+  // We want to start on step 1000
+  saveCheckpointFile(step+1, moveSetRef, prngRef, molRef, molLookupRef);
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
 
-void CheckpointOutput::saveCheckpointFile(const ulong & startStep,
+void CheckpointOutput::saveCheckpointFile(const ulong & step,
                                           MoveSettings & movSetRef,
                                           PRNG & prng,
                                           const Molecules & molRef,
@@ -59,17 +62,14 @@ void CheckpointOutput::saveCheckpointFile(const ulong & startStep,
     exit(EXIT_FAILURE);
   }
 
-  Checkpoint chkObj(startStep,
+  Checkpoint chkObj(step,
+                    restartFromCheckpoint ? trueStepRef + (step - startStep) : step,
                     movSetRef,
                     prng,
                     molRef,
                     molLookRef);
 
-  #if GOMC_BOOST_LIB
-    boost::archive::text_oarchive oa(ofs);
-  #else
-    cereal::BinaryOutputArchive oa(ofs);
-  #endif
+  cereal::BinaryOutputArchive oa(ofs);
   oa << chkObj;
 
 }

@@ -102,8 +102,9 @@ void EnPartCntSample::WriteHeader(void)
 
 void EnPartCntSample::DoOutput(const ulong step)
 {
-  //Don't output until equilibrated.
-  if ((step) < stepsTillEquil) return;
+  //Don't output until equilibrated.  Also don't output if this we continue 
+  // a checkpoint or init directly on an output step.
+  if ((step) < stepsTillEquil || ((restartFromCheckpoint || initStepRead) && step == startStep)) return;
   //Output a sample in the form <N1,... Nk, E_total>
   //Only sample on specified interval.
   if ((step + 1) % stepsPerOut == 0) {

@@ -49,10 +49,9 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
     molKinds[i] = set.mol.kindMap[set.mol.molVars.moleculeKindNames[i]];
   }
   outFName = set.config.out.state.files.psf.name;
-  onlyPrintOnFirstStep = true;
   /* To eliminate arithmetic exceptions */
   stepsPerOut = 1;
-
+  printOnFirstStep = true;
 }
 
 
@@ -110,6 +109,11 @@ void PSFOutput::DoOutputRestart(const ulong step)
 
 /* Output (merged_psf) occurs in Constructor only */
 void PSFOutput::DoOutput(const ulong step){
+  /* merged psf only prints on first step 
+     Don't print on Checkpoint restarts */
+  if (restartFromCheckpoint || step != startStep) 
+    return;
+
   GOMC_EVENT_START(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
 
   CountMolecules();

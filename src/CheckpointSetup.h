@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "Molecules.h"
 #include "PRNG.h"
+#include "Random123Wrapper.h"
 
 #include <iostream>
 #include "VectorLib.h" //for transfer.
@@ -22,44 +23,49 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class CheckpointSetup
 {
 public:
-  CheckpointSetup(MoleculeLookup & molLookup, 
-                                MoveSettings & moveSettings,
-                                Molecules & mol,
-                                PRNG & prng,
-                                Setup const& set);
+  CheckpointSetup(ulong & startStep,
+                  ulong & trueStep,
+                  MoleculeLookup & molLookup, 
+                  MoveSettings & moveSettings,
+                  Molecules & mol,
+                  PRNG & prng,
+                  Random123Wrapper & r123,
+                  Setup const& set);  
+#if GOMC_LIB_MPI
+                          
+  CheckpointSetup(ulong & startStep,
+                  ulong & trueStep,
+                  MoleculeLookup & molLookup, 
+                  MoveSettings & moveSettings,
+                  Molecules & mol,
+                  PRNG & prng,
+                  Random123Wrapper & r123,
+                  Setup const& set,
+                  bool & parallelTemperingEnabled,
+                  PRNG & prngPT);
+#endif
+
   ~CheckpointSetup();
 
-  void loadCheckpointFile(ulong & startStep);
+  void loadCheckpointFile();
   void InitOver(Molecules & molRef);
 
 private:
-  void SetCheckpointData   (ulong & startStep,
-                            MoveSettings & movSetRef,
-                            PRNG & prng,
-                            Molecules & molRef,
-                            MoleculeLookup & molLookRef);
-
-  void SetCheckpointData   (ulong & startStep);
+  void SetCheckpointData();
 
   #if GOMC_LIB_MPI
-  void SetCheckpointData   (ulong & startStep,
-                            MoveSettings & movSetRef,
-                            PRNG & prng,
-                            Molecules & molRef,
-                            MoleculeLookup & molLookRef)
-                            bool & parallelTemperingEnabled,
-                            PRNG & prngPT);
+  void SetCheckpointData(bool & parallelTemperingEnabled,
+                        PRNG & prngPT);
   #endif
 
   std::string getFileName();
-  void SetStepNumber(ulong & startStep);
-  void SetMoveSettings(MoveSettings & movSetRef);
-  void SetPRNGVariables(PRNG & prng);
+  void SetStepNumber();
+  void SetTrueStepNumber();
   void SetMolecules(Molecules& mols);
   void SetMoleculeKindDictionary(Molecules& mols);
-  void SetMoleculeIndices(MoleculeLookup& molLookup);
   void SetMoveSettings();
   void SetPRNGVariables();
+  void SetR123Variables();
   void SetMolecules();
   void SetMoleculeKindDictionary();
   void SetMoleculeIndices();
@@ -68,10 +74,22 @@ private:
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
 
+#if GOMC_GTEST
+
+#endif
+
   std::string filename;
-  //ulong & startStep;
+  // To avoid repeating Random numbers
+  // on the GPU, when InitStep is set to 0
+  // we maintain the true step had it not
+  // been overwritten by InitStep
+  // If init step isn't used
+  // trueStep == step
+  ulong & startStepRef;
+  ulong & trueStepRef;
   MoveSettings & moveSetRef;
   PRNG & prngRef;
+  Random123Wrapper & r123Ref;
   Molecules & molRef;
   MoleculeLookup & molLookupRef;
 #if GOMC_LIB_MPI
@@ -79,7 +97,8 @@ private:
   bool & parallelTemperingIsEnabled;
   PRNG & prngPT;
 #endif
-  Checkpoint chkObj;
+  Checkpoint chkObj;  
+  friend class CheckpointOutput;
 };
 
 #endif

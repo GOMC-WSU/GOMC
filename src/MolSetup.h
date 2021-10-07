@@ -197,7 +197,8 @@ public:
                       mol_setup::MolMap & kindMap,
                       mol_setup::SizeMap & sizeMap,
                       mol_setup::MolMap * kindMapFromBox1,
-                      mol_setup::SizeMap * sizeMapFromBox1);
+                      mol_setup::SizeMap * sizeMapFromBox1,
+                      const uint box);
 
   static void copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, mol_setup::MolMap & kindMap, std::string fragName);
 

@@ -77,7 +77,13 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 //Builds kindMap from PSF file (does not include coordinates) kindMap
 // should be empty returns number of atoms in the file, or errors::READ_ERROR if
 // the read failed somehow
-int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
+int ReadPSF(const char* psfFilename,
+            const uint box,
+            MoleculeVariables & molVars, 
+            MolMap& kindMap, 
+            SizeMap& sizeMap, 
+            MolMap * kindMapFromBox1 = NULL, 
+            SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
 int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms, MoleculeVariables & molVars);
@@ -278,7 +284,8 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
                               const bool* psfDefined, 
                               pdb_setup::Atoms& pdbAtoms)
 {
-  int errorcode = ReadPSF(psfFilename[0].c_str(), molVars, kindMap, sizeMap);
+  uint box_0 = 0;
+  int errorcode = ReadPSF(psfFilename[box_0].c_str(), box_0, molVars, kindMap, sizeMap);
   int nAtoms = errorcode;
   if (errorcode < 0)
     return errorcode;
@@ -286,7 +293,14 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
   SizeMap sizeMap2;
   if ((int) pdbAtoms.count != nAtoms && BOX_TOTAL == 2 && psfDefined[1]) {    
     map2.clear();
-    errorcode = ReadPSF(psfFilename[1].c_str(), molVars, map2, sizeMap2, &kindMap, &sizeMap);
+    uint box_1 = 1;
+    errorcode = ReadPSF(psfFilename[box_1].c_str(), 
+                        box_1,
+                        molVars, 
+                        map2, 
+                        sizeMap2, 
+                        &kindMap, 
+                        &sizeMap);
     nAtoms += errorcode;
     if (errorcode < 0)
       return errorcode;
@@ -359,21 +373,19 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
                     mol_setup::MolMap & kindMap,
                     mol_setup::SizeMap & sizeMap,
                     mol_setup::MolMap * kindMapFromBox1,
-                    mol_setup::SizeMap * sizeMapFromBox1){
+                    mol_setup::SizeMap * sizeMapFromBox1,
+                    const uint box){
 
-  /* A size -> moleculeKind map for quick evaluation of new molecules based on molMap entries
-    of a given size exisitng or not */ 
   uint startIdxAtomBoxOffset;
   AlphaNum uniqueSuffixGenerator;
-  if (molVars.lastAtomIndexInBox0 == 0){
+  if (box == 0){
     startIdxAtomBoxOffset = 0;
-    molVars.startIdxMolecules.clear();
-    molVars.moleculeKinds.clear();
-    molVars.moleculeKindNames.clear();
-    molVars.moleculeNames.clear();
-    molVars.moleculeSegmentNames.clear();
   } else {
-    startIdxAtomBoxOffset = molVars.lastAtomIndexInBox0 + 1;
+    if (molVars.numberMolsInBox0 != 0){
+      startIdxAtomBoxOffset = molVars.lastAtomIndexInBox0 + 1;
+    } else {
+      startIdxAtomBoxOffset = 0;
+    }
   }
 
   for (std::vector< std::vector<uint> >::const_iterator it = moleculeXAtomIDY.cbegin();
@@ -384,6 +396,8 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
 
     if (sizeMapFromBox1 != NULL && kindMapFromBox1 != NULL){
 
+    /* A size -> moleculeKind map for quick evaluation of new molecules based on molMap entries
+      of a given size exisitng or not */
     /* Search by size for existing molecules from Box 1 if it exists*/
       SizeMap::iterator sizeIt = sizeMapFromBox1->find(it->size());
 
@@ -585,9 +599,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
     }
     molVars.moleculeIteration++;
   }
-  molVars.numberMolsInBox0 = moleculeXAtomIDY.size();
-  if (molVars.numberMolsInBox0 != 0)
-    molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
+  if (box == 0){
+    molVars.numberMolsInBox0 = moleculeXAtomIDY.size();
+    if (molVars.numberMolsInBox0 != 0)
+      molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
+  }
 }
 
 typedef std::map<std::string, mol_setup::MolKind> MolMap;
@@ -884,7 +900,13 @@ namespace
 {
 //Initializes system from PSF file (does not include coordinates)
 //returns number of atoms in the file, or errors::READ_ERROR if the read failed somehow
-int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap & sizeMap, MolMap * kindMapFromBox1, SizeMap * sizeMapFromBox1)
+int ReadPSF(const char* psfFilename, 
+            const uint box,
+            MoleculeVariables & molVars, 
+            MolMap& kindMap, 
+            SizeMap & sizeMap, 
+            MolMap * kindMapFromBox1, 
+            SizeMap * sizeMapFromBox1)
 {
   FILE* psf = fopen(psfFilename, "r");
   char* check;        //return value of fgets
@@ -973,7 +995,8 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
                 kindMap, 
                 sizeMap,
                 kindMapFromBox1, 
-                sizeMapFromBox1);
+                sizeMapFromBox1,
+                box);
 
   std::vector<std::pair<unsigned int, std::string> > firstAtomLookup;
   for (MolMap::iterator it = kindMap.begin(); it != kindMap.end(); ++it) {

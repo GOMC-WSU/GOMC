@@ -40,9 +40,12 @@ ConfigSetup::ConfigSetup(void)
   sys.memcVal.enable = false;
   sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
+  sys.step.start = 0;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
+  sys.step.initStepRead = false;
+  sys.step.initStep = ULONG_MAX;
   sys.step.pressureCalcFreq = ULONG_MAX;
   sys.step.pressureCalc = true;
   sys.step.parallelTempFreq = ULONG_MAX;
@@ -661,6 +664,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(sys.step.total == 0) {
         in.restart.recalcTrajectory = true;
         printf("%-40s %-s \n", "Info: Recalculate Trajectory", "Active");
+        std::cout << "Error: Recalculate Trajectory is not currently supported!\n";
+        exit(EXIT_FAILURE);
       }
     } else if(CheckString(line[0], "EqSteps")) {
       sys.step.equil = stringtoi(line[1]);
@@ -670,6 +675,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       sys.step.adjustment = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Move adjustment frequency",
              sys.step.adjustment);
+    } else if(CheckString(line[0], "InitStep")) {
+      sys.step.initStep = stringtoi(line[1]);
+      sys.step.initStepRead = true;
+      printf("%-40s %-lu \n", "Info: InitStep",
+             sys.step.initStep);
     } else if(CheckString(line[0], "PressureCalc")) {
       sys.step.pressureCalc = checkBool(line[1]);
       if(line.size() == 3)
@@ -1759,11 +1769,12 @@ void ConfigSetup::verifyInputs(void)
               "Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.equil > sys.step.total && !in.restart.recalcTrajectory) {
+  if(sys.step.equil > (sys.step.initStep + sys.step.total) && !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
     std::cout << "Error: Equilibration steps cannot exceed " <<
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
+
   if(sys.moves.displace == DBL_MAX) {
     if(!exptMode){
       std::cout << "Error: Displacement move frequency is not specified!\n";

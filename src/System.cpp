@@ -38,6 +38,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GOMCEventsProfile.h"
 
 System::System(StaticVals& statics, Setup const& set,
+               ulong & startStep,
                MultiSim const*const& multisim) :
   statV(statics),
   boxDimRef(*BoxDim(statics.isOrthogonal)),
@@ -54,8 +55,11 @@ System::System(StaticVals& statics, Setup const& set,
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   calcEnergy(statics, *this), 
-  checkpointSet(molLookupRef, moveSettings, statics.mol, prng, set),
-  vel(statics.forcefield, molLookupRef, statics.mol, prng)
+  checkpointSet(startStep, trueStep, molLookupRef, moveSettings, statics.mol, prng, r123wrapper, set),
+  vel(statics.forcefield, molLookupRef, statics.mol, prng),
+  restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
+  startStepRef(startStep)
+
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI
@@ -94,7 +98,7 @@ System::~System()
 #endif
 }
 
-void System::Init(Setup & set, ulong & startStep)
+void System::Init(Setup & set)
 {
   prng.Init(set.prng.prngMaker.prng);
   r123wrapper.SetRandomSeed(set.config.in.prng.seed);
@@ -111,8 +115,12 @@ void System::Init(Setup & set, ulong & startStep)
 
   // At this point see if checkpoint is enabled. if so re-initialize
   // step, movesettings, prng, original molecule start and kindex arrays, and original molecule trajectory indices
-  if(set.config.in.restart.restartFromCheckpoint) {
-    checkpointSet.loadCheckpointFile(startStep);
+  if(restartFromCheckpoint) {
+    checkpointSet.loadCheckpointFile();
+  }
+  // overwrite startStepRef with initStep
+  if(set.config.sys.step.initStepRead){
+    startStepRef = set.config.sys.step.initStep;
   }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
@@ -163,7 +171,7 @@ void System::Init(Setup & set, ulong & startStep)
 
 void System::InitOver(Setup & set, Molecules & molRef)
 {
-  if(set.config.in.restart.restartFromCheckpoint)
+  if(restartFromCheckpoint)
     checkpointSet.InitOver(molRef);
 }
 
@@ -263,7 +271,10 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 
 void System::ChooseAndRunMove(const ulong step)
 {
-  r123wrapper.SetStep(step);
+  if(restartFromCheckpoint)
+    r123wrapper.SetStep(step);
+  else
+    r123wrapper.SetStep(trueStep + step - startStepRef);
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
