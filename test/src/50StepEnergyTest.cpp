@@ -17,7 +17,7 @@
     Checkpoint Output - RestartFromCheckpoint = true
 
 */
-TEST(CheckpointTest, CheckAR_KR) {
+TEST(50StepEnergyTest, CheckAR_KR) {
     chdir("./test/input/Systems/AR_KR/Base/");
     Simulation base("in.conf");
     base.RunSimulation();
@@ -30,9 +30,8 @@ TEST(CheckpointTest, CheckAR_KR) {
     K_N.RunSimulation();
     chdir("../../../../..");
     */
-    MoleculeLookup & base_ml = base.GetMolLookup();
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.originalMoleculeIndices[i] == base_ml.molLookup[i], true);
-        EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
-    }
+    double total = base.GetSystemEnergy();
+    // Run the main branch once
+    double x2 = 123.00;
+    EXPECT_EQ(total, x2);
 }
