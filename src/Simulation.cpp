@@ -184,8 +184,8 @@ bool Simulation::RecalculateAndCheck(void)
 }
 
 #if GOMC_GTEST
-double Simulation::GetSystemEnergy(void){
-  return system->potential.Total();
+SystemPotential &  Simulation::GetSystemEnergy(void){
+  return system->potential;
 }
 
 MoleculeLookup & Simulation::GetMolLookup(){

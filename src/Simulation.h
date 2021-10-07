@@ -25,7 +25,7 @@ public:
   bool RecalculateAndCheck(void);
   #if GOMC_GTEST
     MoleculeLookup & GetMolLookup();
-    double GetSystemEnergy(void);
+    SystemPotential & GetSystemEnergy(void);
   #endif
 private:
   StaticVals * staticValues;
