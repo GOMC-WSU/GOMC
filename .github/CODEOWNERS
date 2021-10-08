@@ -1,0 +1,4 @@
+CODEOWNERS @GOMC-WSU
+.github/ @GOMC-WSU
+development/ @GOMC-WSU
+py-MCMD/ @bc118
