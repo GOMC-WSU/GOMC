@@ -909,12 +909,18 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
       continue;
     }
     for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, currentCoords,
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box);
       dist = sqrt(distSq);
       correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                      erf(ff.alpha[box] * dist) / dist);
     }
+    // within cutoff
+    // CalcCoul = qiqj/r(erfc(alpha*r)+erf(alpha*r))
+                    
+    // outside cutoff
+    // erf(alpha*r)*qiqj/r
+    // CalcCoul = erf
   }
 
   return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
