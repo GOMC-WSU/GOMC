@@ -335,6 +335,7 @@ int MolSetup::Init(const std::string* psfFilename,
     }
     cereal::BinaryInputArchive ia(ifs);
     ia >> kindMap;
+    ia >> molVars;
     return 1;
   } else {
     int status = ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
@@ -346,6 +347,7 @@ int MolSetup::Init(const std::string* psfFilename,
     }
     cereal::BinaryOutputArchive oa(ofs);
     oa << kindMap;
+    oa << molVars;
     return status;
   }
 }
