@@ -320,11 +320,34 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
 }
 int MolSetup::Init(const std::string* psfFilename, 
                    const bool* psfDefined, 
-                   pdb_setup::Atoms& pdbAtoms)
+                   pdb_setup::Atoms& pdbAtoms,
+                   bool restartFromCheckpoint)
 {
   kindMap.clear();
   sizeMap.clear();
-  return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
+  std::string filename = "Map.dat";
+  if (restartFromCheckpoint){
+    std::ifstream ifs(filename);
+    if (!ifs.is_open()){
+      fprintf(stderr, "Error opening checkpoint input file %s\n",
+              filename.c_str());
+      exit(EXIT_FAILURE);
+    }
+    cereal::BinaryInputArchive ia(ifs);
+    ia >> kindMap;
+    return 1;
+  } else {
+    int status = ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
+    std::ofstream ofs(filename);
+    if (!ofs.is_open()){
+      fprintf(stderr, "Error writing checkpoint output file %s\n",
+              filename.c_str());
+      exit(EXIT_FAILURE);
+    }
+    cereal::BinaryOutputArchive oa(ofs);
+    oa << kindMap;
+    return status;
+  }
 }
 
 
