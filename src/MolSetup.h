@@ -322,7 +322,8 @@ public:
   //returns 0 if read is successful, -1 on a failure
   int Init(const std::string* psfFilename, 
            const bool* psfDefined, 
-           pdb_setup::Atoms& pdbAtoms);
+           pdb_setup::Atoms& pdbAtoms,
+           bool restartFromCheckpoint = false);
 
   void AssignKinds(const mol_setup::MoleculeVariables& molVars, const FFSetup& ffData);
 
