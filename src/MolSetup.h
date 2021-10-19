@@ -17,7 +17,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "AlphaNum.h"
 
 #include <cereal/access.hpp>
-#include <cereal/archives/binary.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/map.hpp>
@@ -304,6 +303,7 @@ void PrintMolMapBrief(const MolMap& kindMap);
 class MolSetup
 {
 public:
+  MolSetup() = default;
   class Atom;
   void createKindMap (mol_setup::MoleculeVariables & molVars,
                       const BondAdjacencyList & bondAdjList,
@@ -322,8 +322,7 @@ public:
   //returns 0 if read is successful, -1 on a failure
   int Init(const std::string* psfFilename, 
            const bool* psfDefined, 
-           pdb_setup::Atoms& pdbAtoms,
-           bool restartFromCheckpoint = false);
+           pdb_setup::Atoms& pdbAtoms);
 
   void AssignKinds(const mol_setup::MoleculeVariables& molVars, const FFSetup& ffData);
 

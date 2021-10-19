@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolSetup.h"
 #include "GOMC_Config.h"    //For PT
 #include "ParallelTemperingPreprocessor.h"
+#include <cereal/archives/binary.hpp>
 class Setup
 {
 public:
@@ -45,11 +46,30 @@ public:
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
 #endif
     //Read molecule data from psf
-    if(mol.Init(config.in.files.psf.name, 
-                config.in.files.psf.defined, 
-                pdb.atoms,
-                config.in.restart.restartFromCheckpoint) != 0) {
-      exit(EXIT_FAILURE);
+    std::string filename = "Map.dat";
+    if (config.in.restart.restartFromCheckpoint){
+      std::ifstream ifs(filename);
+      if (!ifs.is_open()){
+        fprintf(stderr, "Error opening checkpoint input file %s\n",
+                filename.c_str());
+        exit(EXIT_FAILURE);
+      }
+      cereal::BinaryInputArchive ia(ifs);
+      ia >> mol;
+    } else {
+      if(mol.Init(config.in.files.psf.name, 
+                  config.in.files.psf.defined, 
+                  pdb.atoms) != 0) {
+        exit(EXIT_FAILURE);
+      }      
+      std::ofstream ofs(filename);
+      if (!ofs.is_open()){
+        fprintf(stderr, "Error writing checkpoint output file %s\n",
+                filename.c_str());
+        exit(EXIT_FAILURE);
+      }
+      cereal::BinaryOutputArchive oa(ofs);
+      oa << mol;
     }
     mol.AssignKinds(mol.molVars, ff);
 
