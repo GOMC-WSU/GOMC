@@ -149,6 +149,14 @@ private:
   }
   const std::map<std::string, FWReadableBase *> dataKinds;
   static const std::string pdbAlias[];
+
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & atoms;
+    }
 };
 
 #endif /*PDB_SETUP_H*/
