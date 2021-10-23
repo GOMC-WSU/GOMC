@@ -168,6 +168,10 @@ void CheckpointSetup::SetMoleculeSetup(){
   molSetRef.AssignKinds(molSetRef.molVars, ffSetupRef);
 }
 
+void CheckpointSetup::SetPDBSetupAtoms(){
+  //pdbAtomsRef
+}
+
 
 #if GOMC_LIB_MPI
 bool CheckpointSetup::SetParallelTemperingWasEnabled()
