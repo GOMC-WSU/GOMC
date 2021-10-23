@@ -21,6 +21,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Molecules.h"
 #include "PRNG.h"
 #include <stdint.h>
+// So we can checkpoint the MoleculeLookup
+#include "MolSetup.h"
+#include "PDBSetup.h"
 
 class Checkpoint
 {
@@ -30,7 +33,8 @@ class Checkpoint
                 MoveSettings & movSetRef,
                 PRNG & prng,
                 const Molecules & molRef,
-                MoleculeLookup & molLookRef);
+                MoleculeLookup & molLookRef,
+                MolSetup & molSetupRef);
 
 #if GOMC_LIB_MPI
     Checkpoint(const ulong & startStep,
@@ -39,6 +43,7 @@ class Checkpoint
                 PRNG & prng,
                 const Molecules & molRef,
                 MoleculeLookup & molLookRef,
+                MolSetup & molSetupRef,
                 bool & parallelTemperingIsEnabled,
                 PRNG & prngPTRef);
 #endif
@@ -58,6 +63,7 @@ class Checkpoint
         void GatherMoleculeKindDictionary(const Molecules & molRef);
         void GatherMoveSettings(MoveSettings & movSetRef);
         void GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef);
+        void GatherMolSetup(MolSetup & molSetupRef);
         void GatherRandomNumbers(PRNG & prngRef);
     #if GOMC_LIB_MPI
         void GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled);
@@ -111,6 +117,9 @@ class Checkpoint
         uint32_t seedLocationPT, seedLeftPT, seedValuePT;
         #endif
 
+        MolSetup originalMolSetup;
+        pdb_setup::Atoms originalAtoms;
+
         friend class cereal::access;
         template<class Archive>
         void serialize(Archive & ar, const unsigned int version)
@@ -145,6 +154,8 @@ class Checkpoint
             ar & permutedMoleculeIndicesVec; 
             // name & index Map
             ar & originalNameIndexMap;
+            // MolSetup
+            ar & originalMolSetup;
 
             #if GOMC_LIB_MPI
             // PT boolean

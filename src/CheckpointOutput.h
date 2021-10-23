@@ -19,7 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class CheckpointOutput : public OutputableBase
 {
 public:
-  CheckpointOutput(System & sys, StaticVals const& statV);
+  CheckpointOutput(System & sys, StaticVals const& statV, Setup & set);
 
   ~CheckpointOutput()
   {
@@ -61,6 +61,8 @@ private:
   Molecules const & molRef;
   PRNG & prngRef;
   Coordinates & coordCurrRef;
+  MolSetup & molSetRef;        //5
+
 #if GOMC_LIB_MPI
   PRNG & prngPTRef;
 #endif
