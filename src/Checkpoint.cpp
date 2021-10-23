@@ -13,7 +13,8 @@ Checkpoint::Checkpoint(const ulong & step,
                         MoveSettings & movSetRef,
                         PRNG & prngRef,
                         const Molecules & molRef,
-                        MoleculeLookup & molLookupRef){
+                        MoleculeLookup & molLookupRef,
+                        MolSetup & molSetupRef){
     GatherStep(step);
     GatherTrueStep(trueStep);
     GatherMoveSettings(movSetRef);
@@ -21,6 +22,8 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherMolecules(molRef);
     GatherMoleculeKindDictionary(molRef);
     GatherSortedMoleculeIndices(molLookupRef);
+    GatherMolSetup(molSetupRef);
+    //GatherPDBAtoms();
 }
 
 #if GOMC_LIB_MPI
@@ -142,6 +145,11 @@ void Checkpoint::GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef){
     }
   }
 }
+
+void Checkpoint::GatherMolSetup(MolSetup & molSetupRef){
+  originalMolSetup = molSetupRef;
+}
+
 
 #if GOMC_LIB_MPI
 void Checkpoint::GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled){
