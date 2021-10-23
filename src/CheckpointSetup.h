@@ -71,6 +71,7 @@ private:
   void SetMoleculeKindDictionary();
   void SetMoleculeIndices();
   void SetMoleculeSetup();
+  void SetPDBSetupAtoms();
 #if GOMC_LIB_MPI  
   void SetParallelTemperingWasEnabled();
   void SetPRNGVariablesPT(PRNG & prng);
