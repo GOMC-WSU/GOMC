@@ -62,7 +62,7 @@ private:
   PRNG & prngRef;
   Coordinates & coordCurrRef;
   MolSetup & molSetRef;        //5
-
+  pdb_setup::Atoms pdbSetupAtomsRef;
 #if GOMC_LIB_MPI
   PRNG & prngPTRef;
 #endif
