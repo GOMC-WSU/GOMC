@@ -64,6 +64,7 @@ class Checkpoint
         void GatherMoveSettings(MoveSettings & movSetRef);
         void GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef);
         void GatherMolSetup(MolSetup & molSetupRef);
+        void GatherPDBSetupAtoms(pdb_setup::Atoms & pdbSetupAtomsRef);
         void GatherRandomNumbers(PRNG & prngRef);
     #if GOMC_LIB_MPI
         void GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled);

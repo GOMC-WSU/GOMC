@@ -96,6 +96,8 @@ private:
   MoleculeLookup & molLookupRef;
   MolSetup & molSetRef;        //5
   FFSetup & ffSetupRef;
+  pdb_setup::Atoms & pdbAtomsRef;
+
 #if GOMC_LIB_MPI
   bool parallelTemperingWasEnabled;
   bool & parallelTemperingIsEnabled;

@@ -18,7 +18,7 @@ CheckpointSetup::CheckpointSetup(ulong & startStep,
                                 Setup & set) :
   molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol), prngRef(prng),
   r123Ref(r123), startStepRef(startStep), trueStepRef(trueStep),
-  molSetRef(set.mol), ffSetupRef(set.ff)
+  molSetRef(set.mol), ffSetupRef(set.ff), pdbAtomsRef(set.pdb.atoms)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
@@ -64,6 +64,7 @@ void CheckpointSetup::SetCheckpointData   (){
   SetMoleculeKindDictionary();
   SetMoleculeIndices();
   SetMoleculeSetup();
+  SetPDBSetupAtoms();
 }
 
 #if GOMC_LIB_MPI
@@ -77,6 +78,8 @@ void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
   SetMolecules();
   SetMoleculeKindDictionary();
   SetMoleculeIndices();
+  SetMoleculeSetup();
+  SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
   if(parallelTemperingIsEnabled && parallelTemperingWasEnabled)
     SetPRNGVariablesPT();
@@ -171,6 +174,10 @@ void CheckpointSetup::SetMoleculeIndices(){
 void CheckpointSetup::SetMoleculeSetup(){
   molSetRef = chkObj.originalMolSetup;
   molSetRef.AssignKinds(molSetRef.molVars, ffSetupRef);
+}
+
+void CheckpointSetup::SetPDBSetupAtoms(){
+  //pdbAtomsRef
 }
 
 
