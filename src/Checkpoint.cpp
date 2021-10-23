@@ -150,6 +150,10 @@ void Checkpoint::GatherMolSetup(MolSetup & molSetupRef){
   originalMolSetup = molSetupRef;
 }
 
+void Checkpoint::GatherPDBSetupAtoms(pdb_setup::Atoms & pdbSetupAtomsRef){
+  originalAtoms = pdbSetupAtomsRef;
+}
+
 
 #if GOMC_LIB_MPI
 void Checkpoint::GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled){

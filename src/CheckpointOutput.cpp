@@ -16,7 +16,7 @@ CheckpointOutput::CheckpointOutput(System & sys,
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
   coordCurrRef(sys.coordinates), trueStepRef(sys.trueStep),
-  molSetRef(set.mol),
+  molSetRef(set.mol), pdbSetupAtomsRef(set.pdb.atoms),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
   enableParallelTemperingBool(sys.ms->parallelTemperingEnabled)
