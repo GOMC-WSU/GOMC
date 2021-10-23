@@ -15,6 +15,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h" //For BOX_TOTAL, etc.
 #include "PDBConst.h" //For fields positions, etc.
 #include "XYZArray.h" //For box dimensions.
+#include <cereal/access.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
 
 namespace config_setup
 {
@@ -123,6 +126,25 @@ public:
   //second box read (restart only)
   uint currBox, count;
   uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & chainLetter;
+      ar & x;
+      ar & y;
+      ar & z;
+      ar & beta;
+      ar & box;
+      ar & resNames;
+      ar & restart;
+      ar & firstResInFile;
+      ar & recalcTrajectory;
+      ar & currBox;
+      ar & count;
+      ar & numAtomsInBox;
+    }
 };
 
 }
