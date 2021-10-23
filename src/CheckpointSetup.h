@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VectorLib.h" //for transfer.
 
 #include "Checkpoint.h"
+#include "FFSetup.h"
 
 
 class CheckpointSetup
@@ -30,7 +31,7 @@ public:
                   Molecules & mol,
                   PRNG & prng,
                   Random123Wrapper & r123,
-                  Setup const& set);  
+                  Setup & set);  
 #if GOMC_LIB_MPI
                           
   CheckpointSetup(ulong & startStep,
@@ -40,7 +41,7 @@ public:
                   Molecules & mol,
                   PRNG & prng,
                   Random123Wrapper & r123,
-                  Setup const& set,
+                  Setup & set,
                   bool & parallelTemperingEnabled,
                   PRNG & prngPT);
 #endif
@@ -69,6 +70,7 @@ private:
   void SetMolecules();
   void SetMoleculeKindDictionary();
   void SetMoleculeIndices();
+  void SetMoleculeSetup();
 #if GOMC_LIB_MPI  
   void SetParallelTemperingWasEnabled();
   void SetPRNGVariablesPT(PRNG & prng);
@@ -92,6 +94,8 @@ private:
   Random123Wrapper & r123Ref;
   Molecules & molRef;
   MoleculeLookup & molLookupRef;
+  MolSetup & molSetRef;        //5
+  FFSetup & ffSetupRef;
 #if GOMC_LIB_MPI
   bool parallelTemperingWasEnabled;
   bool & parallelTemperingIsEnabled;
