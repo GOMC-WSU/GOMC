@@ -10,10 +10,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GOMC_Config.h"
 
 
-CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
+CheckpointOutput::CheckpointOutput(System & sys, 
+                                  StaticVals const& statV,
+                                  Setup & set) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
   coordCurrRef(sys.coordinates), trueStepRef(sys.trueStep),
+  molSetRef(set.mol),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
   enableParallelTemperingBool(sys.ms->parallelTemperingEnabled)
@@ -67,7 +70,8 @@ void CheckpointOutput::saveCheckpointFile(const ulong & step,
                     movSetRef,
                     prng,
                     molRef,
-                    molLookRef);
+                    molLookRef,
+                    molSetRef);
 
   cereal::BinaryOutputArchive oa(ofs);
   oa << chkObj;

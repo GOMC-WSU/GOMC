@@ -15,7 +15,7 @@ CPUSide::CPUSide(System & sys, StaticVals & statV, Setup & set) :
   psf(statV.mol, sys, set), 
   xstBinary(sys, statV),
   console(varRef), block(varRef),
-  hist(varRef), checkpoint(sys, statV)
+  hist(varRef), checkpoint(sys, statV, set)
 #if ENSEMBLE == GCMC
   , sample_N_E(varRef)
 #endif
