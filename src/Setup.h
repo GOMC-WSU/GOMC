@@ -45,15 +45,14 @@ public:
     if(multisim->parallelTemperingEnabled)
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
 #endif
-    //Read molecule data from psf
-    if(mol.Init(config.in.files.psf.name, 
-                config.in.files.psf.defined, 
-                pdb.atoms) != 0) {
-      exit(EXIT_FAILURE);
-    }      
-    // Wait until we load the MolSetup from checkpoint
-    // Before assigning the kinds
+    // Load the MolSetup from checkpoint
     if (!config.in.restart.restartFromCheckpoint){
+      //Read molecule data from psf
+      if(mol.Init(config.in.files.psf.name, 
+                  config.in.files.psf.defined, 
+                  pdb.atoms) != 0) {
+        exit(EXIT_FAILURE);
+      }      
       mol.AssignKinds(mol.molVars, ff);
     }
   }
