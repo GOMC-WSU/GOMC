@@ -15,9 +15,10 @@ CheckpointSetup::CheckpointSetup(ulong & startStep,
                                 Molecules & mol,
                                 PRNG & prng,
                                 Random123Wrapper & r123,
-                                Setup const& set) :
+                                Setup & set) :
   molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol), prngRef(prng),
-  r123Ref(r123), startStepRef(startStep), trueStepRef(trueStep)
+  r123Ref(r123), startStepRef(startStep), trueStepRef(trueStep),
+  molSetRef(set.mol), ffSetupRef(set.ff)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
@@ -62,6 +63,7 @@ void CheckpointSetup::SetCheckpointData   (){
   SetMolecules();
   SetMoleculeKindDictionary();
   SetMoleculeIndices();
+  SetMoleculeSetup();
 }
 
 #if GOMC_LIB_MPI
@@ -164,6 +166,11 @@ void CheckpointSetup::SetMoleculeIndices(){
   molLookupRef.originalMoleculeIndices = vect::transfer<uint32_t>(chkObj.originalMoleculeIndicesVec);
   /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
   molLookupRef.permutedMoleculeIndices = vect::transfer<uint32_t>(chkObj.permutedMoleculeIndicesVec);
+}
+
+void CheckpointSetup::SetMoleculeSetup(){
+  molSetRef = chkObj.originalMolSetup;
+  molSetRef.AssignKinds(molSetRef.molVars, ffSetupRef);
 }
 
 

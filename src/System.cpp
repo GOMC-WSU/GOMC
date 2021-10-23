@@ -37,7 +37,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "TargetedSwap.h"
 #include "GOMCEventsProfile.h"
 
-System::System(StaticVals& statics, Setup const& set,
+System::System(StaticVals& statics, Setup & set,
                ulong & startStep,
                MultiSim const*const& multisim) :
   statV(statics),
