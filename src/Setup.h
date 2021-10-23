@@ -46,33 +46,16 @@ public:
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
 #endif
     //Read molecule data from psf
-    std::string filename = "Map.dat";
-    if (config.in.restart.restartFromCheckpoint){
-      std::ifstream ifs(filename);
-      if (!ifs.is_open()){
-        fprintf(stderr, "Error opening checkpoint input file %s\n",
-                filename.c_str());
-        exit(EXIT_FAILURE);
-      }
-      cereal::BinaryInputArchive ia(ifs);
-      ia >> mol;
-    } else {
-      if(mol.Init(config.in.files.psf.name, 
-                  config.in.files.psf.defined, 
-                  pdb.atoms) != 0) {
-        exit(EXIT_FAILURE);
-      }      
-      std::ofstream ofs(filename);
-      if (!ofs.is_open()){
-        fprintf(stderr, "Error writing checkpoint output file %s\n",
-                filename.c_str());
-        exit(EXIT_FAILURE);
-      }
-      cereal::BinaryOutputArchive oa(ofs);
-      oa << mol;
+    if(mol.Init(config.in.files.psf.name, 
+                config.in.files.psf.defined, 
+                pdb.atoms) != 0) {
+      exit(EXIT_FAILURE);
+    }      
+    // Wait until we load the MolSetup from checkpoint
+    // Before assigning the kinds
+    if (!config.in.restart.restartFromCheckpoint){
+      mol.AssignKinds(mol.molVars, ff);
     }
-    mol.AssignKinds(mol.molVars, ff);
-
   }
 };
 
