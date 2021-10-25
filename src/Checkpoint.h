@@ -34,7 +34,8 @@ class Checkpoint
                 PRNG & prng,
                 const Molecules & molRef,
                 MoleculeLookup & molLookRef,
-                MolSetup & molSetupRef);
+                MolSetup & molSetupRef,
+                pdb_setup::Atoms const& pdbSetupAtomsRef);
 
 #if GOMC_LIB_MPI
     Checkpoint(const ulong & startStep,
@@ -44,6 +45,7 @@ class Checkpoint
                 const Molecules & molRef,
                 MoleculeLookup & molLookRef,
                 MolSetup & molSetupRef,
+                pdb_setup::Atoms const& atoms,
                 bool & parallelTemperingIsEnabled,
                 PRNG & prngPTRef);
 #endif
@@ -64,8 +66,10 @@ class Checkpoint
         void GatherMoveSettings(MoveSettings & movSetRef);
         void GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef);
         void GatherMolSetup(MolSetup & molSetupRef);
-        void GatherPDBSetupAtoms(pdb_setup::Atoms & pdbSetupAtomsRef);
+        void GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef);
         void GatherRandomNumbers(PRNG & prngRef);
+        void GatherRestartMoleculeStartVec(MoleculeLookup & molLookupRef,
+                                            const Molecules & molRef);
     #if GOMC_LIB_MPI
         void GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled);
         void GatherRandomNumbersParallelTempering(PRNG & prngPTRef);
@@ -90,6 +94,11 @@ class Checkpoint
         // Original molecule start positions.  Could be generated through kind,
         // but this allows for parallelized output.
         std::vector<uint32_t> originalStartVec, originalKIndexVec;
+
+
+        // Restart PDB(S) molecule start positions.  Used to load the coordinates
+        // From the restart files into the original pdb atoms object.
+        std::vector<uint32_t> restartedStartVec;
 
         // Molecule Indices for consistent trajectories 
         std::vector<uint32_t> originalMoleculeIndicesVec, permutedMoleculeIndicesVec;

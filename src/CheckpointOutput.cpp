@@ -48,7 +48,11 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   // We want to begin the next simulation on the next step
   // I.e. if we ran 1000 steps, 0-999
   // We want to start on step 1000
-  saveCheckpointFile(step+1, moveSetRef, prngRef, molRef, molLookupRef);
+  saveCheckpointFile(step+1, 
+                      moveSetRef, 
+                      prngRef, 
+                      molRef, 
+                      molLookupRef);
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
@@ -71,7 +75,8 @@ void CheckpointOutput::saveCheckpointFile(const ulong & step,
                     prng,
                     molRef,
                     molLookRef,
-                    molSetRef);
+                    molSetRef,
+                    pdbSetupAtomsRef);
 
   cereal::BinaryOutputArchive oa(ofs);
   oa << chkObj;

@@ -77,8 +77,8 @@ void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  SetMoleculeKindDictionary();
-  SetMoleculeIndices();
+  //SetMoleculeKindDictionary();
+  //SetMoleculeIndices();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
@@ -103,7 +103,7 @@ void CheckpointSetup::SetMolecules(Molecules& mols)
   /* Original Start Indices are for space demarcation in trajectory frame */
   mols.originalStart = vect::transfer<uint32_t>(chkObj.originalStartVec);
   /* Kinds store accessory molecule data such as residue, charge, etc */
-  mols.originalKIndex = vect::transfer<uint32_t>(chkObj.originalKIndexVec);
+  //mols.originalKIndex = vect::transfer<uint32_t>(chkObj.originalKIndexVec);
 }
 
 // Pass mol reference because the old reference might break after
@@ -213,8 +213,8 @@ void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
 
 void CheckpointSetup::GetRangeStartStop(uint & _start, uint & stop, const uint m) const
 {
-  _start = startIdxMolecules[m];
-  stop = startIdxMolecules[m + 1];
+  _start = chkObj.restartedStartVec[m];
+  stop = chkObj.restartedStartVec[m + 1];
 }
 
 void CheckpointSetup::GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const
