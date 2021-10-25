@@ -49,7 +49,7 @@ public:
   ~CheckpointSetup();
 
   void loadCheckpointFile();
-  void InitOver(Molecules & molRef);
+  void InitOver();
 
 private:
   void SetCheckpointData();
@@ -63,12 +63,10 @@ private:
   void SetStepNumber();
   void SetTrueStepNumber();
   void SetMolecules(Molecules& mols);
-  void SetMoleculeKindDictionary(Molecules& mols);
   void SetMoveSettings();
   void SetPRNGVariables();
   void SetR123Variables();
   void SetMolecules();
-  void SetMoleculeKindDictionary();
   void SetMoleculeIndices();
   void SetMoleculeSetup();
   void SetPDBSetupAtoms();

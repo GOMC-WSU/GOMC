@@ -64,7 +64,7 @@ class Checkpoint
         void GatherMolecules(const Molecules & molRef);
         void GatherMoleculeKindDictionary(const Molecules & molRef);
         void GatherMoveSettings(MoveSettings & movSetRef);
-        void GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef);
+        void GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef);
         void GatherMolSetup(MolSetup & molSetupRef);
         void GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef);
         void GatherRandomNumbers(PRNG & prngRef);

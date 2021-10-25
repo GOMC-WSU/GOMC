@@ -171,7 +171,7 @@ void System::Init(Setup & set)
 void System::InitOver(Setup & set, Molecules & molRef)
 {
   if(restartFromCheckpoint)
-    checkpointSet.InitOver(molRef);
+    checkpointSet.InitOver();
 }
 
 void System::InitMoves(Setup const& set)

@@ -20,9 +20,7 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherTrueStep(trueStep);
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
-    GatherMolecules(molRef);
-    //GatherMoleculeKindDictionary(molRef);
-    //GatherSortedMoleculeIndices(molLookupRef);
+    GatherRestartMoleculeIndices(molLookupRef);
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
     GatherPDBSetupAtoms(pdbSetupAtomsRef);
@@ -45,7 +43,7 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherRandomNumbers(prngRef);
     GatherMolecules(molRef);
     GatherMoleculeKindDictionary(molRef);
-    GatherSortedMoleculeIndices(molLookupRef);
+    GatherRestartMoleculeIndices(molLookupRef);
     GatherParallelTemperingBoolean(parallelTemperingIsEnabled);
     if(parallelTemperingIsEnabled)
         GatherRandomNumbersParallelTempering(prngPTRef);
@@ -67,14 +65,6 @@ void Checkpoint::GatherStep(const ulong & step){
 
 void Checkpoint::GatherTrueStep(const ulong & trueStep){
     trueStepNumber = trueStep;
-}
-
-
-void Checkpoint::GatherMolecules(const Molecules & molRef){
-    // Original molecule start positions.  Could be generated through kind,
-    // but this allows for parallelized output.
-    originalStartVec.assign(molRef.originalStart, molRef.originalStart + molRef.count + 1);
-    //originalKIndexVec.assign(molRef.originalKIndex, molRef.originalKIndex + molRef.kIndexCount);
 }
 
 void Checkpoint::GatherMoleculeKindDictionary(const Molecules & molRef){
@@ -116,7 +106,7 @@ void Checkpoint::GatherMoveSettings(MoveSettings & movSetRef){
 
 /* After the first run, the molecules are sorted, so we need to use the same sorting process
    seen below, to reinitialize the originalMolInds every checkpoint */
-void Checkpoint::GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef){
+void Checkpoint::GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef){
   originalMoleculeIndicesVec.clear();
   permutedMoleculeIndicesVec.clear();
   originalMoleculeIndicesVec.resize(molLookupRef.molLookupCount);
@@ -151,7 +141,7 @@ void Checkpoint::GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef){
 }
 
 /* 
-  After the first run, the we don't parse PSF files.  We simply load the original
+  After the first run, we don't parse PSF files.  We simply load the original
   molecule map from file.  Therefore, the new simulation doesn't have molecule ranges
   for the PDB data.  We generate the molecule ranges of the reordered PDB Restart
   files in this method.  
