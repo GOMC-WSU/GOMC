@@ -50,9 +50,8 @@ void CheckpointSetup::loadCheckpointFile(){
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
-void CheckpointSetup::InitOver(Molecules & molRef){
-  SetMolecules(molRef);
-  SetMoleculeKindDictionary(molRef);
+void CheckpointSetup::InitOver(){
+  SetMolecules();
 }
 
 void CheckpointSetup::SetCheckpointData   (){
@@ -62,7 +61,6 @@ void CheckpointSetup::SetCheckpointData   (){
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  SetMoleculeKindDictionary();
   SetMoleculeIndices();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
@@ -77,8 +75,7 @@ void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  //SetMoleculeKindDictionary();
-  //SetMoleculeIndices();
+  SetMoleculeIndices();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
@@ -96,38 +93,6 @@ void CheckpointSetup::SetTrueStepNumber()
 {
   printf("%-40s %-lu \n", "Info: Loading true step from checkpoint", chkObj.trueStepNumber);
   trueStepRef = chkObj.trueStepNumber;
-}
-
-void CheckpointSetup::SetMolecules(Molecules& mols)
-{
-  /* Original Start Indices are for space demarcation in trajectory frame */
-  mols.originalStart = vect::transfer<uint32_t>(chkObj.originalStartVec);
-  /* Kinds store accessory molecule data such as residue, charge, etc */
-  //mols.originalKIndex = vect::transfer<uint32_t>(chkObj.originalKIndexVec);
-}
-
-// Pass mol reference because the old reference might break after
-// the InitOver call..
-void CheckpointSetup::SetMoleculeKindDictionary(Molecules& mols){
-  // Kind indices and name map
-  std::map<std::string, uint32_t> nameIndexMap;
-  for (uint mk = 0 ; mk < mols.kindsCount; mk++)
-    nameIndexMap[mols.kinds[mk].name] = (uint32_t)mk;
-
-  for (uint mk = 0 ; mk < mols.kindsCount; mk++)
-    mols.originalKIndex2CurrentKIndex[chkObj.originalNameIndexMap[mols.kinds[mk].name]]
-         = nameIndexMap[mols.kinds[mk].name];
-}
-
-void CheckpointSetup::SetMoleculeKindDictionary(){
-  // Kind indices and name map
-  std::map<std::string, uint32_t> nameIndexMap;
-  for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
-    nameIndexMap[molRef.kinds[mk].name] = (uint32_t)mk;
-
-  for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
-    molRef.originalKIndex2CurrentKIndex[chkObj.originalNameIndexMap[molRef.kinds[mk].name]]
-         = nameIndexMap[molRef.kinds[mk].name];
 }
 
 void CheckpointSetup::SetMoveSettings()
@@ -159,10 +124,9 @@ void CheckpointSetup::SetR123Variables()
 
 void CheckpointSetup::SetMolecules()
 {
-  /* Original Start Indices are for space demarcation in trajectory frame */
-  molRef.originalStart = vect::transfer<uint32_t>(chkObj.originalStartVec);
-  /* Kinds store accessory molecule data such as residue, charge, etc */
-  molRef.originalKIndex = vect::transfer<uint32_t>(chkObj.originalKIndexVec);
+  molRef.restartOrderedStart = new uint [chkObj.originalMolSetup.molVars.moleculeIteration + 1];
+  /* If new run, originalStart & originalKIndex and start & kIndex are identical */
+  molRef.restartOrderedStart = vect::TransferInto<uint>(molRef.restartOrderedStart, chkObj.restartedStartVec);
 }
 
 void CheckpointSetup::SetMoleculeIndices(){
