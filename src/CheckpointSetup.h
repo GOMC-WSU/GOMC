@@ -77,6 +77,9 @@ private:
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
 
+void GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const;
+void GetRangeStartStop(uint & _start, uint & stop, const uint m) const;
+
 #if GOMC_GTEST
 
 #endif
@@ -98,6 +101,8 @@ private:
   MolSetup & molSetRef;        //5
   FFSetup & ffSetupRef;
   pdb_setup::Atoms & pdbAtomsRef;
+
+  std::vector<uint> startIdxMolecules;
 
 #if GOMC_LIB_MPI
   bool parallelTemperingWasEnabled;

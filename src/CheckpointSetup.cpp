@@ -18,7 +18,8 @@ CheckpointSetup::CheckpointSetup(ulong & startStep,
                                 Setup & set) :
   molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol), prngRef(prng),
   r123Ref(r123), startStepRef(startStep), trueStepRef(trueStep),
-  molSetRef(set.mol), ffSetupRef(set.ff), pdbAtomsRef(set.pdb.atoms)
+  molSetRef(set.mol), ffSetupRef(set.ff), pdbAtomsRef(set.pdb.atoms),
+  startIdxMolecules(set.mol.molVars.startIdxMolecules)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
@@ -177,7 +178,21 @@ void CheckpointSetup::SetMoleculeSetup(){
 }
 
 void CheckpointSetup::SetPDBSetupAtoms(){
-  //pdbAtomsRef
+  uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
+  for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
+    trajectoryI = molLookupRef.originalMoleculeIndices[mol];
+    dataI = mol;
+    //Loop through particles in mol.
+    GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+    GetRangeStartStop(dataStart, dataEnd, dataI);
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      chkObj.originalAtoms.x[p] = pdbAtomsRef.x[d];
+      chkObj.originalAtoms.y[p] = pdbAtomsRef.y[d];
+      chkObj.originalAtoms.z[p] = pdbAtomsRef.z[d];
+      chkObj.originalAtoms.beta[p] = pdbAtomsRef.beta[d];
+      chkObj.originalAtoms.box[p] = pdbAtomsRef.box[d];
+    }
+  }
 }
 
 
@@ -195,3 +210,15 @@ void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
   prngPT.GetGenerator()->seedValue = chkObj.seedValuePT;
 }
 #endif
+
+void CheckpointSetup::GetRangeStartStop(uint & _start, uint & stop, const uint m) const
+{
+  _start = startIdxMolecules[m];
+  stop = startIdxMolecules[m + 1];
+}
+
+void CheckpointSetup::GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const
+{
+  _start = chkObj.originalStartVec[m];
+  stop = chkObj.originalStartVec[m + 1];
+}
