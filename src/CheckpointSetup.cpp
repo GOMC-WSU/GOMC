@@ -169,7 +169,21 @@ void CheckpointSetup::SetMoleculeSetup(){
 }
 
 void CheckpointSetup::SetPDBSetupAtoms(){
-  //pdbAtomsRef
+  uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
+  for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
+    trajectoryI = molLookupRef.originalMoleculeIndices[mol];
+    dataI = mol;
+    //Loop through particles in mol.
+    GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+    GetRangeStartStop(dataStart, dataEnd, dataI);
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      chkObj.originalAtoms.x[p] = pdbAtomsRef.x[d];
+      chkObj.originalAtoms.y[p] = pdbAtomsRef.y[d];
+      chkObj.originalAtoms.z[p] = pdbAtomsRef.z[d];
+      chkObj.originalAtoms.beta[p] = pdbAtomsRef.beta[d];
+      chkObj.originalAtoms.box[p] = pdbAtomsRef.box[d];
+    }
+  }
 }
 
 
