@@ -71,10 +71,7 @@ class Checkpoint
         void GatherRandomNumbers(PRNG & prngRef);
         void GatherRestartMoleculeStartVec(MoleculeLookup & molLookupRef,
                                             const Molecules & molRef);
-<<<<<<< e4ad0c286b5f346ecdcd389364d0f132e61eaee6
         void GatherOriginalMoleculeStartVec(const Molecules & molRef);
-=======
->>>>>>> Finished passing the restart start vec to chk.  Also started scrubbing modified output code
     #if GOMC_LIB_MPI
         void GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled);
         void GatherRandomNumbersParallelTempering(PRNG & prngPTRef);
