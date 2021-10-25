@@ -351,14 +351,14 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
           boxDimRef.UnwrapPBC(coor, b, ref);
         }
         //InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[dataI]], beta::FIX[beta]);
-        InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[dataI]], molRef.beta[d]);
+        InsertAtomInLine(pStr[d], coor, occupancy::BOX[mBox[dataI]], molRef.beta[d]);
         //Write finished string out.
       }  
       ++m;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     }
   }
   for (uint p = 0; p < coordCurrRef.Count(); ++p){
-    outF[b].file << pStr[p] << std::endl;
+    outF[b].file << pStr[d] << std::endl;
   }
 }
 
