@@ -14,16 +14,20 @@ Checkpoint::Checkpoint(const ulong & step,
                         PRNG & prngRef,
                         const Molecules & molRef,
                         MoleculeLookup & molLookupRef,
-                        MolSetup & molSetupRef){
+                        MolSetup & molSetupRef,
+                        pdb_setup::Atoms const& pdbSetupAtomsRef){
     GatherStep(step);
     GatherTrueStep(trueStep);
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherMolecules(molRef);
-    GatherMoleculeKindDictionary(molRef);
-    GatherSortedMoleculeIndices(molLookupRef);
+    //GatherMoleculeKindDictionary(molRef);
+    //GatherSortedMoleculeIndices(molLookupRef);
+    // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
-    //GatherPDBAtoms();
+    GatherPDBSetupAtoms(pdbSetupAtomsRef);
+    // Not sure if these need to be gathered..
+    GatherRestartMoleculeStartVec(molLookupRef, molRef);
 }
 
 #if GOMC_LIB_MPI
@@ -70,7 +74,7 @@ void Checkpoint::GatherMolecules(const Molecules & molRef){
     // Original molecule start positions.  Could be generated through kind,
     // but this allows for parallelized output.
     originalStartVec.assign(molRef.originalStart, molRef.originalStart + molRef.count + 1);
-    originalKIndexVec.assign(molRef.originalKIndex, molRef.originalKIndex + molRef.kIndexCount);
+    //originalKIndexVec.assign(molRef.originalKIndex, molRef.originalKIndex + molRef.kIndexCount);
 }
 
 void Checkpoint::GatherMoleculeKindDictionary(const Molecules & molRef){
@@ -146,11 +150,36 @@ void Checkpoint::GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef){
   }
 }
 
+/* 
+  After the first run, the we don't parse PSF files.  We simply load the original
+  molecule map from file.  Therefore, the new simulation doesn't have molecule ranges
+  for the PDB data.  We generate the molecule ranges of the reordered PDB Restart
+  files in this method.  
+*/
+void Checkpoint::GatherRestartMoleculeStartVec(MoleculeLookup & molLookupRef,
+                                                const Molecules & molRef){
+  restartedStartVec.clear();
+  uint32_t & start = *molRef.start;
+  uint len = 0, sum = 0;
+  //Start particle numbering @ 1
+  for (uint box = 0; box < BOX_TOTAL; ++box) {
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
+                                  end = molLookupRef.BoxEnd(box);
+    while (m != end) {
+      restartedStartVec.push_back(sum + len);
+      molRef.GetRangeStartLength(start, len, *m);
+      sum += len;
+      ++m;
+    }
+    restartedStartVec.push_back(sum);
+  }
+}
+
 void Checkpoint::GatherMolSetup(MolSetup & molSetupRef){
   originalMolSetup = molSetupRef;
 }
 
-void Checkpoint::GatherPDBSetupAtoms(pdb_setup::Atoms & pdbSetupAtomsRef){
+void Checkpoint::GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef){
   originalAtoms = pdbSetupAtomsRef;
 }
 
