@@ -171,7 +171,7 @@ void CheckpointSetup::SetMoleculeSetup(){
 void CheckpointSetup::SetPDBSetupAtoms(){
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
-    trajectoryI = molLookupRef.originalMoleculeIndices[mol];
+    trajectoryI = chkObj.originalMoleculeIndicesVec[mol];
     dataI = mol;
     //Loop through particles in mol.
     GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
@@ -184,6 +184,8 @@ void CheckpointSetup::SetPDBSetupAtoms(){
       chkObj.originalAtoms.box[p] = pdbAtomsRef.box[d];
     }
   }
+  // Should do a default assignment of the vectors and primitives.
+  pdbAtomsRef = chkObj.originalAtoms;
 }
 
 
