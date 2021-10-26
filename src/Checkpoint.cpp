@@ -21,6 +21,7 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherRestartMoleculeIndices(molLookupRef);
+    GatherMoleculeLookup(molLookupRef);
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
     GatherPDBSetupAtoms(pdbSetupAtomsRef);
@@ -42,8 +43,8 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherMolecules(molRef);
-    GatherMoleculeKindDictionary(molRef);
     GatherRestartMoleculeIndices(molLookupRef);
+    GatherMoleculeLookup(molLookupRef);
     GatherParallelTemperingBoolean(parallelTemperingIsEnabled);
     if(parallelTemperingIsEnabled)
         GatherRandomNumbersParallelTempering(prngPTRef);
@@ -66,13 +67,6 @@ void Checkpoint::GatherStep(const ulong & step){
 void Checkpoint::GatherTrueStep(const ulong & trueStep){
     trueStepNumber = trueStep;
 }
-
-void Checkpoint::GatherMoleculeKindDictionary(const Molecules & molRef){
-  originalNameIndexMap.clear();
-  for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
-    originalNameIndexMap[molRef.kinds[mk].name] = (uint32_t)molRef.kinds[mk].kindIndex;
-}
-
 
 void Checkpoint::GatherRandomNumbers(PRNG & prngRef){
 
@@ -104,40 +98,30 @@ void Checkpoint::GatherMoveSettings(MoveSettings & movSetRef){
     mp_t_maxVec = movSetRef.mp_t_max;
 }
 
-/* After the first run, the molecules are sorted, so we need to use the same sorting process
-   seen below, to reinitialize the originalMolInds every checkpoint */
+/* 
+   Got rid of the if condition of whether this was a restFromChk or not
+   since the new method for restart from chk should believe it is always
+   NOT restarting from chk. 
+*/
 void Checkpoint::GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef){
   originalMoleculeIndicesVec.clear();
-  permutedMoleculeIndicesVec.clear();
   originalMoleculeIndicesVec.resize(molLookupRef.molLookupCount);
-  permutedMoleculeIndicesVec.resize(molLookupRef.molLookupCount);
   uint molCounter = 0, b, k, kI, countByKind, molI;
-  if (!molLookupRef.restartFromCheckpoint){
-    for (b = 0; b < BOX_TOTAL; ++b) {
-      for (k = 0; k < molLookupRef.numKinds; ++k) {
-        countByKind = molLookupRef.NumKindInBox(k, b);
-        for (kI = 0; kI < countByKind; ++kI) {
-          molI = molLookupRef.GetMolNum(kI, k, b);
-          originalMoleculeIndicesVec[molCounter] = molI;
-          ++molCounter;
-        }
-      }
-    }
-    for (uint molI = 0; molI < molLookupRef.molLookupCount; ++molI){
-      permutedMoleculeIndicesVec[molI] = molLookupRef.originalMoleculeIndices[molI];
-    }
-  } else {
-    for (b = 0; b < BOX_TOTAL; ++b) {
-      for (k = 0; k < molLookupRef.numKinds; ++k) {
-        countByKind = molLookupRef.NumKindInBox(k, b);
-        for (kI = 0; kI < countByKind; ++kI) {
-          molI = molLookupRef.GetSortedMolNum(kI, k, b);
-          originalMoleculeIndicesVec[molCounter] = molLookupRef.permutedMoleculeIndices[molI];
-          ++molCounter;
-        }
+  for (b = 0; b < BOX_TOTAL; ++b) {
+    for (k = 0; k < molLookupRef.numKinds; ++k) {
+      countByKind = molLookupRef.NumKindInBox(k, b);
+      for (kI = 0; kI < countByKind; ++kI) {
+        molI = molLookupRef.GetMolNum(kI, k, b);
+        originalMoleculeIndicesVec[molCounter] = molI;
+        ++molCounter;
       }
     }
   }
+}
+
+void Checkpoint::GatherMoleculeLookup(MoleculeLookup & molLookupRef){
+  molLookupVec.clear();
+  molLookupVec.insert(molLookupVec.end(), &molLookupRef.molLookup[0], &molLookupRef.molLookup[molLookupRef.molLookupCount]);
 }
 
 /* 
