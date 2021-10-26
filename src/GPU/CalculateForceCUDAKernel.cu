@@ -891,7 +891,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
           //initialize forceReal in case qi_qj_fact == 0.0
           forceReal =  make_double3(0.0, 0.0, 0.0);
           if(qi_qj_fact != 0.0) {
-            static const double qqFact = 167000.0;
+            static const double qqFact = 167103.208067979;
             qi_qj_fact *= qqFact;
             double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
                                    gpu_isFraction, gpu_molIndex,
