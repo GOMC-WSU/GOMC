@@ -68,6 +68,7 @@ private:
   void SetR123Variables();
   void SetMolecules();
   void SetMoleculeIndices();
+  void SetMoleculeLookup();
   void SetMoleculeSetup();
   void SetPDBSetupAtoms();
 #if GOMC_LIB_MPI  
