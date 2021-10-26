@@ -62,9 +62,9 @@ class Checkpoint
         void GatherStep(const ulong & startStep);
         void GatherTrueStep(const ulong & trueStep);
         void GatherMolecules(const Molecules & molRef);
-        void GatherMoleculeKindDictionary(const Molecules & molRef);
         void GatherMoveSettings(MoveSettings & movSetRef);
         void GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef);
+        void GatherMoleculeLookup(MoleculeLookup & molLookupRef);
         void GatherMolSetup(MolSetup & molSetupRef);
         void GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef);
         void GatherRandomNumbers(PRNG & prngRef);
@@ -93,18 +93,18 @@ class Checkpoint
 
         // Original molecule start positions.  Could be generated through kind,
         // but this allows for parallelized output.
-        std::vector<uint32_t> originalStartVec, originalKIndexVec;
-
+        std::vector<uint32_t> originalStartVec;
+        
+        // Molecule Lookup so our underlying molecules are associated with
+        // the same numbering system
+        std::vector<uint32_t> molLookupVec;
 
         // Restart PDB(S) molecule start positions.  Used to load the coordinates
         // From the restart files into the original pdb atoms object.
         std::vector<uint32_t> restartedStartVec;
 
         // Molecule Indices for consistent trajectories 
-        std::vector<uint32_t> originalMoleculeIndicesVec, permutedMoleculeIndicesVec;
-
-        // Kind indices and name map
-        std::map<std::string, uint32_t> originalNameIndexMap;
+        std::vector<uint32_t> originalMoleculeIndicesVec;
 
         #define N_array_size 624
 
@@ -156,16 +156,17 @@ class Checkpoint
             ar & mp_acceptedVec;
             ar & mp_t_maxVec;
             ar & mp_r_maxVec;
-            // Start and KIndex arrays
+            // Start arrays
             ar & originalStartVec;  
-            ar & originalKIndexVec;  
+            ar & restartedStartVec;
+            // Mollookup
+            ar & molLookupVec;  
             // Sorted Molecule Indices
             ar & originalMoleculeIndicesVec;  
-            ar & permutedMoleculeIndicesVec; 
-            // name & index Map
-            ar & originalNameIndexMap;
             // MolSetup
             ar & originalMolSetup;
+            // PDBAtoms
+            ar & originalAtoms;
 
             #if GOMC_LIB_MPI
             // PT boolean
