@@ -33,6 +33,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      bool sc_coul,
                      double sc_sigma_6,
                      double sc_alpha,
+                     double qqFact,
                      uint sc_power,
                      uint const box)
 {
@@ -129,6 +130,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       sc_coul,
       sc_sigma_6,
       sc_alpha,
+      qqFact,
       sc_power,
       vars->gpu_rMin,
       vars->gpu_rMaxSq,
@@ -216,6 +218,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             bool sc_coul,
                             double sc_sigma_6,
                             double sc_alpha,
+                            double qqFact,
                             uint sc_power,
                             double *gpu_rMin,
                             double *gpu_rMaxSq,
@@ -278,7 +281,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
         if(electrostatic) {
           double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
           if(qi_qj_fact != 0.0) {
-            static const double qqFact = 167000.0;
             qi_qj_fact *= qqFact;
             double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
                                    gpu_isFraction, gpu_molIndex,
