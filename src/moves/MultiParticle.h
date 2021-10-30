@@ -51,6 +51,7 @@ private:
   int moveType;
   bool allTranslate;
   std::vector<uint> moleculeIndex;
+  std::vector<bool> inForceRange;
   const MoleculeLookup& molLookup;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
@@ -63,8 +64,10 @@ private:
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
+  void RotateRandom(uint molIndex);
+  void TranslateRandom(uint molIndex);
   void SetMolInBox(uint box);
-  XYZ CalcRandomTransform(XYZ const &lb, double const max, uint molIndex);
+  XYZ CalcRandomTransform(bool &forceInRange, XYZ const &lb, double const max, uint molIndex);
   double CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old, XYZ const &k,
                          double max);
 };
@@ -85,6 +88,7 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   r_k.Init(sys.com.Count());
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(sys.com.Count());
+  inForceRange.resize(sys.com.Count(), false);
 
   // set default value for r_max, t_max, and lambda
   // the value of lambda is based on the paper
@@ -179,6 +183,8 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   }
 
   SetMolInBox(bPick);
+  // reset all inForceRange vector to false.
+  std::fill(inForceRange.begin(), inForceRange.end(), false);
   if (moleculeIndex.size() == 0) {
     std::cout << "Warning: MultiParticle move can't move any molecules, Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
@@ -301,23 +307,9 @@ inline uint MultiParticle::Transform()
                               newMolsPos, newCOMs, lambda * BETA, t_k, molForceRecRef);
   }
 #else
-  CalculateTrialDistRot();
+  // Calculate trial translate and rotate
   // move particles according to force and torque and store them in the new pos
-  if(moveType == mp::MPROTATE) {
-#ifdef _OPENMP
-    #pragma omp parallel for default(none)
-#endif
-    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
-      RotateForceBiased(moleculeIndex[m]);
-    }
-  } else {
-#ifdef _OPENMP
-    #pragma omp parallel for default(none)
-#endif
-    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
-      TranslateForceBiased(moleculeIndex[m]);
-    }
-  }
+  CalculateTrialDistRot();
 #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MULTIPARTICLE);
   return state;
@@ -359,21 +351,15 @@ inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_ol
 {
   double w_ratio = 1.0;
   XYZ lbmax = lb_old * max;
-  //If we used force to bias the displacement or rotation, we include it
-  if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0 * sinh(lb_new.x * max));
-    w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0 * sinh(lb_old.x * max));
-  }
 
-  if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0 * sinh(lb_new.y * max));
-    w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0 * sinh(lb_old.y * max));
-  }
+  w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0 * sinh(lb_new.x * max));
+  w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0 * sinh(lb_old.x * max));
 
-  if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0 * sinh(lb_new.z * max));
-    w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0 * sinh(lb_old.z * max));
-  }
+  w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0 * sinh(lb_new.y * max));
+  w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0 * sinh(lb_old.y * max));
+
+  w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0 * sinh(lb_new.z * max));
+  w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0 * sinh(lb_old.z * max));
 
   return w_ratio;
 }
@@ -386,17 +372,33 @@ inline double MultiParticle::GetCoeff()
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
 
+  if(moveType == mp::MPROTATE) {
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
 #endif
-  for(int m = 0; m < (int) moleculeIndex.size(); m++) {
-    uint molNumber = moleculeIndex[m];
-    if(moveType == mp::MPROTATE) {
+    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
+      uint molNumber = moleculeIndex[m];
+      if (!inForceRange[molNumber]) {
+        // If force or torque was not in the range, no need to calculate weight ratio
+        // it's simply 1.0
+        continue;
+      }
       // rotate: lbt_old, lbt_new are lambda * BETA * torque
       XYZ lbt_old = molTorqueRef.Get(molNumber) * lBeta;
       XYZ lbt_new = molTorqueNew.Get(molNumber) * lBeta;
       w_ratio *= CalculateWRatio(lbt_new, lbt_old, r_k.Get(molNumber), r_max);
-    } else {
+    }
+  } else {
+#ifdef _OPENMP
+  #pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
+#endif
+    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
+      uint molNumber = moleculeIndex[m];
+      if (!inForceRange[molNumber]) {
+        // If force or torque was not in the range, no need to calculate weight ratio
+        // it's simply 1.0
+        continue;
+      }
       // displace: lbf_old, lbf_new are lambda * BETA * force
       XYZ lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
                     lBeta;
@@ -423,16 +425,11 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   double MPCoeff = GetCoeff();
-  double delta_energy = sysPotNew.boxEnergy[bPick].real - sysPotRef.boxEnergy[bPick].real;
-  delta_energy += sysPotNew.boxEnergy[bPick].inter - sysPotRef.boxEnergy[bPick].inter;
-  delta_energy += sysPotNew.boxEnergy[bPick].recip - sysPotRef.boxEnergy[bPick].recip;
-  double uBoltz = exp(-BETA * delta_energy);
-
+  double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
-    sysPotNew.Total();
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);
     swap(comCurrRef, newCOMs);
@@ -457,64 +454,92 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
   GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_MULTIPARTICLE);
 }
 
-inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, uint molIndex)
+inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb, double const max, uint molIndex)
 {
   XYZ lbmax = lb * max;
-  XYZ num, randnums;
+  XYZ randnums, val;
   randnums = r123wrapper.GetRandomCoords(molIndex);
-  if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * randnums.x * sinh(lbmax.x)) / lb.x;
+  if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE &&
+    std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE &&
+    std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
+    val.x = log(exp(-1.0 * lbmax.x) + 2 * randnums.x * sinh(lbmax.x)) / lb.x;
+    val.y = log(exp(-1.0 * lbmax.y) + 2 * randnums.y * sinh(lbmax.y)) / lb.y;
+    val.z = log(exp(-1.0 * lbmax.z) + 2 * randnums.z * sinh(lbmax.z)) / lb.z;
+    forceInRange = true;
   } else {
-    double rr = randnums.x * 2.0 - 1.0;
-    num.x = max * rr;
+    val.x = 0.0;
+    val.y = 0.0;
+    val.z = 0.0;
+    forceInRange = false;
   }
 
-  if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * randnums.y * sinh(lbmax.y)) / lb.y;
-  } else {
-    double rr = randnums.y * 2.0 - 1.0;
-    num.y = max * rr;
-  }
-
-  if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * randnums.z * sinh(lbmax.z)) / lb.z;
-  } else {
-    double rr = randnums.z * 2.0 - 1.0;
-    num.z = max * rr;
-  }
-
-  if(num.Length() >= boxDimRef.axis.Min(bPick)) {
+  if(val.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceeds half of the box length in MultiParticle move.\n";
-    std::cout << "Trial transform: " << num;
+    std::cout << "Trial transform: " << val;
     exit(EXIT_FAILURE);
-  } else if (!std::isfinite(num.Length())) {
+  } else if (!std::isfinite(val.Length())) {
     std::cout << "Trial Displacement is not a finite number in MultiParticle move.\n";
-    std::cout << "Trial transform: " << num;
+    std::cout << "Trial transform: " << val;
     exit(EXIT_FAILURE);
   }
 
   // We can possibly bound them
-  return num;
+  return val;
 }
 
 inline void MultiParticle::CalculateTrialDistRot()
 {
-  uint m, molIndex;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
-  XYZ lbf; // lambda * BETA * force * maxTranslate
-  XYZ lbt; // lambda * BETA * torque * maxRotation
 
-  for(m = 0; m < moleculeIndex.size(); m++) {
-    molIndex = moleculeIndex[m];
-
-    if(moveType == mp::MPROTATE) { // rotate
-      lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
-      r_k.Set(molIndex, CalcRandomTransform(lbt, r_max, molIndex));
-    } else { // displace
-      lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
-            lambda * BETA;
-      t_k.Set(molIndex, CalcRandomTransform(lbf, t_max, molIndex));
+  if(moveType == mp::MPROTATE) { // rotate
+    double *x = r_k.x;
+    double *y = r_k.y;
+    double *z = r_k.z;
+#ifdef _OPENMP
+    //Global var moleculeIndex is predetermined shared.  Older compilers won't compile if you redeclare it shared.
+    //#pragma omp parallel for default(none) shared(moleculeIndex, r_max, x, y, z)
+    #pragma omp parallel for default(none) shared(r_max, lambda, x, y, z)
+#endif
+    for(uint m = 0; m < moleculeIndex.size(); m++) {
+      uint molIndex = moleculeIndex[m];
+      XYZ lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
+      bool forceInRange = true;
+      XYZ val = CalcRandomTransform(forceInRange, lbt, r_max, molIndex);
+      x[molIndex] = val.x; 
+      y[molIndex] = val.y; 
+      z[molIndex] = val.z;
+      inForceRange[molIndex] = forceInRange;
+      if(forceInRange) {
+        RotateForceBiased(molIndex);
+      } else {
+        RotateRandom(molIndex);
+      }
+    }
+  } else { // displace
+    double *x = t_k.x;
+    double *y = t_k.y;
+    double *z = t_k.z;
+#ifdef _OPENMP
+    //Global var moleculeIndex is predetermined shared.  Older compilers won't compile if you redeclare it shared.
+    //#pragma omp parallel for default(none) shared(moleculeIndex, t_max, x, y, z)
+    #pragma omp parallel for default(none) shared(t_max, lambda, x, y, z)
+#endif
+    for(uint m = 0; m < moleculeIndex.size(); m++) {
+      uint molIndex = moleculeIndex[m];
+      XYZ lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
+                lambda * BETA;
+      bool forceInRange = true;
+      XYZ val = CalcRandomTransform(forceInRange, lbf, t_max, molIndex);
+      x[molIndex] = val.x; 
+      y[molIndex] = val.y; 
+      z[molIndex] = val.z; 
+      inForceRange[molIndex] = forceInRange;
+      if(forceInRange) {
+        TranslateForceBiased(molIndex);
+      } else {
+        TranslateRandom(molIndex);
+      }
     }
   }
 }
@@ -530,7 +555,7 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   TransformMatrix tensor = TransformMatrix::TensorProduct(axis);
   matrix = RotationMatrix::FromAxisAngle(rotLen, cross, tensor);
 
-  XYZ center = newCOMs.Get(molIndex);
+  XYZ center = comCurrRef.Get(molIndex);
   uint start, stop, len;
   molRef.GetRange(start, stop, len, molIndex);
   
@@ -542,8 +567,7 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   // Do Rotation
   for(uint p = 0; p < len; p++) {
     temp.Add(p, -center);
-    XYZ newPosition = matrix.Apply(temp[p]);
-    temp.Set(p, newPosition);
+    temp.Set(p, matrix.Apply(temp[p]));
     temp.Add(p, center);
   }
   boxDimRef.WrapPBC(temp, bPick);
@@ -555,14 +579,66 @@ inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
   if(shift > boxDimRef.GetHalfAxis(bPick)) {
-    std::cout << "Error: Trial Displacement exceeds half of the box length in Multiparticle\n" 
-              << "       move!\n";
+    std::cout << "Error: Trial Displacement exceeds half the box length in Multiparticle move!" << std::endl;
     std::cout << "       Trial transformation vector: " << shift << std::endl;
-    std::cout << "       Box Dimension: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;
+    std::cout << "       Box Dimensions: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;
+    std::cout << "This might be due to a bad initial configuration, where atoms of the molecules" << std::endl 
+              << "are too close to each other or overlap. Please equilibrate your system using" << std::endl
+              << "rigid body translation or rotation MC moves before using the Multiparticle" << std::endl
+              << "move." << std::endl << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  XYZ newcom = newCOMs.Get(molIndex);
+  XYZ newcom = comCurrRef.Get(molIndex);
+  uint stop, start, len;
+  molRef.GetRange(start, stop, len, molIndex);
+  // Copy the range into temporary array
+  XYZArray temp(len);
+  newMolsPos.CopyRange(temp, start, 0, len);
+  //Shift the coordinate and COM
+  temp.AddAll(shift);
+  newcom += shift;
+  //rewrapping
+  boxDimRef.WrapPBC(temp, bPick);
+  newcom = boxDimRef.WrapPBC(newcom, bPick);
+  //set the new coordinate
+  temp.CopyRange(newMolsPos, 0, start, len);
+  newCOMs.Set(molIndex, newcom);
+}
+
+inline void MultiParticle::RotateRandom(uint molIndex)
+{
+  double r_max = moveSetRef.GetRMAX(bPick);
+  RotationMatrix matrix = RotationMatrix::FromAxisAngle(
+                          r123wrapper.GetSymRandom(molIndex, r_max),
+                          r123wrapper.GetRandomCoordsOnSphere(molIndex));
+
+  XYZ center = comCurrRef.Get(molIndex);
+  uint start, stop, len;
+  molRef.GetRange(start, stop, len, molIndex);
+  
+  // Copy the range into temporary array
+  XYZArray temp(len);
+  newMolsPos.CopyRange(temp, start, 0, len);
+  boxDimRef.UnwrapPBC(temp, bPick, center);
+  
+  // Do Rotation
+  for(uint p = 0; p < len; p++) {
+    temp.Add(p, -center);
+    temp.Set(p, matrix.Apply(temp[p]));
+    temp.Add(p, center);
+  }
+  boxDimRef.WrapPBC(temp, bPick);
+  // Copy back the result
+  temp.CopyRange(newMolsPos, 0, start, len);
+}
+
+inline void MultiParticle::TranslateRandom(uint molIndex)
+{
+  double r_max = moveSetRef.GetTMAX(bPick);
+  XYZ shift = r123wrapper.GetSymRandomCoords(molIndex, r_max);
+
+  XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
   molRef.GetRange(start, stop, len, molIndex);
   // Copy the range into temporary array

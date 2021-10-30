@@ -24,7 +24,7 @@ public:
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef), 
     backUpCoordinate(boxDimRef, backUpCOM, sys.molLookupRef, sys.prng, statV.mol),
     backUpCOM(sys.boxDimRef, backUpCoordinate, sys.molLookupRef, statV.mol),
-    backUpMoveSetting(sys.boxDimRef), propagationMove(NULL)
+    backUpMoveSetting(sys.boxDimRef), propagationMove(NULL), r123wrapper(sys.r123wrapper)
   {
     if(statV.neMTMCVal.enable) {
       conformationProb = statV.neMTMCVal.conformationProb;
@@ -72,6 +72,7 @@ private:
 
   Lambda & lambdaRef;
   System & systemRef;
+  Random123Wrapper &r123wrapper;
   uint sourceBox, destBox;
   uint pStartNEMT, pLenNEMT;
   uint molIndex, kindIndex;
@@ -372,6 +373,8 @@ inline void NEMTMC::Accept(const uint rejectState, const ulong step)
       //moveSetRef.SetValues(backUpMoveSetting);
     }
   }
+  //reset the key, because next move has different step number uk[0] = step!
+  r123wrapper.SetKey(0);
   // reset the trial/acceptance to original values if the move is rejected
   moveSetRef.SetValues(backUpMoveSetting);
   moveSetRef.Update(mv::NE_MTMC, result, destBox, kindIndex);
@@ -477,6 +480,8 @@ inline void NEMTMC::RelaxingTransform(uint box)
     } else {
       //Relax the system using MP or random translation and rotation
       if(MPEnable) {
+        // Change the key number, otherwise we will perform the same move! stepCounter resets every time in Prep() 
+        r123wrapper.SetKey(s+stepCounter);
         // Use multiparticle/brownian dynamic to propagate
         if(BrownianDynamicEnable) {
           propagationMove = systemRef.GetMoveObject(mv::MULTIPARTICLE_BM);

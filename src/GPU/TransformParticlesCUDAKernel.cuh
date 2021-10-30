@@ -135,6 +135,7 @@ void BrownianMotionRotateParticlesGPU(
   const double BETA,
   const double r_max,
   ulong step,
+  ulong key,
   ulong seed,
   const int box,
   const bool isOrthogonal,
@@ -153,6 +154,7 @@ void BrownianMotionTranslateParticlesGPU(
   const double BETA,
   const double t_max,
   ulong step,
+  ulong key,
   ulong seed,
   const int box,
   const bool isOrthogonal,
@@ -186,6 +188,7 @@ __global__ void BrownianMotionRotateKernel(
   int atomCount,
   double r_max,
   ulong step,
+  ulong key,
   ulong seed,
   double BETA,
   int *kill);
@@ -221,6 +224,7 @@ __global__ void BrownianMotionTranslateKernel(
   int atomCount,
   double t_max,
   ulong step,
+  ulong key,
   ulong seed,
   double BETA,
   int *kill);
