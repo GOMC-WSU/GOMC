@@ -26,7 +26,7 @@ __device__ inline double randomGPU(unsigned int counter, ulong step, ulong seed)
   return r123::u01<double>(r[0]);
 }
 
-__device__ inline double3 randomCoordsGPU(unsigned int counter, ulong step, ulong seed)
+__device__ inline double3 randomCoordsGPU(unsigned int counter, ulong key, ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -34,6 +34,7 @@ __device__ inline double3 randomCoordsGPU(unsigned int counter, ulong step, ulon
   uk[1] = seed;
   RNG::key_type k = uk;
   c[0] = counter;
+  c[1] = key;
   RNG::ctr_type r = philox4x64(c, k);
   double3 r01;
   // r01.x = static_cast<double>(r[0]) * RAND_INTERVAL_GPU;
@@ -80,7 +81,7 @@ __device__ inline double3 randomGaussianCoordsGPU(unsigned int counter, ulong ke
   return normals;
 }
 
-__device__ inline double SymRandomGPU(unsigned int counter, ulong step, ulong seed)
+__device__ inline double SymRandomGPU(unsigned int counter, ulong key, ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -88,12 +89,13 @@ __device__ inline double SymRandomGPU(unsigned int counter, ulong step, ulong se
   uk[1] = seed;
   RNG::key_type k = uk;
   c[0] = counter;
+  c[1] = key;
   RNG::ctr_type r = philox4x64(c, k);
   double r01 = r123::uneg11<double>(r[0]);
   return r01;
 }
 
-__device__ inline double3 SymRandomCoordsGPU(unsigned int counter, ulong step, ulong seed)
+__device__ inline double3 SymRandomCoordsGPU(unsigned int counter, ulong key, ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -101,6 +103,7 @@ __device__ inline double3 SymRandomCoordsGPU(unsigned int counter, ulong step, u
   uk[1] = seed;
   RNG::key_type k = uk;
   c[0] = counter;
+  c[1] = key;
   RNG::ctr_type r = philox4x64(c, k);
   double3 r01;
   r01.x = r123::uneg11<double>(r[0]);
@@ -110,7 +113,7 @@ __device__ inline double3 SymRandomCoordsGPU(unsigned int counter, ulong step, u
 }
 
 //Returns a uniformly random point on the unit sphere
-__device__ inline double3 RandomCoordsOnSphereGPU(unsigned int counter, ulong step, ulong seed)
+__device__ inline double3 RandomCoordsOnSphereGPU(unsigned int counter, ulong key, ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -118,6 +121,7 @@ __device__ inline double3 RandomCoordsOnSphereGPU(unsigned int counter, ulong st
   uk[1] = seed;
   RNG::key_type k = uk;
   c[0] = counter;
+  c[1] = key;
   RNG::ctr_type r = philox4x64(c, k);
   //picking phi uniformly will cluster points at poles
   //pick u = cos(phi) uniformly instead
@@ -227,6 +231,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                double *mForcey,
                                double *mForcez,
                                ulong step,
+                               ulong key,
                                ulong seed,
                                const std::vector<int> &particleMol,
                                int atomCount,
@@ -279,6 +284,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
       vars->gpu_mForcey,
       vars->gpu_mForcez,
       step,
+      key,
       seed,
       vars->gpu_x,
       vars->gpu_y,
@@ -331,6 +337,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double *mTorquey,
                             double *mTorquez,
                             ulong step,
+                            ulong key,
                             ulong seed,
                             const std::vector<int> &particleMol,
                             int atomCount,
@@ -371,6 +378,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
       vars->gpu_mTorquey,
       vars->gpu_mTorquez,
       step,
+      key,
       seed,
       vars->gpu_x,
       vars->gpu_y,
@@ -415,6 +423,7 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *molForcey,
     double *molForcez,
     ulong step,
+    ulong key,
     ulong seed,
     double *gpu_x,
     double *gpu_y,
@@ -466,13 +475,13 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
                   std::abs(lbmaxz) > MIN_FORCE && std::abs(lbmaxz) < MAX_FORCE);
 
   if (forceInRange) {
-    double3 randnums = randomCoordsGPU(molIndex, step, seed);
+    double3 randnums = randomCoordsGPU(molIndex, key, step, seed);
     shiftx = log(exp(-1.0 * lbmaxx) + 2 * randnums.x * sinh(lbmaxx)) / lbfx;
     shifty = log(exp(-1.0 * lbmaxy) + 2 * randnums.y * sinh(lbmaxy)) / lbfy;
     shiftz = log(exp(-1.0 * lbmaxz) + 2 * randnums.z * sinh(lbmaxz)) / lbfz;
   }
   else {
-    double3 randnums = SymRandomCoordsGPU(molIndex, step, seed);
+    double3 randnums = SymRandomCoordsGPU(molIndex, key, step, seed);
     shiftx = t_max * randnums.x;
     shifty = t_max * randnums.y;
     shiftz = t_max * randnums.z;
@@ -520,6 +529,7 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *molTorquey,
                                       double *molTorquez,
                                       ulong step,
+                                      ulong key,
                                       ulong seed,
                                       double *gpu_x,
                                       double *gpu_y,
@@ -568,7 +578,7 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                   std::abs(lbmaxz) > MIN_FORCE && std::abs(lbmaxz) < MAX_FORCE);
 
   if (forceInRange) {
-    double3 randnums = randomCoordsGPU(molIndex, step, seed);
+    double3 randnums = randomCoordsGPU(molIndex, key, step, seed);
     rotx = log(exp(-1.0 * lbmaxx) + 2 * randnums.x * sinh(lbmaxx)) / lbtx;
     roty = log(exp(-1.0 * lbmaxy) + 2 * randnums.y * sinh(lbmaxy)) / lbty;
     rotz = log(exp(-1.0 * lbmaxz) + 2 * randnums.z * sinh(lbmaxz)) / lbtz;
@@ -576,11 +586,11 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
     rotvec = make_double3(rotx * (1.0/theta), roty * (1.0/theta), rotz * (1.0/theta));
   }
   else {
-    double3 randnums = RandomCoordsOnSphereGPU(molIndex, step, seed);
+    double3 randnums = RandomCoordsOnSphereGPU(molIndex, key, step, seed);
     rotx = r_max * randnums.x;
     roty = r_max * randnums.y;
     rotz = r_max * randnums.z;
-    theta = r_max * SymRandomGPU(molIndex, step, seed);
+    theta = r_max * SymRandomGPU(molIndex, key, step, seed);
     rotvec = make_double3(rotx, roty, rotz);
   }
 

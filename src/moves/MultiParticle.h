@@ -291,20 +291,22 @@ inline uint MultiParticle::Transform()
     double r_max = moveSetRef.GetRMAX(bPick);
     CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, r_max,
                            molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
-                           r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
-                           particleMol, atomForceRecNew.Count(),
-                           molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
-                           boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
-                           newMolsPos, newCOMs, lambda * BETA, r_k);
+                           r123wrapper.GetStep(), r123wrapper.GetKeyValue(),
+                           r123wrapper.GetSeedValue(), particleMol,
+                           atomForceRecNew.Count(), molForceRecNew.Count(),
+                           boxDimRef.GetAxis(bPick).x, boxDimRef.GetAxis(bPick).y,
+                           boxDimRef.GetAxis(bPick).z, newMolsPos, newCOMs,
+                           lambda * BETA, r_k);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
     CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, t_max,
                               molForceRef.x, molForceRef.y, molForceRef.z,
-                              r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
-                              particleMol, atomForceRecNew.Count(),
-                              molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
-                              boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
-                              newMolsPos, newCOMs, lambda * BETA, t_k, molForceRecRef);
+                              r123wrapper.GetStep(), r123wrapper.GetKeyValue(),
+                              r123wrapper.GetSeedValue(), particleMol,
+                              atomForceRecNew.Count(), molForceRecNew.Count(),
+                              boxDimRef.GetAxis(bPick).x, boxDimRef.GetAxis(bPick).y,
+                              boxDimRef.GetAxis(bPick).z, newMolsPos, newCOMs,
+                              lambda * BETA, t_k, molForceRecRef);
   }
 #else
   // Calculate trial translate and rotate
