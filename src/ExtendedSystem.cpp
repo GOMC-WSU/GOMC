@@ -63,6 +63,7 @@ void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inp
 void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box, MoleculeLookup & molLookup,
                                       Molecules & mols, int & cmIndex)
 {
+    uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   // We must read restart PDB, which hold correct
   // number atom info in each Box
   int numAtoms = pdb.atoms.numAtomsInBox[box];
@@ -71,22 +72,18 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const
   binaryCoor = new XYZ[numAtoms];
   read_binary_file(filename, binaryCoor, numAtoms);
   //find the starting index
-
-  for(; cmIndex < (int) molLookup.molLookupCount; cmIndex++) {
-    if(moleculeOffset >= numAtoms) break;
-    int currentMolecule = molLookup.molLookup[cmIndex];
-    int numberOfAtoms = mols.start[currentMolecule + 1] - mols.start[currentMolecule];
-    int atomDestinationStart = mols.start[currentMolecule];
-
-    for(int atom = 0; atom < numberOfAtoms; atom++) {
-      pdb.atoms.x[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].x;
-      pdb.atoms.y[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].y;
-      pdb.atoms.z[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].z;
+  for (int mol = 0; mol < molLookup.molLookupCount; mol++){
+    trajectoryI = molLookupRef.originalMoleculeIndices[mol];
+    dataI = mol;
+    //Loop through particles in mol.
+    mols.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+    mols.GetRangeStartStop(dataStart, dataEnd, dataI);
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      pdb.atoms.x[p] = binaryCoor[d].x;
+      pdb.atoms.y[p] = binaryCoor[d].y;
+      pdb.atoms.z[p] = binaryCoor[d].z;
     }
-
-    moleculeOffset += numberOfAtoms;
   }
-
   delete [] binaryCoor;
 }
 
