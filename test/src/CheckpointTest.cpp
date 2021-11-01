@@ -33,15 +33,15 @@ TEST(CheckpointTest, CheckAR_KR) {
     
     MoleculeLookup & base_ml = base.GetMolLookup();
     for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.originalMoleculeIndices[i] == base_ml.molLookup[i], true);
+        EXPECT_EQ(base_ml.restartMoleculeIndices[i] == base_ml.molLookup[i], true);
         EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
     }
     for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.originalMoleculeIndices[i] == base_ml.molLookup[i], true);
+        EXPECT_EQ(base_ml.restartMoleculeIndices[i] == base_ml.molLookup[i], true);
         EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
     }
         for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.originalMoleculeIndices[i] == base_ml.molLookup[i], true);
+        EXPECT_EQ(base_ml.restartMoleculeIndices[i] == base_ml.molLookup[i], true);
         EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
     }
     
@@ -54,7 +54,7 @@ TEST(CheckpointTest, CheckAR_KR) {
     }
     std::cout << std::endl;
     for (int i = 0; i < base_ml.molLookupCount; ++i){
-        std::cout << base_ml.originalMoleculeIndices[i] << " ";
+        std::cout << base_ml.restartMoleculeIndices[i] << " ";
     }
     std::cout << std::endl;
 
@@ -68,7 +68,7 @@ TEST(CheckpointTest, CheckAR_KR) {
     }
     std::cout << std::endl;
     for (int i = 0; i < K_1_ml.molLookupCount; ++i){
-        std::cout << K_1_ml.originalMoleculeIndices[i] << " ";
+        std::cout << K_1_ml.restartMoleculeIndices[i] << " ";
     }
     std::cout << std::endl;
 
@@ -82,7 +82,7 @@ TEST(CheckpointTest, CheckAR_KR) {
     }
     std::cout << std::endl;
     for (int i = 0; i < K_N_ml.molLookupCount; ++i){
-        std::cout << K_N_ml.originalMoleculeIndices[i] << " ";
+        std::cout << K_N_ml.restartMoleculeIndices[i] << " ";
     }
     std::cout << std::endl;
 }

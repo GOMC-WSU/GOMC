@@ -42,7 +42,7 @@ public:
     delete[] atomKind;
     delete[] atomCharge;
     delete[] boxAndKindSwappableCounts;
-    delete[] originalMoleculeIndices;
+    delete[] restartMoleculeIndices;
     delete[] permutedMoleculeIndices;
   }
 
@@ -125,7 +125,7 @@ public:
 
   uint GetSortedMolNum(const uint subIndex, const uint kind, const uint box)
   {
-    return originalMoleculeIndices[molLookup[boxAndKindStart[box * numKinds + kind] + subIndex]];
+    return restartMoleculeIndices[molLookup[boxAndKindStart[box * numKinds + kind] + subIndex]];
   }
 
   // determine if molecule is in this box or not
@@ -193,7 +193,8 @@ static uint GetConsensusMolBeta( const uint pStart,
   uint numKinds;
   /* For consistent trajectory ordering across checkpoints */
   bool restartFromCheckpoint;
-  uint32_t * originalMoleculeIndices, * permutedMoleculeIndices;
+  uint32_t * restartMoleculeIndices, * permutedMoleculeIndices;
+  uint32_t restartedNumAtomsInBox[BOX_TOTAL];
 
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box

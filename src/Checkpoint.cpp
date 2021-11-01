@@ -104,15 +104,15 @@ void Checkpoint::GatherMoveSettings(MoveSettings & movSetRef){
    NOT restarting from chk. 
 */
 void Checkpoint::GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef){
-  originalMoleculeIndicesVec.clear();
-  originalMoleculeIndicesVec.resize(molLookupRef.molLookupCount);
+  restartMoleculeIndicesVec.clear();
+  restartMoleculeIndicesVec.resize(molLookupRef.molLookupCount);
   uint molCounter = 0, b, k, kI, countByKind, molI;
   for (b = 0; b < BOX_TOTAL; ++b) {
     for (k = 0; k < molLookupRef.numKinds; ++k) {
       countByKind = molLookupRef.NumKindInBox(k, b);
       for (kI = 0; kI < countByKind; ++kI) {
         molI = molLookupRef.GetMolNum(kI, k, b);
-        originalMoleculeIndicesVec[molCounter] = molI;
+        restartMoleculeIndicesVec[molCounter] = molI;
         ++molCounter;
       }
     }
