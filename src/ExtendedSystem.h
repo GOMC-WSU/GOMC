@@ -43,7 +43,7 @@ class ExtendedSystem  {
     // Updates the cellBasis data in pdb data structure
     void UpdateCellBasis(PDBSetup &pdb, const int box);
     // Reads the binary coordinates and updates the X Y Z coordinates in pdb data structure
-    void UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box,
+    void UpdateCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, 
                           MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
     // Reads the binary velocities and updates the X Y Z velocity data structure
     void UpdateVelocity(PDBSetup &pdb, Velocity &vel, const char *filename, const int box,

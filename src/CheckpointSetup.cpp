@@ -133,7 +133,7 @@ void CheckpointSetup::SetMolecules()
 
 void CheckpointSetup::SetMoleculeIndices(){
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-  molLookupRef.originalMoleculeIndices = vect::transfer<uint32_t>(chkObj.originalMoleculeIndicesVec);
+  molLookupRef.restartMoleculeIndices = vect::transfer<uint32_t>(chkObj.restartMoleculeIndicesVec);
 }
 
 void CheckpointSetup::SetMoleculeLookup(){
@@ -149,7 +149,7 @@ void CheckpointSetup::SetMoleculeSetup(){
 void CheckpointSetup::SetPDBSetupAtoms(){
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
-    trajectoryI = chkObj.originalMoleculeIndicesVec[mol];
+    trajectoryI = chkObj.restartMoleculeIndicesVec[mol];
     dataI = mol;
     //Loop through particles in mol.
     GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);

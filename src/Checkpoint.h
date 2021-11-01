@@ -104,7 +104,7 @@ class Checkpoint
         std::vector<uint32_t> restartedStartVec;
 
         // Molecule Indices for consistent trajectories 
-        std::vector<uint32_t> originalMoleculeIndicesVec;
+        std::vector<uint32_t> restartMoleculeIndicesVec;
 
         #define N_array_size 624
 
@@ -162,7 +162,7 @@ class Checkpoint
             // Mollookup
             ar & molLookupVec;  
             // Sorted Molecule Indices
-            ar & originalMoleculeIndicesVec;  
+            ar & restartMoleculeIndicesVec;  
             // MolSetup
             ar & originalMolSetup;
             // PDBAtoms
