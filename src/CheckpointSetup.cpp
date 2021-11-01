@@ -171,7 +171,7 @@ void CheckpointSetup::SetMoleculeSetup(){
 void CheckpointSetup::SetPDBSetupAtoms(){
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
-    trajectoryI = chkObj.originalMoleculeIndicesVec[mol];
+    trajectoryI = chkObj.restartMoleculeIndicesVec[mol];
     dataI = mol;
     //Loop through particles in mol.
     GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
