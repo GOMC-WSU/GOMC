@@ -70,6 +70,7 @@ class Checkpoint
         void GatherRandomNumbers(PRNG & prngRef);
         void GatherRestartMoleculeStartVec(MoleculeLookup & molLookupRef,
                                             const Molecules & molRef);
+        void GatherOriginalMoleculeStartVec(const Molecules & molRef);
     #if GOMC_LIB_MPI
         void GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled);
         void GatherRandomNumbersParallelTempering(PRNG & prngPTRef);
