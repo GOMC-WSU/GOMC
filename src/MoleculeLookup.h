@@ -213,6 +213,30 @@ static uint GetConsensusMolBeta( const uint pStart,
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & molLookup;
+      ar & molLookupCount;
+      ar & boxAndKindStart;
+      ar & boxAndKindSwappableCounts;
+      ar & boxAndKindStartCount;
+      ar & numKinds;
+      ar & restartFromCheckpoint;
+      ar & restartMoleculeIndices;
+      ar & permutedMoleculeIndices;
+      ar & restartedNumAtomsInBox;
+      ar & fixedMolecule;
+      ar & canSwapKind;
+      ar & canMoveKind;
+      ar & molIndex;
+      ar & atomIndex;
+      ar & molKind;
+      ar & atomKind;
+      ar & atomCharge;
+    }
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
