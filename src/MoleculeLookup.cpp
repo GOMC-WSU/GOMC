@@ -112,10 +112,6 @@ void MoleculeLookup::Init(const Molecules& mols,
 
   boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
 
-    restartMoleculeIndices.resize(molLookupCount);
-    std::iota(restartMoleculeIndices.begin(), restartMoleculeIndices.end(), 0);
-  }
-
 // allocate and set gpu variables
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars = ff.particles->getCUDAVars();
