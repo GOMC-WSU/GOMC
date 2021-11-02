@@ -130,19 +130,6 @@ class Checkpoint
         pdb_setup::Atoms originalAtoms;
         MoleculeLookup originalMoleculeLookup;
 
-        // Molecule Lookup so our underlying molecules are associated with
-        // the same numbering system
-        uint32_t molLookupCount, atomCount;
-        uint32_t boxAndKindStartCount;
-        uint32_t numKinds;
-
-        std::vector <uint32_t> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCountsVec, 
-                            fixedMoleculeVec, canSwapKindVec, canMoveKindVec;
-        std::vector <int32_t> molIndexVec, atomIndexVec, molKindVec, atomKindVec; 
-        std::vector <double> atomChargeVec; 
-        // Molecule Lookup Data
-
-
         friend class cereal::access;
         template<class Archive>
         void serialize(Archive & ar, const unsigned int version)
