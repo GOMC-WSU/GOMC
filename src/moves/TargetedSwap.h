@@ -934,7 +934,7 @@ template <bool pbcX, bool pbcY, bool pbcZ>
 bool TargetedSwap::SearchCavity_GC(std::vector<uint> &mol, const XYZ& center,
                     const XYZ& cavDim, const uint box, const uint kind)
 {
-  int *particleMol = molLookRef.molIndex;
+  int *particleMol = molLookRef.molIndex.data();
   uint molKind, molIndex;
   XYZ halfDim = cavDim * 0.5;
   double maxLength = halfDim.Max();
@@ -1003,8 +1003,8 @@ bool TargetedSwap::SearchCavity_AC(std::vector<uint> &mol, const XYZ& center,
                     const XYZ& cavDim, const uint box, const uint kind,
                     const int atomIdx)
 {
-  int *particleMol = molLookRef.molIndex;
-  int *particleIndex = molLookRef.atomIndex;
+  int *particleMol = molLookRef.molIndex.data();
+  int *particleIndex = molLookRef.atomIndex.data();
   uint molKind, molIndex;
   int aIdx;
   XYZ halfDim = cavDim * 0.5;
