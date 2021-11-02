@@ -61,11 +61,7 @@ void CheckpointSetup::SetCheckpointData(){
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-<<<<<<< c6c7bdcd039f4cb264573bee7434d2caef004f85
   SetMoleculeLookup();
-=======
-  SetMoleculeIndices();
->>>>>>> Molecule Lookup is now an object of vectors instead of arrays
   SetMoleculeSetup();
   SetPDBSetupAtoms();
 }
@@ -79,11 +75,7 @@ void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-<<<<<<< c6c7bdcd039f4cb264573bee7434d2caef004f85
   SetMoleculeLookup();
-=======
-  SetMoleculeIndices();
->>>>>>> Molecule Lookup is now an object of vectors instead of arrays
   SetMoleculeSetup();
   SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
@@ -143,6 +135,7 @@ void CheckpointSetup::SetMolecules()
 
 void CheckpointSetup::SetMoleculeLookup(){
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
+<<<<<<< 7ceb8926df3f69003177bd5e746c5e2c82d7d739
 <<<<<<< c6c7bdcd039f4cb264573bee7434d2caef004f85
   molLookupRef = chkObj.originalMoleculeLookup;
 }
@@ -170,9 +163,7 @@ void CheckpointSetup::SetPDBSetupAtoms(){
   }
   // Should do a default assignment of the vectors and primitives.
   pdbAtomsRef = chkObj.originalAtoms;
-=======
-  molLookupRef.restartMoleculeIndices = chkObj.restartMoleculeIndicesVec;
->>>>>>> Molecule Lookup is now an object of vectors instead of arrays
+  molLookupRef = chkObj.originalMoleculeLookup;
 }
 
 void CheckpointSetup::SetMoleculeSetup(){
@@ -183,7 +174,7 @@ void CheckpointSetup::SetMoleculeSetup(){
 void CheckpointSetup::SetPDBSetupAtoms(){
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
-    trajectoryI = chkObj.restartMoleculeIndicesVec[mol];
+    trajectoryI = chkObj.originalMoleculeLookup.restartMoleculeIndices[mol];
     dataI = mol;
     //Loop through particles in mol.
     GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);

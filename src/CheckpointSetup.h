@@ -67,11 +67,7 @@ private:
   void SetPRNGVariables();
   void SetR123Variables();
   void SetMolecules();
-<<<<<<< c6c7bdcd039f4cb264573bee7434d2caef004f85
   void SetMoleculeLookup();
-=======
-  void SetMoleculeIndices();
->>>>>>> Molecule Lookup is now an object of vectors instead of arrays
   void SetMoleculeSetup();
   void SetPDBSetupAtoms();
 #if GOMC_LIB_MPI  
