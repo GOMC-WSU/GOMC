@@ -31,6 +31,8 @@ void MoleculeLookup::Init(const Molecules& mols,
   molLookup = new uint[mols.count];
   molLookupCount = mols.count;
   // beta has same size as total number of atoms
+  // atom count
+  atomCount = atomData.beta.size();
   molIndex = new int[atomData.beta.size()];
   atomIndex = new int[atomData.beta.size()];
   molKind = new int[atomData.beta.size()];
