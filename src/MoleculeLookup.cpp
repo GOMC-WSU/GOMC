@@ -112,15 +112,8 @@ void MoleculeLookup::Init(const Molecules& mols,
 
   boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
 
-  /* restartMoleculeIndices have 2 sources
-    if a new run, they are depedent on the originalMolInds set below
-    if a checkpointed run, they are the originalInds permuted through mol transfers */
-  if (!restartFromCheckpoint){
     restartMoleculeIndices.resize(molLookupCount);
-    permutedMoleculeIndices.resize(molLookupCount);
-    // fills the vectors from 0 to N-1
     std::iota(restartMoleculeIndices.begin(), restartMoleculeIndices.end(), 0);
-    std::iota(permutedMoleculeIndices.begin(), permutedMoleculeIndices.end(), 0);
   }
 
 // allocate and set gpu variables
@@ -203,8 +196,6 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
       newIndex = boxAndKindStart[section]++;
       std::swap(molLookup[oldIndex], molLookup[newIndex]);
       std::swap(oldIndex, newIndex);
-      if (!restartFromCheckpoint)
-      std::swap(permutedMoleculeIndices[oldIndex], permutedMoleculeIndices[newIndex]);
       --section;
     }
   } else {
@@ -212,8 +203,6 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
       newIndex = --boxAndKindStart[++section];
       std::swap(molLookup[oldIndex], molLookup[newIndex]);
       std::swap(oldIndex, newIndex);
-      if (!restartFromCheckpoint)
-      std::swap(permutedMoleculeIndices[oldIndex], permutedMoleculeIndices[newIndex]);
     }
   }
 }
