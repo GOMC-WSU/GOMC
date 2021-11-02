@@ -294,6 +294,12 @@ MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
   atomKind = rhs.atomKind; // stores the atom kind for global atom index
   atomCharge = rhs.atomCharge; // stores the atom's charge for global atom index
 
+  /* For consistent trajectory ordering across checkpoints */
+  restartFromCheckpoint = rhs.restartFromCheckpoint;
+  restartMoleculeIndices = rhs.restartMoleculeIndices;
+  for (int b = 0; b < BOX_TOTAL; ++b)
+    restartedNumAtomsInBox[b] = rhs.restartedNumAtomsInBox[b];
+
   return *this;
 
 }
@@ -320,6 +326,12 @@ bool MoleculeLookup::operator==(const MoleculeLookup & rhs){
   result &= (atomKind == rhs.atomKind); // stores the atom kind for global atom index
   result &= (atomCharge == rhs.atomCharge); // stores the atom's charge for global atom index
 
+  /* For consistent trajectory ordering across checkpoints */
+  result &= (restartFromCheckpoint = rhs.restartFromCheckpoint);
+  result &= (restartMoleculeIndices == rhs.restartMoleculeIndices);
+  for (int b = 0; b < BOX_TOTAL; ++b)
+    result &= (restartedNumAtomsInBox[b] == rhs.restartedNumAtomsInBox[b]);
+
   return result;
 
 }
@@ -341,4 +353,9 @@ void MoleculeLookup::swap(MoleculeLookup& oldMolLookup, MoleculeLookup& newMolLo
   swap(oldMolLookup.molLookup, newMolLookup.molLookup);
   swap(oldMolLookup.molLookupCount, newMolLookup.molLookupCount);
   swap(oldMolLookup.numKinds, newMolLookup.numKinds);
+    /* For consistent trajectory ordering across checkpoints */
+  swap(oldMolLookup.restartFromCheckpoint, newMolLookup.restartFromCheckpoint);
+  swap(oldMolLookup.restartMoleculeIndices, newMolLookup.restartMoleculeIndices);
+  for (int b = 0; b < BOX_TOTAL; ++b)
+    swap(oldMolLookup.restartedNumAtomsInBox[b], newMolLookup.restartedNumAtomsInBox[b]);
 }
