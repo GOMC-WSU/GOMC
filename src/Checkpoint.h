@@ -131,14 +131,15 @@ class Checkpoint
         pdb_setup::Atoms originalAtoms;
         MoleculeLookup originalMoleculeLookup;
 
-        // Molecule Lookup Data
-        uint molLookupCount;
-        uint boxAndKindStartCount;
-        uint numKinds;
+        // Molecule Lookup so our underlying molecules are associated with
+        // the same numbering system
+        uint32_t molLookupCount, atomCount;
+        uint32_t boxAndKindStartCount;
+        uint32_t numKinds;
 
-        std::vector <uint> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCountsVec, 
+        std::vector <uint32_t> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCountsVec, 
                             fixedMoleculeVec, canSwapKindVec, canMoveKindVec;
-        std::vector <int> molIndexVec, atomIndexVec, molKindVec, atomKindVec; 
+        std::vector <int32_t> molIndexVec, atomIndexVec, molKindVec, atomKindVec; 
         std::vector <double> atomChargeVec; 
         // Molecule Lookup Data
 

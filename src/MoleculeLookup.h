@@ -193,7 +193,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
-<<<<<<< f604b78b3ff6a877a8d1e9387929b549ee121ea0
   std::vector<uint32_t> boxAndKindStart;
   std::vector<uint32_t> boxAndKindSwappableCounts;
   uint32_t boxAndKindStartCount;
@@ -201,12 +200,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   /* For consistent trajectory ordering across checkpoints */
   std::vector<uint32_t> restartMoleculeIndices;
   uint32_t restartedNumAtomsInBox[BOX_TOTAL];
-=======
-  uint* boxAndKindStart;
-  uint* boxAndKindSwappableCounts;
-  uint boxAndKindStartCount;
-  uint numKinds;
->>>>>>> Started checkpointing MolLookup
 
   std::vector <uint32_t> fixedMolecule;
   std::vector <uint32_t> canSwapKind; //Kinds that can move intra and inter box
