@@ -137,13 +137,14 @@ void Checkpoint::GatherMoleculeLookup(MoleculeLookup & molLookupRef){
 void Checkpoint::GatherRestartMoleculeStartVec(MoleculeLookup & molLookupRef,
                                                 const Molecules & molRef){
   restartedStartVec.clear();
-  uint len = 0, sum = 0;
+  uint len = 0, sum = 0, start = 0;
   //Start particle numbering @ 1
   for (uint box = 0; box < BOX_TOTAL; ++box) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
                                   end = molLookupRef.BoxEnd(box);
     while (m != end) {
-      uint32_t start;
+      start = 0;
+      len = 0;
       restartedStartVec.push_back(sum + len);
       molRef.GetRangeStartLength(start, len, *m);
       sum += len;
