@@ -21,7 +21,6 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherRestartMoleculeIndices(molLookupRef);
-    GatherMoleculeLookup(molLookupRef);
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
     GatherPDBSetupAtoms(pdbSetupAtomsRef);
@@ -44,7 +43,6 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherRestartMoleculeIndices(molLookupRef);
-    GatherMoleculeLookup(molLookupRef);
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
     GatherPDBSetupAtoms(pdbSetupAtomsRef);
@@ -162,43 +160,6 @@ void Checkpoint::GatherMolSetup(MolSetup & molSetupRef){
 void Checkpoint::GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef){
   originalAtoms = pdbSetupAtomsRef;
 }
-
-void Checkpoint::GatherMoleculeLookup(MoleculeLookup & molLookupRef){
-  molLookupCount = molLookupRef.molLookupCount;
-  atomCount = molLookupRef.atomCount;
-  boxAndKindStartCount = molLookupRef.boxAndKindStartCount;
-  numKinds = molLookupRef.numKinds;
-
-  molLookupVec.clear();
-  molLookupVec.insert(molLookupVec.end(), &molLookupRef.molLookup[0], &molLookupRef.molLookup[molLookupRef.molLookupCount]);
-
-  boxAndKindStartVec.clear();
-  boxAndKindStartVec.insert(boxAndKindStartVec.end(), &molLookupRef.boxAndKindStart[0], &molLookupRef.boxAndKindStart[molLookupRef.numKinds * BOX_TOTAL + 1]);
-
-  boxAndKindSwappableCountsVec.clear();
-  boxAndKindSwappableCountsVec.insert(boxAndKindSwappableCountsVec.end(), &molLookupRef.boxAndKindSwappableCounts[0], &molLookupRef.boxAndKindSwappableCounts[molLookupRef.numKinds * BOX_TOTAL]);
-
-  fixedMoleculeVec = molLookupRef.fixedMolecule;
-  canSwapKindVec = molLookupRef.canSwapKind;
-  canMoveKindVec = molLookupRef.canMoveKind;
-
-  molIndexVec.clear();
-  molIndexVec.insert(molIndexVec.end(), &molLookupRef.molIndex[0], &molLookupRef.molIndex[molLookupRef.atomCount]);
-
-  atomIndexVec.clear();
-  atomIndexVec.insert(atomIndexVec.end(), &molLookupRef.atomIndex[0], &molLookupRef.atomIndex[molLookupRef.atomCount]);
-
-  molKindVec.clear();
-  molKindVec.insert(molKindVec.end(), &molLookupRef.molKind[0], &molLookupRef.molKind[molLookupRef.atomCount]);
-
-  atomKindVec.clear();
-  atomKindVec.insert(atomKindVec.end(), &molLookupRef.atomKind[0], &molLookupRef.atomKind[molLookupRef.atomCount]);
-
-  atomChargeVec.clear();
-  atomChargeVec.insert(atomChargeVec.end(), &molLookupRef.atomCharge[0], &molLookupRef.atomCharge[molLookupRef.atomCount]);
-
-}
-
 
 #if GOMC_LIB_MPI
 void Checkpoint::GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled){

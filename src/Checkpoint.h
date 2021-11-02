@@ -66,7 +66,6 @@ class Checkpoint
         void GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef);
         void GatherMolSetup(MolSetup & molSetupRef);
         void GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef);
-        void GatherMoleculeLookup(MoleculeLookup & molLookupRef);
         void GatherRandomNumbers(PRNG & prngRef);
         void GatherRestartMoleculeStartVec(MoleculeLookup & molLookupRef,
                                             const Molecules & molRef);
@@ -126,6 +125,7 @@ class Checkpoint
 
         MolSetup originalMolSetup;
         pdb_setup::Atoms originalAtoms;
+        MoleculeLookup originalMoleculeLookup;
 
         // Molecule Lookup so our underlying molecules are associated with
         // the same numbering system

@@ -62,7 +62,6 @@ void CheckpointSetup::SetCheckpointData(){
   SetR123Variables();
   SetMolecules();
   SetMoleculeIndices();
-  SetMoleculeLookup();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
 }
@@ -77,7 +76,6 @@ void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
   SetR123Variables();
   SetMolecules();
   SetMoleculeIndices();
-  SetMoleculeLookup();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
@@ -133,12 +131,7 @@ void CheckpointSetup::SetMolecules()
 
 void CheckpointSetup::SetMoleculeIndices(){
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-  molLookupRef.restartMoleculeIndices = vect::transfer<uint32_t>(chkObj.restartMoleculeIndicesVec);
-}
-
-void CheckpointSetup::SetMoleculeLookup(){
-  /* Previous molecule lookup for consistent internal numbering of molecules */
-  molLookupRef.molLookup = vect::transfer<uint32_t>(chkObj.molLookupVec);
+  molLookupRef.restartMoleculeIndices = chkObj.restartMoleculeIndicesVec;
 }
 
 void CheckpointSetup::SetMoleculeSetup(){
