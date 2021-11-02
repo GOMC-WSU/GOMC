@@ -191,10 +191,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   uint* boxAndKindSwappableCounts;
   uint boxAndKindStartCount;
   uint numKinds;
-  /* For consistent trajectory ordering across checkpoints */
-  bool restartFromCheckpoint;
-  uint32_t * restartMoleculeIndices, * permutedMoleculeIndices;
-  uint32_t restartedNumAtomsInBox[BOX_TOTAL];
 
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
@@ -204,6 +200,11 @@ static uint GetConsensusMolBeta( const uint pStart,
   int *molKind; // stores the molecule kind for global atom index
   int *atomKind; // stores the atom kind for global atom index
   double *atomCharge; // stores the atom's charge for global atom index
+
+  /* For consistent trajectory ordering across checkpoints */
+  bool restartFromCheckpoint;
+  uint32_t * restartMoleculeIndices, * permutedMoleculeIndices;
+  uint32_t restartedNumAtomsInBox[BOX_TOTAL];
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
