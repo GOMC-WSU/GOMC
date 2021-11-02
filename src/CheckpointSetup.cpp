@@ -61,7 +61,7 @@ void CheckpointSetup::SetCheckpointData(){
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  SetMoleculeIndices();
+  SetMoleculeLookup();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
 }
@@ -75,7 +75,7 @@ void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  SetMoleculeIndices();
+  SetMoleculeLookup();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
@@ -129,9 +129,9 @@ void CheckpointSetup::SetMolecules()
   molRef.restartOrderedStart = vect::TransferInto<uint>(molRef.restartOrderedStart, chkObj.restartedStartVec);
 }
 
-void CheckpointSetup::SetMoleculeIndices(){
+void CheckpointSetup::SetMoleculeLookup(){
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-  molLookupRef.restartMoleculeIndices = chkObj.restartMoleculeIndicesVec;
+  molLookupRef = chkObj.originalMoleculeLookup;
 }
 
 void CheckpointSetup::SetMoleculeSetup(){
@@ -142,7 +142,7 @@ void CheckpointSetup::SetMoleculeSetup(){
 void CheckpointSetup::SetPDBSetupAtoms(){
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
-    trajectoryI = chkObj.restartMoleculeIndicesVec[mol];
+    trajectoryI = chkObj.originalMoleculeLookup.restartMoleculeIndices[mol];
     dataI = mol;
     //Loop through particles in mol.
     GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
