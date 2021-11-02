@@ -99,9 +99,6 @@ class Checkpoint
         // From the restart files into the original pdb atoms object.
         std::vector<uint32_t> restartedStartVec;
 
-        // Molecule Indices for consistent trajectories 
-        std::vector<uint32_t> restartMoleculeIndicesVec;
-
         #define N_array_size 624
 
         //ulong stepNumber;
@@ -126,19 +123,6 @@ class Checkpoint
         MolSetup originalMolSetup;
         pdb_setup::Atoms originalAtoms;
         MoleculeLookup originalMoleculeLookup;
-
-        // Molecule Lookup so our underlying molecules are associated with
-        // the same numbering system
-        uint32_t molLookupCount, atomCount;
-        uint32_t boxAndKindStartCount;
-        uint32_t numKinds;
-
-        std::vector <uint32_t> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCountsVec, 
-                            fixedMoleculeVec, canSwapKindVec, canMoveKindVec;
-        std::vector <int32_t> molIndexVec, atomIndexVec, molKindVec, atomKindVec; 
-        std::vector <double> atomChargeVec; 
-        // Molecule Lookup Data
-
 
         friend class cereal::access;
         template<class Archive>
@@ -170,9 +154,7 @@ class Checkpoint
             ar & originalStartVec;  
             ar & restartedStartVec;
             // Mollookup
-            ar & molLookupVec;  
-            // Sorted Molecule Indices
-            ar & restartMoleculeIndicesVec;  
+            ar & originalMoleculeLookup;  
             // MolSetup
             ar & originalMolSetup;
             // PDBAtoms
