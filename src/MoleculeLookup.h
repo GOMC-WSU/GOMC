@@ -187,18 +187,12 @@ static uint GetConsensusMolBeta( const uint pStart,
 
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
-<<<<<<< c6c7bdcd039f4cb264573bee7434d2caef004f85
   std::vector<uint32_t> molLookup;
   uint32_t molLookupCount;
-=======
-  std::vector<uint> molLookup;
-  uint molLookupCount;
->>>>>>> Molecule Lookup is now an object of vectors instead of arrays
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
-<<<<<<< c6c7bdcd039f4cb264573bee7434d2caef004f85
   std::vector<uint32_t> boxAndKindStart;
   std::vector<uint32_t> boxAndKindSwappableCounts;
   uint32_t boxAndKindStartCount;
@@ -220,25 +214,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   bool restartFromCheckpoint;
   uint32_t * restartMoleculeIndices, * permutedMoleculeIndices;
   uint32_t restartedNumAtomsInBox[BOX_TOTAL];
-=======
-  std::vector<uint> boxAndKindStart;
-  std::vector<uint> boxAndKindSwappableCounts;
-  uint boxAndKindStartCount;
-  uint numKinds;
-  /* For consistent trajectory ordering across checkpoints */
-  bool restartFromCheckpoint;
-  std::vector<uint32_t> restartMoleculeIndices, permutedMoleculeIndices;
-  uint32_t restartedNumAtomsInBox[BOX_TOTAL];
-
-  std::vector <uint> fixedMolecule;
-  std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
-  std::vector <uint> canMoveKind; //Kinds that can move intra box only
-  std::vector<int> molIndex; // stores the molecule index for global atom index
-  std::vector<int> atomIndex; // stores the local atom index for global atom index
-  std::vector<int> molKind; // stores the molecule kind for global atom index
-  std::vector<int> atomKind; // stores the atom kind for global atom index
-  std::vector<double> atomCharge; // stores the atom's charge for global atom index
->>>>>>> Molecule Lookup is now an object of vectors instead of arrays
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;

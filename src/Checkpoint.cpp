@@ -20,12 +20,8 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherTrueStep(trueStep);
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
-<<<<<<< c6c7bdcd039f4cb264573bee7434d2caef004f85
     GatherRestartMoleculeIndices(molLookupRef, molRef);
     GatherMoleculeLookup(molLookupRef);
-=======
-    GatherRestartMoleculeIndices(molLookupRef);
->>>>>>> Molecule Lookup is now an object of vectors instead of arrays
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
     GatherPDBSetupAtoms(pdbSetupAtomsRef);
