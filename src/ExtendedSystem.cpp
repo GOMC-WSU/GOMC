@@ -66,7 +66,7 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, config_setup::Input inputFi
   boxStart[0] = 0;
   for(int b = 0; b < BOX_TOTAL; b++) {
     if(inputFiles.files.binaryCoorInput.defined[b]) {
-      if (molLookup.restartFromCheckpoint){
+      if (mols.restartFromCheckpoint){
         numAtoms += molLookup.restartedNumAtomsInBox[b];
         if (b == 1)
           boxStart[1] = molLookup.restartedNumAtomsInBox[0];
@@ -81,7 +81,7 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, config_setup::Input inputFi
   for(int b = 0; b < BOX_TOTAL; b++) {
     if(inputFiles.files.binaryCoorInput.defined[b]) {
       std::string fName = inputFiles.files.binaryCoorInput.name[b];  
-      if (molLookup.restartFromCheckpoint)
+      if (mols.restartFromCheckpoint)
         read_binary_file(fName.c_str(), &binaryCoor[boxStart[b]], molLookup.restartedNumAtomsInBox[b]);
       else
         read_binary_file(fName.c_str(), &binaryCoor[boxStart[b]], pdb.atoms.numAtomsInBox[b]);

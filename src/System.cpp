@@ -117,7 +117,8 @@ System::~System()
 void System::Init(Setup & set)
 {
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
+  if(!set.config.in.restart.restartFromCheckpoint)
+    molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
 #endif
   moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
   // allocate memory for atom's velocity if we read the binVelocities
@@ -258,7 +259,8 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
   set.pdb.Init(set.config.in.restart, set.config.in.files.pdb.name, frameNum);
   statV.InitOver(set, *this);
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
+  if(!set.config.in.restart.restartFromCheckpoint)
+    molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
 #endif
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();

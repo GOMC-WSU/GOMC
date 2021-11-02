@@ -54,7 +54,7 @@ public:
 
   //Initialize this object to be consistent with Molecules mols
   void Init(Molecules const& mols, const pdb_setup::Atoms& atomData,
-            Forcefield &ff, bool restartFromCheckpoint);
+            Forcefield &ff);
 
   uint GetNumKind(void) const
   {
@@ -198,7 +198,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   uint boxAndKindStartCount;
   uint numKinds;
   /* For consistent trajectory ordering across checkpoints */
-  bool restartFromCheckpoint;
   std::vector<uint32_t> restartMoleculeIndices;
   uint32_t restartedNumAtomsInBox[BOX_TOTAL];
 
@@ -224,7 +223,6 @@ static uint GetConsensusMolBeta( const uint pStart,
       ar & boxAndKindSwappableCounts;
       ar & boxAndKindStartCount;
       ar & numKinds;
-      ar & restartFromCheckpoint;
       ar & restartMoleculeIndices;
       ar & restartedNumAtomsInBox;
       ar & fixedMolecule;
