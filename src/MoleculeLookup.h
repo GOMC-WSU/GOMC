@@ -195,6 +195,7 @@ static uint GetConsensusMolBeta( const uint pStart,
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
+  uint atomCount;
   int *molIndex; // stores the molecule index for global atom index
   int *atomIndex; // stores the local atom index for global atom index
   int *molKind; // stores the molecule kind for global atom index
