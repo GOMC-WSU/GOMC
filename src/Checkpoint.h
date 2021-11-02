@@ -68,6 +68,7 @@ class Checkpoint
         void GatherMoleculeLookup(MoleculeLookup & molLookupRef);
         void GatherMolSetup(MolSetup & molSetupRef);
         void GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef);
+        void GatherMoleculeLookup(MoleculeLookup & molLookupRef);
         void GatherRandomNumbers(PRNG & prngRef);
         void GatherRestartMoleculeStartVec(MoleculeLookup & molLookupRef,
                                             const Molecules & molRef);
@@ -129,6 +130,18 @@ class Checkpoint
         MolSetup originalMolSetup;
         pdb_setup::Atoms originalAtoms;
         MoleculeLookup originalMoleculeLookup;
+
+        // Molecule Lookup Data
+        uint molLookupCount;
+        uint boxAndKindStartCount;
+        uint numKinds;
+
+        std::vector <uint> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCountsVec, 
+                            fixedMoleculeVec, canSwapKindVec, canMoveKindVec;
+        std::vector <int> molIndexVec, atomIndexVec, molKindVec, atomKindVec; 
+        std::vector <double> atomChargeVec; 
+        // Molecule Lookup Data
+
 
         friend class cereal::access;
         template<class Archive>
