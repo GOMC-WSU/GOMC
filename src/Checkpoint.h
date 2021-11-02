@@ -64,7 +64,6 @@ class Checkpoint
         void GatherMolecules(const Molecules & molRef);
         void GatherMoveSettings(MoveSettings & movSetRef);
         void GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef);
-        void GatherMoleculeLookup(MoleculeLookup & molLookupRef);
         void GatherMolSetup(MolSetup & molSetupRef);
         void GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef);
         void GatherMoleculeLookup(MoleculeLookup & molLookupRef);
@@ -96,10 +95,6 @@ class Checkpoint
         // Original molecule start positions.  Could be generated through kind,
         // but this allows for parallelized output.
         std::vector<uint32_t> originalStartVec;
-        
-        // Molecule Lookup so our underlying molecules are associated with
-        // the same numbering system
-        std::vector<uint32_t> molLookupVec;
 
         // Restart PDB(S) molecule start positions.  Used to load the coordinates
         // From the restart files into the original pdb atoms object.
@@ -132,14 +127,15 @@ class Checkpoint
         MolSetup originalMolSetup;
         pdb_setup::Atoms originalAtoms;
 
-        // Molecule Lookup Data
-        uint molLookupCount;
-        uint boxAndKindStartCount;
-        uint numKinds;
+        // Molecule Lookup so our underlying molecules are associated with
+        // the same numbering system
+        uint32_t molLookupCount, atomCount;
+        uint32_t boxAndKindStartCount;
+        uint32_t numKinds;
 
-        std::vector <uint> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCountsVec, 
+        std::vector <uint32_t> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCountsVec, 
                             fixedMoleculeVec, canSwapKindVec, canMoveKindVec;
-        std::vector <int> molIndexVec, atomIndexVec, molKindVec, atomKindVec; 
+        std::vector <int32_t> molIndexVec, atomIndexVec, molKindVec, atomKindVec; 
         std::vector <double> atomChargeVec; 
         // Molecule Lookup Data
 
