@@ -199,7 +199,7 @@ static uint GetConsensusMolBeta( const uint pStart,
   uint numKinds;
   /* For consistent trajectory ordering across checkpoints */
   bool restartFromCheckpoint;
-  std::vector<uint32_t> restartMoleculeIndices, permutedMoleculeIndices;
+  std::vector<uint32_t> restartMoleculeIndices;
   uint32_t restartedNumAtomsInBox[BOX_TOTAL];
 
   std::vector <uint> fixedMolecule;
@@ -226,7 +226,6 @@ static uint GetConsensusMolBeta( const uint pStart,
       ar & numKinds;
       ar & restartFromCheckpoint;
       ar & restartMoleculeIndices;
-      ar & permutedMoleculeIndices;
       ar & restartedNumAtomsInBox;
       ar & fixedMolecule;
       ar & canSwapKind;
