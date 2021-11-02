@@ -21,11 +21,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData,
-                          Forcefield &ff,
-                          bool restartFromCheckpoint)
+                          Forcefield &ff)
 {
-  this->restartFromCheckpoint = restartFromCheckpoint;
-
   numKinds = mols.GetKindsCount();
   molLookup.resize(mols.count);
   molLookupCount = mols.count;
@@ -291,7 +288,6 @@ MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
   atomCharge = rhs.atomCharge; // stores the atom's charge for global atom index
 
   /* For consistent trajectory ordering across checkpoints */
-  restartFromCheckpoint = rhs.restartFromCheckpoint;
   restartMoleculeIndices = rhs.restartMoleculeIndices;
   for (int b = 0; b < BOX_TOTAL; ++b)
     restartedNumAtomsInBox[b] = rhs.restartedNumAtomsInBox[b];
@@ -323,7 +319,6 @@ bool MoleculeLookup::operator==(const MoleculeLookup & rhs){
   result &= (atomCharge == rhs.atomCharge); // stores the atom's charge for global atom index
 
   /* For consistent trajectory ordering across checkpoints */
-  result &= (restartFromCheckpoint = rhs.restartFromCheckpoint);
   result &= (restartMoleculeIndices == rhs.restartMoleculeIndices);
   for (int b = 0; b < BOX_TOTAL; ++b)
     result &= (restartedNumAtomsInBox[b] == rhs.restartedNumAtomsInBox[b]);
@@ -350,7 +345,6 @@ void MoleculeLookup::swap(MoleculeLookup& oldMolLookup, MoleculeLookup& newMolLo
   swap(oldMolLookup.molLookupCount, newMolLookup.molLookupCount);
   swap(oldMolLookup.numKinds, newMolLookup.numKinds);
     /* For consistent trajectory ordering across checkpoints */
-  swap(oldMolLookup.restartFromCheckpoint, newMolLookup.restartFromCheckpoint);
   swap(oldMolLookup.restartMoleculeIndices, newMolLookup.restartMoleculeIndices);
   for (int b = 0; b < BOX_TOTAL; ++b)
     swap(oldMolLookup.restartedNumAtomsInBox[b], newMolLookup.restartedNumAtomsInBox[b]);
