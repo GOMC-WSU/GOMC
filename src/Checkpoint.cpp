@@ -21,6 +21,7 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherRestartMoleculeIndices(molLookupRef);
+    GatherMoleculeLookup(molLookupRef);
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
     GatherPDBSetupAtoms(pdbSetupAtomsRef);
@@ -43,6 +44,7 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherRestartMoleculeIndices(molLookupRef);
+    GatherMoleculeLookup(molLookupRef);
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
     GatherPDBSetupAtoms(pdbSetupAtomsRef);
@@ -123,6 +125,9 @@ void Checkpoint::GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef){
   }
 }
 
+void Checkpoint::GatherMoleculeLookup(MoleculeLookup & molLookupRef){
+  originalMoleculeLookup = molLookupRef;
+}
 /* 
   After the first run, we don't parse PSF files.  We simply load the original
   molecule map from file.  Therefore, the new simulation doesn't have molecule ranges
