@@ -44,6 +44,7 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherRestartMoleculeIndices(molLookupRef);
+    GatherMoleculeLookup(molLookupRef);
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
     GatherPDBSetupAtoms(pdbSetupAtomsRef);
