@@ -43,11 +43,17 @@ class ExtendedSystem  {
     // Updates the cellBasis data in pdb data structure
     void UpdateCellBasis(PDBSetup &pdb, const int box);
     // Reads the binary coordinates and updates the X Y Z coordinates in pdb data structure
-    void UpdateCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, 
-                          MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
+    void UpdateCoordinate(PDBSetup &pdb, 
+                          MoleculeLookup & molLookup, 
+                          Molecules & mols);
+    void ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, 
+                          MoleculeLookup & molLookup, Molecules & mols);
     // Reads the binary velocities and updates the X Y Z velocity data structure
-    void UpdateVelocity(PDBSetup &pdb, Velocity &vel, const char *filename, const int box,
-                        MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
+    void UpdateVelocity(PDBSetup &pdb, 
+                          MoleculeLookup & molLookup, 
+                          Molecules & mols);
+    void ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles, 
+                          MoleculeLookup & molLookup, Molecules & mols);
     // the time steps in xsc file
     ulong firstStep;
     // Center of cell, but GOMC always uses 0 center
@@ -62,6 +68,10 @@ class ExtendedSystem  {
     double cellAngle[BOX_TOTAL][3];
     // Check to see if xsc is defined
     bool hasCellBasis[BOX_TOTAL];
+    // Stores the binary coordinates of both boxes
+    std::vector<XYZ> binaryCoor;
+    // Stores the binary velocities of both boxes
+    std::vector<XYZ> binaryVeloc;
 };
 
 
