@@ -178,7 +178,7 @@ void CheckpointSetup::SetPDBSetupAtoms(){
     dataI = mol;
     //Loop through particles in mol.
     GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
-    GetRangeStartStop(dataStart, dataEnd, dataI);
+    GetRestartRangeStartStop(dataStart, dataEnd, dataI);
     for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
       chkObj.originalAtoms.x[p] = pdbAtomsRef.x[d];
       chkObj.originalAtoms.y[p] = pdbAtomsRef.y[d];
