@@ -63,7 +63,8 @@ class Checkpoint
         void GatherTrueStep(const ulong & trueStep);
         void GatherMolecules(const Molecules & molRef);
         void GatherMoveSettings(MoveSettings & movSetRef);
-        void GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef);
+        void GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef,
+                                              const Molecules & molRef);
         void GatherMoleculeLookup(MoleculeLookup & molLookupRef);
         void GatherMolSetup(MolSetup & molSetupRef);
         void GatherPDBSetupAtoms(pdb_setup::Atoms const& pdbSetupAtomsRef);
