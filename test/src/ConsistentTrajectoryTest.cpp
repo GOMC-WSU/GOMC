@@ -228,11 +228,11 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     
     PDBSetup pdb_SingleRun;
     frameNum = 1;
-    pdb_SingleRun.Init(rsStart, pdbnamesSingleRun, frameNum);  
+    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum);  
     lastFrame = 11;
     pdnN_K_1_To_K_N.Init(rsN, pdbnamesN, lastFrame);
     lastFrame = 31;
-    pdb_SingleRun.Init(rsStart, pdbnamesSingleRun, lastFrame);  
+    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
 
     // Checks if the last frame the SingleRun traj match the last frame of K_N traj
     for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
@@ -275,6 +275,9 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     K_N_true_step = K_N.GetTrueStep();
     EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
     K_N.RunSimulation();
+    chdir("../SingleRun");
+    Simulation SingleRun("in.conf");
+    SingleRun.RunSimulation();
     chdir("../../../../..");
 
     config_setup::RestartSettings rsStart;
