@@ -23,6 +23,14 @@ void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
   comRef.CalcCOM();
 }
 
+// This method of finding minimum assumes all the box 0 atoms 
+// will be contiguous in the coordinates array.  This isn't 
+// the case on checkpoint restarts.  Since we went out of the
+// way to ensure even when box transfers occur, the atoms
+// remain in the same original order in the original data structure.
+// I could use the pdbAtoms data structure built from the restart pdb 
+// files to find the minimum before they are loaded into
+// sparse locations.
 void Coordinates::CheckCoordinate()
 {
   int p, start, atom, stRange, endRange;
