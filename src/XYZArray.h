@@ -40,6 +40,18 @@ public:
     Init(n);
   }
 
+  //Create a struct of arrays from an array of structs
+  XYZArray(std::vector<XYZ> AOS)
+  {
+    allocDone = false;
+    Init(AOS.size());
+    for(int i = 0; i < AOS.size(); ++i){
+      x[i] = AOS[i].x;
+      y[i] = AOS[i].y;
+      z[i] = AOS[i].z;
+    }
+  }
+
   XYZArray(const XYZArray& other);
   XYZArray& operator=(XYZArray other);
 
