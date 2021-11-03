@@ -93,7 +93,7 @@ void NAMD_backup_file(const char *filename, const char *extension)
     strcat(backup, extension);
 #if defined(WIN32) && !defined(__CYGWIN__)
     if ( remove(backup) ) if ( errno != ENOENT ) {
-      char *sys_err_msg = strerror(errno);
+      const char *sys_err_msg = strerror(errno);
       if ( ! sys_err_msg ) sys_err_msg = "(unknown error)";
       std::cout << "Error: " << "Error on removing file "
     << backup << ": " << sys_err_msg << "\n";

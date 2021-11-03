@@ -5,6 +5,8 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #pragma once
+#include "BasicTypes.h" //uint
+
 #include <vector>
 #include <algorithm>
 #include <cassert>
