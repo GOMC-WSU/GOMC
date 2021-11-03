@@ -225,9 +225,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     
     PDBSetup pdb_SingleRun;
     frameNum = 1;
-<<<<<<< f286450449db04ac7fb5cfec1e24a3e362e29f5d
     pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum);  
-<<<<<<< d3b09f80e95dcc3908288e0809fdb0ac4379aa27
     lastFrame = 11;
     pdnN_K_1_To_K_N.Init(rsN, pdbnamesN, lastFrame);
     lastFrame = 31;
@@ -390,6 +388,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     Simulation SingleRun("in.conf");
     SingleRun.RunSimulation();
     result = chdir("../../../../..");
+
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
