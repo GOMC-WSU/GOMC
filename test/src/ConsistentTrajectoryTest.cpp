@@ -54,7 +54,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
     config_setup::RestartSettings rsN;
-     config_setup::RestartSettings rsSingleRun;
+    config_setup::RestartSettings rsSingleRun;
 
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
@@ -228,23 +228,21 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     
     PDBSetup pdb_SingleRun;
     frameNum = 1;
-    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum);  
+    pdb_SingleRun.Init(rsStart, pdbnamesSingleRun, frameNum);  
+    lastFrame = 11;
+    pdnN_K_1_To_K_N.Init(rsN, pdbnamesN, lastFrame);
     lastFrame = 31;
-    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
+    pdb_SingleRun.Init(rsStart, pdbnamesSingleRun, lastFrame);  
 
-        // Checks if the last frame the SingleRun traj match the last frame of K_N traj
+    // Checks if the last frame the SingleRun traj match the last frame of K_N traj
     for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
-
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
 
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
 
@@ -399,23 +397,21 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     
     PDBSetup pdb_SingleRun;
     frameNum = 1;
-    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum);  
+    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum); 
+    lastFrame = 11; 
+    pdnN_K_1_To_K_N.Init(rsN, pdbnamesN, lastFrame);
     lastFrame = 31;
     pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
 
         // Checks if the last frame the SingleRun traj match the last frame of K_N traj
     for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
-
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
 
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
 
