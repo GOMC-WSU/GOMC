@@ -46,27 +46,16 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     K_N_true_step = K_N.GetTrueStep();
     EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
     K_N.RunSimulation();
-<<<<<<< d3b09f80e95dcc3908288e0809fdb0ac4379aa27
     result = chdir("../SingleRun");
     Simulation SingleRun("in.conf");
     SingleRun.RunSimulation();
     result = chdir("../../../../..");
-=======
-    chdir("../SingleRun");
-    Simulation SingleRun("in.conf");
-    SingleRun.RunSimulation();
-    chdir("../../../../..");
->>>>>>> Check last frame of single run vs last frame of K_N.  Also, use bin coords
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
     config_setup::RestartSettings rsN;
-<<<<<<< d3b09f80e95dcc3908288e0809fdb0ac4379aa27
     config_setup::RestartSettings rsSingleRun;
-=======
-     config_setup::RestartSettings rsSingleRun;
->>>>>>> Check last frame of single run vs last frame of K_N.  Also, use bin coords
 
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
@@ -196,10 +185,6 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
         EXPECT_EQ(pos1 == pos2, true);
     }
-<<<<<<< d3b09f80e95dcc3908288e0809fdb0ac4379aa27
-=======
-
->>>>>>> Check last frame of single run vs last frame of K_N.  Also, use bin coords
     PDBSetup pdb1_K_1_To_K_N, pdnN_K_1_To_K_N;
 
     // This is needed to get passed Remark 
@@ -240,6 +225,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     
     PDBSetup pdb_SingleRun;
     frameNum = 1;
+<<<<<<< f286450449db04ac7fb5cfec1e24a3e362e29f5d
     pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum);  
 <<<<<<< d3b09f80e95dcc3908288e0809fdb0ac4379aa27
     lastFrame = 11;
@@ -376,33 +362,6 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
     result = system("exec rm -r ./Continued/Continued_*");
     result = system("exec rm -r ./SingleRun/SingleRun_*");
     result = chdir("../../../..");
-=======
-    lastFrame = 31;
-    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
-
-        // Checks if the last frame the SingleRun traj match the last frame of K_N traj
-    for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
-
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
-
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
-    }
-
-    chdir("./test/input/Systems/AR_KR");
-    system("exec rm -r ./Base/base_*");
-    system("exec rm -r ./K_1/K_1_*");
-    system("exec rm -r ./K_N/K_N_*");
-    system("exec rm -r ./SingleRun/SingleRun_*");
-    chdir("../../../..");
->>>>>>> Check last frame of single run vs last frame of K_N.  Also, use bin coords
 }
 
 
@@ -436,12 +395,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
     config_setup::RestartSettings rsN;
-<<<<<<< d3b09f80e95dcc3908288e0809fdb0ac4379aa27
     config_setup::RestartSettings rsSingleRun;
-=======
-     config_setup::RestartSettings rsSingleRun;
->>>>>>> Check last frame of single run vs last frame of K_N.  Also, use bin coords
-
 
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];;
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
@@ -581,36 +535,4 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     result = system("exec rm -r ./SingleRun/SingleRun_*");
     result = chdir("../../../..");
 
-<<<<<<< d3b09f80e95dcc3908288e0809fdb0ac4379aa27
-=======
-    
-    PDBSetup pdb_SingleRun;
-    frameNum = 1;
-    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum);  
-    lastFrame = 31;
-    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
-
-        // Checks if the last frame the SingleRun traj match the last frame of K_N traj
-    for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
-
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
-
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
-        EXPECT_EQ(pdb1_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
-        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
-    }
-
-    chdir("./test/input/Systems/ISOPEN_NEOPEN");
-    system("exec rm -r ./Base/base_*");
-    system("exec rm -r ./K_1/K_1_*");
-    system("exec rm -r ./K_N/K_N_*");
-    system("exec rm -r ./SingleRun/SingleRun_*");
-    chdir("../../../..");
->>>>>>> Check last frame of single run vs last frame of K_N.  Also, use bin coords
 }
