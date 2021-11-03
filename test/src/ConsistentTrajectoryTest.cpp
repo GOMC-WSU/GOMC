@@ -179,7 +179,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
         EXPECT_EQ(pos1 == pos2, true);
     }
-
+/*
     PDBSetup pdbBase_Wrong_Frame_Base_To_K_1;
     // This is needed to get passed Remark 
     // Not sure why.
@@ -209,7 +209,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
         EXPECT_EQ(pos1 == pos2, true);
     }
-
+*/
     PDBSetup pdb1_K_1_To_K_N, pdnN_K_1_To_K_N;
 
     // This is needed to get passed Remark 
@@ -247,7 +247,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
         EXPECT_EQ(pos1 == pos2, true);
     }
-
+/*
     PDBSetup pdb1_Wrong_Frame_K_1_To_K_N;
     // This is needed to get passed Remark 
     // Not sure why.
@@ -277,7 +277,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
         EXPECT_EQ(pos1 == pos2, true);
     }
-
+*/
     chdir("./test/input/Systems/AR_KR");
     system("exec rm -r ./Base/base_*");
     system("exec rm -r ./K_1/K_1_*");
