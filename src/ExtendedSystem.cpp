@@ -149,20 +149,27 @@ void ExtendedSystem::ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles,
                                      Molecules & mols){
     // We must read restart PDB, which hold correct
   // number atom info in each Box
+  // We define local variables here, for case that
+  // Binary Velocity is provided but not binary coordinates.
   int numAtoms = 0;
   int boxStart[BOX_TOTAL];
+  int numAtomsInBox[BOX_TOTAL];
   boxStart[0] = 0;
   for(int b = 0; b < BOX_TOTAL; b++) {
     if(inputFiles.files.binaryVelInput.defined[b]) {
       if (mols.restartFromCheckpoint){
-        numAtoms += molLookup.restartedNumAtomsInBox[b];
-        if (b == 1)
-          boxStart[1] = molLookup.restartedNumAtomsInBox[0];
+        numAtomsInBox[b] = molLookup.restartedNumAtomsInBox[b];
       } else {
-        numAtoms += pdb.atoms.numAtomsInBox[b];
-        if (b == 1)
-          boxStart[1] = pdb.atoms.numAtomsInBox[0];
+        numAtomsInBox[b] = pdb.atoms.numAtomsInBox[b];
       }
+    }
+  }
+
+  for(int b = 0; b < BOX_TOTAL; b++) {
+    if(inputFiles.files.binaryVelInput.defined[b]) {
+      numAtoms += numAtomsInBox[b];
+      if (b == 1)
+        boxStart[1] = numAtomsInBox[0];
     }
   }
   binaryVeloc.clear();
