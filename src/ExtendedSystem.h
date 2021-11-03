@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Velocity.h"
 #include "GeomLib.h" // for PI and Dot product
 #include <vector>
+#include "XYZArray.h"
 
 namespace config_setup
 {
@@ -46,8 +47,9 @@ class ExtendedSystem  {
     void UpdateCoordinate(PDBSetup &pdb, 
                           MoleculeLookup & molLookup, 
                           Molecules & mols);
-    void ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, 
-                          MoleculeLookup & molLookup, Molecules & mols);
+    void ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup,
+                                     Molecules & mols);
+    void UpdateMinMaxAtoms(PDBSetup &pdb, Molecules & mols, MoleculeLookup & molLookup);
     // Reads the binary velocities and updates the X Y Z velocity data structure
     void UpdateVelocity(PDBSetup &pdb, 
                           MoleculeLookup & molLookup, 
@@ -70,6 +72,11 @@ class ExtendedSystem  {
     bool hasCellBasis[BOX_TOTAL];
     // Stores the binary coordinates of both boxes
     std::vector<XYZ> binaryCoor;
+    // For Loading 
+    int numAtoms;
+    int numAtomsInBox[BOX_TOTAL];
+    int boxStart[BOX_TOTAL];
+
     // Stores the binary velocities of both boxes
     std::vector<XYZ> binaryVeloc;
 };

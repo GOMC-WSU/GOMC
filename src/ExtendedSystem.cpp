@@ -42,6 +42,7 @@ void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inp
   if(inputFiles.restart.restartFromBinaryCoorFile) {
     ReadCoordinate(pdb, inputFiles, molLookup, mols);
     UpdateCoordinate(pdb, molLookup, mols);    
+    UpdateMinMaxAtoms(pdb, molLookup, mols);
   }
   // Read the binary velocity and update the buffer
   if(inputFiles.restart.restartFromBinaryVelFile) {
@@ -74,22 +75,26 @@ void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFile
                                      Molecules & mols){
     // We must read restart PDB, which hold correct
   // number atom info in each Box
-  int numAtoms = 0;
-  int boxStart[BOX_TOTAL];
+  numAtoms = 0;
   boxStart[0] = 0;
   for(int b = 0; b < BOX_TOTAL; b++) {
     if(inputFiles.files.binaryCoorInput.defined[b]) {
       if (mols.restartFromCheckpoint){
-        numAtoms += molLookup.restartedNumAtomsInBox[b];
-        if (b == 1)
-          boxStart[1] = molLookup.restartedNumAtomsInBox[0];
+        numAtomsInBox[b] = molLookup.restartedNumAtomsInBox[b];
       } else {
-        numAtoms += pdb.atoms.numAtomsInBox[b];
-        if (b == 1)
-          boxStart[1] = pdb.atoms.numAtomsInBox[0];
+        numAtomsInBox[b] = pdb.atoms.numAtomsInBox[b];
       }
     }
   }
+
+  for(int b = 0; b < BOX_TOTAL; b++) {
+    if(inputFiles.files.binaryCoorInput.defined[b]) {
+      numAtoms += numAtomsInBox[b];
+      if (b == 1)
+        boxStart[1] = numAtomsInBox[0];
+    }
+  }
+
   binaryCoor.clear();
   binaryCoor.resize(numAtoms);
   for(int b = 0; b < BOX_TOTAL; b++) {
@@ -102,6 +107,42 @@ void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFile
     }
   }
 }
+
+void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb, Molecules & mols, MoleculeLookup & molLookup){
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    int stRange, endRange;
+    // -1 because we want to exclude the last array index  
+    // Box 0
+    // [0, numAtomsBox0)
+    // Box 1
+    // [numAtomsBox0, numAtomsBox0 + numAtomsBox1)
+
+    // To prevent segfault
+    if (numAtomsInBox[b] == 0)
+      return;
+
+    if (b == 0){
+      stRange = 0;
+      endRange = numAtomsInBox[0] - 1;
+    } else if (b == 1) {
+      stRange = numAtomsInBox[0];
+      endRange = stRange + numAtomsInBox[1] - 1;
+    } else {
+      std::cout << "Error: Only Box 0 and Box 1 supported!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+    XYZArray binaryCoorSOA(binaryCoor);
+
+    pdb.atoms.min[b].x = *std::min_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
+    pdb.atoms.min[b].y = *std::min_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
+    pdb.atoms.min[b].z = *std::min_element(binaryCoorSOA.z + stRange, binaryCoorSOA.z + endRange);
+    pdb.atoms.max[b].x = *std::max_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
+    pdb.atoms.max[b].y = *std::max_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
+    pdb.atoms.max[b].z = *std::max_element(binaryCoorSOA.z + stRange, binaryCoorSOA.z + endRange);
+  }
+}
+
 
 
 void ExtendedSystem::ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup,
