@@ -108,7 +108,9 @@ void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFile
   }
 }
 
-void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb, Molecules & mols, MoleculeLookup & molLookup){
+void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb, 
+                                      MoleculeLookup & molLookup,
+                                      Molecules & mols){
   for (uint b = 0; b < BOX_TOTAL; b++) {
     int stRange, endRange;
     // -1 because we want to exclude the last array index  
