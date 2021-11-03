@@ -155,6 +155,9 @@ void Atoms::Clear()
   box.clear();
   resNames.clear();
   count = 0;
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    numAtomsInBox[b] = 0;
+  }
 }
 
 // This method of finding minimum assumes all the box 0 atoms 
