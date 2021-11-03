@@ -20,7 +20,7 @@ Checkpoint::Checkpoint(const ulong & step,
     GatherTrueStep(trueStep);
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
-    GatherRestartMoleculeIndices(molLookupRef);
+    GatherRestartMoleculeIndices(molLookupRef, molRef);
     GatherMoleculeLookup(molLookupRef);
     // Not sure if these need to be gathered..
     GatherMolSetup(molSetupRef);
@@ -109,11 +109,19 @@ void Checkpoint::GatherMoveSettings(MoveSettings & movSetRef){
    since the new method for restart from chk should believe it is always
    NOT restarting from chk. 
 */
-void Checkpoint::GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef){
+void Checkpoint::GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef,
+                                              const Molecules & molRef){
   molLookupRef.restartMoleculeIndices.clear();
   molLookupRef.restartMoleculeIndices.resize(molLookupRef.molLookupCount);
-  uint molCounter = 0, b, k, kI, countByKind, molI;
+  uint molCounter = 0, b, k, kI, countByKind, sizeOfKind, molI;
   for (b = 0; b < BOX_TOTAL; ++b) {
+    molLookupRef.restartedNumAtomsInBox[b] = 0;
+    for (k = 0; k < molLookupRef.numKinds; ++k) {
+      countByKind = molLookupRef.NumKindInBox(k, b);
+      sizeOfKind = molRef.kinds[k].NumAtoms();
+      molLookupRef.restartedNumAtomsInBox[b] += sizeOfKind * countByKind;
+    }
+
     for (k = 0; k < molLookupRef.numKinds; ++k) {
       countByKind = molLookupRef.NumKindInBox(k, b);
       for (kI = 0; kI < countByKind; ++kI) {
