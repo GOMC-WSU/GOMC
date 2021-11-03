@@ -207,6 +207,11 @@ void Atoms::GetMinMaxAtoms(const uint b){
   // [0, numAtomsBox0)
   // Box 1
   // [numAtomsBox0, numAtomsBox0 + numAtomsBox1)
+  
+  // To prevent segfault
+  if (numAtomsInBox[b] == 0)
+    return;
+
   if (b == 0){
     stRange = 0;
     endRange = numAtomsInBox[0] - 1;
