@@ -146,7 +146,7 @@ void CheckpointSetup::SetPDBSetupAtoms(){
     dataI = mol;
     //Loop through particles in mol.
     GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
-    GetRangeStartStop(dataStart, dataEnd, dataI);
+    GetRestartRangeStartStop(dataStart, dataEnd, dataI);
     for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
       chkObj.originalAtoms.x[p] = pdbAtomsRef.x[d];
       chkObj.originalAtoms.y[p] = pdbAtomsRef.y[d];
@@ -175,7 +175,7 @@ void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
 }
 #endif
 
-void CheckpointSetup::GetRangeStartStop(uint & _start, uint & stop, const uint m) const
+void CheckpointSetup::GetRestartRangeStartStop(uint & _start, uint & stop, const uint m) const
 {
   _start = chkObj.restartedStartVec[m];
   stop = chkObj.restartedStartVec[m + 1];
