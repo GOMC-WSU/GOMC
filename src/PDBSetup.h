@@ -111,6 +111,7 @@ public:
 
   void Read(FixedWidthReader & file);
   void Clear();
+  void GetMinMaxAtoms(const uint b);
 
   //private:
   //member data
@@ -126,6 +127,9 @@ public:
   //second box read (restart only)
   uint currBox, count;
   uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
+  XYZ min[BOX_TOTAL];
+  XYZ max[BOX_TOTAL];
+  
   private:
     friend class cereal::access;
     template<class Archive>
