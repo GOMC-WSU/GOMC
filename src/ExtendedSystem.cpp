@@ -93,12 +93,12 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, config_setup::Input inputFi
     trajectoryI = molLookup.restartMoleculeIndices[mol];
     dataI = mol;
     //Loop through particles in mol.
-    mols.GetRestartOrderedRangeStartStop(placementStart, placementEnd, trajectoryI);
-    mols.GetRangeStartStop(dataStart, dataEnd, dataI);
+    mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
+    mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
     for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
-      pdb.atoms.x[d] = binaryCoor[p].x;
-      pdb.atoms.y[d] = binaryCoor[p].y;
-      pdb.atoms.z[d] = binaryCoor[p].z;
+      pdb.atoms.x[p] = binaryCoor[d].x;
+      pdb.atoms.y[p] = binaryCoor[d].y;
+      pdb.atoms.z[p] = binaryCoor[d].z;
     }
   }
 }
