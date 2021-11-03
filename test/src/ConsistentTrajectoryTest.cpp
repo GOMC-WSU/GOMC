@@ -419,9 +419,9 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     }
 
     chdir("./test/input/Systems/ISOPEN_NEOPEN");
-    system("exec rm -r ./Base/base_*");
-    system("exec rm -r ./K_1/K_1_*");
-    system("exec rm -r ./K_N/K_N_*");
-    system("exec rm -r ./SingleRun/SingleRun_*");
+    //system("exec rm -r ./Base/base_*");
+    //system("exec rm -r ./K_1/K_1_*");
+    //system("exec rm -r ./K_N/K_N_*");
+    //system("exec rm -r ./SingleRun/SingleRun_*");
     chdir("../../../..");
 }
