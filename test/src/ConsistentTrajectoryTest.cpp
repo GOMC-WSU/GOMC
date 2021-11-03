@@ -185,7 +185,6 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
         EXPECT_EQ(pos1 == pos2, true);
     }
-
     PDBSetup pdb1_K_1_To_K_N, pdnN_K_1_To_K_N;
 
     // This is needed to get passed Remark 
