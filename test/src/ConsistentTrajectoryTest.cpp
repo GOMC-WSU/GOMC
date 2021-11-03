@@ -533,14 +533,4 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     result = system("exec rm -r ./K_N/K_N_*");
     result = system("exec rm -r ./SingleRun/SingleRun_*");
     result = chdir("../../../..");
-
-<<<<<<< a92ff3b4368004e4880e65dd3eb488746f9dac64
-=======
-    chdir("./test/input/Systems/ISOPEN_NEOPEN");
-    //system("exec rm -r ./Base/base_*");
-    //system("exec rm -r ./K_1/K_1_*");
-    //system("exec rm -r ./K_N/K_N_*");
-    //system("exec rm -r ./SingleRun/SingleRun_*");
-    chdir("../../../..");
->>>>>>> Clear numatomsinbox when Atoms are cleared.  Also use binary coords in all NEOPEN restarts
 }
