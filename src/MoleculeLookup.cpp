@@ -297,7 +297,7 @@ MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
 }
 
 bool MoleculeLookup::operator==(const MoleculeLookup & rhs){
-  bool result;
+  bool result = true;
 
   result &= (molLookup == rhs.molLookup);
   result &= (molLookupCount == rhs.molLookupCount);
@@ -318,11 +318,11 @@ bool MoleculeLookup::operator==(const MoleculeLookup & rhs){
   result &= (atomKind == rhs.atomKind); // stores the atom kind for global atom index
   result &= (atomCharge == rhs.atomCharge); // stores the atom's charge for global atom index
 
-  /* For consistent trajectory ordering across checkpoints */
+  /* For consistent trajectory ordering across checkpoints 
   result &= (restartMoleculeIndices == rhs.restartMoleculeIndices);
   for (int b = 0; b < BOX_TOTAL; ++b)
     result &= (restartedNumAtomsInBox[b] == rhs.restartedNumAtomsInBox[b]);
-
+  */
   return result;
 
 }
