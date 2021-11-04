@@ -114,6 +114,8 @@ class Checkpoint
         std::vector< std::vector< uint32_t > > mp_acceptedVec, mp_triesVec, mp_interval_acceptedVec, mp_interval_triesVec;
         std::vector< double > mp_r_maxVec;
         std::vector< double > mp_t_maxVec;
+
+        bool isSingleMoveAccepted[BOXES_WITH_U_NB];
         // Move Settings Vectors
 
 

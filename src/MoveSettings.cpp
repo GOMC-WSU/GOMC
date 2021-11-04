@@ -32,7 +32,6 @@ void MoveSettings::Init(StaticVals const& statV,
     for (uint b; b < BOXES_WITH_U_NB; b++) {
       SetSingleMoveAccepted(b);
     }    
-
     for(uint b = 0; b < BOX_TOTAL; b++) {
       for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
         acceptPercent[b][m].resize(totKind, 0);
