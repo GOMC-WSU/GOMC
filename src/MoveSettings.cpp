@@ -32,7 +32,7 @@ void MoveSettings::Init(StaticVals const& statV,
     for (uint b; b < BOXES_WITH_U_NB; b++) {
       SetSingleMoveAccepted(b);
     }    
-    
+
     for(uint b = 0; b < BOX_TOTAL; b++) {
       for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
         acceptPercent[b][m].resize(totKind, 0);
@@ -324,6 +324,9 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const
     result &= (mp_interval_tries == rhs.mp_interval_tries); // stores the molecule index for global atom index
     result &= (mp_r_max == rhs.mp_r_max); // stores the local atom index for global atom index
     result &= (mp_t_max == rhs.mp_t_max); // stores the molecule kind for global atom index
+
+    for (int b = 0; b < BOXES_WITH_U_NB; ++b)
+      result &= (isSingleMoveAccepted[b] == rhs.isSingleMoveAccepted[b]);
 
     return result;
   }
