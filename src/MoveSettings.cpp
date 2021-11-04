@@ -25,12 +25,14 @@ void MoveSettings::Init(StaticVals const& statV,
 {
   //Set to true so that we calculate the forces for the current system, even if
   //a MultiParticle move is called before any other moves are accepted.
-  for (uint b; b < BOXES_WITH_U_NB; b++) {
-    SetSingleMoveAccepted(b);
-  }
+
   totKind = tkind;
   perAdjust = statV.simEventFreq.perAdjust;
   if (!restartFromCheckpoint){
+    for (uint b; b < BOXES_WITH_U_NB; b++) {
+      SetSingleMoveAccepted(b);
+    }    
+    
     for(uint b = 0; b < BOX_TOTAL; b++) {
       for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
         acceptPercent[b][m].resize(totKind, 0);

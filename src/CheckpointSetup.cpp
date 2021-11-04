@@ -109,6 +109,8 @@ void CheckpointSetup::SetMoveSettings()
   moveSetRef.mp_interval_tries = chkObj.mp_interval_triesVec;
   moveSetRef.mp_t_max = chkObj.mp_t_maxVec;
   moveSetRef.mp_r_max = chkObj.mp_r_maxVec;
+  for (int b = 0; b < BOXES_WITH_U_NB; ++b)
+    moveSetRef.isSingleMoveAccepted[b] = chkObj.isSingleMoveAccepted[b];
 }
 
 void CheckpointSetup::SetPRNGVariables()
