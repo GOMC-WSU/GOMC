@@ -275,9 +275,9 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     K_N_true_step = K_N.GetTrueStep();
     EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
     K_N.RunSimulation();
-    //chdir("../SingleRun");
-    //Simulation SingleRun("in.conf");
-    //SingleRun.RunSimulation();
+    chdir("../SingleRun");
+    Simulation SingleRun("in.conf");
+    SingleRun.RunSimulation();
     chdir("../../../../..");
 
     config_setup::RestartSettings rsStart;
@@ -396,7 +396,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         EXPECT_EQ(pdb1_K_1_To_K_N.atoms.resNames[i] == pdnN_K_1_To_K_N.atoms.resNames[i], true);
         EXPECT_EQ(pdb1_K_1_To_K_N.atoms.beta[i] == pdnN_K_1_To_K_N.atoms.beta[i], true);
     }
-    /*
+    
     
     PDBSetup pdb_SingleRun;
     frameNum = 1;
@@ -408,20 +408,20 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
         // Checks if the last frame the SingleRun traj match the last frame of K_N traj
     for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
-        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.x[i], pdb_SingleRun.atoms.x[i], 0.01);
-        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.y[i], pdb_SingleRun.atoms.y[i], 0.01);
-        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.z[i], pdb_SingleRun.atoms.z[i], 0.01);
+        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.x[i], pdb_SingleRun.atoms.x[i], 0.05);
+        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.y[i], pdb_SingleRun.atoms.y[i], 0.05);
+        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.z[i], pdb_SingleRun.atoms.z[i], 0.05);
 
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
-    */
+    
     chdir("./test/input/Systems/ISOPEN_NEOPEN");
     system("exec rm -r ./Base/base_*");
     system("exec rm -r ./K_1/K_1_*");
     system("exec rm -r ./K_N/K_N_*");
-    //system("exec rm -r ./SingleRun/SingleRun_*");
+    system("exec rm -r ./SingleRun/SingleRun_*");
     chdir("../../../..");
 }
