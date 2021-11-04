@@ -254,6 +254,135 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     chdir("../../../..");
 }
 
+TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
+
+    ulong base_runsteps, Continued_runsteps;
+    ulong Continued_true_step;
+
+    chdir("./test/input/Systems/PEN_HEX/Base/");
+    Simulation base("in.conf");
+    base_runsteps = base.GetRunSteps();
+    base.RunSimulation();
+    chdir("../Continued");
+    Simulation K_1("in.conf");
+    Continued_true_step = Continued.GetTrueStep();
+    Continued_runsteps = Continued.GetRunSteps();
+    // Steps index from 0, hence minus 1
+    EXPECT_EQ(base_runsteps == Continued_true_step, true);
+    Continued.RunSimulation();
+    chdir("../SingleRun");
+    Simulation SingleRun("in.conf");
+    SingleRun.RunSimulation();
+    chdir("../../../../..");
+
+    config_setup::RestartSettings rsStart;
+    config_setup::RestartSettings rsBase;
+    config_setup::RestartSettings rsContinued;
+     config_setup::RestartSettings rsSingleRun;
+
+
+    std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnamesContinued[2], pdbnamesSingleRun[2];;
+    std::string pdbnamesBaseRestart[2], pdbnamesContinuedRestart[2];
+
+    pdbnamesSTART[0] = "./test/input/Systems/PEN_HEX/Base/START_BOX_0.pdb";
+    pdbnamesSTART[1] = "./test/input/Systems/PEN_HEX/Base/START_BOX_1.pdb";
+
+    pdbnamesBase[0] = "./test/input/Systems/PEN_HEX/Base/Base_BOX_0.pdb";
+    pdbnamesBase[1] = "./test/input/Systems/PEN_HEX/Base/Base_BOX_1.pdb";
+
+    pdbnamesContinued[0] = "./test/input/Systems/PEN_HEX/Continued/Continued_BOX_0.pdb";
+    pdbnamesContinued[1] = "./test/input/Systems/PEN_HEX/Continued/Continued_BOX_1.pdb";
+
+    pdbnamesSingleRun[0] = "./test/input/Systems/PEN_HEX/SingleRun/SingleRun_BOX_0.pdb";
+    pdbnamesSingleRun[1] = "./test/input/Systems/PEN_HEX/SingleRun/SingleRun_BOX_1.pdb";
+
+    pdbnamesBaseRestart[0] = "./test/input/Systems/PEN_HEX/Base/base_BOX_0_restart.pdb";
+    pdbnamesBaseRestart[1] = "./test/input/Systems/PEN_HEX/Base/base_BOX_1_restart.pdb";
+
+    pdbnamesContinuedRestart[0] = "./test/input/Systems/PEN_HEX/Continued/Continued_BOX_0_restart.pdb";
+    pdbnamesContinuedRestart[1] = "./test/input/Systems/PEN_HEX/Continued/Continued_BOX_1_restart.pdb";
+
+    PDBSetup pdbStart, pdbBase, pdbContinued;
+    PDBSetup pdbBaseRestart, pdbContinuedRestart;
+
+    rsStart.recalcTrajectory = false;
+    rsBase.recalcTrajectory = true;
+    rsContinued.recalcTrajectory = true;
+    rsSingleRun.recalcTrajectory = true;
+
+    // This is needed to get passed Remark 
+    uint frameNum = 1;
+    //pdbStart.Init(rsStart, pdbnamesSTART);
+    pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
+    pdbContinued.Init(rsContinued, pdbnamesContinued, frameNum);
+
+    frameNum = 11;
+    pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
+    pdbContinued.Init(rsContinued, pdbnamesContinued, frameNum);
+
+    config_setup::RestartSettings rsBaseRestart;
+    config_setup::RestartSettings rsContinuedRestart;
+
+    rsBaseRestart.recalcTrajectory = false;
+    rsContinuedRestart.recalcTrajectory = false;
+
+    rsBaseRestart.restartFromCheckpoint = true;
+    rsContinuedRestart.restartFromCheckpoint = true;
+
+    pdbBaseRestart.Init(rsBaseRestart, pdbnamesBaseRestart);    
+    pdbContinuedRestart.Init(rsContinuedRestart, pdbnamesContinuedRestart);
+    
+    PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
+
+    // This is needed to get passed Remark 
+    // Not sure why.
+    frameNum = 1;
+    pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, frameNum);    
+    pdb1_Base_To_Continued.Init(rsContinued, pdbnamesContinued, frameNum);
+
+    int lastFrame = 11;
+    pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, lastFrame);    
+
+    // Checks if the last frame the base traj match the first frame of K_1 traj
+    for (uint i = 0; i < pdbBase_Base_To_Continued.atoms.count; ++i){
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.x[i] == pdbContinued_Base_To_Continued.atoms.x[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.y[i] == pdbContinued_Base_To_Continued.atoms.y[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.z[i] == pdbContinued_Base_To_Continued.atoms.z[i], true);
+
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.chainLetter[i] == pdbContinued_Base_To_Continued.atoms.chainLetter[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.box[i] == pdbContinued_Base_To_Continued.atoms.box[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.resNames[i] == pdbContinued_Base_To_Continued.atoms.resNames[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.beta[i] == pdbContinued_Base_To_Continued.atoms.beta[i], true);
+    }
+    
+    PDBSetup pdb_SingleRun;
+    frameNum = 1;
+    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum); 
+    lastFrame = 11; 
+    pdbBase_To_Continued.Init(rsContinued, pdbnamesContinued, lastFrame);
+    lastFrame = 31;
+    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
+
+        // Checks if the last frame the SingleRun traj match the last frame of K_N traj
+    for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
+        EXPECT_NEAR(pdbBase_To_Continued.atoms.x[i], pdb_SingleRun.atoms.x[i], 0.05);
+        EXPECT_NEAR(pdbBase_To_Continued.atoms.y[i], pdb_SingleRun.atoms.y[i], 0.05);
+        EXPECT_NEAR(pdbBase_To_Continued.atoms.z[i], pdb_SingleRun.atoms.z[i], 0.05);
+
+        EXPECT_EQ(pdbBase_To_Continued.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
+        EXPECT_EQ(pdbBase_To_Continued.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
+        EXPECT_EQ(pdbBase_To_Continued.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
+        EXPECT_EQ(pdbBase_To_Continued.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
+    }
+    
+    chdir("./test/input/Systems/ISOPEN_NEOPEN");
+    system("exec rm -r ./Base/Base_*");
+    system("exec rm -r ./Continued/Continued_*");
+    system("exec rm -r ./SingleRun/SingleRun_*");
+    chdir("../../../..");
+}
+
+/*
 TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
@@ -425,3 +554,4 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     system("exec rm -r ./SingleRun/SingleRun_*");
     chdir("../../../..");
 }
+*/
