@@ -304,7 +304,7 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const
 #if GOMC_GTEST
 
   bool MoveSettings::operator==(const MoveSettings & rhs){
-    bool result;
+    bool result = true;
 
     result &= (scale == rhs.scale);
     result &= (acceptPercent == rhs.acceptPercent);
