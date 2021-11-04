@@ -17,13 +17,13 @@ TEST(CheckpointTest, CheckPEN_HEX) {
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
 
-    chdir("./test/input/Systems/PEN_HEX/Base/");
+    int result = chdir("./test/input/Systems/PEN_HEX/Base/");
     Simulation base("in.conf");
     base_runsteps = base.GetRunSteps();
     base.RunSimulation();
-    chdir("../Continued");
+    result = chdir("../Continued");
     Simulation Continued("in.conf");
-    chdir("../SingleRun");
+    result = chdir("../SingleRun");
     Simulation SingleRun("in100.conf");
     SingleRun.RunSimulation();
 
@@ -31,13 +31,15 @@ TEST(CheckpointTest, CheckPEN_HEX) {
     MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
     MoveSettings & Continued_ms = Continued.GetMoveSettings();
     MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
-    EXPECT_EQ(Continued_ml == SingleRun_ml, true);
-    EXPECT_EQ(Continued_ms == SingleRun_ms, true);
-    chdir("../../../../..");
-    chdir("./test/input/Systems/PEN_HEX");
-    system("exec rm -r ./Base/Base_*");
-    system("exec rm -r ./Continued/Continued_*");
-    system("exec rm -r ./SingleRun/SingleRun_*");
-    chdir("../../../..");
+
+    EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
+    EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
+
+    result = chdir("../../../../..");
+    result = chdir("./test/input/Systems/PEN_HEX");
+    result = system("exec rm -r ./Base/Base_*");
+    result = system("exec rm -r ./Continued/Continued_*");
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    result = chdir("../../../..");
 
 }

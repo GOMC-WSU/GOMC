@@ -31,25 +31,25 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
 
-    chdir("./test/input/Systems/AR_KR/Base/");
+    int result = chdir("./test/input/Systems/AR_KR/Base/");
     Simulation base("in.conf");
     base_runsteps = base.GetRunSteps();
     base.RunSimulation();
-    chdir("../K_1");
+    result = chdir("../K_1");
     Simulation K_1("in.conf");
     K_1_true_step = K_1.GetTrueStep();
     K_1_runsteps = K_1.GetRunSteps();
     EXPECT_EQ(base_runsteps == K_1_true_step, true);
     K_1.RunSimulation();
-    chdir("../K_N");
+    result = chdir("../K_N");
     Simulation K_N("in.conf");
     K_N_true_step = K_N.GetTrueStep();
     EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
     K_N.RunSimulation();
-    chdir("../SingleRun");
+    result = chdir("../SingleRun");
     Simulation SingleRun("in.conf");
     SingleRun.RunSimulation();
-    chdir("../../../../..");
+    result = chdir("../../../../..");
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
@@ -244,12 +244,12 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
 
-    chdir("./test/input/Systems/AR_KR");
-    system("exec rm -r ./Base/base_*");
-    system("exec rm -r ./K_1/K_1_*");
-    system("exec rm -r ./K_N/K_N_*");
-    system("exec rm -r ./SingleRun/SingleRun_*");
-    chdir("../../../..");
+    result = chdir("./test/input/Systems/AR_KR");
+    result = system("exec rm -r ./Base/base_*");
+    result = system("exec rm -r ./K_1/K_1_*");
+    result = system("exec rm -r ./K_N/K_N_*");
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    result = chdir("../../../..");
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
@@ -257,21 +257,21 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
 
-    chdir("./test/input/Systems/PEN_HEX/Base/");
+    int result = chdir("./test/input/Systems/PEN_HEX/Base/");
     Simulation base("in.conf");
     base_runsteps = base.GetRunSteps();
     base.RunSimulation();
-    chdir("../Continued");
+    result = chdir("../Continued");
     Simulation Continued("in.conf");
     Continued_true_step = Continued.GetTrueStep();
     Continued_runsteps = Continued.GetRunSteps();
     // Steps index from 0, hence minus 1
     EXPECT_EQ(base_runsteps == Continued_true_step, true);
     Continued.RunSimulation();
-    chdir("../SingleRun");
+    result = chdir("../SingleRun");
     Simulation SingleRun("in.conf");
     SingleRun.RunSimulation();
-    chdir("../../../../..");
+    result = chdir("../../../../..");
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
@@ -356,45 +356,45 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         }
     }
     
-    chdir("./test/input/Systems/PEN_HEX");
-    system("exec rm -r ./Base/Base_*");
-    system("exec rm -r ./Continued/Continued_*");
-    system("exec rm -r ./SingleRun/SingleRun_*");
-    chdir("../../../..");
+    result = chdir("./test/input/Systems/PEN_HEX");
+    result = system("exec rm -r ./Base/Base_*");
+    result = system("exec rm -r ./Continued/Continued_*");
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    result = chdir("../../../..");
 }
 
-/*
+
 TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
 
-    chdir("./test/input/Systems/ISOPEN_NEOPEN/Base/");
+    int result = chdir("./test/input/Systems/ISOPEN_NEOPEN/Base/");
     Simulation base("in.conf");
     base_runsteps = base.GetRunSteps();
     base.RunSimulation();
-    chdir("../K_1");
+    result = chdir("../K_1");
     Simulation K_1("in.conf");
     K_1_true_step = K_1.GetTrueStep();
     K_1_runsteps = K_1.GetRunSteps();
     // Steps index from 0, hence minus 1
     EXPECT_EQ(base_runsteps == K_1_true_step, true);
     K_1.RunSimulation();
-    chdir("../K_N");
+    result = chdir("../K_N");
     Simulation K_N("in.conf");
     K_N_true_step = K_N.GetTrueStep();
     EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
     K_N.RunSimulation();
-    chdir("../SingleRun");
+    result = chdir("../SingleRun");
     Simulation SingleRun("in.conf");
     SingleRun.RunSimulation();
-    chdir("../../../../..");
+    result = chdir("../../../../..");
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
     config_setup::RestartSettings rsN;
-     config_setup::RestartSettings rsSingleRun;
+    config_setup::RestartSettings rsSingleRun;
 
 
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];;
@@ -528,12 +528,11 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
     
-    chdir("./test/input/Systems/ISOPEN_NEOPEN");
-    system("exec rm -r ./Base/base_*");
-    system("exec rm -r ./K_1/K_1_*");
-    system("exec rm -r ./K_N/K_N_*");
-    system("exec rm -r ./SingleRun/SingleRun_*");
-    chdir("../../../..");
+    result = chdir("./test/input/Systems/ISOPEN_NEOPEN");
+    result = system("exec rm -r ./Base/base_*");
+    result = system("exec rm -r ./K_1/K_1_*");
+    result = system("exec rm -r ./K_N/K_N_*");
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    result = chdir("../../../..");
 
 }
-*/
