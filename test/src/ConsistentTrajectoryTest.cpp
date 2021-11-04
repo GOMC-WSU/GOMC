@@ -387,7 +387,6 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     SingleRun.RunSimulation();
     result = chdir("../../../../..");
 
-
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
