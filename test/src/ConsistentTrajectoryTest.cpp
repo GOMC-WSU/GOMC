@@ -25,7 +25,7 @@
     Checkpoint Output - RestartFromCheckpoint = true
 
 */
-/*
+
 TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
@@ -251,7 +251,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     system("exec rm -r ./SingleRun/SingleRun_*");
     chdir("../../../..");
 }
-*/
+
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
     ulong base_runsteps, Continued_runsteps;
@@ -310,27 +310,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
     // This is needed to get passed Remark 
     uint frameNum = 1;
-    //pdbStart.Init(rsStart, pdbnamesSTART);
-    /*
-    pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
-    pdbContinued.Init(rsContinued, pdbnamesContinued, frameNum);
 
-    frameNum = 11;
-    pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
-    pdbContinued.Init(rsContinued, pdbnamesContinued, frameNum);
-
-    config_setup::RestartSettings rsBaseRestart;
-    config_setup::RestartSettings rsContinuedRestart;
-
-    rsBaseRestart.recalcTrajectory = false;
-    rsContinuedRestart.recalcTrajectory = false;
-
-    rsBaseRestart.restartFromCheckpoint = true;
-    rsContinuedRestart.restartFromCheckpoint = true;
-
-    pdbBaseRestart.Init(rsBaseRestart, pdbnamesBaseRestart);    
-    pdbContinuedRestart.Init(rsContinuedRestart, pdbnamesContinuedRestart);
-    */
     PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
 
     // This is needed to get passed Remark 
@@ -365,26 +345,21 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
             // Checks if the last frame the SingleRun traj match the last frame of K_N traj
         for (uint i = 0; i < pdbContinued_Base_To_Continued.atoms.count; ++i){
-            std::cout << "i :" << i << std::endl;
-            EXPECT_NEAR(pdbContinued_Base_To_Continued.atoms.x[i], pdb_SingleRun.atoms.x[i], 0.05);
-            EXPECT_NEAR(pdbContinued_Base_To_Continued.atoms.y[i], pdb_SingleRun.atoms.y[i], 0.05);
-            EXPECT_NEAR(pdbContinued_Base_To_Continued.atoms.z[i], pdb_SingleRun.atoms.z[i], 0.05);
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
 
             EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
             EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
             EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
             EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
-            if(HasNonfatalFailure()){
-                std::cout << "Frame they differ: " << frame << std::endl;
-                exit(1);
-            }
         }
     }
     
     chdir("./test/input/Systems/PEN_HEX");
-    //system("exec rm -r ./Base/Base_*");
-    //system("exec rm -r ./Continued/Continued_*");
-    //system("exec rm -r ./SingleRun/SingleRun_*");
+    system("exec rm -r ./Base/Base_*");
+    system("exec rm -r ./Continued/Continued_*");
+    system("exec rm -r ./SingleRun/SingleRun_*");
     chdir("../../../..");
 }
 
@@ -543,9 +518,9 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
         // Checks if the last frame the SingleRun traj match the last frame of K_N traj
     for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
-        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.x[i], pdb_SingleRun.atoms.x[i], 0.05);
-        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.y[i], pdb_SingleRun.atoms.y[i], 0.05);
-        EXPECT_NEAR(pdnN_K_1_To_K_N.atoms.z[i], pdb_SingleRun.atoms.z[i], 0.05);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.y[i] ==  pdb_SingleRun.atoms.y[i], true);
+        EXPECT_EQ(pdnN_K_1_To_K_N.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
 
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
@@ -559,5 +534,6 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     system("exec rm -r ./K_N/K_N_*");
     system("exec rm -r ./SingleRun/SingleRun_*");
     chdir("../../../..");
+
 }
 */

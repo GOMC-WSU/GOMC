@@ -5,7 +5,7 @@ set(TestSources
     test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
-    #test/src/ConsistentTrajectoryTest.cpp
+    test/src/ConsistentTrajectoryTest.cpp
     test/src/CheckpointTest.cpp
 )
 

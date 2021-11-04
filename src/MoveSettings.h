@@ -59,7 +59,7 @@ public:
   }
 
   void Init(StaticVals const& statV, pdb_setup::Remarks const& remarks,
-            const uint tkind);
+            const uint tkind, bool restartFromCheckpoint);
 
   void Update(const uint move, const bool isAccepted,
               const uint box, const uint kind = 0);

@@ -31,25 +31,13 @@ TEST(CheckpointTest, CheckPEN_HEX) {
     MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
     MoveSettings & Continued_ms = Continued.GetMoveSettings();
     MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
-    //EXPECT_EQ(Continued_ml == SingleRun_ml, true);
-    //EXPECT_EQ(Continued_ms == SingleRun_ms, true);
-    EXPECT_EQ(Continued_ms.scale == SingleRun_ms.scale, true);
-    EXPECT_EQ(Continued_ms.acceptPercent == SingleRun_ms.acceptPercent, true);
-    //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
-    //molLookup
-    //index [BOX_TOTAL * kind + box + 1] is the element after the end
-    //of that kind/box
-    EXPECT_EQ(Continued_ms.accepted == SingleRun_ms.accepted, true);
-    EXPECT_EQ(Continued_ms.tries == SingleRun_ms.tries, true);
-    EXPECT_EQ(Continued_ms.tempAccepted == SingleRun_ms.tempAccepted, true);
-    EXPECT_EQ(Continued_ms.tempTries == SingleRun_ms.tempTries, true);
-    EXPECT_EQ(Continued_ms.mp_accepted == SingleRun_ms.mp_accepted, true);
-    EXPECT_EQ(Continued_ms.mp_tries == SingleRun_ms.mp_tries, true);//Kinds that can move intra and inter box
-    EXPECT_EQ(Continued_ms.mp_interval_accepted == SingleRun_ms.mp_interval_accepted, true); //Kinds that can move intra box only
-    EXPECT_EQ(Continued_ms.mp_interval_tries == SingleRun_ms.mp_interval_tries, true);// stores the molecule index for global atom index
-    EXPECT_EQ(Continued_ms.mp_r_max == SingleRun_ms.mp_r_max, true); // stores the local atom index for global atom index
-    EXPECT_EQ(Continued_ms.mp_t_max == SingleRun_ms.mp_t_max, true); // stores the molecule kind for global atom index
-
-    //chdir("../../../../..");
+    EXPECT_EQ(Continued_ml == SingleRun_ml, true);
+    EXPECT_EQ(Continued_ms == SingleRun_ms, true);
+    chdir("../../../../..");
+    chdir("./test/input/Systems/PEN_HEX");
+    system("exec rm -r ./Base/Base_*");
+    system("exec rm -r ./Continued/Continued_*");
+    system("exec rm -r ./SingleRun/SingleRun_*");
+    chdir("../../../..");
 
 }
