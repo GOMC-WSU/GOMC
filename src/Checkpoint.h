@@ -111,9 +111,11 @@ class Checkpoint
         std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
         std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
             tempTriesVec;
-        std::vector< std::vector< uint32_t > > mp_acceptedVec, mp_triesVec;
+        std::vector< std::vector< uint32_t > > mp_acceptedVec, mp_triesVec, mp_interval_acceptedVec, mp_interval_triesVec;
         std::vector< double > mp_r_maxVec;
         std::vector< double > mp_t_maxVec;
+        // Move Settings Vectors
+
 
         #if GOMC_LIB_MPI
         int8_t parallelTemperingEnabled;
@@ -150,6 +152,8 @@ class Checkpoint
             ar & tempTriesVec;
             ar & mp_triesVec;
             ar & mp_acceptedVec;
+            ar & mp_interval_acceptedVec;
+            ar & mp_interval_triesVec;
             ar & mp_t_maxVec;
             ar & mp_r_maxVec;
             // Start arrays

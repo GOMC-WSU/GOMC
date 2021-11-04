@@ -193,6 +193,10 @@ MoleculeLookup & Simulation::GetMolLookup(){
   return system->molLookup;
 }
 
+MoveSettings & Simulation::GetMoveSettings(){
+  return system->moveSettings;
+}
+
 ulong Simulation::GetTrueStep(){
   return system->trueStep;
 }

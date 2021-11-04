@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h"             //Primary source of volume.
 #include "MoveConst.h"            //For array sizes
 #include <vector>
+#include "GOMC_Config.h"    //For PT
 
 namespace mp
 {
@@ -142,7 +143,15 @@ public:
     this->SetScaleValues(rhs);
   }
 
+#if GOMC_GTEST
+  bool operator==(const MoveSettings & rhs);
+#endif
+
+#if GOMC_GTEST
+
+#else
 private:
+#endif
 
   std::vector< std::vector< std::vector<double> > > scale, acceptPercent;
   std::vector< std::vector< std::vector<uint32_t> > > accepted, tries, tempAccepted, tempTries;

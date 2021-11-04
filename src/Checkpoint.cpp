@@ -99,6 +99,8 @@ void Checkpoint::GatherMoveSettings(MoveSettings & movSetRef){
     tempAcceptedVec = movSetRef.tempAccepted;
     tempTriesVec = movSetRef.tempTries;
     mp_acceptedVec = movSetRef.mp_accepted;
+    mp_interval_acceptedVec = movSetRef.mp_interval_accepted;
+    mp_interval_triesVec = movSetRef.mp_interval_tries;
     mp_triesVec = movSetRef.mp_tries;
     mp_r_maxVec = movSetRef.mp_r_max;
     mp_t_maxVec = movSetRef.mp_t_max;

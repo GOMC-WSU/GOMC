@@ -27,6 +27,7 @@ public:
     ulong GetTrueStep();
     ulong GetRunSteps();
     MoleculeLookup & GetMolLookup();
+    MoveSettings & GetMoveSettings();
     SystemPotential & GetSystemEnergy(void);
   #endif
 private:
