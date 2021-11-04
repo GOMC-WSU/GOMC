@@ -20,7 +20,8 @@ const double MoveSettings::mp_accept_tol = 0.1;
 
 void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
-                        const uint tkind)
+                        const uint tkind,
+                        bool restartFromCheckpoint)
 {
   //Set to true so that we calculate the forces for the current system, even if
   //a MultiParticle move is called before any other moves are accepted.
@@ -29,56 +30,58 @@ void MoveSettings::Init(StaticVals const& statV,
   }
   totKind = tkind;
   perAdjust = statV.simEventFreq.perAdjust;
-  for(uint b = 0; b < BOX_TOTAL; b++) {
-    for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
-      acceptPercent[b][m].resize(totKind, 0);
-      scale[b][m].resize(totKind, 0);
-      accepted[b][m].resize(totKind, 0);
-      tries[b][m].resize(totKind, 0);
-      tempAccepted[b][m].resize(totKind, 0);
-      tempTries[b][m].resize(totKind, 0);
-    }
-  }
-
-
-  for(uint b = 0; b < BOX_TOTAL; b++) {
-    for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
-      for(uint k = 0; k < totKind; k++) {
-        if(m == mv::DISPLACE) {
-          if(remarks.restart && remarks.disp[b] > 0.0) {
-            scale[b][m][k] = remarks.disp[b];
-          } else {
-            scale[b][m][k] = boxDimRef.axis.Min(b) * 0.25;
-          }
-        } else if (m == mv::ROTATE) {
-          if(remarks.restart && remarks.rotate[b] > 0.0) {
-            scale[b][m][k] = remarks.rotate[b];
-          } else {
-            scale[b][m][k] = M_PI_4;
-          }
-        }
-#if ENSEMBLE == NPT || ENSEMBLE == GEMC
-        else if (m == mv::VOL_TRANSFER) {
-          if(remarks.restart && remarks.vol[b] > 0.0) {
-            scale[b][m][k] = remarks.vol[b];
-          } else {
-            scale[b][m][k] = 500;
-          }
-        }
-#endif
+  if (!restartFromCheckpoint){
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
+        acceptPercent[b][m].resize(totKind, 0);
+        scale[b][m].resize(totKind, 0);
+        accepted[b][m].resize(totKind, 0);
+        tries[b][m].resize(totKind, 0);
+        tempAccepted[b][m].resize(totKind, 0);
+        tempTries[b][m].resize(totKind, 0);
       }
     }
-  }
 
-  // Initialize MultiParticle settings
-  for(int b = 0; b < BOX_TOTAL; b++) {
-    mp_r_max[b] = 0.01 * M_PI;
-    mp_t_max[b] = 0.02;
-    for(int m = 0; m < mp::MPTOTALTYPES; m++) {
-      mp_tries[b][m] = 0;
-      mp_accepted[b][m] = 0;
-      mp_interval_tries[b][m] = 0;
-      mp_interval_accepted[b][m] = 0;
+
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
+        for(uint k = 0; k < totKind; k++) {
+          if(m == mv::DISPLACE) {
+            if(remarks.restart && remarks.disp[b] > 0.0) {
+              scale[b][m][k] = remarks.disp[b];
+            } else {
+              scale[b][m][k] = boxDimRef.axis.Min(b) * 0.25;
+            }
+          } else if (m == mv::ROTATE) {
+            if(remarks.restart && remarks.rotate[b] > 0.0) {
+              scale[b][m][k] = remarks.rotate[b];
+            } else {
+              scale[b][m][k] = M_PI_4;
+            }
+          }
+  #if ENSEMBLE == NPT || ENSEMBLE == GEMC
+          else if (m == mv::VOL_TRANSFER) {
+            if(remarks.restart && remarks.vol[b] > 0.0) {
+              scale[b][m][k] = remarks.vol[b];
+            } else {
+              scale[b][m][k] = 500;
+            }
+          }
+  #endif
+        }
+      }
+    }
+
+    // Initialize MultiParticle settings
+    for(int b = 0; b < BOX_TOTAL; b++) {
+      mp_r_max[b] = 0.01 * M_PI;
+      mp_t_max[b] = 0.02;
+      for(int m = 0; m < mp::MPTOTALTYPES; m++) {
+        mp_tries[b][m] = 0;
+        mp_accepted[b][m] = 0;
+        mp_interval_tries[b][m] = 0;
+        mp_interval_accepted[b][m] = 0;
+      }
     }
   }
 }
