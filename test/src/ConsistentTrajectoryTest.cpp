@@ -309,7 +309,6 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
     // This is needed to get passed Remark 
     uint frameNum = 1;
-
     PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
 
     // This is needed to get passed Remark 
