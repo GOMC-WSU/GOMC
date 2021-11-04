@@ -105,6 +105,8 @@ void CheckpointSetup::SetMoveSettings()
   moveSetRef.tempTries = chkObj.tempTriesVec;
   moveSetRef.mp_tries = chkObj.mp_triesVec;
   moveSetRef.mp_accepted = chkObj.mp_acceptedVec;
+  moveSetRef.mp_interval_accepted = chkObj.mp_interval_acceptedVec;
+  moveSetRef.mp_interval_tries = chkObj.mp_interval_triesVec;
   moveSetRef.mp_t_max = chkObj.mp_t_maxVec;
   moveSetRef.mp_r_max = chkObj.mp_r_maxVec;
 }

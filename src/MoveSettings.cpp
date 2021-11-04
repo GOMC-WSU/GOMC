@@ -297,3 +297,29 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const
 
   return sum;
 }
+
+#if GOMC_GTEST
+
+  bool MoveSettings::operator==(const MoveSettings & rhs){
+    bool result;
+
+    result &= (scale == rhs.scale);
+    result &= (acceptPercent == rhs.acceptPercent);
+    //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
+    //molLookup
+    //index [BOX_TOTAL * kind + box + 1] is the element after the end
+    //of that kind/box
+    result &= (accepted == rhs.accepted);
+    result &= (tries == rhs.tries);
+    result &= (tempAccepted == rhs.tempAccepted);
+    result &= (tempTries == rhs.tempTries);
+    result &= (mp_accepted == rhs.mp_accepted);
+    result &= (mp_tries == rhs.mp_tries); //Kinds that can move intra and inter box
+    result &= (mp_interval_accepted == rhs.mp_interval_accepted); //Kinds that can move intra box only
+    result &= (mp_interval_tries == rhs.mp_interval_tries); // stores the molecule index for global atom index
+    result &= (mp_r_max == rhs.mp_r_max); // stores the local atom index for global atom index
+    result &= (mp_t_max == rhs.mp_t_max); // stores the molecule kind for global atom index
+
+    return result;
+  }
+#endif
