@@ -1,88 +1,55 @@
 #include <gtest/gtest.h>
+#include "PDBSetup.h"
+#include "MolSetup.h"
+#include "BondAdjacencyList.h"
+#include "ConfigSetup.h"
+#include "FFSetup.h"        //For geometry kinds
+#include "FFConst.h"
+#include "Reader.h"
+#include "InputFileReader.h"
 #include "Simulation.h"
 #include<unistd.h> 
-/* There are 4 cases for restarting from checkpoint 
+#include "MoveSettings.h"
 
-1) Base Case:
-    The first run.  
-    Checkpoint Setup  - RestartFromCheckpoint = false
-    Checkpoint Output - RestartFromCheckpoint = false
 
-2) The first restart from checkpoint
-    Checkpoint Setup  - RestartFromCheckpoint = true
-    Checkpoint Output - RestartFromCheckpoint = true
+TEST(CheckpointTest, CheckPEN_HEX) {
 
-3) The Nth restart from checkpoint from a prev checkpoint
-    Checkpoint Setup  - RestartFromCheckpoint = true
-    Checkpoint Output - RestartFromCheckpoint = true
+    ulong base_runsteps, Continued_runsteps;
+    ulong Continued_true_step;
 
-*/
-TEST(CheckpointTest, CheckAR_KR) {
-    chdir("./test/input/Systems/AR_KR/Base/");
+    chdir("./test/input/Systems/PEN_HEX/Base/");
     Simulation base("in.conf");
+    base_runsteps = base.GetRunSteps();
     base.RunSimulation();
+    chdir("../Continued");
+    Simulation Continued("in.conf");
+    chdir("../SingleRun");
+    Simulation SingleRun("in100.conf");
+    SingleRun.RunSimulation();
 
-    chdir("../K_1");
-    Simulation K_1("in.conf");
-    K_1.RunSimulation();  
-    chdir("../K_N");
-    Simulation K_N("in.conf");
+    MoleculeLookup & Continued_ml = Continued.GetMolLookup();
+    MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
+    MoveSettings & Continued_ms = Continued.GetMoveSettings();
+    MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
+    //EXPECT_EQ(Continued_ml == SingleRun_ml, true);
+    //EXPECT_EQ(Continued_ms == SingleRun_ms, true);
+    EXPECT_EQ(Continued_ms.scale == SingleRun_ms.scale, true);
+    EXPECT_EQ(Continued_ms.acceptPercent == SingleRun_ms.acceptPercent, true);
+    //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
+    //molLookup
+    //index [BOX_TOTAL * kind + box + 1] is the element after the end
+    //of that kind/box
+    EXPECT_EQ(Continued_ms.accepted == SingleRun_ms.accepted, true);
+    EXPECT_EQ(Continued_ms.tries == SingleRun_ms.tries, true);
+    EXPECT_EQ(Continued_ms.tempAccepted == SingleRun_ms.tempAccepted, true);
+    EXPECT_EQ(Continued_ms.tempTries == SingleRun_ms.tempTries, true);
+    EXPECT_EQ(Continued_ms.mp_accepted == SingleRun_ms.mp_accepted, true);
+    EXPECT_EQ(Continued_ms.mp_tries == SingleRun_ms.mp_tries, true);//Kinds that can move intra and inter box
+    EXPECT_EQ(Continued_ms.mp_interval_accepted == SingleRun_ms.mp_interval_accepted, true); //Kinds that can move intra box only
+    EXPECT_EQ(Continued_ms.mp_interval_tries == SingleRun_ms.mp_interval_tries, true);// stores the molecule index for global atom index
+    EXPECT_EQ(Continued_ms.mp_r_max == SingleRun_ms.mp_r_max, true); // stores the local atom index for global atom index
+    EXPECT_EQ(Continued_ms.mp_t_max == SingleRun_ms.mp_t_max, true); // stores the molecule kind for global atom index
 
-    //K_N.RunSimulation();
     //chdir("../../../../..");
-    
-    MoleculeLookup & base_ml = base.GetMolLookup();
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.restartMoleculeIndices[i] == base_ml.molLookup[i], true);
-        EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
-    }
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.restartMoleculeIndices[i] == base_ml.molLookup[i], true);
-        EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
-    }
-        for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.restartMoleculeIndices[i] == base_ml.molLookup[i], true);
-        EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
-    }
-    
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        std::cout << base_ml.molLookup[i] << " ";
-    }        
-    std::cout << std::endl;
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        std::cout << base_ml.permutedMoleculeIndices[i] << " ";
-    }
-    std::cout << std::endl;
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        std::cout << base_ml.restartMoleculeIndices[i] << " ";
-    }
-    std::cout << std::endl;
 
-    MoleculeLookup & K_1_ml = K_1.GetMolLookup();
-    for (int i = 0; i < K_1_ml.molLookupCount; ++i){
-        std::cout << K_1_ml.molLookup[i] << " ";
-    }        
-    std::cout << std::endl;
-    for (int i = 0; i < K_1_ml.molLookupCount; ++i){
-        std::cout << K_1_ml.permutedMoleculeIndices[i] << " ";
-    }
-    std::cout << std::endl;
-    for (int i = 0; i < K_1_ml.molLookupCount; ++i){
-        std::cout << K_1_ml.restartMoleculeIndices[i] << " ";
-    }
-    std::cout << std::endl;
-
-    MoleculeLookup & K_N_ml = K_N.GetMolLookup();
-    for (int i = 0; i < K_N_ml.molLookupCount; ++i){
-        std::cout << K_N_ml.molLookup[i] << " ";
-    }        
-    std::cout << std::endl;
-    for (int i = 0; i < K_N_ml.molLookupCount; ++i){
-        std::cout << K_N_ml.permutedMoleculeIndices[i] << " ";
-    }
-    std::cout << std::endl;
-    for (int i = 0; i < K_N_ml.molLookupCount; ++i){
-        std::cout << K_N_ml.restartMoleculeIndices[i] << " ";
-    }
-    std::cout << std::endl;
 }
