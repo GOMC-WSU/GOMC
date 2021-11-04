@@ -111,7 +111,6 @@ public:
   uint32_t* start;
   /* From checkpoint for loading binary coord/vel into the original PDBAtoms object */
   uint32_t* restartOrderedStart;
-  uint32_t * restartOrderedMoleculeIndices;
 
   /* only used for output */
   uint32_t count;

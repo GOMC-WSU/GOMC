@@ -104,6 +104,8 @@ void Checkpoint::GatherMoveSettings(MoveSettings & movSetRef){
     mp_triesVec = movSetRef.mp_tries;
     mp_r_maxVec = movSetRef.mp_r_max;
     mp_t_maxVec = movSetRef.mp_t_max;
+    for (int b = 0; b < BOXES_WITH_U_NB; ++b)
+      isSingleMoveAccepted[b] = movSetRef.isSingleMoveAccepted[b];
 }
 
 /* 
