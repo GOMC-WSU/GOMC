@@ -249,7 +249,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     result = system("exec rm -r ./SingleRun/SingleRun_*");
     result = chdir("../../../..");
 }
-*/
+
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
     ulong base_runsteps, Continued_runsteps;

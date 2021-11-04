@@ -120,13 +120,8 @@ void System::Init(Setup & set)
   if(!set.config.in.restart.restartFromCheckpoint)
     molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
 #endif
-<<<<<<< cec4c484107f93e739976952de6a5603e1def114
   moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind(),
                     set.config.in.restart.restartFromCheckpoint);
-=======
-  if(!set.config.in.restart.restartFromCheckpoint)
-    moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
->>>>>>> Wrote an equality operator for movesettings.  Only init move settings if restartFromCheckpoint is false, else init from file
   // allocate memory for atom's velocity if we read the binVelocities
   vel.Init(set.pdb.atoms, set.config.in);
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
@@ -311,8 +306,6 @@ void System::RunMove(uint majKind, double draw, const ulong step)
     rejectState = Transform(majKind);
   if (rejectState == mv::fail_state::NO_FAIL)
     CalcEn(majKind);
-  std::cout << "Step : " << step << "; MajKind : " << majKind << "rejectState : " << rejectState
-    << std::endl;
   Accept(majKind, rejectState, step);
 }
 

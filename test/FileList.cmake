@@ -5,11 +5,7 @@ set(TestSources
     test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
-<<<<<<< cec4c484107f93e739976952de6a5603e1def114
     test/src/ConsistentTrajectoryTest.cpp
-=======
-    #test/src/ConsistentTrajectoryTest.cpp
->>>>>>> Wrote an equality operator for movesettings.  Only init move settings if restartFromCheckpoint is false, else init from file
     test/src/CheckpointTest.cpp
 )
 
