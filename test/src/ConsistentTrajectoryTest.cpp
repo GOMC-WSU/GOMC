@@ -264,7 +264,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
     base_runsteps = base.GetRunSteps();
     base.RunSimulation();
     chdir("../Continued");
-    Simulation K_1("in.conf");
+    Simulation Continued("in.conf");
     Continued_true_step = Continued.GetTrueStep();
     Continued_runsteps = Continued.GetRunSteps();
     // Steps index from 0, hence minus 1
@@ -338,7 +338,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
     // Not sure why.
     frameNum = 1;
     pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, frameNum);    
-    pdb1_Base_To_Continued.Init(rsContinued, pdbnamesContinued, frameNum);
+    pdbContinued_Base_To_Continued.Init(rsContinued, pdbnamesContinued, frameNum);
 
     int lastFrame = 11;
     pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, lastFrame);    
@@ -359,20 +359,20 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
     frameNum = 1;
     pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum); 
     lastFrame = 11; 
-    pdbBase_To_Continued.Init(rsContinued, pdbnamesContinued, lastFrame);
+    pdbContinued_Base_To_Continued.Init(rsContinued, pdbnamesContinued, lastFrame);
     lastFrame = 31;
     pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
 
         // Checks if the last frame the SingleRun traj match the last frame of K_N traj
-    for (uint i = 0; i < pdb1_K_1_To_K_N.atoms.count; ++i){
-        EXPECT_NEAR(pdbBase_To_Continued.atoms.x[i], pdb_SingleRun.atoms.x[i], 0.05);
-        EXPECT_NEAR(pdbBase_To_Continued.atoms.y[i], pdb_SingleRun.atoms.y[i], 0.05);
-        EXPECT_NEAR(pdbBase_To_Continued.atoms.z[i], pdb_SingleRun.atoms.z[i], 0.05);
+    for (uint i = 0; i < pdbContinued_Base_To_Continued.atoms.count; ++i){
+        EXPECT_NEAR(pdbContinued_Base_To_Continued.atoms.x[i], pdb_SingleRun.atoms.x[i], 0.05);
+        EXPECT_NEAR(pdbContinued_Base_To_Continued.atoms.y[i], pdb_SingleRun.atoms.y[i], 0.05);
+        EXPECT_NEAR(pdbContinued_Base_To_Continued.atoms.z[i], pdb_SingleRun.atoms.z[i], 0.05);
 
-        EXPECT_EQ(pdbBase_To_Continued.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
-        EXPECT_EQ(pdbBase_To_Continued.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
-        EXPECT_EQ(pdbBase_To_Continued.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
-        EXPECT_EQ(pdbBase_To_Continued.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
+        EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
+        EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
+        EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
+        EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
     
     chdir("./test/input/Systems/ISOPEN_NEOPEN");
