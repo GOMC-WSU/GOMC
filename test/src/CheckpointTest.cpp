@@ -71,7 +71,7 @@ TEST(CheckpointTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    result = chdir("../../../..")
+    result = chdir("../../../..");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
