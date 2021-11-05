@@ -101,7 +101,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 
 void PDBOutput::InitPartVec()
 {
-  uint dataStart = 0, dataEnd = 0, molecule = 0, atomIndex = 0, mI = 0;
+  uint dataStart = 0, dataEnd = 0, molecule = 0, atomIndex = 0, mI;
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),

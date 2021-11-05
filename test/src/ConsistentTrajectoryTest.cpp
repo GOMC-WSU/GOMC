@@ -104,7 +104,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     pdbnamesNRestart[0] = "./test/input/Systems/AR_KR/K_N/K_N_BOX_0_restart.pdb";
     pdbnamesNRestart[1] = "./test/input/Systems/AR_KR/K_N/K_N_BOX_1_restart.pdb";
 
-    PDBSetup pdbStart, pdbBase, pdb1, pdbN;
+    PDBSetup pdbBase, pdb1, pdbN;
     PDBSetup pdbBaseRestart, pdb1Restart, pdbNRestart;
 
     rsStart.recalcTrajectory = false;
@@ -115,7 +115,6 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
     // This is needed to get passed Remark 
     uint frameNum = 1;
-    //pdbStart.Init(rsStart, pdbnamesSTART);
     pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
     pdb1.Init(rs1, pdbnames1, frameNum);
     pdbN.Init(rsN, pdbnamesN, frameNum);
@@ -338,11 +337,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
      config_setup::RestartSettings rsSingleRun;
 
 
-    std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnamesContinued[2], pdbnamesSingleRun[2];;
-    std::string pdbnamesBaseRestart[2], pdbnamesContinuedRestart[2];
-
-    pdbnamesSTART[0] = "./test/input/Systems/PEN_HEX/Base/START_BOX_0.pdb";
-    pdbnamesSTART[1] = "./test/input/Systems/PEN_HEX/Base/START_BOX_1.pdb";
+    std::string pdbnamesBase[2], pdbnamesContinued[2], pdbnamesSingleRun[2];;
 
     pdbnamesBase[0] = "./test/input/Systems/PEN_HEX/Base/Base_BOX_0.pdb";
     pdbnamesBase[1] = "./test/input/Systems/PEN_HEX/Base/Base_BOX_1.pdb";
@@ -353,13 +348,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
     pdbnamesSingleRun[0] = "./test/input/Systems/PEN_HEX/SingleRun/SingleRun_BOX_0.pdb";
     pdbnamesSingleRun[1] = "./test/input/Systems/PEN_HEX/SingleRun/SingleRun_BOX_1.pdb";
 
-    pdbnamesBaseRestart[0] = "./test/input/Systems/PEN_HEX/Base/Base_BOX_0_restart.pdb";
-    pdbnamesBaseRestart[1] = "./test/input/Systems/PEN_HEX/Base/Base_BOX_1_restart.pdb";
-
-    pdbnamesContinuedRestart[0] = "./test/input/Systems/PEN_HEX/Continued/Continued_BOX_0_restart.pdb";
-    pdbnamesContinuedRestart[1] = "./test/input/Systems/PEN_HEX/Continued/Continued_BOX_1_restart.pdb";
-
-    PDBSetup pdbStart, pdbBase, pdbContinued;
+    PDBSetup pdbBase, pdbContinued;
     PDBSetup pdbBaseRestart, pdbContinuedRestart;
 
     rsStart.recalcTrajectory = false;
@@ -523,7 +512,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     pdbnamesNRestart[0] = "./test/input/Systems/ISOPEN_NEOPEN/K_N/K_N_BOX_0_restart.pdb";
     pdbnamesNRestart[1] = "./test/input/Systems/ISOPEN_NEOPEN/K_N/K_N_BOX_1_restart.pdb";
 
-    PDBSetup pdbStart, pdbBase, pdb1, pdbN;
+    PDBSetup pdbBase, pdb1, pdbN;
     PDBSetup pdbBaseRestart, pdb1Restart, pdbNRestart;
 
     rsStart.recalcTrajectory = false;
@@ -534,7 +523,6 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
     // This is needed to get passed Remark 
     uint frameNum = 1;
-    //pdbStart.Init(rsStart, pdbnamesSTART);
     pdbBase.Init(rsBase, pdbnamesBase, frameNum);    
     pdb1.Init(rs1, pdbnames1, frameNum);
     pdbN.Init(rsN, pdbnamesN, frameNum);
