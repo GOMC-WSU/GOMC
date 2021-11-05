@@ -76,11 +76,8 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     config_setup::RestartSettings rsN;
     config_setup::RestartSettings rsSingleRun;
 
-    std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];
+    std::string pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
-
-    pdbnamesSTART[0] = "./test/input/Systems/AR_KR/Base/START_BOX_0.pdb";
-    pdbnamesSTART[1] = "./test/input/Systems/AR_KR/Base/START_BOX_1.pdb";
 
     pdbnamesBase[0] = "./test/input/Systems/AR_KR/Base/base_BOX_0.pdb";
     pdbnamesBase[1] = "./test/input/Systems/AR_KR/Base/base_BOX_1.pdb";
@@ -483,9 +480,6 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];;
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
-
-    pdbnamesSTART[0] = "./test/input/Systems/ISOPEN_NEOPEN/Base/START_BOX_0.pdb";
-    pdbnamesSTART[1] = "./test/input/Systems/ISOPEN_NEOPEN/Base/START_BOX_1.pdb";
 
     pdbnamesBase[0] = "./test/input/Systems/ISOPEN_NEOPEN/Base/base_BOX_0.pdb";
     pdbnamesBase[1] = "./test/input/Systems/ISOPEN_NEOPEN/Base/base_BOX_1.pdb";
