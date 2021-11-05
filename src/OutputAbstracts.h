@@ -15,6 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include "ConfigSetup.h" //For enables, etc.
 #include "PDBSetup.h" //For atoms class
+#include "GOMCEventsProfile.h" // for profiling
 
 #include "GOMC_Config.h"    //For MPI 
 #ifdef WIN32
@@ -38,29 +39,43 @@ public:
 
   virtual void DoOutput(const ulong step) = 0;
 
+  virtual void DoOutputRestart(const ulong step) = 0;
+
   virtual void Sample(const ulong step) = 0;
 
-  virtual void Output(const ulong step)
+  virtual void Output(const ulong step) final
   {
-    if (!enableOut) {
+    if ((!enableOut && !enableRestOut && !forceOutput)) {
       return;
     } else {
       Sample(step);
     }
 
-    // We will output either when the step number is every stepsPerOut
-    // Or recalculate trajectory is enabled (forceOutput)
-    if (((step + 1) % stepsPerOut == 0) || forceOutput) {
+    /* We will output either when the step number is every stepsPerOut
+       Or recalculate trajectory is enabled (forceOutput) */
+    /* printOnFirstStep -- only true for PSFOutput */
+    if ((printOnFirstStep && step == startStep) || (enableOut && ((step + 1) % stepsPerOut == 0) || forceOutput)) {
       DoOutput(step);
       firstPrint = false;
+    }
+
+    /* We will output if the step number is every stepsRestPerOut */
+    if ((enableRestOut && ((step + 1) % stepsRestPerOut == 0)) || forceOutput) {
+      DoOutputRestart(step);
     }
   }
 
   void Init(pdb_setup::Atoms const& atoms,
+            config_setup::Input const& input,
             config_setup::Output const& output,
+            config_setup::SystemVals const& sys,
+            const ulong startStep,
             const ulong tillEquil,
             const ulong totSteps)
   {
+    initStepRead = sys.step.initStepRead;
+    this->startStep = startStep;
+    restartFromCheckpoint = input.restart.restartFromCheckpoint;
     Init(tillEquil, totSteps, output.statistics.settings.uniqueStr.val);
     Init(atoms, output);
   }
@@ -93,7 +108,6 @@ public:
 #endif
     stepsTillEquil = tillEquil;
     totSimSteps = totSteps;
-    firstPrint = true;
 
     // We will use forceOutput for recalculate trajectory
     // If we are not running any simulation then the step will stay 0
@@ -126,12 +140,12 @@ public:
 #if GOMC_LIB_MPI
   std::string pathToReplicaOutputDirectory;
 #endif
-  ulong stepsPerOut, stepsTillEquil, totSimSteps;
-  bool enableOut, firstPrint;
-  bool forceOutput;
+  ulong stepsPerOut = 0, stepsRestPerOut = 0, stepsTillEquil = 0, totSimSteps = 0, startStep = 0;
+  bool enableOut = false, enableRestOut = false, firstPrint = true, forceOutput = false, printOnFirstStep = false;
 
   //Contains references to various objects.
   OutputVars * var;
+  bool restartFromCheckpoint, initStepRead;
 };
 
 #endif /*OUTPUT_ABSTRACTS_H*/

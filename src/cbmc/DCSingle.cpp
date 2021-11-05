@@ -38,6 +38,11 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
 
   if(oldMol.COMFix()) {
     nLJTrials = 1;
+  } else if(oldMol.HasCav()) {
+    prng.FillWithRandomInCavity(positions, nLJTrials, oldMol.GetCavity(),
+                                oldMol.GetCavityCenter());
+    // must wrap the coordinates
+    data->axes.WrapPBC(positions, oldMol.GetBox());
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, oldMol.GetBox());
   }
@@ -74,6 +79,11 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   if(newMol.COMFix()) {
     nLJTrials = 1;
     positions.Set(0, data->axes.WrapPBC(newMol.GetCavityCenter(), newMol.GetBox()));
+  } else if(newMol.HasCav()) {
+    prng.FillWithRandomInCavity(positions, nLJTrials, newMol.GetCavity(),
+                                newMol.GetCavityCenter());
+    // must wrap the coordinates
+    data->axes.WrapPBC(positions, newMol.GetBox());
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, newMol.GetBox());
   }

@@ -34,9 +34,9 @@ struct FreeEnergyOutput : OutputableBase {
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
-
+  virtual void DoOutputRestart(const ulong step);
 private:
-  void PrintData(const uint b, const uint step);
+  void PrintData(const uint b, const ulong step);
   void CalculateFreeEnergy(const uint b);
   void WriteHeader(void);
   std::string GetString(double a, uint p);

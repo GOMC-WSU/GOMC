@@ -6,14 +6,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "FloydWarshallCycle.h"
 
-FloydWarshallCycle::FloydWarshallCycle(int non)
+FloydWarshallCycle::FloydWarshallCycle(int numNodes)
 {
-  // let's check couple of things before we start
-  // number of nodes probably greater than zero
-  assert(non > 0);
+  // Confirm that the number of nodes is greater than zero
+  assert(numNodes > 0);
 
   // Store the size of the graph in numberOfNodes
-  numberOfNodes = non;
+  numberOfNodes = numNodes;
 
   // Resize both graph and next vectors to the size of N*N
   graph.resize(numberOfNodes);
@@ -24,7 +23,7 @@ FloydWarshallCycle::FloydWarshallCycle(int non)
     next[i].resize(numberOfNodes);
 
   // double check
-  assert(graph.size() == numberOfNodes);
+  assert((int) graph.size() == numberOfNodes);
 }
 
 
@@ -34,9 +33,11 @@ FloydWarshallCycle::~FloydWarshallCycle()
 
 void FloydWarshallCycle::AddEdge(int src, int dest)
 {
-  // make sure src and dest are not something crazy!
+  // make sure src and dest are valid node IDs
   assert(src >= 0);
+  assert(src < numberOfNodes);
   assert(dest >= 0);
+  assert(dest < numberOfNodes);
 
   std::vector<int> temp;
   temp.push_back(src);
@@ -48,10 +49,11 @@ std::vector<int> FloydWarshallCycle::GetShortestCycle(int src)
 {
   // check src value
   assert(src >= 0);
+  assert(src < numberOfNodes);
 
   std::vector< std::vector<int> > paths;
   std::vector<int> allEdgesIncludingSrc = getConnectionsFor(src);
-  for (int i = 0; i < allEdgesIncludingSrc.size(); i++) {
+  for (int i = 0; i < (int) allEdgesIncludingSrc.size(); i++) {
     setDefaults();
     setValues(allEdgesIncludingSrc[i]);
     floydWarshall();
@@ -112,9 +114,11 @@ void FloydWarshallCycle::floydWarshall()
 
 std::vector<int> FloydWarshallCycle::getPath(int src, int dest)
 {
-  // check input
+  // make sure src and dest are valid node IDs
   assert(src >= 0);
+  assert(src < numberOfNodes);
   assert(dest >= 0);
+  assert(dest < numberOfNodes);
 
   std::vector<int> path;
   if (next[src][dest] == -1)
@@ -144,16 +148,19 @@ std::vector<int> FloydWarshallCycle::getPath(int connectionIndex)
 
 void FloydWarshallCycle::setDefaults()
 {
-  for (int i = 0; i < numberOfNodes; i++)
+  for (int i = 0; i < numberOfNodes; i++) {
     for (int j = 0; j < numberOfNodes; j++) {
       graph[i][j] = 10000;
       next[i][j] = -1;
     }
+    graph[i][i] = 0;
+    next[i][i] = i;
+  }
 }
 
 void FloydWarshallCycle::setValues(int exceptThisOne)
 {
-  for (int j = 0; j < connections.size(); j++) {
+  for (int j = 0; j < (int) connections.size(); j++) {
     if (exceptThisOne != j) {
       int zero = connections[j][0];
       int one = connections[j][1];
@@ -168,19 +175,20 @@ void FloydWarshallCycle::setValues(int exceptThisOne)
 std::vector<int> FloydWarshallCycle::getConnectionsFor(int index)
 {
   std::vector<int> conn;
-  for (int i = 0; i < connections.size(); i++) {
+  for (int i = 0; i < (int) connections.size(); i++) {
     if (connections[i][0] == index || connections[i][1] == index)
       conn.push_back(i);
   }
   return conn;
 }
 
-std::vector<int> FloydWarshallCycle::findMinimumPath(std::vector< std::vector<int> > paths)
+std::vector<int> FloydWarshallCycle::findMinimumPath(const std::vector< std::vector<int> > &paths)
 {
-  int min = 10000;
+  //The path shouldn't be more than numberOfNodes without negative cycles
+  int min = 2 * numberOfNodes;
   std::vector<int> shortest;
-  for (int i = 0; i < paths.size(); i++) {
-    if (paths[i].size() != 0 && paths[i].size() < min) {
+  for (int i = 0; i < (int) paths.size(); i++) {
+    if (paths[i].size() != 0 && (int) paths[i].size() < min) {
       min = paths[i].size();
       shortest = paths[i];
     }
@@ -192,17 +200,17 @@ std::vector< std::vector<int> > FloydWarshallCycle::getUniqueVectors(std::vector
 {
   int j;
   std::vector< std::vector<int> > uniqueCycles;
-  for (int i = 0; i < allCycles.size(); i++) {
+  for (int i = 0; i < (int) allCycles.size(); i++) {
     std::sort(allCycles[i].begin(), allCycles[i].end());
   }
-  for (int i = 0; i < allCycles.size(); i++) {
+  for (int i = 0; i < (int) allCycles.size(); i++) {
     if (uniqueCycles.size() == 0) {
       uniqueCycles.push_back(allCycles[i]);
     } else {
-      for (j = 0; j < uniqueCycles.size(); j++)
+      for (j = 0; j < (int) uniqueCycles.size(); j++)
         if (isVectorsEqual(uniqueCycles[j], allCycles[i]))
           break;
-      if (j == uniqueCycles.size()) {
+      if (j == (int) uniqueCycles.size()) {
         uniqueCycles.push_back(allCycles[i]);
       }
     }
@@ -210,11 +218,11 @@ std::vector< std::vector<int> > FloydWarshallCycle::getUniqueVectors(std::vector
   return uniqueCycles;
 }
 
-bool FloydWarshallCycle::isVectorsEqual(std::vector<int> first, std::vector<int> second)
+bool FloydWarshallCycle::isVectorsEqual(const std::vector<int> &first, const std::vector<int> &second)
 {
   if (first.size() != second.size())
     return false;
-  for (int i = 0; i < first.size(); i++) {
+  for (int i = 0; i < (int) first.size(); i++) {
     if (first[i] != second[i]) {
       return false;
     }
@@ -222,9 +230,9 @@ bool FloydWarshallCycle::isVectorsEqual(std::vector<int> first, std::vector<int>
   return true;
 }
 
-bool FloydWarshallCycle::haveCommonElements(std::vector<int> first, std::vector<int> second)
+bool FloydWarshallCycle::haveCommonElements(const std::vector<int> &first, const std::vector<int> &second)
 {
-  for (int i = 0; i < first.size(); i++) {
+  for (int i = 0; i < (int) first.size(); i++) {
     if (std::find(second.begin(), second.end(), first[i]) != second.end()) {
       return true;
     }
@@ -232,13 +240,67 @@ bool FloydWarshallCycle::haveCommonElements(std::vector<int> first, std::vector<
   return false;
 }
 
-std::vector<int> FloydWarshallCycle::returnCombinedSet(std::vector<int> first, std::vector<int> second)
+std::vector<int> FloydWarshallCycle::returnCombinedSet(const std::vector<int> &first, const std::vector<int> &second)
 {
   std::vector<int> ret(first);
-  for (int i = 0; i < second.size(); i++) {
+  for (int i = 0; i < (int) second.size(); i++) {
     if (std::find(ret.begin(), ret.end(), second[i]) == ret.end()) {
       ret.push_back(second[i]);
     }
   }
   return ret;
+}
+
+int FloydWarshallCycle::GetCentricNode()
+{
+  // Got it from:
+  // https://codeforces.com/blog/entry/17974
+
+  // values of eccentricity
+  std::vector<int> ecc(numberOfNodes, 0);
+  //Find the number of edges to each node
+  std::vector<int> edgeNum(numberOfNodes, 0);
+  int i, j, raduse;
+  setDefaults();
+  
+  for (j = 0; j < (int) connections.size(); j++) {
+    int zero = connections[j][0];
+    int one = connections[j][1];
+    ++edgeNum[zero];
+    ++edgeNum[one];
+    graph[zero][one] = 1;
+    graph[one][zero] = 1;
+  }
+
+  floydWarshall();
+
+  // Counting values of eccentricity which is
+  // maximal distance from that node to other
+  for (i = 0; i < numberOfNodes; i++) {
+    for (j = 0; j < numberOfNodes; j++) {
+      if (ecc[i] < graph[i][j]) {
+        ecc[i] = graph[i][j];
+      }
+    }
+  }
+  
+  raduse = 1000000;  
+  // Having values of eccentricity of all nodes, 
+  // we can define radius of graph as minimal one among them
+  for (i = 0; i < numberOfNodes; i++) {
+    if (raduse > ecc[i]) {
+      raduse = ecc[i];
+    }
+  }
+
+  // Center of graph is set of nodes with eccentricity equal to the radius of graph:
+  for (i = 0; i < numberOfNodes; i++) {
+    // Make sure that picked node is connected to more than one edge
+    if (raduse == ecc[i] && edgeNum[i] > 1) {
+      return i;
+    }
+  }
+
+  return -1;
+
 }

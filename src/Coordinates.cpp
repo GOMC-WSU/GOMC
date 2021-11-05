@@ -25,7 +25,7 @@ void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 
 void Coordinates::CheckCoordinate()
 {
-  int p, start, atom, length, stRange, endRange;
+  int p, start, atom, stRange, endRange;
   XYZ min, max;
   bool sawZeroCoordinate;
 
@@ -34,6 +34,12 @@ void Coordinates::CheckCoordinate()
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
                                  end = molLookRef.BoxEnd(b),
                                  endc = molLookRef.BoxEnd(b);
+    /* Prevent segfault on empty boxes */
+    if (thisMol == end){
+      printf("No molecules to wrap inside the simulation box %d:\n", b);
+      continue;
+    }
+
     //find the min and max coordinate
     stRange = molRef.MolStart(*thisMol);
     --endc;
@@ -56,7 +62,7 @@ void Coordinates::CheckCoordinate()
       start = molRef.MolStart(*thisMol);
       MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
 
-      for (p = 0; p < thisKind.NumAtoms(); p++) {
+      for (p = 0; p < (int) thisKind.NumAtoms(); p++) {
         atom = start + p;
         if(!x[atom] && !y[atom] && !z[atom]) {
           if(sawZeroCoordinate) {

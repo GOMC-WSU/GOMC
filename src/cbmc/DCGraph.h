@@ -43,6 +43,8 @@ public:
   void BuildOld(TrialMol& oldMol, uint molIndex);
   void BuildGrowNew(TrialMol& newMol, uint molIndex);
   void BuildGrowOld(TrialMol& oldMol, uint molIndex);
+  // used in TargetedSwap
+  void BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   ~DCGraph();
 
 private:
@@ -51,7 +53,7 @@ private:
   //Store edge's atom that are connected to node and has more than 1 bond
   //Each edge is a node as well
   struct Edge {
-    uint destination; //destination is partner node index.
+    int destination; //destination is partner node index.
     DCComponent* component;
     Edge(uint d, DCComponent* c) : destination(d), component(c) {}
   };

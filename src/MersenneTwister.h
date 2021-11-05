@@ -79,8 +79,10 @@ public:
   typedef uint32_t uint32;  // unsigned integer type, at least 32 bits
   typedef int32_t int32;
 
-  enum { N = 624 };       // length of state vector
-  enum { SAVE = N + 1 };  // length of array for save()
+  static const uint N = 624;       // length of state vector
+  static const uint SAVE = N + 1;  // length of array for save()
+  // enum { N = 624 };       // length of state vector
+  // enum { SAVE = N + 1 };  // length of array for save()
 
 protected:
   enum { M = 397 };  // period parameter
@@ -128,7 +130,7 @@ public:
   void load( uint32 *const loadArray );  // from such array
   friend std::ostream& operator<<( std::ostream& os, const MTRand& mtrand );
   friend std::istream& operator>>( std::istream& is, MTRand& mtrand );
-  friend class CheckpointOutput;
+  friend class Checkpoint;
   friend class CheckpointSetup;
   MTRand& operator=( const MTRand& o );
 protected:
@@ -196,7 +198,7 @@ inline void MTRand::initialize( const uint32 seed )
 
   uint32 *s = state;
   uint32 *r = state;
-  int32 i = 1;
+  uint32 i = 1;
   *s++ = seed & 0xffffffffUL;
   for( ; i < N; ++i ) {
     *s++ = ( 1812433253UL * ( *r ^ (*r >> 30) ) + i ) & 0xffffffffUL;
@@ -241,9 +243,9 @@ inline void MTRand::seed( uint32 *const bigSeed, const uint32 seedLength )
   // in each element are discarded.
   // Just call seed() if you want to get array from /dev/urandom
   initialize(19650218UL);
-  int32 i = 1;
+  uint32 i = 1;
   uint32 j = 0;
-  int32 k = ( N > seedLength ? N : seedLength );
+  uint32 k = ( N > seedLength ? N : seedLength );
   for( ; k; --k ) {
     state[i] =
       state[i] ^ ( (state[i - 1] ^ (state[i - 1] >> 30)) * 1664525UL );
@@ -284,14 +286,14 @@ inline void MTRand::seed()
   FILE* urandom = fopen( "/dev/urandom", "rb" );
   if( urandom )
   {
-  	uint32 bigSeed[N];
-  	uint32 *s = bigSeed;
-  	int32 i = N;
-  	bool success = true;
-  	while( success && i-- )
-  		success = fread( s++, sizeof(uint32), 1, urandom );
-  	fclose(urandom);
-  	if( success ) { seed( bigSeed, N );  return; }
+      uint32 bigSeed[N];
+      uint32 *s = bigSeed;
+      int32 i = N;
+      bool success = true;
+      while( success && i-- )
+          success = fread( s++, sizeof(uint32), 1, urandom );
+      fclose(urandom);
+      if( success ) { seed( bigSeed, N );  return; }
   }
   */
 

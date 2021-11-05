@@ -44,15 +44,17 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   std::vector<uint> bondCount(totAtom, 0);
   isRing.resize(totAtom, false);
   ringIdx.resize(totAtom, -1);
-  FloydWarshallCycle fwc(totAtom);
+  CircuitFinder CF(totAtom);
+
   //Count the number of bonds for each atom
   for (uint b = 0; b < setupKind.bonds.size(); ++b) {
     const Bond& bond = setupKind.bonds[b];
     ++bondCount[bond.a0];
     ++bondCount[bond.a1];
-    fwc.AddEdge(bond.a0, bond.a1);
+    CF.addEdge(bond.a0, bond.a1);
+    CF.addEdge(bond.a1, bond.a0);
   }
-  cyclicAtoms = fwc.GetAllCommonCycles();
+  cyclicAtoms = CF.GetAllCommonCycles();
   //Find the ringindex that each atom belongs to
   for (uint atom = 0; atom < totAtom; ++atom) {
     if (bondCount[atom] < 2) {
@@ -86,9 +88,9 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
       nodes.push_back(Node());
       Node& node = nodes.back();
 
-      //Check if the node belong to a ring or not
+      //Check if the node belongs to a ring or not
       if(isRing[atom]) {
-        uint prev = -1;
+        int prev = -1;
         for(uint i = 0; i < bonds.size(); i++) {
           //Use one of the atoms that is in the ring as prev
           if(isRing[bonds[i].a1]) {
@@ -145,7 +147,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   //reassign destination values from atom indices to node indices
   for (uint i = 0; i < nodes.size(); ++i) {
     for (uint j = 0; j < nodes[i].edges.size(); ++j) {
-      uint& dest = nodes[i].edges[j].destination;
+      int& dest = nodes[i].edges[j].destination;
       dest = atomToNode[dest];
       assert(dest != -1);
     }
@@ -354,7 +356,7 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   bool growAll = data.prng() < 1.0 / nodes.size();
 
   //Randomely pick a node to keep it fix and not grow it
-  uint current = data.prng.randIntExc(nodes.size());
+  int current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   destVisited.assign(totAtom, false);
   //Visiting the node
@@ -614,8 +616,8 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   visited.assign(nodes.size(), false);
   destVisited.assign(totAtom, false);
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
     if(nodes[i].atomIndex == oldMol.GetAtomBB(0)) {
       current = i;
       break;
@@ -682,8 +684,8 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
   visited.assign(nodes.size(), false);
   destVisited.assign(totAtom, false);
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
     if(nodes[i].atomIndex == newMol.GetAtomBB(0)) {
       current = i;
       break;
@@ -737,6 +739,57 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
       }
     }
   }
+}
+
+void DCCyclic::BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
+{
+  //Set bCoords to unwrap coordinate of actual molecule
+  newMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+  //No need to unwrap since copied coordinate is unwraped and wrapped properly
+  newMol.SetBCoords(coords, 0);
+
+  visited.assign(nodes.size(), false);
+  destVisited.assign(totAtom, false);
+  //Get the seedIndex
+  int sIndex;
+  if (newMol.HasCav()) {
+    sIndex = newMol.GetGrowingAtomIndex();
+  } else if (oldMol.HasCav()) {
+    sIndex = oldMol.GetGrowingAtomIndex();
+  } else {
+    std::cout << "Error: Calling BuildGrowInCav, but there is no cavity" <<
+    " defined for newMol and oldMol.\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  //Use seedIndex atom to start the node
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
+    if((int) nodes[i].atomIndex == sIndex) {
+      current = i;
+      break;
+    }
+  }
+
+  if(current == -1) {
+    std::cout << "Error: In TargetedSwap or IntraTargetedSwap move, atom " 
+              << newMol.GetKind().atomNames[sIndex] <<
+              " in " << newMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+
+  //Visiting the node
+  visited[current] = true;
+  destVisited[nodes[current].atomIndex] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  BuildEdges(oldMol, newMol, molIndex, current);
 }
 
 DCCyclic::~DCCyclic()

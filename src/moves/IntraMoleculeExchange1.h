@@ -26,10 +26,10 @@ class IntraMoleculeExchange1 : public MoveBase
 {
 public:
 
-  IntraMoleculeExchange1(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef), MoveBase(sys, statV),
-    cavity(statV.intraMemcVal.subVol), cavA(3), invCavA(3),
-    perAdjust(statV.GetPerAdjust()), cavB(3), invCavB(3)
+  IntraMoleculeExchange1(System &sys, StaticVals const& statV) : MoveBase(sys, statV),
+    perAdjust(statV.GetPerAdjust()), cavity(statV.intraMemcVal.subVol),
+    cavA(3), invCavA(3), cavB(3), invCavB(3),
+    molLookRef(sys.molLookupRef), ffRef(statV.forcefield) 
   {
     // initialize all variables to default zero
     W_recip = 0.0;
@@ -86,9 +86,13 @@ public:
   }
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) {
+    return mv::fail_state::NO_FAIL;
+  }
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
   virtual void PrintAcceptKind();
   //This function carries out actions based on the internal acceptance state and
   //molecule kind
@@ -107,9 +111,10 @@ protected:
 
   bool enableID;
   uint sourceBox;
-  uint largeBB[2];
+  int largeBB[2];
   uint perAdjust, molInCavCount, counter;
-  uint numInCavA, numInCavB, numSCavA, numSCavB, kindS, kindL;
+  uint numInCavA, numInCavB, numSCavA, numSCavB;
+  int  kindS, kindL;
   vector<uint> pStartA, pLenA, pStartB, pLenB;
   vector<uint> molIndexA, kindIndexA, molIndexB, kindIndexB;
   vector<cbmc::TrialMol> oldMolA, newMolA, oldMolB, newMolB;
@@ -219,8 +224,8 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
 inline void IntraMoleculeExchange1::AdjustExRatio()
 {
   if(((counter + 1) % perAdjust) == 0) {
-    uint exMax = ceil((float)molInCavCount / (float)perAdjust);
-    uint exMin = ceil((float)exMax / 2.0);
+    int exMax = ceil((float)molInCavCount / (float)perAdjust);
+    int exMin = ceil((float)exMax / 2.0);
     if(exMin == 0)
       exMin = 1;
 
@@ -374,6 +379,7 @@ inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const double subDraw,
 inline uint IntraMoleculeExchange1::Prep(const double subDraw,
     const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_MEMC);
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
@@ -433,6 +439,7 @@ inline uint IntraMoleculeExchange1::Prep(const double subDraw,
       oldMolA[n].SetSeed(centerA, cavity, true, false, false);
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_MEMC);
 
   return state;
 }
@@ -440,12 +447,13 @@ inline uint IntraMoleculeExchange1::Prep(const double subDraw,
 
 inline uint IntraMoleculeExchange1::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   // Calc old energy before deleting
   for (uint n = 0; n < numInCavA; n++) {
     cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n]].BuildIDOld(oldMolA[n], molIndexA[n]);
     // Add bonded energy because we don't consider it in DCRotate.cpp
-    oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n], molIndexA[n]));
+    oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n]));
   }
 
   // Calc old energy before deleting
@@ -453,7 +461,7 @@ inline uint IntraMoleculeExchange1::Transform()
     cellList.RemoveMol(molIndexB[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
     // Add bonded energy because we don't consider it in DCRotate.cpp
-    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]));
+    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n]));
   }
 
   // Insert kindL to cavity of  center A
@@ -462,7 +470,7 @@ inline uint IntraMoleculeExchange1::Transform()
     ShiftMol(n, false);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
     // Add bonded energy because we don't consider it in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
     overlap |= newMolB[n].HasOverlap();
   }
 
@@ -472,27 +480,30 @@ inline uint IntraMoleculeExchange1::Transform()
     ShiftMol(n, true);
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
     // Add bonded energy because we don't consider it in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_INTRA_MEMC);
 
   return mv::fail_state::NO_FAIL;
 }
 
 inline void IntraMoleculeExchange1::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
   W_recip = 1.0;
   recipDiffA = 0.0, recipDiffB = 0.0;
   correctDiff = 0.0;
 
   if(!overlap) {
-    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA, molIndexA, molIndexA, true);
-    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB, molIndexB, molIndexB, false);
+    recipDiffA = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
+    recipDiffB = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
 
     //No need to contribute the self and correction energy since insertion
     //and deletion are rigid body
     W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
 }
 
 inline double IntraMoleculeExchange1::GetCoeff() const
@@ -541,8 +552,9 @@ inline void IntraMoleculeExchange1::RecoverMol(const uint n, const bool typeA)
 }
 
 inline void IntraMoleculeExchange1::Accept(const uint rejectState,
-    const uint step)
+    const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_INTRA_MEMC);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -582,13 +594,21 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
       sysPotRef.boxEnergy[sourceBox].correction += correctDiff;
 
       // Update reciprocal
-      calcEwald->BoxReciprocalSetup(sourceBox, coordCurrRef);
       calcEwald->UpdateRecip(sourceBox);
 
-      // molA and molB already added to cellist
+      // molA and molB already added to cellList
 
       // Recalculate total
       sysPotRef.Total();
+
+      // Update the velocity
+      for(uint n = 0; n < numInCavB; n++) {
+        velocity.UpdateMolVelocity(molIndexB[n], sourceBox);
+      }
+      for(uint n = 0; n < numInCavA; n++) {
+        velocity.UpdateMolVelocity(molIndexA[n], sourceBox);
+      }
+
     } else {
       //transfer molA
       for(uint n = 0; n < numInCavA; n++) {
@@ -608,10 +628,11 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
     result = false;
   }
 
-  moveSetRef.Update(mv::INTRA_MEMC, result, step, sourceBox);
+  moveSetRef.Update(mv::INTRA_MEMC, result, sourceBox);
   //If we consider total acceptance of S->L and L->S
   AcceptKind(result, kindS * molRef.GetKindsCount() + kindL, sourceBox);
   AcceptKind(result, kindL * molRef.GetKindsCount() + kindS, sourceBox);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_INTRA_MEMC);
 }
 
 #endif

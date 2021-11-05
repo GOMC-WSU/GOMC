@@ -81,7 +81,7 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   //reassign destination values from atom indices to node indices
   for (uint i = 0; i < nodes.size(); ++i) {
     for (uint j = 0; j < nodes[i].edges.size(); ++j) {
-      uint& dest = nodes[i].edges[j].destination;
+      int& dest = nodes[i].edges[j].destination;
       dest = atomToNode[dest];
       assert(dest != -1);
     }
@@ -105,7 +105,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   //Start with atoms that form dihedral
   std::vector<Dihedral> dihs = DihsAll(kind);
   for(uint d = 0; d < dihs.size(); d++) {
-    //find the last atomindex in the dihedral
+    //find the last atom index in the dihedral
     uint a0 = dihs[d].a0;
     uint a1 = dihs[d].a1;
     uint a2 = dihs[d].a2;
@@ -138,7 +138,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   //Continue with the atoms that form angles.
   std::vector<Angle> angles = AngsAll(kind);
   for(uint a = 0; a < angles.size(); a++) {
-    //find the last atomindex in the angle
+    //find the last atom index in the angle
     uint a0 = angles[a].a0;
     uint a1 = angles[a].a1;
     uint a2 = angles[a].a2;
@@ -192,7 +192,7 @@ void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 
 void DCGraph::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  //Randomely pick a node to call DCFreeHedron on it
+  //Randomly pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
@@ -244,8 +244,8 @@ void DCGraph::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
 
 void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  //Randomely pick a node to keep it fix and not grow it
-  uint current = data.prng.randIntExc(nodes.size());
+  //Randomly pick a node to keep it fixed and not grow it
+  int current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
   visited[current] = true;
@@ -271,9 +271,9 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       newMol.AddAtom(partner, oldMol.AtomPosition(partner));
       oldMol.ConfirmOldAtom(partner);
     }
-    //First we pick a edge that will be fix and continue copy the coordinate
+    //First we pick a edge that will be fixed and copy the coordinates
     //We continue the same until only one edge left from this node
-    //If current is the terminal node, we dont enter to while loop
+    //If current is the terminal node, we don't enter the while loop
     //Then continue to build the rest of the molecule from current
 
     //Copy the edges of the node to currFringe
@@ -325,7 +325,7 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     //Start with only one left edge
     //Advance along edges, building as we go
     while(!currFringe.empty()) {
-      //Randomely pick one of the edges connected to node
+      //Randomly pick one of the edges connected to node
       uint pick = data.prng.randIntExc(currFringe.size());
       DCComponent* comp = currFringe[pick].component;
       //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -362,7 +362,7 @@ void DCGraph::BuildIDOld(TrialMol& oldMol, uint molIndex)
 
 void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
 {
-  //Randomely pick a node to call DCFreeHedron on it
+  //Randomly pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
@@ -376,7 +376,7 @@ void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
   while(!fringe.empty()) {
-    //Randomely pick one of the edges connected to node
+    //Randomly pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
     //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -404,7 +404,7 @@ void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
 
 void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
 {
-  //Randomely pick a node to call DCFreeHedron on it
+  //Randomly pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
@@ -418,7 +418,7 @@ void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
   while(!fringe.empty()) {
-    //Randomely pick one of the edges connected to node
+    //Randomly pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
     //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -448,8 +448,8 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
 {
   visited.assign(nodes.size(), false);
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
     if(nodes[i].atomIndex == oldMol.GetAtomBB(0)) {
       current = i;
       break;
@@ -474,7 +474,7 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
   while(!fringe.empty()) {
-    //Randomely pick one of the edges connected to node
+    //Randomly pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
     //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -505,8 +505,8 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
 {
   visited.assign(nodes.size(), false);
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
     if(nodes[i].atomIndex == newMol.GetAtomBB(0)) {
       current = i;
       break;
@@ -531,7 +531,7 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
   while(!fringe.empty()) {
-    //Randomely pick one of the edges connected to node
+    //Randomly pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
     //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -557,6 +557,49 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
   }
 }
 
+void DCGraph::BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
+{
+  visited.assign(nodes.size(), false);
+  //Get the seedIndex
+  int sIndex;
+  if (newMol.HasCav()) {
+    sIndex = newMol.GetGrowingAtomIndex();
+  } else if (oldMol.HasCav()) {
+    sIndex = oldMol.GetGrowingAtomIndex();
+  } else {
+    std::cout << "Error: Calling BuildGrowInCav, but there is no cavity" <<
+    " defined for newMol and oldMol.\n";
+    exit(EXIT_FAILURE);
+  }
+
+  //Use backbone atom to start the node
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
+    if((int) nodes[i].atomIndex == sIndex) {
+      current = i;
+      break;
+    }
+  }
+
+  if(current == -1) {
+    std::cout << "Error: In TargetedSwap or IntraTargetedSwap move, atom " 
+              << newMol.GetKind().atomNames[sIndex] <<
+              " in " << newMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  BuildEdges(oldMol, newMol, molIndex, current);
+}
 
 DCGraph::~DCGraph()
 {

@@ -4,7 +4,9 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#pragma once
+
+#ifndef CHECKPOINT_OUTPUT_H
+#define CHECKPOINT_OUTPUT__H
 
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
@@ -12,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"
 #include <iostream>
 #include "GOMC_Config.h"
+#include "Checkpoint.h"
 
 class CheckpointOutput : public OutputableBase
 {
@@ -20,60 +23,52 @@ public:
 
   ~CheckpointOutput()
   {
-    if(outputFile)
-      fclose(outputFile);
   }
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);  
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
   virtual void Sample(const ulong step) {}
-  virtual void Output(const ulong step)
-  {
-    if(!enableOutCheckpoint) {
-      return;
-    }
 
-    if((step + 1) % stepsPerCheckpoint == 0) {
-      DoOutput(step);
-    }
-  }
 
 private:
+  void saveCheckpointFile(const ulong & startStep,
+                          MoveSettings & movSetRef,
+                          PRNG & prng,
+                          const Molecules & molRef,
+                          MoleculeLookup & molLookRef);
+  #if GOMC_LIB_MPI
+  void saveCheckpointFile(const ulong & startStep,
+                        MoveSettings & movSetRef,
+                        PRNG & prng,
+                        const Molecules & molRef,
+                        MoleculeLookup & molLookRef,
+                        bool & parallelTemperingEnabled,
+                        PRNG & prngPT);
+  #endif
+
+  // To avoid repeating Random numbers
+  // on the GPU, when InitStep is set to 0
+  // we maintain the true step had it not
+  // been overwritten by InitStep
+  // If init step isn't used
+  // trueStep == step
+  ulong & trueStepRef;
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions & boxDimRef;
   Molecules const & molRef;
   PRNG & prngRef;
+  Coordinates & coordCurrRef;
 #if GOMC_LIB_MPI
   PRNG & prngPTRef;
 #endif
-  Coordinates & coordCurrRef;
 
-  bool enableOutCheckpoint;
-  bool enableParallelTempering;
+  bool enableParallelTemperingBool;
   std::string filename;
-  FILE* outputFile;
   ulong stepsPerCheckpoint;
 
-  void openOutputFile();
-  void printParallelTemperingBoolean();
-  void printStepNumber(ulong step);
-  void printRandomNumbers();
-#if GOMC_LIB_MPI
-  void printRandomNumbersParallelTempering();
-#endif
-  void printCoordinates();
-  void printMoleculeLookupData();
-  void printMoveSettingsData();
-  void printBoxDimensionsData();
-
-  void printVector3DDouble(std::vector< std::vector< std::vector<double> > > data);
-  void printVector3DUint(std::vector< std::vector< std::vector<uint> > > data);
-  void printVector2DUint(std::vector< std::vector< uint > > data);
-  void printVector1DDouble(std::vector< double > data);
-  void outputDoubleIn8Chars(double data);
-  void outputIntIn1Char(int8_t data);
-  void outputUintIn8Chars(uint32_t data);
-
 };
+
+#endif

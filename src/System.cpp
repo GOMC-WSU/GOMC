@@ -23,6 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
 #include "MultiParticle.h"
+#include "MultiParticleBrownianMotion.h"
 #include "Regrowth.h"
 #include "MoleculeExchange1.h"
 #include "MoleculeExchange2.h"
@@ -31,15 +32,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "IntraMoleculeExchange2.h"
 #include "IntraMoleculeExchange3.h"
 #include "CrankShaft.h"
-#include "CFCMC.h"
+#include "IntraTargetedSwap.h"
+#include "NeMTMC.h"
+#include "TargetedSwap.h"
+#include "GOMCEventsProfile.h"
 
-System::System(StaticVals& statics, MultiSim const*const& multisim) :
+System::System(StaticVals& statics, Setup const& set,
+               ulong & startStep,
+               MultiSim const*const& multisim) :
   statV(statics),
-#ifdef VARIABLE_VOLUME
   boxDimRef(*BoxDim(statics.isOrthogonal)),
-#else
-  boxDimRef(*statics.GetBoxDim()),
-#endif
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookupRef(molLookup),
 #else
@@ -49,10 +51,15 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
 #if GOMC_LIB_MPI
   ms(multisim),
 #endif
+  moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
-  calcEnergy(statics, *this), checkpointSet(*this, statics)
+  calcEnergy(statics, *this), 
+  checkpointSet(startStep, trueStep, molLookupRef, moveSettings, statics.mol, prng, r123wrapper, set),
+  vel(statics.forcefield, molLookupRef, statics.mol, prng),
+  restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
+  startStepRef(startStep)
+
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI
@@ -63,26 +70,27 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
 
 System::~System()
 {
-#ifdef VARIABLE_VOLUME
   if (boxDimensions != NULL)
     delete boxDimensions;
-#endif
   if (calcEwald != NULL)
     delete calcEwald;
   delete moves[mv::DISPLACE];
   delete moves[mv::ROTATE];
+  delete moves[mv::MULTIPARTICLE];
+  delete moves[mv::MULTIPARTICLE_BM];
   delete moves[mv::INTRA_SWAP];
   delete moves[mv::REGROWTH];
   delete moves[mv::INTRA_MEMC];
   delete moves[mv::CRANKSHAFT];
-  delete moves[mv::MULTIPARTICLE];
+  delete moves[mv::INTRA_TARGETED_SWAP];
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   delete moves[mv::VOL_TRANSFER];
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   delete moves[mv::MOL_TRANSFER];
   delete moves[mv::MEMC];
-  delete moves[mv::CFCMC];
+  delete moves[mv::NE_MTMC];
+  delete moves[mv::TARGETED_SWAP];
 #endif
 #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
@@ -90,7 +98,7 @@ System::~System()
 #endif
 }
 
-void System::Init(Setup const& set, ulong & startStep)
+void System::Init(Setup & set)
 {
   prng.Init(set.prng.prngMaker.prng);
   r123wrapper.SetRandomSeed(set.config.in.prng.seed);
@@ -98,49 +106,43 @@ void System::Init(Setup const& set, ulong & startStep)
   if(ms->parallelTemperingEnabled)
     prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
 #endif
-#ifdef VARIABLE_VOLUME
+#ifdef VARIABLE_PARTICLE_NUMBER
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
+#endif
+  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
+  // allocate memory for atom's velocity if we read the binVelocities
+  vel.Init(set.pdb.atoms, set.config.in);
+
+  // At this point see if checkpoint is enabled. if so re-initialize
+  // step, movesettings, prng, original molecule start and kindex arrays, and original molecule trajectory indices
+  if(restartFromCheckpoint) {
+    checkpointSet.loadCheckpointFile();
+  }
+  // overwrite startStepRef with initStep
+  if(set.config.sys.step.initStepRead){
+    startStepRef = set.config.sys.step.initStep;
+  }
+
+  GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
+  // set coordinates and velocities for atoms in system
+  xsc.Init(set.pdb, vel, set.config.in, molLookupRef, statV.mol);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,
                       statV.forcefield);
-#endif
-#ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms);
-#endif
-  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
-  //Note... the following calls use box iterators, so must come after
-  //the molecule lookup initialization, in case we're in a constant
-  //particle/molecule ensemble, e.g. NVT
   coordinates.InitFromPDB(set.pdb.atoms);
-
-  // At this point see if checkpoint is enabled. if so re-initialize
-  // coordinates, prng, mollookup, step, boxdim, and movesettings
-  if(set.config.in.restart.restartFromCheckpoint) {
-    checkpointSet.ReadAll();
-    checkpointSet.SetStepNumber(startStep);
-    checkpointSet.SetBoxDimensions(boxDimRef);
-    checkpointSet.SetPRNGVariables(prng);
-    checkpointSet.SetCoordinates(coordinates);
-    checkpointSet.SetMoleculeLookup(molLookupRef);
-    checkpointSet.SetMoveSettings(moveSettings);
-#if GOMC_LIB_MPI
-    if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
-      checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
-#endif
-  }
-
   com.CalcCOM();
   // Allocate space for atom forces
   atomForceRef.Init(set.pdb.atoms.beta.size());
   molForceRef.Init(com.Count());
-  // Allocate space for reciprocate force
+  // Allocate space for reciprocal force
   atomForceRecRef.Init(set.pdb.atoms.beta.size());
   molForceRecRef.Init(com.Count());
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
-  //check if we have to use cached version of ewlad or not.
+  //check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
-  bool cached = set.config.sys.elect.cache;
 
 #ifdef GOMC_CUDA
   if(ewald)
@@ -148,6 +150,7 @@ void System::Init(Setup const& set, ulong & startStep)
   else
     calcEwald = new NoEwald(statV, *this);
 #else
+  bool cached = set.config.sys.elect.cache;
   if (ewald && cached)
     calcEwald = new EwaldCached(statV, *this);
   else if (ewald && !cached)
@@ -156,7 +159,7 @@ void System::Init(Setup const& set, ulong & startStep)
     calcEwald = new NoEwald(statV, *this);
 #endif
 
-  //Initial the lambda before calling SystemTotal
+  //Initialize lambda before calling SystemTotal
   InitLambda();
   calcEnergy.Init(*this);
   calcEwald->Init();
@@ -166,14 +169,22 @@ void System::Init(Setup const& set, ulong & startStep)
     moveTime[m] = 0.0;
 }
 
+void System::InitOver(Setup & set, Molecules & molRef)
+{
+  if(restartFromCheckpoint)
+    checkpointSet.InitOver(molRef);
+}
+
 void System::InitMoves(Setup const& set)
 {
   moves[mv::DISPLACE] = new Translate(*this, statV);
   moves[mv::MULTIPARTICLE] = new MultiParticle(*this, statV);
+  moves[mv::MULTIPARTICLE_BM] = new MultiParticleBrownian(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
   moves[mv::REGROWTH] = new Regrowth(*this, statV);
   moves[mv::CRANKSHAFT] = new CrankShaft(*this, statV);
+  moves[mv::INTRA_TARGETED_SWAP] = new IntraTargetedSwap(*this, statV);
   if(set.config.sys.intraMemcVal.MEMC1) {
     moves[mv::INTRA_MEMC] = new IntraMoleculeExchange1(*this, statV);
   } else if (set.config.sys.intraMemcVal.MEMC2) {
@@ -194,20 +205,21 @@ void System::InitMoves(Setup const& set)
   } else {
     moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
   }
-  moves[mv::CFCMC] = new CFCMC(*this, statV);
+  moves[mv::NE_MTMC] = new NEMTMC(*this, statV);
+  moves[mv::TARGETED_SWAP] = new TargetedSwap(*this, statV);
+
 #endif
 }
 
 void System::InitLambda()
 {
-#ifdef GOMC_CUDA
-  int temp_molIndex[BOX_TOTAL], temp_kindIndex[BOX_TOTAL];
-  double temp_lambdaVDW[BOX_TOTAL], temp_lambdaCoulomb[BOX_TOTAL];
-  bool temp_isFraction[BOX_TOTAL];
-  for(int i = 0; i < BOX_TOTAL; i++) {
-    temp_isFraction[i] = false;
-  }
-#endif
+  //Set the pointer to cudaVar and initialize the values
+  lambdaRef.Init(
+  #ifdef GOMC_CUDA 
+    statV.forcefield.particles->getCUDAVars()
+  #endif
+  );
+
   if(statV.freeEnVal.enable) {
     bool found = false;
     for(uint k = 0; k < statV.mol.GetKindsCount(); k++) {
@@ -229,15 +241,6 @@ void System::InitLambda()
           double lambdaCoulomb = statV.freeEnVal.lambdaCoulomb[state];
           double lambdaVDW = statV.freeEnVal.lambdaVDW[state];
           lambdaRef.Set(lambdaVDW, lambdaCoulomb, m, k, mv::BOX0);
-
-#ifdef GOMC_CUDA
-          // initialize arrays to copy to GPU
-          temp_molIndex[mv::BOX0] = m;
-          temp_kindIndex[mv::BOX0] = k;
-          temp_lambdaVDW[mv::BOX0] = lambdaVDW;
-          temp_lambdaCoulomb[mv::BOX0] = lambdaCoulomb;
-          temp_isFraction[mv::BOX0] = true;
-#endif
         }
         break;
       }
@@ -249,11 +252,6 @@ void System::InitLambda()
       exit(EXIT_FAILURE);
     }
   }
-#ifdef GOMC_CUDA
-  InitGPULambda(statV.forcefield.particles->getCUDAVars(), temp_molIndex,
-                temp_kindIndex, temp_lambdaVDW, temp_lambdaCoulomb,
-                temp_isFraction);
-#endif
 }
 
 void System::RecalculateTrajectory(Setup &set, uint frameNum)
@@ -261,7 +259,7 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
   set.pdb.Init(set.config.in.restart, set.config.in.files.pdb.name, frameNum);
   statV.InitOver(set, *this);
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms);
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
 #endif
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();
@@ -271,9 +269,12 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
   potential = calcEnergy.SystemTotal();
 }
 
-void System::ChooseAndRunMove(const uint step)
+void System::ChooseAndRunMove(const ulong step)
 {
-  r123wrapper.SetStep(step);
+  if(restartFromCheckpoint)
+    r123wrapper.SetStep(step);
+  else
+    r123wrapper.SetStep(trueStep + step - startStepRef);
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
@@ -288,7 +289,7 @@ void System::PickMove(uint & kind, double & draw)
                    mv::MOVE_KINDS_TOTAL);
 }
 
-void System::RunMove(uint majKind, double draw, const uint step)
+void System::RunMove(uint majKind, double draw, const ulong step)
 {
   //return now if move targets molecule and there's none in that box.
   uint rejectState = SetParams(majKind, draw);
@@ -321,7 +322,7 @@ void System::CalcEn(const uint kind)
   moves[kind]->CalcEn();
 }
 
-void System::Accept(const uint kind, const uint rejectState, const uint step)
+void System::Accept(const uint kind, const uint rejectState, const ulong step)
 {
   moves[kind]->Accept(rejectState, step);
 }
@@ -353,16 +354,20 @@ void System::PrintTime()
   printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
   printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
   printf("%-36s %10.4f    sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
+  printf("%-36s %10.4f    sec.\n", "MultiParticle-Brownian:", moveTime[mv::MULTIPARTICLE_BM]);
   printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
   printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
   printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
   printf("%-36s %10.4f    sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
+  printf("%-36s %10.4f    sec.\n", "Intra-Targeted-Transfer:", moveTime[mv::INTRA_TARGETED_SWAP]);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
          moveTime[mv::MOL_TRANSFER]);
+  printf("%-36s %10.4f    sec.\n", "Targeted-Transfer:",
+         moveTime[mv::TARGETED_SWAP]);
   printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
-  printf("%-36s %10.4f    sec.\n", "CFCMC:", moveTime[mv::CFCMC]);
+  printf("%-36s %10.4f    sec.\n", "nonEq Mol-Transfer:", moveTime[mv::NE_MTMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);

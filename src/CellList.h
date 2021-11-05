@@ -94,7 +94,7 @@ inline int CellList::PositionToCell(const XYZ& posRef, int box) const
   int x = (int)(pos.x / cellSize[box].x);
   int y = (int)(pos.y / cellSize[box].y);
   int z = (int)(pos.z / cellSize[box].z);
-  //Check the cell number to avoid segfult for coordinates close to axis
+  //Check the cell number to avoid segfaults for coordinates close to axis
   //x, y, and z should never be equal or greater than number of cells in x, y,
   // and z axis, respectively.
   x -= (x == edgeCells[box][0] ?  1 : 0);
@@ -164,7 +164,7 @@ private:
 inline CellList::Cell CellList::EnumerateCell(int cell, int box) const
 {
 #ifndef NDEBUG
-  if(cell >= head[box].size()) {
+  if(cell >= static_cast<int>(head[box].size())) {
     std::cout << "CellList.h:153: box " << box << ", Out of cell" << std::endl;
   }
 #endif
@@ -174,7 +174,7 @@ inline CellList::Cell CellList::EnumerateCell(int cell, int box) const
 inline CellList::Neighbors CellList::EnumerateLocal(int cell, int box) const
 {
 #ifndef NDEBUG
-  if(cell >= head[box].size()) {
+  if(cell >= static_cast<int>(head[box].size())) {
     std::cout << "CellList.h:162: box " << box << ", Out of cell" << std::endl;
     std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
   }
@@ -186,7 +186,7 @@ inline CellList::Neighbors CellList::EnumerateLocal(const XYZ& pos, int box) con
 {
   int cell = PositionToCell(pos, box);
 #ifndef NDEBUG
-  if(cell >= head[box].size()) {
+  if(cell >= static_cast<int>(head[box].size())) {
     std::cout << "CellList.h:172: box " << box << ", pos: " << pos
               << std::endl;
     std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;

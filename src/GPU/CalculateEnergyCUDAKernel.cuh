@@ -14,20 +14,21 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VariablesCUDA.cuh"
 
 void CallBoxInterGPU(VariablesCUDA *vars,
-                     std::vector<int> cellVector,
-                     std::vector<int> cellStartIndex,
-                     std::vector<std::vector<int> > neighborList,
+                     const std::vector<int> &cellVector,
+                     const std::vector<int> &cellStartIndex,
+                     const std::vector<std::vector<int> > &neighborList,
                      XYZArray const &coords,
                      BoxDimensions const &boxAxes,
                      bool electrostatic,
-                     std::vector<double> particleCharge,
-                     std::vector<int> particleKind,
-                     std::vector<int> particleMol,
+                     const std::vector<double> &particleCharge,
+                     const std::vector<int> &particleKind,
+                     const std::vector<int> &particleMol,
                      double &REn,
                      double &LJEn,
                      bool sc_coul,
                      double sc_sigma_6,
                      double sc_alpha,
+                     double qqFact,
                      uint sc_power,
                      uint const box);
 
@@ -69,12 +70,12 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             bool sc_coul,
                             double sc_sigma_6,
                             double sc_alpha,
+                            double qqFact,
                             uint sc_power,
                             double *gpu_rMin,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
                             int *gpu_molIndex,
-                            int *gpu_kindIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
@@ -106,13 +107,13 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
 //ElectroStatic Calculation
 //**************************************************************//
 __device__ double CalcCoulombParticleGPU(double distSq, int index, double qi_qj_fact,
-    double gpu_ewald, double gpu_alpha,
+    int gpu_ewald, double gpu_alpha,
     double gpu_lambdaCoulomb, bool sc_coul,
     double sc_sigma_6, double sc_alpha,
     uint sc_power, double *gpu_sigmaSq);
 __device__ double CalcCoulombParticleGPUNoLambda(double distSq,
     double qi_qj_fact,
-    double gpu_ewald,
+    int gpu_ewald,
     double gpu_alpha);
 __device__ double CalcCoulombShiftGPU(double distSq, int index, double qi_qj_fact,
                                       int gpu_ewald, double gpu_alpha,
@@ -151,8 +152,7 @@ __device__ double CalcCoulombSwitchGPU(double distSq, int index, double qi_qj_fa
                                        double sc_sigma_6, double sc_alpha,
                                        uint sc_power, double *gpu_sigmaSq);
 __device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact,
-    double gpu_alpha, int gpu_ewald,
-    double gpu_rCut);
+    int gpu_ewald, double gpu_alpha, double gpu_rCut);
 
 
 //VDW Calculation

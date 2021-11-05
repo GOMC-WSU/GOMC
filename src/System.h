@@ -22,10 +22,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
 #include "CellList.h"
+#include "ExtendedSystem.h"
 #include "Clock.h"
-#include "CheckpointSetup.h"
 #include "../lib/Lambda.h"
 #include "Random123Wrapper.h"
+#include "Velocity.h"
+
+#include "CheckpointSetup.h"
+
 
 //Initialization variables
 class Setup;
@@ -33,16 +37,20 @@ class StaticVals;
 class MoveBase;
 class Lambda;
 
-
 class System
 {
 public:
-  explicit System(StaticVals& statics, MultiSim const*const& multisim = NULL);
+  explicit System(StaticVals& statics, Setup const& set,
+                  ulong & startStep,
+                  MultiSim const*const& multisim = NULL);
 
-  void Init(Setup const& setupData, ulong & startStep);
+  void Init(Setup & setupData);
+
+  /* To reinit the checkpointed original molecule starts */
+  void InitOver(Setup & set, Molecules & molRef);
 
   //Runs move, picked at random
-  void ChooseAndRunMove(const uint step);
+  void ChooseAndRunMove(const ulong step);
 
   // Recalculate Trajectory
   void RecalculateTrajectory(Setup & set, uint frameNum);
@@ -59,7 +67,11 @@ public:
     return calcEwald;
   }
 
-#ifdef VARIABLE_VOLUME
+  // Return the pointer to specific move
+  MoveBase * GetMoveObject(const uint moveIndex) {
+    return moves[moveIndex];
+  }
+
   BoxDimensions * BoxDim(const bool isOrthogonal)
   {
     boxDimensions = NULL;
@@ -70,9 +82,6 @@ public:
     }
     return boxDimensions;
   }
-#endif
-
-
 
   //NOTE:
   //This must also come first... as subsequent values depend on obj.
@@ -83,9 +92,7 @@ public:
   //Important! These must come first, as other objects may depend
   //on their val for init!
   //Only include these variables if they vary for this ensemble...
-#ifdef VARIABLE_VOLUME
   BoxDimensions *boxDimensions;
-#endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
   MoleculeLookup molLookup;
 #endif
@@ -94,19 +101,6 @@ public:
   BoxDimensions & boxDimRef;
   MoleculeLookup & molLookupRef;
 
-  MoveSettings moveSettings;
-  SystemPotential potential;
-  Coordinates coordinates;
-  XYZArray atomForceRef;
-  XYZArray molForceRef;
-  XYZArray atomForceRecRef;
-  XYZArray molForceRecRef;
-  Lambda lambdaRef;
-  COM com;
-
-  CalculateEnergy calcEnergy;
-  Ewald *calcEwald;
-  CellList cellList;
   PRNG prng;
   Random123Wrapper r123wrapper;
 
@@ -115,12 +109,29 @@ public:
   PRNG * prngParallelTemp;
 #endif
 
+  MoveSettings moveSettings;
+  CellList cellList;
+  SystemPotential potential;
+  Coordinates coordinates;
+  XYZArray atomForceRef;
+  XYZArray molForceRef;
+  XYZArray atomForceRecRef;
+  XYZArray molForceRecRef;
+  Lambda lambdaRef;
+  COM com;
+  ExtendedSystem xsc;
+  Velocity vel;
 
+  CalculateEnergy calcEnergy;
+  Ewald *calcEwald;
+
+  /* For checkpoint restoration */
   CheckpointSetup checkpointSet;
-
+  bool restartFromCheckpoint;
+  ulong & startStepRef, trueStep;
   //Procedure to run once move is picked... can also be called directly for
   //debugging...
-  void RunMove(uint majKind, double draw, const uint step);
+  void RunMove(uint majKind, double draw, const ulong step);
 
   ~System();
 
@@ -132,7 +143,7 @@ private:
   uint SetParams(const uint kind, const double draw);
   uint Transform(const uint kind);
   void CalcEn(const uint kind);
-  void Accept(const uint kind, const uint rejectState, const uint step);
+  void Accept(const uint kind, const uint rejectState, const ulong step);
 
   double moveTime[mv::MOVE_KINDS_TOTAL];
   MoveBase * moves[mv::MOVE_KINDS_TOTAL];

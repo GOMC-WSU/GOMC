@@ -102,11 +102,13 @@ void EnPartCntSample::WriteHeader(void)
 
 void EnPartCntSample::DoOutput(const ulong step)
 {
-  //Don't output until equilibrated.
-  if ((step) < stepsTillEquil) return;
+  //Don't output until equilibrated.  Also don't output if this we continue 
+  // a checkpoint or init directly on an output step.
+  if ((step) < stepsTillEquil || ((restartFromCheckpoint || initStepRead) && step == startStep)) return;
   //Output a sample in the form <N1,... Nk, E_total>
   //Only sample on specified interval.
   if ((step + 1) % stepsPerOut == 0) {
+    GOMC_EVENT_START(1, GomcProfileEvent::HIST_OUTPUT);
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       if (outF[b].is_open()) {
         for (uint n = 0; n < samplesCollectedInFrame; ++n) {
@@ -119,10 +121,12 @@ void EnPartCntSample::DoOutput(const ulong step)
         std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
                   << "(energy and part. num samples file)" << std::endl;
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::HIST_OUTPUT);
   }
   samplesCollectedInFrame = 0;
 }
 
+void EnPartCntSample::DoOutputRestart(const ulong step){}
 
 std::string EnPartCntSample::GetFName(std::string const& sampleName,
                                       std::string const& histNum,

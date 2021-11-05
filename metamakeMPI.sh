@@ -1,8 +1,12 @@
 #!/bin/bash
 # Check if nvcc is available
+use_cuda=0
+use_profiler=0
+
 if command -v nvcc &> /dev/null
 then
         nvcc_version=($(python scripts/get_cuda_version.py))
+	use_cuda=1
         # Check cuda version, if less than 11 then download CUB, otherwise skip
         if [[ "$nvcc_version" < "11" ]]
         then
@@ -58,12 +62,45 @@ then
         fi
 fi
 
+# check to see if we passed the profile flag
+while (( $# > 0 )); do
+	if [[ "$1" != --* ]]; then
+		echo "ERROR: Expected an option beginning with -- but found $1"
+		echo "Available options are: --with-profiling"
+		exit 1
+	fi
+	case "$1" in
+	--with-profiling)
+	shift
+	use_profiler=1
+	;;
+	*)
+		echo "ERROR: unknown option $1"
+		echo "Available options are: --with-profiling"
+		exit 1
+	;;
+    esac
+
+    shift
+done
+
 mkdir -p bin_MPI
 cd bin_MPI
 ICC_PATH="$(which icc)"
 ICPC_PATH="$(which icpc)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
-#cmake .. -DGOMC_MPI=on -DCMAKE_BUILD_TYPE=Debug
-cmake .. -DGOMC_MPI=on #-DCMAKE_BUILD_TYPE=Debug
+
+if (( $use_profiler )); then
+    if (( $use_cuda )); then
+      	echo "Enabling NVTX profiling for CUDA "
+	cmake .. -DGOMC_MPI=on -DGOMC_NVTX_ENABLED=1
+    else
+      	echo "Warning: Cannot enable NVTX profiling without CUDA enabled."
+	cmake .. -DGOMC_MPI=on
+    fi
+else
+	cmake ..
+fi
+
 make -j8 

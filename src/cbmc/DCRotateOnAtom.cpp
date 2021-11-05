@@ -28,7 +28,7 @@ struct FindA1 {
 
 struct FindAngle {
   FindAngle(uint x, uint y) : x(x), y(y) {}
-  uint y, x;
+  uint x, y;
   bool operator()(const mol_setup::Angle& a)
   {
     return (a.a0 == x && a.a2 == y) || (a.a0 == y && a.a2 == x);
@@ -333,7 +333,7 @@ void DCRotateOnAtom::ChooseTorsion(TrialMol& mol, uint molIndex,
 
   XYZ center = mol.AtomPosition(a1);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
-    torsion[tor] = data->prng.rand(M_PI * 2);
+    torsion[tor] = data->prng.rand(2.0 * M_PI);
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
                           cross, tensor);
@@ -359,7 +359,7 @@ void DCRotateOnAtom::ChooseTorsionOld(TrialMol& mol, uint molIndex,
   XYZ center = mol.AtomPosition(a1);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
     //Use actual coordinate fir first torsion trial
-    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
+    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(2.0 * M_PI);
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
                           cross, tensor);
@@ -378,7 +378,6 @@ double DCRotateOnAtom::CalcIntraBonded(TrialMol& mol, uint molIndex)
 
   double bondedEn = 0.0;
   uint box = mol.GetBox();
-  const MoleculeKind& molKind = mol.GetKind();
   XYZ b1, b2, b3;
   const XYZArray &coords = mol.GetCoords();
   for(uint i = 0; i < ang.size(); i++) {
@@ -423,8 +422,7 @@ void DCRotateOnAtom::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box)) {
           nonbonded[t] += data->ff.particles->CalcEn(distSq,
                           kind.AtomKind(partIndex),
                           kind.AtomKind(*partner), 1.0);
@@ -460,8 +458,7 @@ void DCRotateOnAtom::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box)) {
           data->ff.particles->CalcAdd_1_4(nonbonded[t], distSq,
                                           kind.AtomKind(partIndex),
                                           kind.AtomKind(*partner));
@@ -497,8 +494,7 @@ void DCRotateOnAtom::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box)) {
           data->ff.particles->CalcAdd_1_4(nonbonded[t], distSq,
                                           kind.AtomKind(partIndex),
                                           kind.AtomKind(*partner));

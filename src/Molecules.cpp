@@ -18,16 +18,20 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class System;
 
 
-Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
+Molecules::Molecules() : start(NULL), originalStart(NULL), originalKIndex(NULL), kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
-  pairVirCorrections(NULL), printFlag(true) {}
+  pairVirCorrections(NULL), printFlag(true){}
 
 Molecules::~Molecules(void)
 {
   delete[] start;
+  delete[] originalStart;
+  delete[] originalKIndex;
+  delete[] originalKIndex2CurrentKIndex;
   delete[] kIndex;
   delete[] countByKind;
   delete[] chain;
+  delete[] beta;
   delete[] kinds;
   delete[] pairEnCorrections;
   delete[] pairVirCorrections;
@@ -43,22 +47,40 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   kinds = new MoleculeKind[kindsCount];
 
   //Molecule instance arrays/data
-  count = atoms.startIdxRes.size();
+  count = setup.mol.molVars.startIdxMolecules.size();
   if (count == 0) {
-    std::cerr << "Error: No Molecule was found in the PDB file(s)!" << std::endl;
+    std::cerr << "Error: No Molecule was found in the PSF file(s)!" << std::endl;
     exit(EXIT_FAILURE);
   }
-
+  //chain = new char [atoms.x.size()];
   start = new uint [count + 1];
-  start = vect::TransferInto<uint>(start, atoms.startIdxRes);
-  start[count] = atoms.x.size();
-  kIndex = vect::transfer<uint>(atoms.resKinds);
+  originalStart = new uint [count + 1];
+  /* If new run, originalStart & originalKIndex and start & kIndex are identical */
+  if(!setup.config.in.restart.restartFromCheckpoint){
+    originalStart = vect::TransferInto<uint>(originalStart, setup.mol.molVars.startIdxMolecules);
+    originalStart[count] = atoms.x.size();
+    originalKIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
+    /* since this is a new run, the original kind indices are the current kind indices */
+    std::vector<uint32_t> kindsIndicesVec(kindsCount);
+    std::iota(kindsIndicesVec.begin(), kindsIndicesVec.end(), 0); // kindsIndicesVec will become: [0..kindsCount-1]
+    originalKIndex2CurrentKIndex = vect::transfer<uint32_t>(kindsIndicesVec);
+  } else {
+    originalKIndex = new uint [count];
+    originalKIndex2CurrentKIndex = new uint [kindsCount];
+  }
+  start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
+  kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
   chain = vect::transfer<char>(atoms.chainLetter);
+  beta =  vect::transfer<double>(atoms.beta);
+
+  start[count] = atoms.x.size();
+  kIndexCount = setup.mol.molVars.moleculeKinds.size();
+
   for (uint mk = 0 ; mk < kindsCount; mk++) {
     countByKind[mk] =
-      std::count(atoms.resNames.begin(), atoms.resNames.end(),
-                 atoms.resKindNames[mk]);
-    kinds[mk].Init(atoms.resKindNames[mk], setup, forcefield, sys);
+      std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
+                 setup.mol.molVars.moleculeKindNames[mk]);
+    kinds[mk].Init(mk, setup.mol.molVars.moleculeKindNames[mk], setup, forcefield, sys);
   }
 
 #if ENSEMBLE == GCMC
@@ -86,13 +108,12 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   if(printFlag) {
     //calculating netcharge of all molecule kind
     double netCharge = 0.0;
-    bool hasCharge;
     for (uint mk = 0 ; mk < kindsCount; mk++) {
       netCharge += (countByKind[mk] * kinds[mk].GetMoleculeCharge());
       if(kinds[mk].MoleculeHasCharge()) {
         if(!forcefield.ewald && !forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-                    << " but Ewald Summaion method is disabled!\n\n";
+                    << " but Ewald Summation method is disabled!\n\n";
         } else if(!forcefield.electrostatic && forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
                     << " but Electrostatic energy calculation is disabled!\n\n";
@@ -127,7 +148,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   PrintLJInfo(totAtomKind, atomNames, forcefield);
   printFlag = false;
 
-  //Pair Correction matrixes
+  //Pair Correction matrices
   pairEnCorrections = new double[kindsCount * kindsCount];
   pairVirCorrections = new double[kindsCount * kindsCount];
   for(uint i = 0; i < kindsCount; ++i) {
@@ -231,3 +252,4 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
     std::cout << std::endl;
   }
 }
+

@@ -25,13 +25,15 @@ class MultiParticle : public MoveBase
 {
 public:
   MultiParticle(System &sys, StaticVals const& statV);
+  ~MultiParticle() {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   virtual void CalcEn();
   virtual uint Transform();
-  virtual void Accept(const uint rejectState, const uint step);
+  virtual void Accept(const uint rejectState, const ulong step);
   virtual void PrintAcceptKind();
-  void PrepCFCMC(const uint box);
 
 private:
   uint bPick;
@@ -47,6 +49,7 @@ private:
   Coordinates newMolsPos;
   COM newCOMs;
   int moveType;
+  bool allTranslate;
   std::vector<uint> moleculeIndex;
   const MoleculeLookup& molLookup;
 #ifdef GOMC_CUDA
@@ -73,8 +76,8 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
   molLookup(sys.molLookup), r123wrapper(sys.r123wrapper), mols(statV.mol)
 {
-  molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
+  molTorqueNew.Init(sys.com.Count());
   atomForceRecNew.Init(sys.coordinates.Count());
   molForceRecNew.Init(sys.com.Count());
 
@@ -89,6 +92,16 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   for(uint b = 0; b < BOX_TOTAL; b++) {
     initMol[b] = false;
   }
+
+  // Check to see if we have only monoatomic molecules or not
+  allTranslate = false;
+  uint numAtomsPerKind = 0;
+  for (uint k = 0; k < molLookup.GetNumKind(); ++k) {
+    numAtomsPerKind += molRef.NumAtoms(k);
+  }
+  // If we have only one atom in each kind, it means all molecules
+  // in the system are monoatomic
+  allTranslate = (numAtomsPerKind == molLookup.GetNumKind());
 
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
@@ -148,6 +161,7 @@ inline void MultiParticle::SetMolInBox(uint box)
 
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MULTIPARTICLE);
   uint state = mv::fail_state::NO_FAIL;
 #if ENSEMBLE == GCMC
   bPick = mv::BOX0;
@@ -155,88 +169,121 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
 
-  moveType = prng.randIntExc(mp::MPTOTALTYPES);
+  // In each step, we perform either:
+  // 1- All displacement move.
+  // 2- All rotation move.
+  if(allTranslate) {
+    moveType = mp::MPDISPLACE;
+  } else {
+    moveType = prng.randIntExc(mp::MPTOTALTYPES);
+  }
+
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: Multi particle move can't move any molecules, Skipping...\n";
+    std::cout << "Warning: MultiParticle move can't move any molecules, Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
   }
-  uint length = molRef.GetKind(moleculeIndex[0]).NumAtoms();
-  if(length == 1) {
-    moveType = mp::MPDISPLACE;
-  }
 
-  if(moveSetRef.GetSingleMoveAccepted()) {
-    //Calculate force for long range electrostatic using old position
-    calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
-                                  bPick);
-    //calculate short range energy and force for old positions
+  //We don't use forces for non-MP moves, so we need to calculate them for the
+  //current system if any other moves, besides other MP moves, have been accepted.
+  //Or, if this is the first MP move, which is handled with the same flag.
+  if(moveSetRef.GetSingleMoveAccepted(bPick)) {
+    GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
+    //Copy ref reciprocal terms to new for calculation with old positions
+    calcEwald->CopyRecip(bPick);
+
+    //Calculate long range electrostatic force for old positions
+    calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef, bPick);
+
+    //Calculate short range energy and force for old positions
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
+
     if(moveType == mp::MPROTATE) {
       //Calculate Torque for old positions
       calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
-                                atomForceRef, atomForceRecRef, molTorqueRef,
-                                bPick);
+                                atomForceRef, atomForceRecRef, molTorqueRef, bPick);
     }
+
+    sysPotRef.Total();
+    GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE);
   return state;
 }
 
-inline void MultiParticle::PrepCFCMC(const uint box)
+// To relax the system in NE_MTMC move
+inline uint MultiParticle::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MULTIPARTICLE);
+  uint state = mv::fail_state::NO_FAIL;
   bPick = box;
-  moveType = prng.randIntExc(mp::MPTOTALTYPES);
-  SetMolInBox(bPick);
-  uint length = molRef.GetKind(moleculeIndex[0]).NumAtoms();
-  if(length == 1) {
+  // In each step, we perform either:
+  // 1- All displacement move.
+  // 2- All rotation move.
+  if(allTranslate) {
     moveType = mp::MPDISPLACE;
+  } else {
+    moveType = prng.randIntExc(mp::MPTOTALTYPES);
   }
 
-  if(moveSetRef.GetSingleMoveAccepted()) {
-    //Calculate force for long range electrostatic using old position
-    calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
-                                  bPick);
+  SetMolInBox(bPick);
+  if (moleculeIndex.size() == 0) {
+    std::cout << "Warning: MultiParticle move can't move any molecules, Skipping...\n";
+    state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    return state;
+  }
+  
+  //We don't use forces for non-MP moves, so we need to calculate them for the
+  //current system if any other moves, besides other MP moves, have been accepted.
+  //Or, if this is the first MP move, which is handled with the same flag.
+  if(moveSetRef.GetSingleMoveAccepted(bPick)) {
+    //Copy ref reciprocal terms to new for calculation with old positions
+    calcEwald->CopyRecip(bPick);
 
-    //calculate short range energy and force for old positions
+    //Calculate long range electrostatic force for old positions
+    calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef, bPick);
+
+    //Calculate short range energy and force for old positions
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
 
     if(moveType == mp::MPROTATE) {
       //Calculate Torque for old positions
       calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
-                                atomForceRef, atomForceRecRef, molTorqueRef,
-                                bPick);
+                                atomForceRef, atomForceRecRef, molTorqueRef, bPick);
     }
+
+    sysPotRef.Total();
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE);
+  return state;
 }
 
 inline uint MultiParticle::Transform()
 {
-  // Based on the reference force decided whether to displace or rotate each
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_MULTIPARTICLE);
+  // Based on the reference force decide whether to displace or rotate each
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
 #ifdef GOMC_CUDA
-  // calculate which particles are inside moleculeIndex
-  std::vector<int> isMoleculeInvolved(newMolsPos.Count(), 0);
-  for(int particleID = 0; particleID < isMoleculeInvolved.size(); particleID++) {
-    int midx = particleMol[particleID];
-    std::vector<uint>::iterator it;
-    it = find(moleculeIndex.begin(), moleculeIndex.end(), midx);
-    if(it != moleculeIndex.end()) {
-      isMoleculeInvolved[particleID] = 1;
-    }
+  // One CoM per molecule, so use this to set the vector size.
+  std::vector<int8_t> isMoleculeInvolved(newCOMs.Count(), 0);
+  // find the IDs of molecules in moleculeIndex
+  for(int m = 0; m < (int) moleculeIndex.size(); m++) {
+    int mol = moleculeIndex[m];
+    isMoleculeInvolved[mol] = 1;
   }
 
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
-    CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, r_max,
+    CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, r_max,
                            molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
                            r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                            particleMol, atomForceRecNew.Count(),
@@ -245,7 +292,7 @@ inline uint MultiParticle::Transform()
                            newMolsPos, newCOMs, lambda * BETA, r_k);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
-    CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, t_max,
+    CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, t_max,
                               molForceRef.x, molForceRef.y, molForceRef.z,
                               r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                               particleMol, atomForceRecNew.Count(),
@@ -260,39 +307,42 @@ inline uint MultiParticle::Transform()
 #ifdef _OPENMP
     #pragma omp parallel for default(none)
 #endif
-    for(int m = 0; m < moleculeIndex.size(); m++) {
+    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
       RotateForceBiased(moleculeIndex[m]);
     }
   } else {
 #ifdef _OPENMP
     #pragma omp parallel for default(none)
 #endif
-    for(int m = 0; m < moleculeIndex.size(); m++) {
+    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
 #endif
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MULTIPARTICLE);
   return state;
 }
 
 inline void MultiParticle::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function
   cellList.GridAll(boxDimRef, newMolsPos, molLookup);
 
   //back up cached Fourier term
   calcEwald->backupMolCache();
-  //setup reciprocate vectors for new positions
-  calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
+
+  //setup reciprocal vectors for new positions
+  calcEwald->BoxReciprocalSums(bPick, newMolsPos);
 
   sysPotNew = sysPotRef;
   //calculate short range energy and force
   sysPotNew = calcEnRef.BoxForce(sysPotNew, newMolsPos, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
-  //calculate long range of new electrostatic energy
-  sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
-  //Calculate long range of new electrostatic force
+  //calculate long range electrostatic energy for new positions
+  sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick, false);
+  //Calculate long range electrostatic force for new positions
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
                                 bPick);
 
@@ -301,7 +351,7 @@ inline void MultiParticle::CalcEn()
     calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
                               atomForceRecNew, molTorqueNew, bPick);
   }
-  sysPotNew.Total();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
 }
 
 inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old,
@@ -339,7 +389,7 @@ inline double MultiParticle::GetCoeff()
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
 #endif
-  for(int m = 0; m < moleculeIndex.size(); m++) {
+  for(int m = 0; m < (int) moleculeIndex.size(); m++) {
     uint molNumber = moleculeIndex[m];
     if(moveType == mp::MPROTATE) {
       // rotate: lbt_old, lbt_new are lambda * BETA * torque
@@ -367,16 +417,22 @@ inline double MultiParticle::GetCoeff()
   return w_ratio;
 }
 
-inline void MultiParticle::Accept(const uint rejectState, const uint step)
+inline void MultiParticle::Accept(const uint rejectState, const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_MULTIPARTICLE);
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   double MPCoeff = GetCoeff();
-  double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+  double delta_energy = sysPotNew.boxEnergy[bPick].real - sysPotRef.boxEnergy[bPick].real;
+  delta_energy += sysPotNew.boxEnergy[bPick].inter - sysPotRef.boxEnergy[bPick].inter;
+  delta_energy += sysPotNew.boxEnergy[bPick].recip - sysPotRef.boxEnergy[bPick].recip;
+  double uBoltz = exp(-BETA * delta_energy);
+
   double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
+    sysPotNew.Total();
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);
     swap(comCurrRef, newCOMs);
@@ -384,56 +440,60 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     swap(atomForceRef, atomForceNew);
     swap(molForceRecRef, molForceRecNew);
     swap(atomForceRecRef, atomForceRecNew);
-    swap(molTorqueRef, molTorqueNew);
-    //update reciprocate value
+    // molTorqueRef is computed only for rotate move
+    if (moveType == mp::MPROTATE)
+      swap(molTorqueRef, molTorqueNew);
+    // Update reciprocal value
     calcEwald->UpdateRecip(bPick);
+    // Update the velocity in box
+    velocity.UpdateBoxVelocity(bPick);
   } else {
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
     calcEwald->exgMolCache();
   }
 
   moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, moveType);
-  moveSetRef.AdjustMultiParticle(bPick, moveType);
-
-  moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
+  moveSetRef.Update(mv::MULTIPARTICLE, result, bPick);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_MULTIPARTICLE);
 }
 
 inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, uint molIndex)
 {
   XYZ lbmax = lb * max;
-  XYZ num;
+  XYZ num, randnums;
+  randnums = r123wrapper.GetRandomCoords(molIndex);
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex * 3 + 0) * sinh(lbmax.x)) / lb.x;
+    num.x = log(exp(-1.0 * lbmax.x) + 2 * randnums.x * sinh(lbmax.x)) / lb.x;
   } else {
-    double rr = r123wrapper(molIndex * 3 + 0) * 2.0 - 1.0;
+    double rr = randnums.x * 2.0 - 1.0;
     num.x = max * rr;
   }
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex * 3 + 1) * sinh(lbmax.y)) / lb.y;
+    num.y = log(exp(-1.0 * lbmax.y) + 2 * randnums.y * sinh(lbmax.y)) / lb.y;
   } else {
-    double rr = r123wrapper(molIndex * 3 + 1) * 2.0 - 1.0;
+    double rr = randnums.y * 2.0 - 1.0;
     num.y = max * rr;
   }
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex * 3 + 2) * sinh(lbmax.z)) / lb.z;
+    num.z = log(exp(-1.0 * lbmax.z) + 2 * randnums.z * sinh(lbmax.z)) / lb.z;
   } else {
-    double rr = r123wrapper(molIndex * 3 + 2) * 2.0 - 1.0;
+    double rr = randnums.z * 2.0 - 1.0;
     num.z = max * rr;
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
+    std::cout << "Trial Displacement exceeds half of the box length in MultiParticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   } else if (!std::isfinite(num.Length())) {
-    std::cout << "Trial Displacement is not a finite number in Multiparticle move.\n";
+    std::cout << "Trial Displacement is not a finite number in MultiParticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   }
 
-  // We can possible bound them
+  // We can possibly bound them
   return num;
 }
 
@@ -473,12 +533,12 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   XYZ center = newCOMs.Get(molIndex);
   uint start, stop, len;
   molRef.GetRange(start, stop, len, molIndex);
-
+  
   // Copy the range into temporary array
   XYZArray temp(len);
   newMolsPos.CopyRange(temp, start, 0, len);
   boxDimRef.UnwrapPBC(temp, bPick, center);
-
+  
   // Do Rotation
   for(uint p = 0; p < len; p++) {
     temp.Add(p, -center);
@@ -494,6 +554,13 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
 inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
+  if(shift > boxDimRef.GetHalfAxis(bPick)) {
+    std::cout << "Error: Trial Displacement exceeds half of the box length in Multiparticle\n" 
+              << "       move!\n";
+    std::cout << "       Trial transformation vector: " << shift << std::endl;
+    std::cout << "       Box Dimension: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   XYZ newcom = newCOMs.Get(molIndex);
   uint stop, start, len;

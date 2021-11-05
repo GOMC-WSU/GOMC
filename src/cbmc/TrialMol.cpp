@@ -26,25 +26,29 @@ namespace cbmc
 TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
                    uint box)
   : kind(&k), axes(&ax), box(box), tCoords(k.NumAtoms()), cavMatrix(3),
-    totalWeight(1.0), bCoords(k.NumAtoms()), bonds(k.bondList)
+    bCoords(k.NumAtoms()), totalWeight(1.0), bonds(k.bondList)
 {
-  atomBuilt = new bool[k.NumAtoms()];
-  std::fill_n(atomBuilt, k.NumAtoms(), false);
+  cavMatrix.Set(0, 1.0, 0.0, 0.0);
+  cavMatrix.Set(1, 0.0, 1.0, 0.0);
+  cavMatrix.Set(2, 0.0, 0.0, 1.0);
   growthToWorld.LoadIdentity();
+  backbone[0] = backbone[1] = 0;
+  growingAtomIndex = 0;
   comInCav = false;
   comFix = false;
   rotateBB = false;
   overlap = false;
-  cavMatrix.Set(0, 1.0, 0.0, 0.0);
-  cavMatrix.Set(1, 0.0, 1.0, 0.0);
-  cavMatrix.Set(2, 0.0, 0.0, 1.0);
+  atomBuilt = new bool[k.NumAtoms()];
+  std::fill_n(atomBuilt, k.NumAtoms(), false);
 }
 
 TrialMol::TrialMol()
-  : kind(NULL), axes(NULL), box(0), tCoords(0), atomBuilt(NULL),
+  : kind(NULL), axes(NULL), box(0), tCoords(0), cavMatrix(3), bCoords(0),
     comInCav(false), comFix(false), rotateBB(false), overlap(false),
-    cavMatrix(3), bCoords(0), bonds()
+    atomBuilt(NULL), bonds()
 {
+  backbone[0] = backbone[1] = 0;
+  growingAtomIndex = 0;
   cavMatrix.Set(0, 1.0, 0.0, 0.0);
   cavMatrix.Set(1, 0.0, 1.0, 0.0);
   cavMatrix.Set(2, 0.0, 0.0, 1.0);
@@ -52,13 +56,15 @@ TrialMol::TrialMol()
 
 TrialMol::TrialMol(const TrialMol& other) :
   kind(other.kind), axes(other.axes), box(other.box),
-  tCoords(other.tCoords), cavMatrix(other.cavMatrix), en(other.en),
-  bCoords(other.bCoords), totalWeight(other.totalWeight),
+  tCoords(other.tCoords), cavMatrix(other.cavMatrix),
+  bCoords(other.bCoords), en(other.en), totalWeight(other.totalWeight),
   basisPoint(other.basisPoint), bonds(other.bonds)
 {
   atomBuilt = new bool[kind->NumAtoms()];
   std::copy(other.atomBuilt, other.atomBuilt + kind->NumAtoms(), atomBuilt);
   bonds.Unset();
+  backbone[0] = backbone[1] = 0;
+  growingAtomIndex = 0;
   comInCav = false;
   comFix = false;
   rotateBB = false;
@@ -318,7 +324,7 @@ void TrialMol::SetSeed(const bool inCav, const bool fixCOM, const bool rotBB)
   rotateBB = rotBB;
 }
 
-void TrialMol::SetBackBone(const uint bb[2])
+void TrialMol::SetBackBone(const int bb[2])
 {
   backbone[0] = bb[0];
   backbone[1] = bb[1];

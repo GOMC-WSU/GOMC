@@ -29,6 +29,9 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
+  restartFromXSC = r.restartFromXSCFile;
+  restartFromBinary = r.restartFromBinaryCoorFile;
+
   for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)
       reached[b] = false;
@@ -50,6 +53,7 @@ void Remarks::Read(FixedWidthReader & pdb)
     .Get(vol[currBox], vol::POS);
 
     CheckGOMC(varName);
+    
   }
   if(recalcTrajectory) {
     std::string varName;
@@ -85,7 +89,7 @@ void Cryst1::Read(FixedWidthReader & pdb)
 {
   XYZ temp;
   using namespace pdb_entry::cryst1::field;
-  hasVolume = true;
+  hasVolume[currBox] = true;
   pdb.Get(temp.x, x::POS)
   .Get(temp.y, y::POS)
   .Get(temp.z, z::POS)
@@ -101,43 +105,24 @@ void Atoms::SetRestart(config_setup::RestartSettings const& r )
   recalcTrajectory = r.recalcTrajectory;
 }
 
-void Atoms::Assign(std::string const& atomName,
-                   std::string const& resName,
-                   const uint resNum,
+void Atoms::Assign(std::string const& resName,
                    const char l_chain, const double l_x,
                    const double l_y, const double l_z,
-                   const double l_occ,
                    const double l_beta)
 {
   //box.push_back((bool)(restart?(uint)(l_occ):currBox));
   beta.push_back(l_beta);
   box.push_back(currBox);
-  atomAliases.push_back(atomName);
-  resNamesFull.push_back(resName);
-  if (resNum != currRes || resName != currResname || firstResInFile) {
-    molBeta.push_back(l_beta);
-    startIdxRes.push_back(count);
-    currRes = resNum;
-    currResname = resName;
-    resNames.push_back(resName);
-    chainLetter.push_back(l_chain);
-    //Check if this kind of residue has been found
-    uint kIndex = std::find(resKindNames.begin(), resKindNames.end(),
-                            resName) - resKindNames.begin();
-    // if not push it to resKindNames -> new molecule found
-    if(kIndex == resKindNames.size()) {
-      resKindNames.push_back(resName);
-    }
-    // pushes the index of the residue to the resKinds
-    resKinds.push_back(kIndex);
-  }
+  ++numAtomsInBox[currBox];
+  resNames.push_back(resName);
+  chainLetter.push_back(l_chain);
+
   // push the coordinates of atoms to x, y, and z
   x.push_back(l_x);
   y.push_back(l_y);
   z.push_back(l_z);
 
   count++;
-  firstResInFile = false;
 }
 
 void Atoms::Read(FixedWidthReader & file)
@@ -157,8 +142,7 @@ void Atoms::Read(FixedWidthReader & file)
   if(recalcTrajectory && (uint)l_occ != currBox) {
     return;
   }
-  Assign(atomName, resName, resNum, l_chain, l_x, l_y, l_z,
-         l_occ, l_beta);
+  Assign(resName, l_chain, l_x, l_y, l_z, l_beta);
 }
 
 void Atoms::Clear()
@@ -169,13 +153,7 @@ void Atoms::Clear()
   z.clear();
   beta.clear();
   box.clear();
-  atomAliases.clear();
-  resNamesFull.clear();
   resNames.clear();
-  resKindNames.clear();
-  startIdxRes.clear();
-  resKinds.clear();
-  molBeta.clear();
   count = 0;
 }
 

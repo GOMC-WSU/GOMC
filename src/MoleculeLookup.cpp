@@ -12,36 +12,76 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <utility>
 #include <iostream>
+#ifdef GOMC_CUDA
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include "CUDAMemoryManager.cuh"
+#include "VariablesCUDA.cuh"
+#endif
 
 void MoleculeLookup::Init(const Molecules& mols,
-                          const pdb_setup::Atoms& atomData)
+                          const pdb_setup::Atoms& atomData,
+                          Forcefield &ff,
+                          bool restartFromCheckpoint)
 {
+  this->restartFromCheckpoint = restartFromCheckpoint;
+
   numKinds = mols.GetKindsCount();
+
   molLookup = new uint[mols.count];
   molLookupCount = mols.count;
+  // beta has same size as total number of atoms
+  molIndex = new int[atomData.beta.size()];
+  atomIndex = new int[atomData.beta.size()];
+  molKind = new int[atomData.beta.size()];
+  atomKind = new int[atomData.beta.size()];
+  atomCharge = new double[atomData.beta.size()];
 
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
+  boxAndKindSwappableCounts = new uint[numKinds * BOX_TOTAL];
+
   boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
 
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;
   indexVector.resize(BOX_TOTAL);
-  fixedAtom.resize(mols.count);
+  fixedMolecule.resize(mols.count);
+
+  for (int i = 0; i < (int) numKinds * BOX_TOTAL; i++){
+    boxAndKindSwappableCounts[i] = 0;
+  }
 
 
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     indexVector[b].resize(numKinds);
   }
 
+  int counter = 0;
   for(uint m = 0; m < mols.count; ++m) {
-    uint box = atomData.box[atomData.startIdxRes[m]];
+    uint box = atomData.box[mols.start[m]];
     uint kind = mols.kIndex[m];
     indexVector[box][kind].push_back(m);
-    fixedAtom[m] = atomData.molBeta[m];
+    const MoleculeKind& mk = mols.GetKind(m);
+    for(uint a = 0; a < mk.NumAtoms(); ++a) {
+      molIndex[counter] = int(m);
+      atomIndex[counter] = int(a);
+      molKind[counter] = int(kind);
+      atomKind[counter] = int(mk.AtomKind(a));
+      atomCharge[counter] = mk.AtomCharge(a);
+      ++counter;
+    }
+
+
+
+    /* We don't currently support hybrid molecules - part fixed part flexible
+      so we get a consensus based on the precendent of betas defined in this method */
+    uint pStart = 0, pEnd = 0;
+    mols.GetRangeStartStop(pStart, pEnd, m);
+    fixedMolecule[m] = GetConsensusMolBeta(pStart, pEnd, atomData.beta, m, box, mols.kinds[mols.kIndex[m]].name);
 
     //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
-    if(fixedAtom[m] == 0) {
+    if(fixedMolecule[m] == 0) {
       if(std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
           canSwapKind.end())
         canSwapKind.push_back(kind);
@@ -50,7 +90,9 @@ void MoleculeLookup::Init(const Molecules& mols,
           canMoveKind.end())
         canMoveKind.push_back(kind);
 
-    } else if(fixedAtom[m] == 2) {
+      boxAndKindSwappableCounts[box * numKinds + kind]++;
+
+    } else if(fixedMolecule[m] == 2) {
       if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
           canMoveKind.end())
         canMoveKind.push_back(kind);
@@ -67,7 +109,31 @@ void MoleculeLookup::Init(const Molecules& mols,
                            indexVector[b][k].end(), progress);
     }
   }
+
   boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
+
+  /* originalMoleculeIndices have 2 sources
+    if a new run, they are depedent on the originalMolInds set below
+    if a checkpointed run, they are the originalInds permuted through mol transfers */
+  if (!restartFromCheckpoint){
+    originalMoleculeIndices = new uint32_t[mols.count];
+    permutedMoleculeIndices = new uint32_t[mols.count];
+    for (uint molI = 0; molI < molLookupCount; ++molI){
+      originalMoleculeIndices[molI] = molI;
+      permutedMoleculeIndices[molI] = molI;
+    }
+  }
+
+// allocate and set gpu variables
+#ifdef GOMC_CUDA
+  VariablesCUDA *cudaVars = ff.particles->getCUDAVars();
+  int numMol = mols.count + 1;
+  // allocate memory to store molecule start atom index
+  CUMALLOC((void**) &cudaVars->gpu_startAtomIdx, numMol * sizeof(int));
+  // copy start atom index
+  cudaMemcpy(cudaVars->gpu_startAtomIdx, mols.start, numMol * sizeof(int), cudaMemcpyHostToDevice);
+#endif
+
 }
 
 uint MoleculeLookup::NumInBox(const uint box) const
@@ -129,28 +195,74 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
   uint oldIndex = index;
   uint newIndex;
   uint section = currentBox * numKinds + kind;
+
+  boxAndKindSwappableCounts[section]--;
+  boxAndKindSwappableCounts[intoBox * numKinds + kind]++;
+
   if(currentBox >= intoBox) {
     while (section != intoBox * numKinds + kind) {
       newIndex = boxAndKindStart[section]++;
-      uint temp = molLookup[oldIndex];
-      molLookup[oldIndex] = molLookup[newIndex];
-      molLookup[newIndex] = temp;
-      oldIndex = newIndex;
+      std::swap(molLookup[oldIndex], molLookup[newIndex]);
+      std::swap(oldIndex, newIndex);
+      if (!restartFromCheckpoint)
+      std::swap(permutedMoleculeIndices[oldIndex], permutedMoleculeIndices[newIndex]);
       --section;
     }
   } else {
     while (section != intoBox * numKinds + kind) {
       newIndex = --boxAndKindStart[++section];
-      uint temp = molLookup[oldIndex];
-      molLookup[oldIndex] = molLookup[newIndex];
-      molLookup[newIndex] = temp;
-      oldIndex = newIndex;
+      std::swap(molLookup[oldIndex], molLookup[newIndex]);
+      std::swap(oldIndex, newIndex);
+      if (!restartFromCheckpoint)
+      std::swap(permutedMoleculeIndices[oldIndex], permutedMoleculeIndices[newIndex]);
     }
   }
 }
 
 #endif /*ifdef VARIABLE_PARTICLE_NUMBER*/
 
+uint MoleculeLookup::GetConsensusMolBeta( const uint pStart,
+                                          const uint pEnd,
+                                          const std::vector<double> & betas,
+                                          const uint m,
+                                          const uint box,
+                                          const std::string & name){
+  double firstBeta = 0.0;
+  double consensusBeta = 0.0;
+  for (uint p = pStart; p < pEnd; ++p) {
+    if (p == pStart){
+      firstBeta = betas[p];
+      consensusBeta = firstBeta;
+    } 
+    if (firstBeta != betas[p]){
+      std::cout << 
+      "\nWarning: Conflict between the beta values of atoms in the same molecule" <<
+      "\nName : " << name << 
+      "\nMol Index : " << m <<
+      "\nConflicting Indices" <<
+      "\nStarting Index : " << pStart << 
+      "\nConflicting Index : " << p  << std::endl;
+      /* A beta == 1 functions like multiplying any number  by 0,
+        even if there is only 1 atom with beta == 1, 
+        the entire molecule will be fixed */
+      if (firstBeta == 1.0 || betas[p] == 1.0){
+        std::cout << "Beta == 1.0 takes precedent, so " << 
+        "\nName : " << name << 
+        "\nMol Index : " << m <<
+        "\nis fixed in place."  << std::endl;
+        consensusBeta = 1.0;
+        break;
+      } else {
+        std::cout << "Beta == 2.0 takes precedent, so " << 
+        "\nName: " << name << 
+        "\nMol Index: " << m <<
+        "\nis fixed in box " << box << std::endl;
+        consensusBeta = 2.0;
+      }
+    }
+  }
+  return (uint)consensusBeta;
+}
 
 MoleculeLookup::box_iterator MoleculeLookup::box_iterator::operator++(int)
 {

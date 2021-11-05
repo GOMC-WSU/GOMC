@@ -72,10 +72,10 @@ public:
     gpu_mForcex = NULL;
     gpu_mForcey = NULL;
     gpu_mForcez = NULL;
+    gpu_startAtomIdx = NULL;
 
     // setting lambda values to null
     gpu_molIndex = NULL;
-    gpu_kindIndex = NULL;
     gpu_lambdaVDW = NULL;
     gpu_lambdaCoulomb = NULL;
     gpu_isFraction = NULL;
@@ -86,6 +86,7 @@ public:
   int *gpu_VDW_Kind;
   int *gpu_isMartini;
   int *gpu_count;
+  int *gpu_startAtomIdx; //start atom index of the molecule
   double *gpu_rCut;
   double *gpu_rCutCoulomb;
   double *gpu_rCutLow;
@@ -120,7 +121,7 @@ public:
   double *gpu_t_k_x, *gpu_t_k_y, *gpu_t_k_z;
 
   // lambda structure
-  int *gpu_molIndex, *gpu_kindIndex;
+  int *gpu_molIndex;
   double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
   bool *gpu_isFraction;
 

@@ -22,11 +22,11 @@ class MoleculeLookup;
 class OutputVars
 {
 public:
-  OutputVars(System & sys, StaticVals const& statV);
+  OutputVars(System & sys, StaticVals const& statV, const std::vector<std::string> & molKindNames);
 
   ~OutputVars(void);
 
-  void Init(pdb_setup::Atoms const& atoms);
+  void Init();
   void InitRef(System & sys, StaticVals const& statV);
 
   void CalcAndConvert(ulong step);
@@ -39,8 +39,8 @@ public:
 //private:
   //Intermediate vars.
   uint * numByBox, * numByKindBox;
-  double * molFractionByKindBox, * densityByKindBox,
-         pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL];
+  double *molFractionByKindBox, *densityByKindBox,
+      pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL], compressability[BOXES_WITH_U_NB], enthalpy[BOXES_WITH_U_NB];
   double pressureTens[BOXES_WITH_U_NB][3][3];
   double surfaceTens[BOXES_WITH_U_NB];
   ulong pCalcFreq;
@@ -61,14 +61,19 @@ public:
   CalculateEnergy& calc;
 
   //Local copy of res names.
-  std::vector<std::string> resKindNames;
+  std::vector<std::string> molKindNames;
   double const* movePercRef;
   MoveSettings * moveSetRef;
 
 #if ENSEMBLE == GCMC
   double * chemPot;
 #elif ENSEMBLE == GEMC
+  //Which box is the liquid in gibbs ensemble
+  uint liqBox, vapBox;
   double heatOfVap;
+  double heatOfVap_energy_term_box[BOX_TOTAL];
+  double heatOfVap_density_term_box[BOX_TOTAL];
+
 #endif
 };
 

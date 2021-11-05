@@ -17,14 +17,15 @@ class IntraSwap : public MoveBase
 {
 public:
 
-  IntraSwap(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) {}
+  IntraSwap(System &sys, StaticVals const& statV) : MoveBase(sys, statV),
+    molLookRef(sys.molLookupRef), ffRef(statV.forcefield) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
   virtual void PrintAcceptKind();
 private:
   uint GetBoxAndMol(const double subDraw, const double movPerc);
@@ -33,7 +34,7 @@ private:
   uint pStart, pLen;
   uint molIndex, kindIndex;
 
-  double W_tc, W_recip;
+  double W_recip;
   double correct_old, correct_new;
   cbmc::TrialMol oldMol, newMol;
   Intermolecular tcLose, tcGain, recipDiff;
@@ -78,36 +79,54 @@ inline uint IntraSwap::GetBoxAndMol(const double subDraw, const double movPerc)
 
 inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_SWAP);
   overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
-    W_tc = 1.0;
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_SWAP);
   return state;
 }
 
+inline uint IntraSwap::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_SWAP);
+  overlap = false;
+  destBox = sourceBox = box;
+  molIndex = midx;
+  kindIndex = kidx;
+  pStart = pLen = 0;
+  molRef.GetRangeStartLength(pStart, pLen, molIndex);
+  newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+  oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
+  oldMol.SetCoords(coordCurrRef, pStart);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_SWAP);
+  return mv::fail_state::NO_FAIL;
+}
 
 inline uint IntraSwap::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_INTRA_SWAP);
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_INTRA_SWAP);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void IntraSwap::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_SWAP);
   // since number of molecules would not change in the box,
   //there is no change in Tc
-  W_tc = 1.0;
   W_recip = 1.0;
   correct_old = 0.0;
   correct_new = 0.0;
 
-  if (newMol.GetWeight() != 0.0 && !overlap) {
+  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol, molIndex);
     correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
@@ -116,21 +135,23 @@ inline void IntraSwap::CalcEn()
     W_recip = exp(-1.0 * ffRef.beta * (recipDiff.energy + correct_new -
                                        correct_old));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_INTRA_SWAP);
 }
 
 
-inline void IntraSwap::Accept(const uint rejectState, const uint step)
+inline void IntraSwap::Accept(const uint rejectState, const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_INTRA_SWAP);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
     double molTransCoeff = 1.0;
     double Wo = oldMol.GetWeight();
     double Wn = newMol.GetWeight();
-    double Wrat = Wn / Wo * W_tc * W_recip;
+    double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;
@@ -163,20 +184,23 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
 
       //Retotal
       sysPotRef.Total();
+      // Update the velocity
+      velocity.UpdateMolVelocity(molIndex, sourceBox);
     } else {
       cellList.AddMol(molIndex, sourceBox, coordCurrRef);
 
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
       //molRef will not be changed. Also since no memcpy, doing restore
       //results in memory overwrite
-      if (newMol.GetWeight() != 0.0 && !overlap) {
+      if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
         calcEwald->RestoreMol(molIndex);
       }
     }
   } else //else we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::INTRA_SWAP, result, step, sourceBox, kindIndex);
+  moveSetRef.Update(mv::INTRA_SWAP, result, sourceBox, kindIndex);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_INTRA_SWAP);
 }
 
 #endif

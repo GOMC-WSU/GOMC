@@ -5,7 +5,7 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include "DCHedronCycle.h"
 #include "TrialMol.h"
 #include "DCData.h"
@@ -31,15 +31,15 @@ struct FindA1 {
 
 struct FindAngle {
   FindAngle(uint x, uint y) : x(x), y(y) {}
-  uint y, x;
+  uint x, y;
   bool operator()(const mol_setup::Angle& a)
   {
     return (a.a0 == x && a.a2 == y) || (a.a0 == y && a.a2 == x);
   }
 };
 
-//Check to see of angle a is in the ring or not
-bool IsInRing(std::vector<int> cycAtoms, const mol_setup::Angle& a)
+//Check to see if angle a is in the ring or not
+bool IsInRing(const std::vector<int> &cycAtoms, const mol_setup::Angle& a)
 {
   bool res = true;
   if(std::find(cycAtoms.begin(), cycAtoms.end(), a.a0) == cycAtoms.end()) {
@@ -59,7 +59,7 @@ namespace cbmc
 
 
 DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
-                             std::vector<int> cycAtoms, uint focus, uint prev)
+                             const std::vector<int> &cycAtoms, uint focus, uint prev)
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
@@ -77,10 +77,10 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   for (uint a = 0; a < angles.size(); a++) {
     sumAngle += data->ff.angles->Angle(angles[a].kind);
   }
-  //If sum of angles = 2*pi = 6.283, it means they are in a plane
-  //To avoid geometric conflict for flexible angle, we consider it fix and
-  //let crankshaft to sample it. 0.044 ~= 5 degree
-  bool angleInPlane = (std::abs(2.0 * M_PI - sumAngle) < 0.044);
+  //If sum of angles (sumAngle +/- 10) ~ 2*pi = 6.283, it means they are in a plane
+  //To avoid geometric conflict for flexible angle, we consider it fixed and
+  //let crankshaft sample it. 0.1745 ~= 10 degree tolerance 
+  bool angleInPlane = (std::abs(2.0 * M_PI - sumAngle) < 0.1745);
   bool constrainAngInRing = false;
 
   for (uint i = 0; i < nBonds; ++i) {
@@ -102,7 +102,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
     }
   }
 
-  //If one of the constrained angle is belong to ring and angle form a plane
+  //If one of the constrained angles belongs to a ring and the angle forms a plane
   // we fix the free and constrained angles
   if(constrainAngInRing && angleInPlane) {
     for (uint i = 0; i < nBonds; ++i) {
@@ -186,14 +186,14 @@ void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
     return;
   }
 
-  for (int i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < (int) nTrials; ++i) {
     data->angles[i] = data->prng.rand(M_PI);
   }
 
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(bType, kind, molIndex, newMol, nonbonded_1_3, nTrials)
 #endif
-  for (int i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < (int) nTrials; ++i) {
     data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
     double distSq = newMol.AngleDist(anchorBond, bondLength[bType],
                                      data->angles[i]);
@@ -224,14 +224,14 @@ void DCHedronCycle::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
     return;
   }
 
-  for (int i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < (int) nTrials; ++i) {
     data->angles[i] = data->prng.rand(M_PI);
   }
 
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(bType, kind, molIndex, nonbonded_1_3, nTrials, oldMol)
 #endif
-  for (int i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < (int) nTrials; ++i) {
     data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
 
     double distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType],
@@ -408,7 +408,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 #ifdef _OPENMP
     #pragma omp parallel for default(none) shared(energies, nonbonded_1_3, nTrials, weights) reduction(+:stepWeight)
 #endif
-    for (int i = 0; i < nTrials; ++i) {
+    for (int i = 0; i < (int) nTrials; ++i) {
       weights[i] = exp(-1 * data->ff.beta * (energies[i] + nonbonded_1_3[i]));
       stepWeight += weights[i];
     }

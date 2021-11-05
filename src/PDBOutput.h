@@ -46,10 +46,11 @@ public:
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
 private:
   std::string GetDefaultAtomStr();
 
-  void InitPartVec(pdb_setup::Atoms const& atoms);
+  void InitPartVec();
 
   void SetMolBoxVec(std::vector<uint> & mBox);
 
@@ -58,10 +59,10 @@ private:
   void PrintAtoms(const uint b, std::vector<uint> & mBox);
 
   //NEW_RESTART_CODE
-  void DoOutputRebuildRestart(const uint step);
+  void DoOutputRebuildRestart(const ulong step);
   void PrintAtomsRebuildRestart(const uint b);
-  void PrintCrystRest(const uint b, const uint step, Writer & out);
-  void PrintRemark(const uint b, const uint step, Writer & out);
+  void PrintCrystRest(const uint b, const ulong step, Writer & out);
+  void PrintRemark(const uint b, const ulong step, Writer & out);
   //NEW_RESTART_CODE
 
   void FormatAtom(std::string & line, const uint p, const uint m,
@@ -69,16 +70,17 @@ private:
                   std::string const& resName);
 
   void InsertAtomInLine(std::string & line, XYZ const& coor,
-                        std::string const& occ, std::string const& beta);
+                        std::string const& occ, double const& beta);
 
-  void PrintEnd(const uint b, Writer & out)
+  void PrintEnd(Writer & out)
   {
     out.file << "END" << std::endl;
   }
 
   double ConvAng(const double t)
   {
-    return acos(t) * 180.0 / M_PI;
+    // M_1_PI is 1/PI
+    return acos(t) * 180.0 * M_1_PI;
   }
 
   MoveSettings & moveSetRef;
@@ -89,14 +91,7 @@ private:
   COM & comCurrRef;
 
   Writer outF[BOX_TOTAL];
-  //NEW_RESTART_CODE
   Writer outRebuildRestart[BOX_TOTAL];
-  std::string outRebuildRestartFName[BOX_TOTAL];
-  bool enableRestOut;
-  ulong stepsRestPerOut;
-  ulong stepsCoordPerOut;
-  //NEW_RESTART_CODE
-  bool enableOutState;
   std::vector<std::string> pStr;
   int frameNumber[BOX_TOTAL];
 };

@@ -22,7 +22,7 @@ using namespace geom;
 // Swapping one Large molecule with one or more small molecules in dense phase
 // and vice versa.
 // Sub-Volume location at the COM of the small molecule with random orientation.
-// Large molecule insertion and deletion is perfomed by CD-CBMC.
+// Large molecule insertion and deletion is performed by CD-CBMC.
 
 
 class MoleculeExchange3 : public MoleculeExchange1
@@ -38,9 +38,13 @@ public:
   }
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) {
+    return mv::fail_state::NO_FAIL;
+  }
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
 
 protected:
 
@@ -69,8 +73,8 @@ inline void MoleculeExchange3::SetMEMC(StaticVals const& statV)
 inline void MoleculeExchange3::AdjustExRatio()
 {
   if(((counter + 1) % perAdjust) == 0) {
-    uint exMax = ceil((float)molInCavCount / (float)perAdjust);
-    uint exMin = 1;
+    int exMax = ceil((float)molInCavCount / (float)perAdjust);
+    int exMin = 1;
     uint index = kindS + kindL * molRef.GetKindsCount();
     double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
     if(std::abs(currAccept - lastAccept) >= 0.05 * currAccept) {
@@ -184,13 +188,14 @@ inline uint MoleculeExchange3::ReplaceMolecule()
 
 inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MEMC);
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    numTypeASource = (double)(molLookRef.NumKindInBox(kindIndexA[0], sourceBox));
-    numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
-    numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
-    numTypeBDest = (double)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
-    //transfering type A from source to dest
+    numTypeASource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], sourceBox));
+    numTypeADest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], destBox));
+    numTypeBSource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], sourceBox));
+    numTypeBDest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], destBox));
+    //transferring type A from source to dest
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
                                        destBox));
@@ -199,7 +204,7 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      //transfering type B from dest to source
+      //transferring type B from dest to source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
                                        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
@@ -236,7 +241,7 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
       if(insertL) {
         //Inserting Lmol from destBox to the center of cavity in sourceBox
         newMolB[n].SetSeed(center, cavity, true, true, true);
-        // Set the a otom of large molecule to be inserted in COM of cavity
+        // Set the atom of large molecule to be inserted in COM of cavity
         newMolB[n].SetBackBone(largeBB);
         //perform rotational trial move in destBox for L oldMol
         oldMolB[n].SetSeed(false, false, false);
@@ -275,12 +280,14 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MEMC);
   return state;
 }
 
 
 inline uint MoleculeExchange3::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_MEMC);
   CalcTc();
 
   //Deleting A, B from their box
@@ -289,8 +296,8 @@ inline uint MoleculeExchange3::Transform()
     for(uint n = numInCavA; n > 0; n--) {
       cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
       molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1], molIndexA[n - 1]);
-      //Add bonded energy because we dont considered in DCRotate.cpp
-      oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1], molIndexA[n - 1]));
+      //Add bonded energy because we don't consider it in DCRotate.cpp
+      oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1]));
     }
     //Calc old energy and delete Large kind from dest box
     for(uint n = 0; n < numInCavB; n++) {
@@ -307,7 +314,7 @@ inline uint MoleculeExchange3::Transform()
     for(uint n = 0; n < numInCavB; n++) {
       cellList.RemoveMol(molIndexB[n], destBox, coordCurrRef);
       molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
-      oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]));
+      oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n]));
     }
   }
 
@@ -318,7 +325,7 @@ inline uint MoleculeExchange3::Transform()
       molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
       ShiftMol(true, n, sourceBox, destBox);
       cellList.AddMol(molIndexA[n], destBox, coordCurrRef);
-      newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+      newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
       overlap |= newMolA[n].HasOverlap();
     }
     //Insert Large kind to sourceBox
@@ -341,12 +348,13 @@ inline uint MoleculeExchange3::Transform()
       molRef.kinds[kindIndexB[n]].BuildIDNew(newMolB[n], molIndexB[n]);
       ShiftMol(false, n, destBox, sourceBox);
       cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
-      //Add bonded energy because we dont considered in DCRotate.cpp
-      newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));
+      //Add bonded energy because we don't consider it in DCRotate.cpp
+      newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
       overlap |= newMolB[n].HasOverlap();
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MEMC);
   return mv::fail_state::NO_FAIL;
 }
 
@@ -358,9 +366,8 @@ inline void MoleculeExchange3::CalcEn()
 
 inline double MoleculeExchange3::GetCoeff() const
 {
-  double volSource = boxDimRef.volume[sourceBox];
-  double volDest = boxDimRef.volume[destBox];
 #if ENSEMBLE == GEMC
+  double volDest = boxDimRef.volume[destBox];
   if(insertL) {
     //kindA is the small molecule
     double ratioF = num::Factorial(totMolInCav - 1) /
@@ -417,7 +424,7 @@ inline double MoleculeExchange3::GetCoeff() const
 }
 
 
-inline void MoleculeExchange3::Accept(const uint rejectState, const uint step)
+inline void MoleculeExchange3::Accept(const uint rejectState, const ulong step)
 {
   MoleculeExchange1::Accept(rejectState, step);
 }

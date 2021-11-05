@@ -11,10 +11,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FFSwitch.h"
 #include "FFSwitchMartini.h"
 #include "FFExp6.h"
-#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
-#endif
-#include <math.h>
+#include <cmath>
 
 Forcefield::Forcefield()
 {
@@ -70,18 +68,18 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
     sc_sigma = val.freeEn.scaleSigma;
     sc_power = val.freeEn.scalePower;
     sc_coul = val.freeEn.scaleCoulomb;
-  } else if (val.cfcmcVal.enable) {
-    sc_alpha = val.cfcmcVal.scaleAlpha;
-    sc_sigma = val.cfcmcVal.scaleSigma;
-    sc_power = val.cfcmcVal.scalePower;
-    sc_coul = val.cfcmcVal.scaleCoulomb;
+  } else if (val.neMTMCVal.enable) {
+    sc_alpha = val.neMTMCVal.scaleAlpha;
+    sc_sigma = val.neMTMCVal.scaleSigma;
+    sc_power = val.neMTMCVal.scalePower;
+    sc_coul = val.neMTMCVal.scaleCoulomb;
   } else {
     sc_alpha = 0.0;
     sc_sigma = 0.0;
     sc_power = 0;
     sc_coul = false;
   }
-  sc_sigma_6 = pow(sc_sigma, 6);
+  sc_sigma_6 = pow(sc_sigma, 6.0);
 
   for(uint b = 0 ; b < BOX_TOTAL; b++) {
     rCutCoulomb[b] = val.elect.cutoffCoulomb[b];

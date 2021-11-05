@@ -14,8 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h" //For box constants, if we're calculating Hv
 #endif
 
-OutputVars::OutputVars(System & sys, StaticVals const& statV) :
-  calc(sys.calcEnergy), T_in_K(statV.forcefield.T_in_K)
+OutputVars::OutputVars(System & sys, StaticVals const& statV, const std::vector<std::string> & molKindNames) :
+  T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy), molKindNames(molKindNames)
 {
   InitRef(sys, statV);
 }
@@ -66,11 +66,10 @@ double OutputVars::GetAcceptPercent(uint box, uint sub)
   return (double)(GetAccepted(box, sub)) / (double)(GetTries(box, sub)) * 100.0;
 }
 
-void OutputVars::Init(pdb_setup::Atoms const& atoms)
+void OutputVars::Init()
 {
   //Init vals.
   numKinds = molLookupRef->GetNumKind();
-  resKindNames = atoms.resKindNames;
 
   //Allocate arrays,
   uint kTot = BOX_TOTAL * numKinds;
@@ -98,11 +97,6 @@ OutputVars::~OutputVars(void)
 void OutputVars::CalcAndConvert(ulong step)
 {
   double rawPressure[BOXES_WITH_U_NB];
-
-#if ENSEMBLE == GEMC
-  //Which box is the liquid in gibbs ensemble
-  uint liqBox = mv::BOX0, vapBox = mv::BOX1;
-#endif
 
   molLookupRef->TotalAndDensity(numByBox,  numByKindBox, molFractionByKindBox,
                                 densityByKindBox, volInvRef);
@@ -165,15 +159,36 @@ void OutputVars::CalcAndConvert(ulong step)
         // ( starting: K * molecule / Angstrom^3 )
         pressure[b] = rawPressure[b];
         pressure[b] *= unit::K_MOLECULE_PER_A3_TO_BAR;
-
-
+        if(numByBox[b] != 0){
+          compressability[b] = (pressure[b]) * (volumeRef[b]) / numByBox[b] / (T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR);
+          enthalpy[b] = (energyRef[b].total / numByBox[b] + rawPressure[b] * volumeRef[b] / numByBox[b]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL;
+        } else {
+          compressability[b] = 0;
+          enthalpy[b] = 0;
+        }
 #if ENSEMBLE == GEMC
         // delta Hv = (Uv-Ul) + P(Vv-Vl)
-        heatOfVap = energyRef[vapBox].total / numByBox[vapBox] -
-                    energyRef[liqBox].total / numByBox[liqBox];
+        if (numByBox[vapBox] != 0){
+          heatOfVap_energy_term_box[vapBox] = energyRef[vapBox].total / numByBox[vapBox];
+          heatOfVap_density_term_box[vapBox] = volumeRef[vapBox] / numByBox[vapBox];
+        } else {
+          heatOfVap_energy_term_box[vapBox] = 0.0;
+          heatOfVap_density_term_box[vapBox] = 0.0;
+        }
+
+        if (numByBox[liqBox] != 0){
+          heatOfVap_energy_term_box[liqBox] = energyRef[liqBox].total / numByBox[liqBox];
+          heatOfVap_density_term_box[liqBox] = volumeRef[liqBox] / numByBox[liqBox];
+        } else {
+          heatOfVap_energy_term_box[liqBox] = 0.0;
+          heatOfVap_density_term_box[liqBox] = 0.0;
+        }     
+
+        heatOfVap = heatOfVap_energy_term_box[vapBox] -
+                    heatOfVap_energy_term_box[liqBox];
         heatOfVap += rawPressure[vapBox] *
-                     (volumeRef[vapBox] / numByBox[vapBox] -
-                      volumeRef[liqBox] / numByBox[liqBox]);
+                     (heatOfVap_density_term_box[vapBox] -
+                      heatOfVap_density_term_box[liqBox]);
         heatOfVap *= unit::K_TO_KJ_PER_MOL;
 #endif
       }

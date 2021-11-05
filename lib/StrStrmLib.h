@@ -43,42 +43,14 @@ inline uint CountWords(std::string & str)
                        std::istream_iterator<std::string>());
 }
 
-inline double FromStr(double & d, std::string const& str)
+template <typename T>
+inline T FromStr(T & var, std::string const& str)
 {
   std::stringstream strm(str);
-  strm >> d;
-  return d;
+  strm >> var;
+  return var;
 }
-inline float FromStr(float & f, std::string const& str)
-{
-  std::stringstream strm(str);
-  strm >> f;
-  return f;
-}
-inline ulong FromStr(ulong & ul, std::string const& str)
-{
-  std::stringstream strm(str);
-  strm >> ul;
-  return ul;
-}
-inline long FromStr(long & l, std::string const& str)
-{
-  std::stringstream strm(str);
-  strm >> l;
-  return l;
-}
-inline int FromStr(int & i, std::string const& str)
-{
-  std::stringstream strm(str);
-  strm >> i;
-  return i;
-}
-inline uint FromStr(uint & ui, std::string const& str)
-{
-  std::stringstream strm(str);
-  strm >> ui;
-  return ui;
-}
+
 inline bool FromStr(bool & b, std::string const& str)
 {
   std::stringstream strm(str);
@@ -137,36 +109,13 @@ struct Converter {
     return *this;
   }
 
-  Converter & operator<<(const double d)
+template <typename T>
+  Converter & operator<<(const T &var)
   {
-    strm << d;
+    strm << var;
     return *this;
   }
-  Converter & operator<<(const float f)
-  {
-    strm << f;
-    return *this;
-  }
-  Converter & operator<<(const long l)
-  {
-    strm << l;
-    return *this;
-  }
-  Converter & operator<<(const int i)
-  {
-    strm << i;
-    return *this;
-  }
-  Converter & operator<<(const uint ui)
-  {
-    strm << ui;
-    return *this;
-  }
-  Converter & operator<<(std::string const& s)
-  {
-    strm << s;
-    return * this;
-  }
+  
   Converter & operator<<(const bool b)
   {
     if (strm.precision() == 1)
@@ -181,68 +130,21 @@ struct Converter {
     return *this;
   }
 
-  void Replace(std::string & str, const double d, ConstField const& field)
+template <typename T>
+  void Replace(std::string & str, const T &var, ConstField const& field)
   {
     std::string temp;
     Width(field.LENGTH);
-    *this << d;
+    *this << var;
     *this >> temp;
     str.replace(field.START, field.LENGTH, temp);
   }
-  void Replace(std::string & str, const float f, ConstField const& field)
-  {
-    std::string temp;
-    Width(field.LENGTH);
-    *this << f;
-    *this >> temp;
-    str.replace(field.START, field.LENGTH, temp);
-  }
-  void Replace(std::string & str, const long l, ConstField const& field)
-  {
-    std::string temp;
-    Width(field.LENGTH);
-    *this << l;
-    *this >> temp;
-    str.replace(field.START, field.LENGTH, temp);
-  }
-  void Replace(std::string & str, const int i, ConstField const& field)
-  {
-    std::string temp;
-    Width(field.LENGTH);
-    *this << i;
-    *this >> temp;
-    str.replace(field.START, field.LENGTH, temp);
-  }
-  void Replace(std::string & str, const uint ui, ConstField const& field)
-  {
-    std::string temp;
-    Width(field.LENGTH);
-    *this << ui;
-    *this >> temp;
-    str.replace(field.START, field.LENGTH, temp);
-  }
-  void Replace(std::string & str, const bool b, ConstField const& field)
-  {
-    std::string temp;
-    Width(field.LENGTH);
-    *this << b;
-    *this >> temp;
-    str.replace(field.START, field.LENGTH, temp);
-  }
+  
   void Replace(std::string & str, char const*const cStr,
                ConstField const& field)
   {
     for (uint c = 0; c < field.LENGTH; ++c)
       str[c + field.START] = cStr[c];
-  }
-  void Replace(std::string & str, std::string const& subStr,
-               ConstField const& field)
-  {
-    std::string temp;
-    Width(field.LENGTH);
-    *this << subStr;
-    *this >> temp;
-    str.replace(field.START, field.LENGTH, temp);
   }
 
   Converter & Flush()

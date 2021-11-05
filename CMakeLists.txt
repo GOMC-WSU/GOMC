@@ -32,11 +32,6 @@ set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
 
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCMPI.cmake)
 
-#enable config header
-configure_file(
-	"${PROJECT_SOURCE_DIR}/GOMC_Config.h.in"
-	"${PROJECT_BINARY_DIR}/GOMC_Config.h"
-	)
 include_directories("${PROJECT_BINARY_DIR}")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -58,6 +53,25 @@ endif()
 
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
+include_directories(lib/cereal-1.3.0/include)
+
+
+#Optional CMake Argument
+option(GOMC_GTEST    "Build unit tests for GOMC" OFF)
+option(GOMC_GTEST_MPI    "Build unit tests for GOMC - MPI Enabled" OFF)
+
+#enable config header
+configure_file(
+	"${PROJECT_SOURCE_DIR}/GOMC_Config.h.in"
+	"${PROJECT_BINARY_DIR}/GOMC_Config.h"
+)
+
+# Enable google test
+# for now we will disable testing for intel compiler
+if(GOMC_GTEST OR GOMC_GTEST_MPI)
+  enable_testing()
+  include(test/GoogleTest.cmake)
+endif()
 
 # Find if CUDA exists and what is the version number
 include(CheckLanguage)
@@ -76,3 +90,5 @@ if (OPENMP_FOUND)
 	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
+

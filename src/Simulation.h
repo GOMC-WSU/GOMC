@@ -6,7 +6,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef SIMULATION_H
 #define SIMULATION_H
-
 //Member vars
 #include "CPUSide.h"
 #include "System.h"
@@ -24,16 +23,21 @@ public:
 
   void RunSimulation(void);
   bool RecalculateAndCheck(void);
-
+  #if GOMC_GTEST
+    ulong GetTrueStep();
+    ulong GetRunSteps();
+    MoleculeLookup & GetMolLookup();
+    SystemPotential & GetSystemEnergy(void);
+  #endif
 private:
   StaticVals * staticValues;
   System * system;
   CPUSide * cpu;
+  ulong startStep;
   ulong totalSteps;
   Setup set;
   std::vector<ulong> frameSteps;
   uint remarksCount;
-  ulong startStep;
   MultiSim const*const& ms;
 #if GOMC_LIB_MPI
   ParallelTemperingUtilities * PTUtils;

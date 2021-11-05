@@ -93,21 +93,24 @@ void FreeEnergyOutput::Sample(const ulong step)
 
 void FreeEnergyOutput::DoOutput(const ulong step)
 {
-  //Write to histogram file, We dont check the equilibrium.
-  if ((step + 1) % stepsPerOut == 0) {
-    for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-      if (outF[b].is_open()) {
-        PrintData(b, step + 1);
-      } else {
-        std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
-                  << "(Free Energy file)" << std::endl;
-        outF[b].close();
-      }
+  //Write to histogram file, We don't check the equilibrium.
+  GOMC_EVENT_START(1, GomcProfileEvent::FREE_ENERGY_OUTPUT);
+  for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+    if (outF[b].is_open()) {
+      PrintData(b, step + 1);
+    } else {
+      std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
+                << "(Free Energy file)" << std::endl;
+      outF[b].close();
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::FREE_ENERGY_OUTPUT);
 }
 
-void FreeEnergyOutput::PrintData(const uint b, const uint step)
+void FreeEnergyOutput::DoOutputRestart(const ulong step)
+{}
+
+void FreeEnergyOutput::PrintData(const uint b, const ulong step)
 {
   outF[b] << std::setw(11) << std::left << step << " ";
   outF[b] << std::setw(25) << std::right << std::fixed << Etotal << " ";

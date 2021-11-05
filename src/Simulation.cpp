@@ -8,64 +8,66 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Setup.h"          //For setup object
 #include "NumLib.h"
 #include "EnergyTypes.h"
-#include "PSFOutput.h"
 #include <iostream>
 #include <iomanip>
 #include "CUDAMemoryManager.cuh"
+#include "GOMCEventsProfile.h"
 
 #define EPSILON 0.001
 
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim): ms(multisim)
 {
-  startStep = 0;
-  //NOTE:
-  //IMPORTANT! Keep this order...
-  //as system depends on staticValues, and cpu sometimes depends on both.
+  GOMC_EVENT_START(1, GomcProfileEvent::INITIALIZE);
+  GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   set.Init(configFileName, multisim);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
+  startStep = 0;
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
-  system = new System(*staticValues, multisim);
+  system = new System(*staticValues, set, startStep, multisim);
   staticValues->Init(set, *system);
-  system->Init(set, startStep);
-  //recal Init for static value for initializing ewald since ewald is
+  system->Init(set);
+  // This happens after checkpoint has possible changed startStep
+  // Note: InitStep overwrites checkpoint start step
+  totalSteps += startStep;
+  //recalc Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
-  cpu = new CPUSide(*system, *staticValues);
-  cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
+  system->InitOver(set, staticValues->mol);
+  cpu = new CPUSide(*system, *staticValues, set);
+  cpu->Init(set.pdb, set.config.in, set.config.out, set.config.sys, set.config.sys.step.equil,
             totalSteps, startStep);
-
-  //Dump combined PSF
-  PSFOutput psfOut(staticValues->mol, *system, set.mol.kindMap,
-                   set.pdb.atoms.resKindNames);
-  psfOut.PrintPSF(set.config.out.state.files.psf.name);
-  std::cout << "Printed combined psf to file "
-            << set.config.out.state.files.psf.name << '\n';
-
+            
   if(totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
+
 #if GOMC_LIB_MPI
   // set.config.sys.step.parallelTemp is a boolean for enabling/disabling parallel tempering
   PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq, set.config.sys.step.parallelTemperingAttemptsPerExchange) : NULL;
   exchangeResults.resize(ms->worldSize, false);
 #endif
+  GOMC_EVENT_STOP(1, GomcProfileEvent::INITIALIZE);
 }
 
 Simulation::~Simulation()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::DESTRUCTION);
   delete cpu;
   delete system;
   delete staticValues;
 #ifdef GOMC_CUDA
   CUDAMemoryManager::isFreed();
 #endif
+  GOMC_EVENT_STOP(1, GomcProfileEvent::DESTRUCTION);
 }
 
 void Simulation::RunSimulation(void)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::MC_RUN);
   double startEnergy = system->potential.totalEnergy.total;
   if(totalSteps == 0) {
-    for(int i = 0; i < frameSteps.size(); i++) {
+    for(int i = 0; i < (int) frameSteps.size(); i++) {
       if(i == 0) {
         cpu->Output(frameSteps[0] - 1);
         continue;
@@ -108,8 +110,8 @@ void Simulation::RunSimulation(void)
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
       if (staticValues->forcefield.ewald) {
         for(int box = 0; box < BOX_TOTAL; box++) {
-          system->calcEwald->BoxReciprocalSetup(box, system->coordinates);
-          system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box);
+          system->calcEwald->BoxReciprocalSums(box, system->coordinates, false);
+          system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
           system->calcEwald->UpdateRecip(box);
         }
       }
@@ -124,6 +126,7 @@ void Simulation::RunSimulation(void)
       RecalculateAndCheck();
 #endif
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::MC_RUN);
   if(!RecalculateAndCheck()) {
     std::cerr << "Warning: Updated energy differs from Recalculated Energy!\n";
   }
@@ -179,3 +182,21 @@ bool Simulation::RecalculateAndCheck(void)
 
   return compare;
 }
+
+#if GOMC_GTEST
+SystemPotential &  Simulation::GetSystemEnergy(void){
+  return system->potential;
+}
+
+MoleculeLookup & Simulation::GetMolLookup(){
+  return system->molLookup;
+}
+
+ulong Simulation::GetTrueStep(){
+  return system->trueStep;
+}
+
+ulong Simulation::GetRunSteps(){
+  return totalSteps - startStep;
+}
+#endif

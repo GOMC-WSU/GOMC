@@ -10,6 +10,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //Constants for unit conversion
 namespace unit
 {
+// Boltzmann constant
+static const double BOLTZMANN = 0.001987191;
 
 // Molecules: molecules/A3 --> mol/cm3
 //

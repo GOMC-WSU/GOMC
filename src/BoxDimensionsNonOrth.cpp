@@ -20,7 +20,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     rCut[b] = std::max(ff.rCut, ff.rCutCoulomb[b]);
     rCutSq[b] = rCut[b] * rCut[b];
     minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
-    if(restart.enable && cryst.hasVolume) {
+    if(restart.enable && cryst.hasVolume[b]) {
       axis = cryst.axis;
       double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
       double beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
@@ -31,7 +31,6 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
         beta = 0.0;
       if(float(cryst.cellAngle[b][2]) == 90.0)
         gamma = 0.0;
-      double cosASq = alpha * alpha;
       double cosBSq = beta * beta;
       double cosGSq = gamma * gamma;
       double temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
@@ -41,15 +40,17 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
       cellBasis[b].Scale(0, axis.Get(b).x);
       cellBasis[b].Scale(1, axis.Get(b).y);
       cellBasis[b].Scale(2, axis.Get(b).z);
+    } else if (restart.enable && cryst.hasCellBasis[b]) {
+      cryst.cellBasis[b].CopyRange(cellBasis[b], 0, 0, 3);
     } else if(confVolume.hasVolume) {
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
     } else {
       fprintf(stderr,
-              "Error: Cell Basis not specified in PDB or in.conf files.\n");
+              "Error: Cell Basis not specified in XSC, PDB, or in.conf files.\n");
       exit(EXIT_FAILURE);
     }
 
-    //Print Box dimensio info
+    //Print Box dimension info
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
            "Info: Box ", b, " Periodic Cell Basis 1",
            cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
@@ -63,7 +64,6 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
            cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
            cellBasis[b].Get(2).z);
 
-
     //Find the length of a, b, c
     cellLength.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
                    cellBasis[b].Length(2));
@@ -75,9 +75,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     cosAngle[b][2] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
                      (cellLength.Get(b).x * cellLength.Get(b).y);
     //Calculate Cross Product
-    XYZ axb = Cross(cellBasis[b].Get(0), cellBasis[b].Get(1));
     XYZ bxc = Cross(cellBasis[b].Get(1), cellBasis[b].Get(2));
-    XYZ cxa = Cross(cellBasis[b].Get(2), cellBasis[b].Get(0));
     //Calculate volume = A.(B x C)
     volume[b] = std::abs(Dot(cellBasis[b].Get(0), bxc));
     volInv[b] = 1.0 / volume[b];
@@ -95,7 +93,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     axis.Set(b, cellLength[b]);
 
     if(axis.Get(b).Min() < 2.0 * rCut[b]) {
-      printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
+      printf("Error: Cutoff value is larger than half of minimum BOX%d length!\n", b);
       exit(EXIT_FAILURE);
     }
   }
@@ -208,7 +206,7 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
     halfAx.Scale(b, 1.0, 1.0, ratio);
     cellLength.Scale(b, 1.0, 1.0, ratio);
   } else {
-    double ratio = pow(vol / volume[b], (1.0 / 3.0));
+    double ratio = cbrt(vol / volume[b]);
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
     cellLength.Scale(b, ratio);
@@ -222,7 +220,31 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
 XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
 {
   XYZ rawVec = TransformUnSlant(rawVecRef, b);
-  rawVecRef = BoxDimensions:: MinImage(rawVec, b);
+  rawVecRef = BoxDimensions::MinImage(rawVec, b);
+  rawVecRef = TransformSlant(rawVecRef, b);
+  return rawVecRef;
+}
+
+XYZ BoxDimensionsNonOrth::MinImage_X(XYZ rawVecRef, const uint b) const
+{
+  XYZ rawVec = TransformUnSlant(rawVecRef, b);
+  rawVecRef = BoxDimensions::MinImage_X(rawVec, b);
+  rawVecRef = TransformSlant(rawVecRef, b);
+  return rawVecRef;
+}
+
+XYZ BoxDimensionsNonOrth::MinImage_Y(XYZ rawVecRef, const uint b) const
+{
+  XYZ rawVec = TransformUnSlant(rawVecRef, b);
+  rawVecRef = BoxDimensions::MinImage_Y(rawVec, b);
+  rawVecRef = TransformSlant(rawVecRef, b);
+  return rawVecRef;
+}
+
+XYZ BoxDimensionsNonOrth::MinImage_Z(XYZ rawVecRef, const uint b) const
+{
+  XYZ rawVec = TransformUnSlant(rawVecRef, b);
+  rawVecRef = BoxDimensions::MinImage_Z(rawVec, b);
   rawVecRef = TransformSlant(rawVecRef, b);
   return rawVecRef;
 }
@@ -243,6 +265,23 @@ void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
   z = slant.z;
 }
 
+void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
+                                   const uint b, const bool &pbcX,
+                                   const bool &pbcY, const bool &pbcZ) const
+{
+  //convert XYZ to unslant
+  XYZ unwrap(x, y, z);
+  XYZ unslant = TransformUnSlant(unwrap, b);
+  if(pbcX) {BoxDimensions::WrapPBC(unslant.x, axis.x[b]);}
+  if(pbcY) {BoxDimensions::WrapPBC(unslant.y, axis.y[b]);}
+  if(pbcZ) {BoxDimensions::WrapPBC(unslant.z, axis.z[b]);}
+  //convert XYZ to slant
+  XYZ slant = TransformSlant(unslant, b);
+  x = slant.x;
+  y = slant.y;
+  z = slant.z;
+}
+
 void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
                                      const uint b, XYZ const& ref) const
 {
@@ -253,7 +292,6 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
   BoxDimensions::UnwrapPBC(unslant.x, unslantRef.x, axis.x[b], halfAx.x[b]);
   BoxDimensions::UnwrapPBC(unslant.y, unslantRef.y, axis.y[b], halfAx.y[b]);
   BoxDimensions::UnwrapPBC(unslant.z, unslantRef.z, axis.z[b], halfAx.z[b]);
-  XYZ unwrap(x, y, z);
   //convert XYZ to slant
   XYZ slant = TransformSlant(unslant, b);
   x = slant.x;

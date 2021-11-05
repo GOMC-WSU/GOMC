@@ -53,10 +53,21 @@ public:
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVecRef, const uint b) const;
 
-  //Unwrap one coordinate.
+  //Apply PBC, on X axis
+  virtual XYZ MinImage_X(XYZ rawVec, const uint b) const;
+  //Apply PBC, on Y axis
+  virtual XYZ MinImage_Y(XYZ rawVec, const uint b) const;
+  //Apply PBC, on Z axis
+  virtual XYZ MinImage_Z(XYZ rawVec, const uint b) const;
+  
+  //wrap one coordinate
   virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;
 
-  //Unwrap one coordinate.
+  //wrap one coordinate and check for PBC
+  virtual void WrapPBC(double &x, double &y, double &z, const uint b,
+                      const bool &pbcX, const bool &pbcY, const bool &pbcZ) const;
+
+  //Unwrap one coordinate
   virtual void UnwrapPBC(double & x, double & y, double & z,
                          const uint b, XYZ const& ref) const;
 

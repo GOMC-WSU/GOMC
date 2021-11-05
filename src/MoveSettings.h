@@ -8,10 +8,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define MOVE_SETTINGS_H
 
 #include "EnsemblePreprocessor.h" //For BOX_TOTAL
-#include "BasicTypes.h"           //for uint
+#include "BasicTypes.h"           //For uint
 #include "OutputVars.h"
-#include "PDBSetup.h" //Primary source of volume.
-#include "MoveConst.h"           //For sizes of arrays.
+#include "PDBSetup.h"             //Primary source of volume.
+#include "MoveConst.h"            //For array sizes
 #include <vector>
 
 namespace mp
@@ -41,6 +41,8 @@ public:
     mp_t_max.resize(BOX_TOTAL);
     mp_accepted.resize(BOX_TOTAL);
     mp_tries.resize(BOX_TOTAL);
+    mp_interval_accepted.resize(BOX_TOTAL);
+    mp_interval_tries.resize(BOX_TOTAL);
     for(uint b = 0; b < BOX_TOTAL; b++) {
       acceptPercent[b].resize(mv::MOVE_KINDS_TOTAL);
       scale[b].resize(mv::MOVE_KINDS_TOTAL);
@@ -50,21 +52,18 @@ public:
       tempTries[b].resize(mv::MOVE_KINDS_TOTAL);
       mp_accepted[b].resize(mp::MPTOTALTYPES);
       mp_tries[b].resize(mp::MPTOTALTYPES);
+      mp_interval_accepted[b].resize(mp::MPTOTALTYPES);
+      mp_interval_tries[b].resize(mp::MPTOTALTYPES);
     }
-  }
-
-  MoveSettings& operator=(MoveSettings const& rhs)
-  {
-    return *this;
   }
 
   void Init(StaticVals const& statV, pdb_setup::Remarks const& remarks,
             const uint tkind);
 
-  void Update(const uint move, const bool isAccepted, const uint step,
+  void Update(const uint move, const bool isAccepted,
               const uint box, const uint kind = 0);
 
-  void AdjustMoves(const uint step);
+  void AdjustMoves(const ulong step);
 
   void Adjust(const uint box, const uint move, const uint kind);
 
@@ -72,27 +71,27 @@ public:
 
   void UpdateMoveSettingMultiParticle(uint box, bool isAccept, uint typePick);
 
-  double Scale(const uint box, const uint move, const uint kind = 0) const
+  inline double Scale(const uint box, const uint move, const uint kind = 0) const
   {
     return scale[box][move][kind];
   }
 
-  double GetAccept(const uint box, const uint move, const uint kind = 0) const
+  inline double GetAccept(const uint box, const uint move, const uint kind = 0) const
   {
     return acceptPercent[box][move][kind];
   }
 
-  double GetTrial(const uint box, const uint move, const uint kind = 0) const
+  inline double GetTrial(const uint box, const uint move, const uint kind = 0) const
   {
     return tries[box][move][kind];
   }
 
-  double GetRMAX(const uint box) const
+  inline double GetRMAX(const uint box) const
   {
     return mp_r_max[box];
   }
 
-  double GetTMAX(const uint box) const
+  inline double GetTMAX(const uint box) const
   {
     return mp_t_max[box];
   }
@@ -100,41 +99,75 @@ public:
   uint GetAcceptTot(const uint box, const uint move) const;
   uint GetTrialTot(const uint box, const uint move) const;
   double GetScaleTot(const uint box, const uint move) const;
-  bool GetSingleMoveAccepted()
+  
+  inline bool GetSingleMoveAccepted(uint box) const
   {
-    return isSingleMoveAccepted;
+    return isSingleMoveAccepted[box];
   }
-  void SetSingleMoveAccepted()
+  
+  inline void SetSingleMoveAccepted(uint box)
   {
-    isSingleMoveAccepted = true;
+    isSingleMoveAccepted[box] = true;
+  }
+
+  inline void UnsetSingleMoveAccepted(uint box)
+  {
+    isSingleMoveAccepted[box] = false;
+  }
+
+  void SetStatValues(const MoveSettings &rhs) {
+    this->acceptPercent = rhs.acceptPercent;
+    this->accepted = rhs.accepted;
+    this->tries = rhs.tries;
+    this->tempAccepted = rhs.tempAccepted; 
+    this->tempTries = rhs.tempTries;
+    this->mp_accepted = rhs.mp_accepted;
+    this->mp_tries = rhs.mp_tries;
+    this->mp_interval_accepted = rhs.mp_interval_accepted;
+    this->mp_interval_tries = rhs.mp_interval_tries;
+    this->perAdjust = rhs.perAdjust;
+    this->totKind = rhs.totKind;
+    for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
+      this->isSingleMoveAccepted[b] = rhs.isSingleMoveAccepted[b];
+    }
+  }
+  void SetScaleValues(const MoveSettings &rhs) {
+    this->scale = rhs.scale;
+    this->mp_t_max = rhs.mp_t_max;
+    this->mp_r_max = rhs.mp_r_max;
+  }
+
+  void SetValues(const MoveSettings &rhs) {
+    this->SetStatValues(rhs);
+    this->SetScaleValues(rhs);
   }
 
 private:
 
   std::vector< std::vector< std::vector<double> > > scale, acceptPercent;
-  std::vector< std::vector< std::vector<uint> > > accepted, tries, tempAccepted, tempTries;
-  std::vector< std::vector< uint > > mp_accepted, mp_tries;
+  std::vector< std::vector< std::vector<uint32_t> > > accepted, tries, tempAccepted, tempTries;
+  std::vector< std::vector< uint32_t > > mp_accepted, mp_tries, mp_interval_accepted, mp_interval_tries;
   std::vector< double > mp_r_max;
   std::vector< double > mp_t_max;
 
   uint perAdjust;
   uint totKind;
-  bool isSingleMoveAccepted;
-
-#if ENSEMBLE == GEMC
-  uint GEMC_KIND;
-#endif
+  bool isSingleMoveAccepted[BOXES_WITH_U_NB];
 
   BoxDimensions & boxDimRef;
 
   static const double TARGET_ACCEPT_FRACT;
   static const double TINY_AMOUNT;
+  //The alpha values are used to control how much weight is placed on the number of accepted
+  //moves from the most recent adjustment period versus on the total number of accepted moves
+  static const double r_alpha, t_alpha;
+  //If the MultiParticle acceptance percentage is within mp_accept_tol, we don't adjust the max
+  static const double mp_accept_tol;
 
-  // make checkopintoutput and checkpointsetup a friend class to have access to
+  // make CheckpointOutput and CheckpointSetup friend classes to have access to
   // private data
-  friend class CheckpointOutput;
+  friend class Checkpoint;
   friend class CheckpointSetup;
 };
-
 
 #endif /*MOVE_SETTINGS_H*/
