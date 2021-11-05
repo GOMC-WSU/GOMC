@@ -18,12 +18,23 @@ TEST(CheckpointTest, CheckPEN_HEX) {
     ulong Continued_true_step;
 
     int result = chdir("./test/input/Systems/PEN_HEX/Base/");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation base("in.conf");
-    base_runsteps = base.GetRunSteps();
     base.RunSimulation();
     result = chdir("../Continued");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation Continued("in.conf");
     result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation SingleRun("in100.conf");
     SingleRun.RunSimulation();
 
@@ -36,10 +47,34 @@ TEST(CheckpointTest, CheckPEN_HEX) {
     EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
 
     result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } 
     result = chdir("./test/input/Systems/PEN_HEX");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./Base/Base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./Continued/Continued_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./SingleRun/SingleRun_*");
-    result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = chdir("../../../..")
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
 
 }

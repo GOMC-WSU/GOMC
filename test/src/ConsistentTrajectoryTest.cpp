@@ -32,24 +32,44 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     ulong K_1_true_step, K_N_true_step;
 
     int result = chdir("./test/input/Systems/AR_KR/Base/");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation base("in.conf");
     base_runsteps = base.GetRunSteps();
     base.RunSimulation();
     result = chdir("../K_1");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation K_1("in.conf");
     K_1_true_step = K_1.GetTrueStep();
     K_1_runsteps = K_1.GetRunSteps();
     EXPECT_EQ(base_runsteps == K_1_true_step, true);
     K_1.RunSimulation();
     result = chdir("../K_N");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation K_N("in.conf");
     K_N_true_step = K_N.GetTrueStep();
     EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
     K_N.RunSimulation();
     result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation SingleRun("in.conf");
     SingleRun.RunSimulation();
     result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
@@ -245,11 +265,35 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     }
 
     result = chdir("./test/input/Systems/AR_KR");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./Base/base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./K_1/K_1_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./K_N/K_N_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
@@ -258,20 +302,35 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
     ulong Continued_true_step;
 
     int result = chdir("./test/input/Systems/PEN_HEX/Base/");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation base("in.conf");
     base_runsteps = base.GetRunSteps();
     base.RunSimulation();
     result = chdir("../Continued");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation Continued("in.conf");
     Continued_true_step = Continued.GetTrueStep();
-    Continued_runsteps = Continued.GetRunSteps();
     // Steps index from 0, hence minus 1
     EXPECT_EQ(base_runsteps == Continued_true_step, true);
     Continued.RunSimulation();
     result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation SingleRun("in.conf");
     SingleRun.RunSimulation();
     result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
@@ -357,10 +416,30 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
     }
     
     result = chdir("./test/input/Systems/PEN_HEX");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./Base/Base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./Continued/Continued_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
 }
 
 
@@ -370,10 +449,18 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     ulong K_1_true_step, K_N_true_step;
 
     int result = chdir("./test/input/Systems/ISOPEN_NEOPEN/Base/");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation base("in.conf");
     base_runsteps = base.GetRunSteps();
     base.RunSimulation();
     result = chdir("../K_1");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation K_1("in.conf");
     K_1_true_step = K_1.GetTrueStep();
     K_1_runsteps = K_1.GetRunSteps();
@@ -381,14 +468,26 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     EXPECT_EQ(base_runsteps == K_1_true_step, true);
     K_1.RunSimulation();
     result = chdir("../K_N");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation K_N("in.conf");
     K_N_true_step = K_N.GetTrueStep();
     EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
     K_N.RunSimulation();
     result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation SingleRun("in.conf");
     SingleRun.RunSimulation();
     result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
 
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
@@ -529,10 +628,34 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     }
     
     result = chdir("./test/input/Systems/ISOPEN_NEOPEN");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./Base/base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./K_1/K_1_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./K_N/K_N_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
 
 }
