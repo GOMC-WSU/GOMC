@@ -86,6 +86,8 @@ public:
   virtual double EnergyLRC(const uint kind1, const uint kind2) const;
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
+  //!Returns impulse pressure correction term for a kind pair
+  virtual double ImpulsePressureCorrection(const uint kind1, const uint kind2) const;
 
   //Calculate the dE/dlambda for vdw energy
   virtual double CalcdEndL(const double distSq, const uint kind1,

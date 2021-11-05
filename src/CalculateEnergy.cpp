@@ -569,7 +569,7 @@ reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_VIRIAL);
 
-  if (forcefield.useLRC) {
+  if (forcefield.useLRC || forcefield.useIPC) {
     VirialCorrection(tempVir, currentAxes, box);
   }
 
