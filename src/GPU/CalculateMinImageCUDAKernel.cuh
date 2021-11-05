@@ -259,8 +259,7 @@ __device__ inline double DeviceGetLambdaCoulomb(int mol, int box,
 
 // Add atomic operations for GPUs that do not support it
 // atomicAdd and atomicSub only support double for Compute Capability >= 6.0
-#if !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 600
-#else
+#if __CUDA_ARCH__ < 600
 static __inline__ __device__ double atomicAdd(double *address, double val)
 {
   unsigned long long int* address_as_ull = (unsigned long long int*)address;
