@@ -59,8 +59,8 @@ System::System(StaticVals& statics,
   checkpointSet(startStep, trueStep, molLookupRef, moveSettings, statics.mol, prng, r123wrapper, set),
   vel(statics.forcefield, molLookupRef, statics.mol, prng),
   restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
-  startStepRef(startStep)
-
+  startStepRef(startStep),
+  trueStep(0)
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI
