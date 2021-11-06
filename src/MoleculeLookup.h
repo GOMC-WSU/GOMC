@@ -32,18 +32,7 @@ public:
   MoleculeLookup(){}
 
   ~MoleculeLookup()
-  {
-    /*
-    delete[] molLookup;
-    delete[] boxAndKindStart;
-    delete[] molIndex;
-    delete[] atomIndex;
-    delete[] molKind;
-    delete[] atomKind;
-    delete[] atomCharge;
-    delete[] boxAndKindSwappableCounts;
-    */
-  }
+  {}
 
   MoleculeLookup& operator=(const MoleculeLookup & rhs);
   bool operator==(const MoleculeLookup & rhs);
@@ -54,7 +43,7 @@ public:
 
   //Initialize this object to be consistent with Molecules mols
   void Init(Molecules const& mols, const pdb_setup::Atoms& atomData,
-            Forcefield &ff);
+            Forcefield &ff, bool restartFromCheckpoint);
 
   uint GetNumKind(void) const
   {

@@ -21,94 +21,97 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData,
-                          Forcefield &ff)
+                          Forcefield &ff,
+                          bool restartFromCheckpoint)
 {
-  numKinds = mols.GetKindsCount();
-  molLookup.resize(mols.count);
-  molLookupCount = mols.count;
-  // beta has same size as total number of atoms
-  molIndex.resize(atomData.beta.size());
-  atomIndex.resize(atomData.beta.size());
-  molKind.resize(atomData.beta.size());
-  atomKind.resize(atomData.beta.size());
-  atomCharge.resize(atomData.beta.size());
-  
+  // If we restFromChk, this info comes from file
+  if (!restartFromCheckpoint){
+    numKinds = mols.GetKindsCount();
+    molLookup.resize(mols.count);
+    molLookupCount = mols.count;
+    // beta has same size as total number of atoms
+    molIndex.resize(atomData.beta.size());
+    atomIndex.resize(atomData.beta.size());
+    molKind.resize(atomData.beta.size());
+    atomKind.resize(atomData.beta.size());
+    atomCharge.resize(atomData.beta.size());
+    
 
-  //+1 to store end value
-  boxAndKindStart.resize(numKinds * BOX_TOTAL + 1);
-  boxAndKindSwappableCounts.resize(numKinds * BOX_TOTAL);
+    //+1 to store end value
+    boxAndKindStart.resize(numKinds * BOX_TOTAL + 1);
+    boxAndKindSwappableCounts.resize(numKinds * BOX_TOTAL);
 
-  boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
+    boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
 
-  // vector[box][kind] = list of mol indices for kind in box
-  std::vector<std::vector<std::vector<uint> > > indexVector;
-  indexVector.resize(BOX_TOTAL);
-  fixedMolecule.resize(mols.count);
+    // vector[box][kind] = list of mol indices for kind in box
+    std::vector<std::vector<std::vector<uint> > > indexVector;
+    indexVector.resize(BOX_TOTAL);
+    fixedMolecule.resize(mols.count);
 
-  for (int i = 0; i < (int) numKinds * BOX_TOTAL; i++){
-    boxAndKindSwappableCounts[i] = 0;
-  }
-
-
-  for (uint b = 0; b < BOX_TOTAL; ++b) {
-    indexVector[b].resize(numKinds);
-  }
-
-  int counter = 0;
-  for(uint m = 0; m < mols.count; ++m) {
-    uint box = atomData.box[mols.start[m]];
-    uint kind = mols.kIndex[m];
-    indexVector[box][kind].push_back(m);
-    const MoleculeKind& mk = mols.GetKind(m);
-    for(uint a = 0; a < mk.NumAtoms(); ++a) {
-      molIndex[counter] = int(m);
-      atomIndex[counter] = int(a);
-      molKind[counter] = int(kind);
-      atomKind[counter] = int(mk.AtomKind(a));
-      atomCharge[counter] = mk.AtomCharge(a);
-      ++counter;
+    for (int i = 0; i < (int) numKinds * BOX_TOTAL; i++){
+      boxAndKindSwappableCounts[i] = 0;
     }
 
 
-
-    /* We don't currently support hybrid molecules - part fixed part flexible
-      so we get a consensus based on the precendent of betas defined in this method */
-    uint pStart = 0, pEnd = 0;
-    mols.GetRangeStartStop(pStart, pEnd, m);
-    fixedMolecule[m] = GetConsensusMolBeta(pStart, pEnd, atomData.beta, m, box, mols.kinds[mols.kIndex[m]].name);
-
-    //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
-    if(fixedMolecule[m] == 0) {
-      if(std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
-          canSwapKind.end())
-        canSwapKind.push_back(kind);
-
-      if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
-          canMoveKind.end())
-        canMoveKind.push_back(kind);
-
-      boxAndKindSwappableCounts[box * numKinds + kind]++;
-
-    } else if(fixedMolecule[m] == 2) {
-      if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
-          canMoveKind.end())
-        canMoveKind.push_back(kind);
-
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      indexVector[b].resize(numKinds);
     }
-  }
+
+    int counter = 0;
+    for(uint m = 0; m < mols.count; ++m) {
+      uint box = atomData.box[mols.start[m]];
+      uint kind = mols.kIndex[m];
+      indexVector[box][kind].push_back(m);
+      const MoleculeKind& mk = mols.GetKind(m);
+      for(uint a = 0; a < mk.NumAtoms(); ++a) {
+        molIndex[counter] = int(m);
+        atomIndex[counter] = int(a);
+        molKind[counter] = int(kind);
+        atomKind[counter] = int(mk.AtomKind(a));
+        atomCharge[counter] = mk.AtomCharge(a);
+        ++counter;
+      }
 
 
-  uint* progress = &molLookup[0];
-  for (uint b = 0; b < BOX_TOTAL; ++b) {
-    for (uint k = 0; k < numKinds; ++k) {
-      boxAndKindStart[b * numKinds + k] = progress - &molLookup[0];
-      progress = std::copy(indexVector[b][k].begin(),
-                           indexVector[b][k].end(), progress);
+
+      /* We don't currently support hybrid molecules - part fixed part flexible
+        so we get a consensus based on the precendent of betas defined in this method */
+      uint pStart = 0, pEnd = 0;
+      mols.GetRangeStartStop(pStart, pEnd, m);
+      fixedMolecule[m] = GetConsensusMolBeta(pStart, pEnd, atomData.beta, m, box, mols.kinds[mols.kIndex[m]].name);
+
+      //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
+      if(fixedMolecule[m] == 0) {
+        if(std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
+            canSwapKind.end())
+          canSwapKind.push_back(kind);
+
+        if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
+            canMoveKind.end())
+          canMoveKind.push_back(kind);
+
+        boxAndKindSwappableCounts[box * numKinds + kind]++;
+
+      } else if(fixedMolecule[m] == 2) {
+        if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
+            canMoveKind.end())
+          canMoveKind.push_back(kind);
+
+      }
     }
+
+
+    uint* progress = &molLookup[0];
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      for (uint k = 0; k < numKinds; ++k) {
+        boxAndKindStart[b * numKinds + k] = progress - &molLookup[0];
+        progress = std::copy(indexVector[b][k].begin(),
+                            indexVector[b][k].end(), progress);
+      }
+    }
+
+    boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
   }
-
-  boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
-
 // allocate and set gpu variables
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars = ff.particles->getCUDAVars();
