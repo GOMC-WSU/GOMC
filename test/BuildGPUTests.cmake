@@ -55,7 +55,7 @@ function(add_GPU_NVT_test name)
     if(MPI_FOUND)
 	    target_link_libraries(${name} ${MPI_LIBRARIES})
     endif()
-endif()
+endfunction(add_GPU_NVT_test)
 
 function(add_GPU_NPT_test name)
     add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
@@ -75,7 +75,7 @@ function(add_GPU_NPT_test name)
     if(MPI_FOUND)
 	    target_link_libraries(${name} ${MPI_LIBRARIES})
     endif()
-endif()
+endfunction(add_GPU_NPT_test)
 
 function(add_GPU_GCMC_test name)
     add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
@@ -95,7 +95,7 @@ function(add_GPU_GCMC_test name)
     if(MPI_FOUND)
 	    target_link_libraries(${name} ${MPI_LIBRARIES})
     endif()
-endif()
+endfunction(add_GPU_GCMC_test)
 
 function(add_GPU_GEMC_test name)
     add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
@@ -115,7 +115,7 @@ function(add_GPU_GEMC_test name)
     if(MPI_FOUND)
 	    target_link_libraries(${name} ${MPI_LIBRARIES})
     endif()
-endif()
+endfunction(add_GPU_GEMC_test)
 
 add_GPU_NVT_test(GOMC_GPU_NVT_Test)
 add_GPU_NPT_test(GOMC_GPU_NPT_Test)
