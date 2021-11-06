@@ -95,6 +95,16 @@ endif()
 # Include file lists
 include(test/FileList.cmake)
 
+# Find if CUDA exists and what is the version number
+include(CheckLanguage)
+check_language(CUDA)
+if(GOMC_GTEST)
+  if (CMAKE_CUDA_COMPILER)
+    include(${PROJECT_SOURCE_DIR}/test/BuildGPUTests.cmake)
+  endif()
+endif()
+
+
 if(GOMC_GTEST)
 # Now simply link against gtest or gtest_main as needed. Eg
   add_NVT_test(GOMC_NVT_Test)
