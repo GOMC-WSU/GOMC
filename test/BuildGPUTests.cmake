@@ -32,7 +32,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # Set host compiler
 set(CCBIN "-ccbin=${CMAKE_CXX_COMPILER}")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${CCBIN}")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${CCBIN} -Wno-deprecated-gpu-targets")
 
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
