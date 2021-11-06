@@ -135,34 +135,6 @@ void CheckpointSetup::SetMolecules()
 
 void CheckpointSetup::SetMoleculeLookup(){
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-<<<<<<< 7ceb8926df3f69003177bd5e746c5e2c82d7d739
-<<<<<<< c6c7bdcd039f4cb264573bee7434d2caef004f85
-  molLookupRef = chkObj.originalMoleculeLookup;
-}
-
-void CheckpointSetup::SetMoleculeSetup(){
-  molSetRef = chkObj.originalMolSetup;
-  molSetRef.AssignKinds(molSetRef.molVars, ffSetupRef);
-}
-
-void CheckpointSetup::SetPDBSetupAtoms(){
-  uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
-  for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
-    trajectoryI = chkObj.originalMoleculeLookup.restartMoleculeIndices[mol];
-    dataI = mol;
-    //Loop through particles in mol.
-    GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
-    GetRestartRangeStartStop(dataStart, dataEnd, dataI);
-    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
-      chkObj.originalAtoms.x[p] = pdbAtomsRef.x[d];
-      chkObj.originalAtoms.y[p] = pdbAtomsRef.y[d];
-      chkObj.originalAtoms.z[p] = pdbAtomsRef.z[d];
-      chkObj.originalAtoms.beta[p] = pdbAtomsRef.beta[d];
-      chkObj.originalAtoms.box[p] = pdbAtomsRef.box[d];
-    }
-  }
-  // Should do a default assignment of the vectors and primitives.
-  pdbAtomsRef = chkObj.originalAtoms;
   molLookupRef = chkObj.originalMoleculeLookup;
 }
 

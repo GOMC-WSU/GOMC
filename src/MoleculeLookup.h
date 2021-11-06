@@ -199,11 +199,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   std::vector<int32_t> atomKind; // stores the atom kind for global atom index
   std::vector<double> atomCharge; // stores the atom's charge for global atom index
 
-  /* For consistent trajectory ordering across checkpoints */
-  bool restartFromCheckpoint;
-  uint32_t * restartMoleculeIndices, * permutedMoleculeIndices;
-  uint32_t restartedNumAtomsInBox[BOX_TOTAL];
-
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
   private:

@@ -25,6 +25,7 @@
     Checkpoint Output - RestartFromCheckpoint = true
 
 */
+
 TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
@@ -332,7 +333,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
      config_setup::RestartSettings rsSingleRun;
 
 
-    std::string pdbnamesBase[2], pdbnamesContinued[2], pdbnamesSingleRun[2];;
+    std::string pdbnamesBase[2], pdbnamesContinued[2], pdbnamesSingleRun[2];
 
     pdbnamesBase[0] = "./test/input/Systems/PEN_HEX/Base/Base_BOX_0.pdb";
     pdbnamesBase[1] = "./test/input/Systems/PEN_HEX/Base/Base_BOX_1.pdb";
@@ -478,7 +479,8 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
     config_setup::RestartSettings rsN;
     config_setup::RestartSettings rsSingleRun;
 
-    std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];;
+
+    std::string pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesSingleRun[2];
     std::string pdbnamesBaseRestart[2], pdbnames1Restart[2], pdbnamesNRestart[2];
 
     pdbnamesBase[0] = "./test/input/Systems/ISOPEN_NEOPEN/Base/base_BOX_0.pdb";
