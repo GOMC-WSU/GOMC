@@ -118,11 +118,6 @@ class Checkpoint
         bool isSingleMoveAccepted[BOXES_WITH_U_NB];
         // Move Settings Vectors
 
-
-        bool isSingleMoveAccepted[BOXES_WITH_U_NB];
-        // Move Settings Vectors
-
-
         #if GOMC_LIB_MPI
         int8_t parallelTemperingEnabled;
 

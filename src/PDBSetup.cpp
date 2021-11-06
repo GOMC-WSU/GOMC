@@ -169,36 +169,7 @@ void Atoms::Clear()
 // and end of the box for the restarted data structures.
 // Hence the numberOfAtoms array.
 
-void Atoms::GetMinMaxAtoms(const uint b){
-  int stRange, endRange;
-  // -1 because we want to exclude the last array index  
-  // Box 0
-  // [0, numAtomsBox0)
-  // Box 1
-  // [numAtomsBox0, numAtomsBox0 + numAtomsBox1)
-  
-  // To prevent segfault
-  if (numAtomsInBox[b] == 0)
-    return;
 
-  if (b == 0){
-    stRange = 0;
-    endRange = numAtomsInBox[0] - 1;
-  } else if (b == 1) {
-    stRange = numAtomsInBox[0];
-    endRange = stRange + numAtomsInBox[1] - 1;
-  } else {
-    std::cout << "Error: Only Box 0 and Box 1 supported!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  min[b].x = *std::min_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
-  min[b].y = *std::min_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));
-  min[b].z = *std::min_element(std::next(z.begin(), stRange), std::next(z.begin(), endRange));
-  max[b].x = *std::max_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
-  max[b].y = *std::max_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));
-  max[b].z = *std::max_element(std::next(z.begin(), stRange), std::next(z.begin(), endRange));
-
-}
 
 // This method of finding minimum assumes all the box 0 atoms 
 // will be contiguous in the coordinates array.  This isn't 
