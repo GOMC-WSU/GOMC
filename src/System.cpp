@@ -273,13 +273,12 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 
 void System::ChooseAndRunMove(const ulong step)
 {
-  if(!restartFromCheckpoint){
+  if(restartFromCheckpoint){
     // step - startStepRef = Δstep
     // true step + Δstep
     r123wrapper.SetStep(trueStep + step - startStepRef);
   } else {
     r123wrapper.SetStep(step);
-
   }
   double draw = 0;
   uint majKind = 0;
