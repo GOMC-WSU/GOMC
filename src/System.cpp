@@ -275,8 +275,11 @@ void System::ChooseAndRunMove(const ulong step)
 {
   if(!restartFromCheckpoint)
     r123wrapper.SetStep(step);
-  else
+  else{
+    // step - startStepRef = Δstep
+    // true step + Δstep
     r123wrapper.SetStep(trueStep + step - startStepRef);
+  }
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
