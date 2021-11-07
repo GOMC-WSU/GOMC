@@ -32,12 +32,7 @@
 
 TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 #ifdef GOMC_CUDA
-    CUdevice dev;
-    cuda_context *res;
-    CUcontext ctx;
-    unsigned int fl = CU_CTX_SCHED_AUTO;
-    err = cuCtxCreate(&ctx, fl, dev);
-        system("nvidia-smi --gpu-reset");
+    system("nvidia-smi --gpu-reset");
 #endif
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
@@ -300,10 +295,11 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
+    base.~Simulation();
+        K_1.~Simulation();
+    K_N.~Simulation();
+    SingleRun.~Simulation();
     checkLastErrorCUDA(__FILE__, __LINE__);
-    #ifdef GOMC_CUDA
-    cuCtxReset(&ctx);
-    #endif
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
