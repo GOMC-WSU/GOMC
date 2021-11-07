@@ -295,8 +295,9 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
+    checkLastErrorCUDA(__FILE__, __LINE__);
     base.~Simulation();
-        K_1.~Simulation();
+    K_1s.~Simulation();
     K_N.~Simulation();
     SingleRun.~Simulation();
     checkLastErrorCUDA(__FILE__, __LINE__);
