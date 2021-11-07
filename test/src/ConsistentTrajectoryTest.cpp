@@ -260,7 +260,6 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
 #if !GOMC_CUDA
-/*
     result = chdir("./test/input/Systems/AR_KR");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -291,7 +290,6 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    */
 #endif
 }
 
@@ -403,7 +401,6 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         }
     }
 #if !GOMC_CUDA
-/*
     result = chdir("./test/input/Systems/PEN_HEX");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -429,7 +426,6 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-*/
 #endif
 }
 
@@ -614,7 +610,6 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
 #if !GOMC_CUDA
-/*
     result = chdir("./test/input/Systems/ISOPEN_NEOPEN");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -641,6 +636,5 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         exit(1);
     }
     result = chdir("../../../..");
-    */
 #endif
 }

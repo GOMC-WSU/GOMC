@@ -16,7 +16,7 @@ TEST(CheckpointTest, CheckPEN_HEX) {
 
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
-/*
+#if !GOMC_CUDA
     int result = chdir("./test/input/Systems/PEN_HEX/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -77,5 +77,5 @@ TEST(CheckpointTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-*/
+#endif
 }
