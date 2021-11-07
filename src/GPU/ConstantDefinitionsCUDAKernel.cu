@@ -358,6 +358,7 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars)
 {
+  /*
   for(uint b = 0; b < BOX_TOTAL; b++) {
     CUFREE(vars->gpu_kx[b]);
     CUFREE(vars->gpu_ky[b]);
@@ -388,10 +389,12 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars)
   delete [] vars->gpu_prefactRef;
   delete [] vars->gpu_hsqr;
   delete [] vars->gpu_hsqrRef;
+  */
 }
 
 void DestroyCUDAVars(VariablesCUDA *vars)
 {
+  /*
   CUFREE(vars->gpu_sigmaSq);
   CUFREE(vars->gpu_epsilon_Cn);
   CUFREE(vars->gpu_n);
@@ -466,10 +469,11 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   delete [] vars-> gpu_Invcell_x;
   delete [] vars-> gpu_Invcell_y;
   delete [] vars-> gpu_Invcell_z;
+  */
       checkLastErrorCUDA(__FILE__, __LINE__);
-#ifdef GOMC_CUDA
-  //CUDAMemoryManager::isFreed();
-#endif
+  CUDAMemoryManager::isFreed();
+        checkLastErrorCUDA(__FILE__, __LINE__);
+
 }
 
 #endif /*GOMC_CUDA*/
