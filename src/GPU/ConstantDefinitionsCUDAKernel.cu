@@ -25,6 +25,8 @@ void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(bool),
              cudaMemcpyHostToDevice);
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
 }
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
@@ -35,6 +37,8 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        int ewald, double diElectric_1)
 {
   int countSq = count * count;
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_sigmaSq, countSq * sizeof(double));
     checkLastErrorCUDA(__FILE__, __LINE__);
 
