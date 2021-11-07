@@ -23,6 +23,7 @@ FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(N
 
 FFParticle::~FFParticle(void)
 {
+  /*
   delete[] mass;
   delete[] nameFirst;
   delete[] nameSec;
@@ -41,10 +42,10 @@ FFParticle::~FFParticle(void)
   delete[] epsilon_cn_1_4;
   delete[] epsilon_cn_6_1_4;
   delete[] nOver6_1_4;
-
+*/
 #ifdef GOMC_CUDA
-  DestroyCUDAVars(varCUDA);
-  delete varCUDA;
+  //DestroyCUDAVars(varCUDA);
+  //delete varCUDA;
 #endif
 }
 
