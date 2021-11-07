@@ -295,11 +295,15 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
+    checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 #ifdef GOMC_CUDA
+    checkLastErrorCUDA(__FILE__, __LINE__);
     system("nvidia-smi --gpu-reset");
+        checkLastErrorCUDA(__FILE__, __LINE__);
+
 #endif
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
