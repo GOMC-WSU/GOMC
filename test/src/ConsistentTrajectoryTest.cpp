@@ -9,6 +9,10 @@
 #include "InputFileReader.h"
 #include "Simulation.h"
 #include<unistd.h> 
+#ifdef GOMC_CUDA
+#include "cuda.h"
+#include <cuda_runtime_api.h>
+#endif
 /* There are 4 cases for restarting from checkpoint 
 
 1) Base Case:
