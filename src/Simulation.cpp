@@ -53,7 +53,6 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
 
 Simulation::~Simulation()
 {
-  /*
   GOMC_EVENT_START(1, GomcProfileEvent::DESTRUCTION);
   delete cpu;
       checkLastErrorCUDA(__FILE__, __LINE__);
@@ -65,7 +64,6 @@ Simulation::~Simulation()
       checkLastErrorCUDA(__FILE__, __LINE__);
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::DESTRUCTION);
-  */
 }
 
 void Simulation::RunSimulation(void)
