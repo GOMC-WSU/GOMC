@@ -78,7 +78,7 @@ Simulation::~Simulation()
         cudaMemGetInfo( &free, &total );
         std::cout << "GPU " << id << " memory: free=" << free << ", total=" << total << std::endl;
     }
-  //cudaDeviceReset();
+    cudaDeviceReset();
 #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::DESTRUCTION);
 }
