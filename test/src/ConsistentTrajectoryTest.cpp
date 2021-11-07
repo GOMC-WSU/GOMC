@@ -29,7 +29,7 @@
     Checkpoint Output - RestartFromCheckpoint = true
 
 */
-/*
+
 TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
@@ -429,7 +429,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         exit(1);
     }
 }
-*/
+
 
 TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 

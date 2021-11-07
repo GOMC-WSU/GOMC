@@ -10,7 +10,10 @@
 #include "Simulation.h"
 #include<unistd.h> 
 #include "MoveSettings.h"
-
+#ifdef GOMC_CUDA
+#include "cuda.h"
+#include <cuda_runtime_api.h>
+#endif
 
 TEST(CheckpointTest, CheckPEN_HEX) {
 
