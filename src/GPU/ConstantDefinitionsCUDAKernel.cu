@@ -471,7 +471,7 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   delete [] vars-> gpu_Invcell_z;
   */
       checkLastErrorCUDA(__FILE__, __LINE__);
-  CUDAMemoryManager::isFreed();
+  //CUDAMemoryManager::isFreed();
         checkLastErrorCUDA(__FILE__, __LINE__);
 
 }
