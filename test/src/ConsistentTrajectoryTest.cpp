@@ -300,6 +300,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 #ifdef GOMC_CUDA
+cuDevicePrimaryCtxReset();
     checkLastErrorCUDA(__FILE__, __LINE__);
     system("nvidia-smi --gpu-reset");
         checkLastErrorCUDA(__FILE__, __LINE__);
