@@ -137,6 +137,7 @@ void Simulation::RunSimulation(void)
 #ifdef GOMC_CUDA
   CUDAMemoryManager::isFreed();
 #endif
+  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 bool Simulation::RecalculateAndCheck(void)
