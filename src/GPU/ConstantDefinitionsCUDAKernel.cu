@@ -456,6 +456,7 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_lambdaVDW);
   CUFREE(vars->gpu_lambdaCoulomb);
   CUFREE(vars->gpu_isFraction);
+    checkLastErrorCUDA(__FILE__, __LINE__);
 
   delete [] vars-> gpu_cell_x;
   delete [] vars-> gpu_cell_y;
@@ -463,6 +464,8 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   delete [] vars-> gpu_Invcell_x;
   delete [] vars-> gpu_Invcell_y;
   delete [] vars-> gpu_Invcell_z;
+      checkLastErrorCUDA(__FILE__, __LINE__);
+
 }
 
 #endif /*GOMC_CUDA*/
