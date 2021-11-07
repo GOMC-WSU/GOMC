@@ -3,8 +3,8 @@ set(TestSources
     test/src/BitLibTest.cpp
     test/src/EndianTest.cpp
     test/src/MolLookupTest.cpp
-    test/src/CircuitTester.cpp
-    test/src/PSFParserTest.cpp
+    #test/src/CircuitTester.cpp
+    #test/src/PSFParserTest.cpp
     test/src/ConsistentTrajectoryTest.cpp
     test/src/CheckpointTest.cpp
 )
@@ -29,9 +29,9 @@ set(GOMCSources
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
    src/DCDlib.cpp
-   src/ExtendedSystemOutput.cpp
    src/EnPartCntSampleOutput.cpp
    src/ExtendedSystem.cpp
+   src/ExtendedSystemOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
    src/FFConst.cpp
@@ -43,6 +43,7 @@ set(GOMCSources
    src/Geometry.cpp
    src/HistOutput.cpp
    src/InputFileReader.cpp
+   #src/Main.cpp
    src/MoleculeKind.cpp
    src/MoleculeLookup.cpp
    src/Molecules.cpp
@@ -101,11 +102,11 @@ set(GOMCHeaders
    src/CoordinateSetup.h
    src/CPUSide.h
    src/DCDlib.h
-   src/ExtendedSystemOutput.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
    src/ExtendedSystem.h
+   src/ExtendedSystemOutput.h
    src/Ewald.h
    src/EwaldCached.h  
    src/FFAngles.h
