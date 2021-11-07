@@ -297,8 +297,14 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     }
     checkLastErrorCUDA(__FILE__, __LINE__);
     base.~Simulation();
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
     K_1.~Simulation();
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
     K_N.~Simulation();
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
     SingleRun.~Simulation();
     checkLastErrorCUDA(__FILE__, __LINE__);
 }
