@@ -58,7 +58,7 @@ Simulation::~Simulation()
   delete system;
   delete staticValues;
 #ifdef GOMC_CUDA
-  //CUDAMemoryManager::isFreed();
+  CUDAMemoryManager::isFreed();
   //cudaDeviceReset();
 #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::DESTRUCTION);
