@@ -25,7 +25,6 @@ Molecules::Molecules() : start(NULL), restartOrderedStart(NULL),
 
 Molecules::~Molecules(void)
 {
-  /*
   delete[] start;
   if (restartFromCheckpoint)
     delete[] restartOrderedStart;
@@ -36,7 +35,6 @@ Molecules::~Molecules(void)
   delete[] kinds;
   delete[] pairEnCorrections;
   delete[] pairVirCorrections;
-  */
 }
 
 void Molecules::Init(Setup & setup, Forcefield & forcefield,

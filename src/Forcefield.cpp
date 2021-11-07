@@ -25,12 +25,11 @@ Forcefield::Forcefield()
 
 Forcefield::~Forcefield()
 {
-  /*
   if(particles != NULL)
     delete particles;
   if( angles != NULL)
     delete angles;
-  */
+
 }
 
 void Forcefield::Init(const Setup& set)

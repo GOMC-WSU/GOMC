@@ -149,11 +149,4 @@ StaticVals::StaticVals(Setup & set) : intraMemcVal(set.config.sys.intraMemcVal),
   }
 }
 
-StaticVals::~StaticVals(){
-  forcefield.~Forcefield();
-  //All the static molecule info --  kind, start index
-  mol.~Molecules();
-}
-
-
 

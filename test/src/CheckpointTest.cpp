@@ -10,15 +10,10 @@
 #include "Simulation.h"
 #include<unistd.h> 
 #include "MoveSettings.h"
-#ifdef GOMC_CUDA
-#include "cuda.h"
-#include <cuda_runtime_api.h>
-#endif
+
 
 TEST(CheckpointTest, CheckPEN_HEX) {
-#ifdef GOMC_CUDA
-    system("nvidia-smi --gpu-reset");
-#endif
+
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
 
@@ -81,7 +76,5 @@ TEST(CheckpointTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-#ifdef GOMC_CUDA
-    cudaDeviceReset();
-#endif
+
 }

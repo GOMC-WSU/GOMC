@@ -25,8 +25,6 @@ void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(bool),
              cudaMemcpyHostToDevice);
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
 }
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
@@ -36,115 +34,46 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double RcutLow, double Ron, double const *alpha,
                        int ewald, double diElectric_1)
 {
-      int num_gpus;
-    size_t free, total;
-    cudaGetDeviceCount( &num_gpus );
-    for ( int gpu_id = 0; gpu_id < num_gpus; gpu_id++ ) {
-        cudaSetDevice( gpu_id );
-        int id;
-        cudaGetDevice( &id );
-        cudaMemGetInfo( &free, &total );
-        std::cout << "GPU " << id << " memory: free=" << free << ", total=" << total << std::endl;
-    }
   int countSq = count * count;
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_sigmaSq, countSq * sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_epsilon_Cn, countSq * sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_n, countSq * sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_VDW_Kind, sizeof(int));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_isMartini, sizeof(int));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_count, sizeof(int));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_rCut, sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_rCutCoulomb, BOX_TOTAL * sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_rCutLow, sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_rOn, sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_alpha, BOX_TOTAL * sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_ewald, sizeof(int));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
-  CUMALLOC((void**) &vars.gpu_diElectric_1, sizeof(double));  
-  checkLastErrorCUDA(__FILE__, __LINE__);
-
+  CUMALLOC((void**) &vars.gpu_diElectric_1, sizeof(double));
 
   // allocate gpu memory for lambda variables
   CUMALLOC((void**) &vars.gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   CUMALLOC((void**) &vars.gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
-  checkLastErrorCUDA(__FILE__, __LINE__);
 
   cudaMemcpy(vars.gpu_sigmaSq, sigmaSq, countSq * sizeof(double),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_epsilon_Cn, epsilon_Cn, countSq * sizeof(double),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_n, n, countSq * sizeof(double), cudaMemcpyHostToDevice);
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_VDW_Kind, &VDW_Kind, sizeof(int),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_isMartini, &isMartini, sizeof(int),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_count, &count, sizeof(int), cudaMemcpyHostToDevice);
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_rCut, &Rcut, sizeof(double), cudaMemcpyHostToDevice);
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_rCutCoulomb, rCutCoulomb, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_rCutLow, &RcutLow, sizeof(double),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_rOn, &Ron, sizeof(double), cudaMemcpyHostToDevice);
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_alpha, alpha, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
-    checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -358,7 +287,6 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars)
 {
-  /*
   for(uint b = 0; b < BOX_TOTAL; b++) {
     CUFREE(vars->gpu_kx[b]);
     CUFREE(vars->gpu_ky[b]);
@@ -389,12 +317,10 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars)
   delete [] vars->gpu_prefactRef;
   delete [] vars->gpu_hsqr;
   delete [] vars->gpu_hsqrRef;
-  */
 }
 
 void DestroyCUDAVars(VariablesCUDA *vars)
 {
-  /*
   CUFREE(vars->gpu_sigmaSq);
   CUFREE(vars->gpu_epsilon_Cn);
   CUFREE(vars->gpu_n);
@@ -445,8 +371,6 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_mapParticleToCell);
   CUFREE(vars->gpu_nonOrth);
   CUFREE(vars->gpu_startAtomIdx);
-      checkLastErrorCUDA(__FILE__, __LINE__);
-
   for(uint b = 0; b < BOX_TOTAL; b++) {
     CUFREE(vars->gpu_cell_x[b]);
     CUFREE(vars->gpu_cell_y[b]);
@@ -461,7 +385,6 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_lambdaVDW);
   CUFREE(vars->gpu_lambdaCoulomb);
   CUFREE(vars->gpu_isFraction);
-    checkLastErrorCUDA(__FILE__, __LINE__);
 
   delete [] vars-> gpu_cell_x;
   delete [] vars-> gpu_cell_y;
@@ -469,11 +392,6 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   delete [] vars-> gpu_Invcell_x;
   delete [] vars-> gpu_Invcell_y;
   delete [] vars-> gpu_Invcell_z;
-  */
-      checkLastErrorCUDA(__FILE__, __LINE__);
-  //CUDAMemoryManager::isFreed();
-        checkLastErrorCUDA(__FILE__, __LINE__);
-
 }
 
 #endif /*GOMC_CUDA*/
