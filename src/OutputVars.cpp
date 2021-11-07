@@ -101,11 +101,28 @@ void OutputVars::CalcAndConvert(ulong step)
   molLookupRef->TotalAndDensity(numByBox,  numByKindBox, molFractionByKindBox,
                                 densityByKindBox, volInvRef);
 
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    densityTot[b] = 0.0;
+    for (uint k = 0; k < numKinds; k++) {
+      double density = densityByKindBox[k + numKinds * b];
+
+      // Convert density to g/ml (which is equivalent to g/cm3)
+      // To get kg/m3, multiply output densities by 1000.
+      density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
+                 kindsRef[k].molMass;
+      densityTot[b] += density;
+    }
+    densityTot[b] *= 1000;
+  }
+
 #if ENSEMBLE == GEMC
   //Determine which box is liquid for purposes of heat of vap.
-  if (densityByKindBox[numKinds] >= densityByKindBox[0]) {
+  if (densityTot[1] >= numByBox[0]) {
     vapBox = mv::BOX0;
     liqBox = mv::BOX1;
+  } else {
+    vapBox = mv::BOX1;
+    liqBox = mv::BOX0;
   }
 #endif
 
@@ -193,19 +210,5 @@ void OutputVars::CalcAndConvert(ulong step)
 #endif
       }
     }
-  }
-
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    densityTot[b] = 0.0;
-    for (uint k = 0; k < numKinds; k++) {
-      double density = densityByKindBox[k + numKinds * b];
-
-      // Convert density to g/ml (which is equivalent to g/cm3)
-      // To get kg/m3, multiply output densities by 1000.
-      density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
-                 kindsRef[k].molMass;
-      densityTot[b] += density;
-    }
-    densityTot[b] *= 1000;
   }
 }
