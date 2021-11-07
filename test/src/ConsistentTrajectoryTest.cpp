@@ -32,7 +32,12 @@
 
 TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 #ifdef GOMC_CUDA
-    system("nvidia-smi --gpu-reset");
+    CUdevice dev;
+    cuda_context *res;
+    CUcontext ctx;
+    unsigned int fl = CU_CTX_SCHED_AUTO;
+    err = cuCtxCreate(&ctx, fl, dev);
+        system("nvidia-smi --gpu-reset");
 #endif
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
@@ -296,11 +301,13 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         exit(1);
     }
     checkLastErrorCUDA(__FILE__, __LINE__);
+    #ifdef GOMC_CUDA
+    cuCtxReset(&ctx);
+    #endif
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 #ifdef GOMC_CUDA
-cuDevicePrimaryCtxReset(0);
     checkLastErrorCUDA(__FILE__, __LINE__);
     system("nvidia-smi --gpu-reset");
         checkLastErrorCUDA(__FILE__, __LINE__);
