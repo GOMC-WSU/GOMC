@@ -55,8 +55,14 @@ Simulation::~Simulation()
 {
   GOMC_EVENT_START(1, GomcProfileEvent::DESTRUCTION);
   delete cpu;
+      checkLastErrorCUDA(__FILE__, __LINE__);
+
   delete system;
+      checkLastErrorCUDA(__FILE__, __LINE__);
+
   delete staticValues;
+      checkLastErrorCUDA(__FILE__, __LINE__);
+
   GOMC_EVENT_STOP(1, GomcProfileEvent::DESTRUCTION);
 }
 
