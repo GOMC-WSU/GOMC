@@ -9,6 +9,7 @@
 #include "InputFileReader.h"
 #include "Simulation.h"
 #include<unistd.h> 
+
 /* There are 4 cases for restarting from checkpoint 
 
 1) Base Case:
@@ -30,7 +31,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
-
+#if !GOMC_CUDA
     int result = chdir("./test/input/Systems/AR_KR/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -70,7 +71,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-
+#endif
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
@@ -258,7 +259,8 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
-
+#if !GOMC_CUDA
+/*
     result = chdir("./test/input/Systems/AR_KR");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -289,13 +291,15 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
+    */
+#endif
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
-
+#if !GOMC_CUDA
     int result = chdir("./test/input/Systems/PEN_HEX/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -326,7 +330,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-
+#endif
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rsContinued;
@@ -398,7 +402,8 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
             EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
         }
     }
-    
+#if !GOMC_CUDA
+/*
     result = chdir("./test/input/Systems/PEN_HEX");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -424,6 +429,8 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
+*/
+#endif
 }
 
 
@@ -431,7 +438,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
-
+#if !GOMC_CUDA
     int result = chdir("./test/input/Systems/ISOPEN_NEOPEN/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -472,7 +479,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-
+#endif
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
@@ -606,7 +613,8 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
-    
+#if !GOMC_CUDA
+/*
     result = chdir("./test/input/Systems/ISOPEN_NEOPEN");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -633,4 +641,6 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         exit(1);
     }
     result = chdir("../../../..");
+    */
+#endif
 }
