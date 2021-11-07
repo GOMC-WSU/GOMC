@@ -60,7 +60,7 @@ Simulation::~Simulation()
   delete system;
       checkLastErrorCUDA(__FILE__, __LINE__);
 
-  delete staticValues;
+  //delete staticValues;
       checkLastErrorCUDA(__FILE__, __LINE__);
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::DESTRUCTION);
