@@ -63,6 +63,8 @@ Simulation::~Simulation()
   delete staticValues;
       checkLastErrorCUDA(__FILE__, __LINE__);
 
+      checkLastErrorCUDA(__FILE__, __LINE__);
+
   GOMC_EVENT_STOP(1, GomcProfileEvent::DESTRUCTION);
 }
 
@@ -140,9 +142,7 @@ void Simulation::RunSimulation(void)
   if (staticValues->simEventFreq.parallelTemp)
     PTUtils->print_replica_exchange_statistics(ms->fplog);
 #endif
-#ifdef GOMC_CUDA
-  CUDAMemoryManager::isFreed();
-#endif
+
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 

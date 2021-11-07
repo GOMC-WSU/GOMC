@@ -442,6 +442,8 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_mapParticleToCell);
   CUFREE(vars->gpu_nonOrth);
   CUFREE(vars->gpu_startAtomIdx);
+      checkLastErrorCUDA(__FILE__, __LINE__);
+
   for(uint b = 0; b < BOX_TOTAL; b++) {
     CUFREE(vars->gpu_cell_x[b]);
     CUFREE(vars->gpu_cell_y[b]);
@@ -465,7 +467,9 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   delete [] vars-> gpu_Invcell_y;
   delete [] vars-> gpu_Invcell_z;
       checkLastErrorCUDA(__FILE__, __LINE__);
-
+#ifdef GOMC_CUDA
+  CUDAMemoryManager::isFreed();
+#endif
 }
 
 #endif /*GOMC_CUDA*/
