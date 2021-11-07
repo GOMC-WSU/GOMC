@@ -294,7 +294,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         exit(1);
     }
 }
-
+/*
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
     ulong base_runsteps, Continued_runsteps;
@@ -429,7 +429,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         exit(1);
     }
 }
-
+*/
 
 TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
