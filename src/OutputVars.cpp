@@ -117,7 +117,7 @@ void OutputVars::CalcAndConvert(ulong step)
 
 #if ENSEMBLE == GEMC
   //Determine which box is liquid for purposes of heat of vap.
-  if (densityTot[1] >= numByBox[0]) {
+  if (densityTot[mv::BOX1] >= densityTot[mv::BOX0]) {
     vapBox = mv::BOX0;
     liqBox = mv::BOX1;
   } else {
