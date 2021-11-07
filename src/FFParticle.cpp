@@ -52,6 +52,8 @@ void FFParticle::Init(ff_setup::Particle const& mie,
                       ff_setup::NBfix const& nbfix)
 {
 #ifdef GOMC_CUDA
+  std::cout << "allocated cuda vars" << std::endl;
+  exit(1);
   // Variables for GPU stored in here
   varCUDA = new VariablesCUDA();
 #endif
