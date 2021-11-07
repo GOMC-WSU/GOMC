@@ -48,6 +48,10 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq, set.config.sys.step.parallelTemperingAttemptsPerExchange) : NULL;
   exchangeResults.resize(ms->worldSize, false);
 #endif
+
+#ifdef GOMC_CUDA
+  cudaDeviceReset();
+#endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::INITIALIZE);
 }
 
