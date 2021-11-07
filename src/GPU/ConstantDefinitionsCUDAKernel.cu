@@ -36,6 +36,16 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double RcutLow, double Ron, double const *alpha,
                        int ewald, double diElectric_1)
 {
+      int num_gpus;
+    size_t free, total;
+    cudaGetDeviceCount( &num_gpus );
+    for ( int gpu_id = 0; gpu_id < num_gpus; gpu_id++ ) {
+        cudaSetDevice( gpu_id );
+        int id;
+        cudaGetDevice( &id );
+        cudaMemGetInfo( &free, &total );
+        std::cout << "GPU " << id << " memory: free=" << free << ", total=" << total << std::endl;
+    }
   int countSq = count * count;
     checkLastErrorCUDA(__FILE__, __LINE__);
 
