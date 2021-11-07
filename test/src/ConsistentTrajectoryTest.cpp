@@ -31,7 +31,9 @@
 */
 
 TEST(ConsistentTrajectoryTest, CheckAR_KR) {
-
+#ifdef GOMC_CUDA
+    system("nvidia-smi --gpu-reset");
+#endif
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
 
@@ -293,13 +295,12 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-#ifdef GOMC_CUDA
-    cudaDeviceReset();
-#endif
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
-
+#ifdef GOMC_CUDA
+    system("nvidia-smi --gpu-reset");
+#endif
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
 
@@ -438,7 +439,9 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
 
 TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
-
+#ifdef GOMC_CUDA
+    system("nvidia-smi --gpu-reset");
+#endif
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
 

@@ -16,7 +16,9 @@
 #endif
 
 TEST(CheckpointTest, CheckPEN_HEX) {
-
+#ifdef GOMC_CUDA
+    system("nvidia-smi --gpu-reset");
+#endif
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
 
