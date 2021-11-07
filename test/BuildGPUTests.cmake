@@ -105,7 +105,7 @@ function(add_GPU_GEMC_test name)
         ${TestHeaders} ${TestSources})
     target_link_libraries(${name} gtest_main)
     set_target_properties(${name} PROPERTIES
-        CUDA_SEPARABLE_COMPILATION OFF
+        CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${name}
         CUDA_ARCHITECTURES 35 60 70
         COMPILE_FLAGS "${GPU_GE_flags}")
