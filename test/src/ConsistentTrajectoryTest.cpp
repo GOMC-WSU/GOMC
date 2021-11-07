@@ -293,6 +293,9 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
+#ifdef GOMC_CUDA
+    cudaDeviceReset();
+#endif
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
@@ -428,6 +431,9 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
+#ifdef GOMC_CUDA
+    cudaDeviceReset();
+#endif
 }
 
 
@@ -637,4 +643,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         exit(1);
     }
     result = chdir("../../../..");
+#ifdef GOMC_CUDA
+    cudaDeviceReset();
+#endif
 }

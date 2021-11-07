@@ -79,5 +79,7 @@ TEST(CheckpointTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-
+#ifdef GOMC_CUDA
+    cudaDeviceReset();
+#endif
 }
