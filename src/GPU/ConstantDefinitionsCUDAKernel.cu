@@ -36,44 +36,101 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
 {
   int countSq = count * count;
   CUMALLOC((void**) &vars.gpu_sigmaSq, countSq * sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_epsilon_Cn, countSq * sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_n, countSq * sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_VDW_Kind, sizeof(int));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_isMartini, sizeof(int));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_count, sizeof(int));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_rCut, sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_rCutCoulomb, BOX_TOTAL * sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_rCutLow, sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_rOn, sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_alpha, BOX_TOTAL * sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_ewald, sizeof(int));
-  CUMALLOC((void**) &vars.gpu_diElectric_1, sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
+  CUMALLOC((void**) &vars.gpu_diElectric_1, sizeof(double));  
+  checkLastErrorCUDA(__FILE__, __LINE__);
+
 
   // allocate gpu memory for lambda variables
   CUMALLOC((void**) &vars.gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   CUMALLOC((void**) &vars.gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
   cudaMemcpy(vars.gpu_sigmaSq, sigmaSq, countSq * sizeof(double),
              cudaMemcpyHostToDevice);
+               checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_epsilon_Cn, epsilon_Cn, countSq * sizeof(double),
              cudaMemcpyHostToDevice);
+               checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_n, n, countSq * sizeof(double), cudaMemcpyHostToDevice);
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_VDW_Kind, &VDW_Kind, sizeof(int),
              cudaMemcpyHostToDevice);
+               checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_isMartini, &isMartini, sizeof(int),
              cudaMemcpyHostToDevice);
+               checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_count, &count, sizeof(int), cudaMemcpyHostToDevice);
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_rCut, &Rcut, sizeof(double), cudaMemcpyHostToDevice);
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_rCutCoulomb, rCutCoulomb, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
+               checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_rCutLow, &RcutLow, sizeof(double),
              cudaMemcpyHostToDevice);
+               checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_rOn, &Ron, sizeof(double), cudaMemcpyHostToDevice);
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_alpha, alpha, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
+               checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
