@@ -441,6 +441,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 #ifdef GOMC_CUDA
     system("nvidia-smi --gpu-reset");
+    cudaSetDevice(0);
 #endif
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
