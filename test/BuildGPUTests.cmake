@@ -105,7 +105,7 @@ function(add_GPU_GEMC_test name)
         ${TestHeaders} ${TestSources})
     target_link_libraries(${name} gtest_main)
     set_target_properties(${name} PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_SEPARABLE_COMPILATION OFF
         OUTPUT_NAME ${name}
         CUDA_ARCHITECTURES 35 60 70
         COMPILE_FLAGS "${GPU_GE_flags}")
@@ -113,12 +113,6 @@ function(add_GPU_GEMC_test name)
 		message("-- Debug build type detected, ${name} setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET ${name} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 	endif()
-    if(WIN32)
-        target_link_libraries(${name} ws2_32)
-    endif()
-    if(MPI_FOUND)
-	    target_link_libraries(${name} ${MPI_LIBRARIES})
-    endif()
       add_test(NAME BasicTypesTest_GPU_GEMC COMMAND BasicTypesTest)
       #add_test(NAME CircuitTester_GPU_GEMC COMMAND DialaTest)
       add_test(NAME MolLookupTest_GPU_GEMC COMMAND CheckConsensusBeta)
