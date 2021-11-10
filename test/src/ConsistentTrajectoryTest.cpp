@@ -35,48 +35,45 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
-    }
-    if(!result){
+    } else {
         Simulation base("in.conf");
         base_runsteps = base.GetRunSteps();
         base.RunSimulation();
-        result = chdir("../K_1");
-        if (result){
-            std::cout << "System call failed!" << std::endl;
-            exit(1);
-        }
     }
-    if(!result){
+    result = chdir("../K_1");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } else {
         Simulation K_1("in.conf");
         K_1_true_step = K_1.GetTrueStep();
         K_1_runsteps = K_1.GetRunSteps();
         EXPECT_EQ(base_runsteps == K_1_true_step, true);
         K_1.RunSimulation();
-        result = chdir("../K_N");
-        if (result){
-            std::cout << "System call failed!" << std::endl;
-            exit(1);
-        }
     }
-    if(!result){
+
+    result = chdir("../K_N");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } else {
         Simulation K_N("in.conf");
         K_N_true_step = K_N.GetTrueStep();
         EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
         K_N.RunSimulation();
-        result = chdir("../SingleRun");
-        if (result){
-            std::cout << "System call failed!" << std::endl;
-            exit(1);
-        }
     }
-    if(!result){
+    result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } else {
         Simulation SingleRun("in.conf");
         SingleRun.RunSimulation();
-        result = chdir("../../../../..");
-        if (result){
-            std::cout << "System call failed!" << std::endl;
-            exit(1);
-        }
+    }
+    result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
     }
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
@@ -265,7 +262,6 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
-#if !GOMC_CUDA
     result = chdir("./test/input/Systems/AR_KR");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -296,45 +292,46 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-#endif
 }
 
 TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
-#if !GOMC_CUDA
     int result = chdir("./test/input/Systems/PEN_HEX/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
+    } else {
+        Simulation base("in.conf");
+        base_runsteps = base.GetRunSteps();
+        base.RunSimulation();
     }
-    Simulation base("in.conf");
-    base_runsteps = base.GetRunSteps();
-    base.RunSimulation();
     result = chdir("../Continued");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
+    } else {
+        Simulation Continued("in.conf");
+        Continued_true_step = Continued.GetTrueStep();
+        // Steps index from 0, hence minus 1
+        EXPECT_EQ(base_runsteps == Continued_true_step, true);
+        Continued.RunSimulation();
     }
-    Simulation Continued("in.conf");
-    Continued_true_step = Continued.GetTrueStep();
-    // Steps index from 0, hence minus 1
-    EXPECT_EQ(base_runsteps == Continued_true_step, true);
-    Continued.RunSimulation();
     result = chdir("../SingleRun");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
+    } else {
+        Simulation SingleRun("in.conf");
+        SingleRun.RunSimulation();
     }
-    Simulation SingleRun("in.conf");
-    SingleRun.RunSimulation();
     result = chdir("../../../../..");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-#endif
+
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rsContinued;
@@ -406,7 +403,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
             EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
         }
     }
-#if !GOMC_CUDA
+
     result = chdir("./test/input/Systems/PEN_HEX");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -432,7 +429,6 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-#endif
 }
 
 
@@ -440,48 +436,51 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
-#if !GOMC_CUDA
+
     int result = chdir("./test/input/Systems/ISOPEN_NEOPEN/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
+    } else {
+        Simulation base("in.conf");
+        base_runsteps = base.GetRunSteps();
+        base.RunSimulation();
     }
-    Simulation base("in.conf");
-    base_runsteps = base.GetRunSteps();
-    base.RunSimulation();
     result = chdir("../K_1");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
+    } else {
+        Simulation K_1("in.conf");
+        K_1_true_step = K_1.GetTrueStep();
+        K_1_runsteps = K_1.GetRunSteps();
+        // Steps index from 0, hence minus 1
+        EXPECT_EQ(base_runsteps == K_1_true_step, true);
+        K_1.RunSimulation();
     }
-    Simulation K_1("in.conf");
-    K_1_true_step = K_1.GetTrueStep();
-    K_1_runsteps = K_1.GetRunSteps();
-    // Steps index from 0, hence minus 1
-    EXPECT_EQ(base_runsteps == K_1_true_step, true);
-    K_1.RunSimulation();
     result = chdir("../K_N");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
+    } else {
+        Simulation K_N("in.conf");
+        K_N_true_step = K_N.GetTrueStep();
+        EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
+        K_N.RunSimulation();
     }
-    Simulation K_N("in.conf");
-    K_N_true_step = K_N.GetTrueStep();
-    EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
-    K_N.RunSimulation();
     result = chdir("../SingleRun");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
+    } else {
+        Simulation SingleRun("in.conf");
+        SingleRun.RunSimulation();
     }
-    Simulation SingleRun("in.conf");
-    SingleRun.RunSimulation();
     result = chdir("../../../../..");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-#endif
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
@@ -615,7 +614,6 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
         EXPECT_EQ(pdnN_K_1_To_K_N.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
     }
-#if !GOMC_CUDA
     result = chdir("./test/input/Systems/ISOPEN_NEOPEN");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -642,5 +640,4 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         exit(1);
     }
     result = chdir("../../../..");
-#endif
 }
