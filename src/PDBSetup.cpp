@@ -169,17 +169,6 @@ void Atoms::Clear()
 // and end of the box for the restarted data structures.
 // Hence the numberOfAtoms array.
 
-
-
-// This method of finding minimum assumes all the box 0 atoms 
-// will be contiguous in the coordinates array.  This isn't 
-// the case on checkpoint restarts.  Since we went out of the
-// way to ensure even when box transfers occur, the atoms
-// remain in the same original order in the original data structure.
-// We therefore can't rely on the molecule lookup to get the start 
-// and end of the box for the restarted data structures.
-// Hence the numberOfAtoms array.
-
 void Atoms::GetMinMaxAtoms(const uint b){
   int stRange, endRange;
   // -1 because we want to exclude the last array index  
