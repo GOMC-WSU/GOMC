@@ -36,41 +36,48 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    Simulation base("in.conf");
-    base_runsteps = base.GetRunSteps();
-    base.RunSimulation();
-    result = chdir("../K_1");
-    if (result){
-        std::cout << "System call failed!" << std::endl;
-        exit(1);
+    if(!result){
+        Simulation base("in.conf");
+        base_runsteps = base.GetRunSteps();
+        base.RunSimulation();
+        result = chdir("../K_1");
+        if (result){
+            std::cout << "System call failed!" << std::endl;
+            exit(1);
+        }
     }
-    Simulation K_1("in.conf");
-    K_1_true_step = K_1.GetTrueStep();
-    K_1_runsteps = K_1.GetRunSteps();
-    EXPECT_EQ(base_runsteps == K_1_true_step, true);
-    K_1.RunSimulation();
-    result = chdir("../K_N");
-    if (result){
-        std::cout << "System call failed!" << std::endl;
-        exit(1);
+    if(!result){
+        Simulation K_1("in.conf");
+        K_1_true_step = K_1.GetTrueStep();
+        K_1_runsteps = K_1.GetRunSteps();
+        EXPECT_EQ(base_runsteps == K_1_true_step, true);
+        K_1.RunSimulation();
+        result = chdir("../K_N");
+        if (result){
+            std::cout << "System call failed!" << std::endl;
+            exit(1);
+        }
     }
-    Simulation K_N("in.conf");
-    K_N_true_step = K_N.GetTrueStep();
-    EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
-    K_N.RunSimulation();
-    result = chdir("../SingleRun");
-    if (result){
-        std::cout << "System call failed!" << std::endl;
-        exit(1);
+    if(!result){
+        Simulation K_N("in.conf");
+        K_N_true_step = K_N.GetTrueStep();
+        EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
+        K_N.RunSimulation();
+        result = chdir("../SingleRun");
+        if (result){
+            std::cout << "System call failed!" << std::endl;
+            exit(1);
+        }
     }
-    Simulation SingleRun("in.conf");
-    SingleRun.RunSimulation();
-    result = chdir("../../../../..");
-    if (result){
-        std::cout << "System call failed!" << std::endl;
-        exit(1);
+    if(!result){
+        Simulation SingleRun("in.conf");
+        SingleRun.RunSimulation();
+        result = chdir("../../../../..");
+        if (result){
+            std::cout << "System call failed!" << std::endl;
+            exit(1);
+        }
     }
-
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;

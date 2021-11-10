@@ -1,8 +1,8 @@
 # Find CUDA is enabled, set it up
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	message("-- Debug build type detected, passing : '-g -G --keep' to nvcc")
-	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -G --keep")
+	message("-- Debug build type detected, passing : '-g -G --keep -lineinfo' to nvcc")
+	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -G --keep -lineinfo")
 endif()
 
 
