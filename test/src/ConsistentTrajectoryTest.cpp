@@ -31,7 +31,6 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
-#if !GOMC_CUDA
     int result = chdir("./test/input/Systems/AR_KR/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -71,7 +70,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-#endif
+
     config_setup::RestartSettings rsStart;
     config_setup::RestartSettings rsBase;
     config_setup::RestartSettings rs1;
