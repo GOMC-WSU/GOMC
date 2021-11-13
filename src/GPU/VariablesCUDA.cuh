@@ -113,6 +113,7 @@ public:
   double *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
   double *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
   double *gpu_mTorquex, *gpu_mTorquey, *gpu_mTorquez;
+  int *gpu_inForceRange;
   double *gpu_aForceRecx, *gpu_aForceRecy, *gpu_aForceRecz;
   double *gpu_mForceRecx, *gpu_mForceRecy, *gpu_mForceRecz;
   double *gpu_rMin, *gpu_expConst, *gpu_rMaxSq;

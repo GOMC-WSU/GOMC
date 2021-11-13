@@ -51,7 +51,7 @@ private:
   int moveType;
   bool allTranslate;
   std::vector<uint> moleculeIndex;
-  std::vector<bool> inForceRange;
+  std::vector<int> inForceRange;
   const MoleculeLookup& molLookup;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
@@ -181,7 +181,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   } else {
     moveType = prng.randIntExc(mp::MPTOTALTYPES);
   }
-
+  
   SetMolInBox(bPick);
   // reset all inForceRange vector to false.
   std::fill(inForceRange.begin(), inForceRange.end(), false);
@@ -290,7 +290,7 @@ inline uint MultiParticle::Transform()
   if(moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
     CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, r_max,
-                           molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
+                           molTorqueRef.x, molTorqueRef.y, molTorqueRef.z, inForceRange,
                            r123wrapper.GetStep(), r123wrapper.GetKeyValue(),
                            r123wrapper.GetSeedValue(), particleMol,
                            atomForceRecNew.Count(), molForceRecNew.Count(),
@@ -300,7 +300,7 @@ inline uint MultiParticle::Transform()
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
     CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, t_max,
-                              molForceRef.x, molForceRef.y, molForceRef.z,
+                              molForceRef.x, molForceRef.y, molForceRef.z, inForceRange,
                               r123wrapper.GetStep(), r123wrapper.GetKeyValue(),
                               r123wrapper.GetSeedValue(), particleMol,
                               atomForceRecNew.Count(), molForceRecNew.Count(),

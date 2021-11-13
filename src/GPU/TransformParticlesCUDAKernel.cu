@@ -26,7 +26,7 @@ __device__ inline double randomGPU(unsigned int counter, ulong step, ulong seed)
   return r123::u01<double>(r[0]);
 }
 
-__device__ inline double3 randomCoordsGPU(unsigned int counter, ulong key, ulong step, ulong seed)
+__device__ inline double3 randomCoordsGPU(unsigned int counter, unsigned int key, ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -61,7 +61,7 @@ __device__ inline double randomGaussianGPU(unsigned int counter, ulong step,
   return  shiftedVal;
 }
 
-__device__ inline double3 randomGaussianCoordsGPU(unsigned int counter, ulong key, ulong step,
+__device__ inline double3 randomGaussianCoordsGPU(unsigned int counter, unsigned int key, ulong step,
                                                   ulong seed, double mean, double stdDev)
 {
   RNG::ctr_type c = {{}};
@@ -81,7 +81,7 @@ __device__ inline double3 randomGaussianCoordsGPU(unsigned int counter, ulong ke
   return normals;
 }
 
-__device__ inline double SymRandomGPU(unsigned int counter, ulong key, ulong step, ulong seed)
+__device__ inline double SymRandomGPU(unsigned int counter, unsigned int key, ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -95,7 +95,8 @@ __device__ inline double SymRandomGPU(unsigned int counter, ulong key, ulong ste
   return r01;
 }
 
-__device__ inline double3 SymRandomCoordsGPU(unsigned int counter, ulong key, ulong step, ulong seed)
+__device__ inline double3 SymRandomCoordsGPU(unsigned int counter, unsigned int key,
+                                             ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -113,7 +114,8 @@ __device__ inline double3 SymRandomCoordsGPU(unsigned int counter, ulong key, ul
 }
 
 //Returns a uniformly random point on the unit sphere
-__device__ inline double3 RandomCoordsOnSphereGPU(unsigned int counter, ulong key, ulong step, ulong seed)
+__device__ inline double3 RandomCoordsOnSphereGPU(unsigned int counter, unsigned int key,
+                                                  ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -126,7 +128,7 @@ __device__ inline double3 RandomCoordsOnSphereGPU(unsigned int counter, ulong ke
   //picking phi uniformly will cluster points at poles
   //pick u = cos(phi) uniformly instead
   //start from r[1] because I used r[0] in GetSymRandom when called in multiparticle
-  double u = 2.0 * r123::u01<double>(r[1]) - 1.0;
+  double u = r123::uneg11<double>(r[1]);
   // theta must be [0, 2pi) !
   double theta = 2.0 * M_PI * r123::u01<double>(r[2]);
   double sintheta, costheta;
@@ -230,8 +232,9 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                double *mForcex,
                                double *mForcey,
                                double *mForcez,
+                               std::vector<int> &inForceRange,
                                ulong step,
-                               ulong key,
+                               unsigned int key,
                                ulong seed,
                                const std::vector<int> &particleMol,
                                int atomCount,
@@ -283,6 +286,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
       vars->gpu_mForcex,
       vars->gpu_mForcey,
       vars->gpu_mForcez,
+      vars->gpu_inForceRange,
       step,
       key,
       seed,
@@ -324,6 +328,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(t_k.x, vars->gpu_t_k_x, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(t_k.y, vars->gpu_t_k_y, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(t_k.z, vars->gpu_t_k_z, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&inForceRange[0], vars->gpu_inForceRange, molCount * sizeof(int), cudaMemcpyDeviceToHost);
   CUFREE(gpu_isMoleculeInvolved);
   CUFREE(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -336,8 +341,9 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double *mTorquex,
                             double *mTorquey,
                             double *mTorquez,
+                            std::vector<int> &inForceRange,
                             ulong step,
-                            ulong key,
+                            unsigned int key,
                             ulong seed,
                             const std::vector<int> &particleMol,
                             int atomCount,
@@ -377,6 +383,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
       vars->gpu_mTorquex,
       vars->gpu_mTorquey,
       vars->gpu_mTorquez,
+      vars->gpu_inForceRange,
       step,
       key,
       seed,
@@ -412,6 +419,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(r_k.x, vars->gpu_r_k_x, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(r_k.y, vars->gpu_r_k_y, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(r_k.z, vars->gpu_r_k_z, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&inForceRange[0], vars->gpu_inForceRange, molCount * sizeof(int), cudaMemcpyDeviceToHost);
   CUFREE(gpu_isMoleculeInvolved);
   CUFREE(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -422,8 +430,9 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *molForcex,
     double *molForcey,
     double *molForcez,
+    int *gpu_inForceRange,
     ulong step,
-    ulong key,
+    unsigned int key,
     ulong seed,
     double *gpu_x,
     double *gpu_y,
@@ -520,6 +529,7 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     gpu_t_k_x[molIndex] = shiftx;
     gpu_t_k_y[molIndex] = shifty;
     gpu_t_k_z[molIndex] = shiftz;
+    gpu_inForceRange[molIndex] = forceInRange;
   }
 }
 
@@ -528,8 +538,9 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *molTorquex,
                                       double *molTorquey,
                                       double *molTorquez,
+                                      int *gpu_inForceRange,
                                       ulong step,
-                                      ulong key,
+                                      unsigned int key,
                                       ulong seed,
                                       double *gpu_x,
                                       double *gpu_y,
@@ -591,13 +602,14 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
     roty = r_max * randnums.y;
     rotz = r_max * randnums.z;
     theta = r_max * SymRandomGPU(molIndex, key, step, seed);
-    rotvec = make_double3(rotx, roty, rotz);
+	rotvec = randnums;
   }
 
   if(updateMol) {
     gpu_r_k_x[molIndex] = rotx;
     gpu_r_k_y[molIndex] = roty;
     gpu_r_k_z[molIndex] = rotz;
+    gpu_inForceRange[molIndex] = forceInRange;
   }
 
   // perform the rotation on the coordinates
@@ -621,7 +633,7 @@ void BrownianMotionRotateParticlesGPU(
   const double BETA,
   const double r_max,
   ulong step,
-  ulong key,
+  unsigned int key,
   ulong seed,
   const int box,
   const bool isOrthogonal,
@@ -754,7 +766,7 @@ __global__ void BrownianMotionRotateKernel(
   int atomCount,
   double r_max,
   ulong step,
-  ulong key,
+  unsigned int key,
   ulong seed,
   double BETA,
   int *kill)
@@ -879,7 +891,7 @@ void BrownianMotionTranslateParticlesGPU(
   const double BETA,
   const double t_max,
   ulong step,
-  ulong key,
+  unsigned int key,
   ulong seed,
   const int box,
   const bool isOrthogonal,
@@ -1028,7 +1040,7 @@ __global__ void BrownianMotionTranslateKernel(
   int atomCount,
   double t_max,
   ulong step,
-  ulong key,
+  unsigned int key,
   ulong seed,
   double BETA,
   int *kill)

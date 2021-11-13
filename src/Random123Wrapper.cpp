@@ -83,8 +83,7 @@ XYZ Random123Wrapper::GetRandomCoordsOnSphere(unsigned int counter)
   //picking phi uniformly will cluster points at poles
   //pick u = cos(phi) uniformly instead
   //start from r[1] because I used r[0] in GetSymRandom when called in multiparticle
-  double u = 2.0 * r123::u01<double>(r[1]);
-  u -= 1.0;
+  double u = r123::uneg11<double>(r[1]);
   // theta must be [0, 2pi) !
   double theta = 2.0 * M_PI * r123::u01<double>(r[2]);
   double rootTerm = sqrt(1.0 - u * u);
