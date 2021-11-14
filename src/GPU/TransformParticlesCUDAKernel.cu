@@ -22,7 +22,6 @@ __device__ inline double randomGPU(unsigned int counter, ulong step, ulong seed)
   RNG::key_type k = uk;
   c[0] = counter;
   RNG::ctr_type r = philox4x64(c, k);
-  // return static_cast<double>(r[0]) * RAND_INTERVAL_GPU;
   return r123::u01<double>(r[0]);
 }
 
@@ -37,9 +36,6 @@ __device__ inline double3 randomCoordsGPU(unsigned int counter, unsigned int key
   c[1] = key;
   RNG::ctr_type r = philox4x64(c, k);
   double3 r01;
-  // r01.x = static_cast<double>(r[0]) * RAND_INTERVAL_GPU;
-  // r01.y = static_cast<double>(r[1]) * RAND_INTERVAL_GPU;
-  // r01.z = static_cast<double>(r[2]) * RAND_INTERVAL_GPU;
   r01.x = r123::u01<double>(r[0]);
   r01.y = r123::u01<double>(r[1]);
   r01.z = r123::u01<double>(r[2]);
@@ -598,11 +594,12 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   }
   else {
     double3 randnums = RandomCoordsOnSphereGPU(molIndex, key, step, seed);
-    rotx = r_max * randnums.x;
-    roty = r_max * randnums.y;
-    rotz = r_max * randnums.z;
+    //These values are ignored if !forceInRange so just initialize to zero.
+    rotx = 0.0;
+    roty = 0.0;
+    rotz = 0.0;
     theta = r_max * SymRandomGPU(molIndex, key, step, seed);
-	rotvec = randnums;
+    rotvec = randnums;
   }
 
   if(updateMol) {

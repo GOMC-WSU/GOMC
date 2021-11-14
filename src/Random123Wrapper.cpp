@@ -27,7 +27,6 @@ double Random123Wrapper::GetRandomNumber(unsigned int counter)
   c[0] = counter;
   RNG::key_type k = uk;
   RNG::ctr_type r = rng(c, k);
-  // double r01 = r[0] * RAND_INTERVAL;
   double r01 = r123::u01<double>(r[0]);
   return r01;
 }
@@ -38,9 +37,6 @@ XYZ Random123Wrapper::GetRandomCoords(unsigned int counter)
   RNG::key_type k = uk;
   RNG::ctr_type r = rng(c, k);
   XYZ r01;
-  // r01.x = static_cast<double>(r[0]) * RAND_INTERVAL;
-  // r01.y = static_cast<double>(r[1]) * RAND_INTERVAL;
-  // r01.z = static_cast<double>(r[2]) * RAND_INTERVAL;
   r01.x = r123::u01<double>(r[0]);
   r01.y = r123::u01<double>(r[1]);
   r01.z = r123::u01<double>(r[2]);
@@ -53,7 +49,6 @@ double Random123Wrapper::GetSymRandom(unsigned int counter, double bound)
   RNG::key_type k = uk;
   RNG::ctr_type r = rng(c, k);
   double r01;
-  // r01 = 2.0 * bound * static_cast<double>(r[0]) * RAND_INTERVAL - bound;
   r01 = bound * r123::uneg11<double>(r[0]);
   return r01;
 }
@@ -64,9 +59,6 @@ XYZ Random123Wrapper::GetSymRandomCoords(unsigned int counter, double bound)
   RNG::key_type k = uk;
   RNG::ctr_type r = rng(c, k);
   XYZ r01;
-  // r01.x = 2.0 * bound * static_cast<double>(r[0]) * RAND_INTERVAL - bound;
-  // r01.y = 2.0 * bound * static_cast<double>(r[1]) * RAND_INTERVAL - bound;
-  // r01.z = 2.0 * bound * static_cast<double>(r[2]) * RAND_INTERVAL - bound;
   r01.x = bound * r123::uneg11<double>(r[0]);
   r01.y = bound * r123::uneg11<double>(r[1]);
   r01.z = bound * r123::uneg11<double>(r[2]);
