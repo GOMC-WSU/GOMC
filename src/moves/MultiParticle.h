@@ -637,8 +637,8 @@ inline void MultiParticle::RotateRandom(uint molIndex)
 
 inline void MultiParticle::TranslateRandom(uint molIndex)
 {
-  double r_max = moveSetRef.GetTMAX(bPick);
-  XYZ shift = r123wrapper.GetSymRandomCoords(molIndex, r_max);
+  double t_max = moveSetRef.GetTMAX(bPick);
+  XYZ shift = r123wrapper.GetSymRandomCoords(molIndex, t_max);
 
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
