@@ -25,7 +25,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
   system = new System(*staticValues, set, startStep, multisim);
-  //Checkpoint must occur before this line
+  //Reload from Checkpoint must occur before this line
   staticValues->Init(set, *system);
   system->Init(set);
   // This happens after checkpoint has possible changed startStep
