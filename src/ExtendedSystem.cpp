@@ -200,9 +200,9 @@ void ExtendedSystem::UpdateVelocity(PDBSetup &pdb,
     mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
     mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
     for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
-      pdb.atoms.x[p] = binaryVeloc[d].x;
-      pdb.atoms.y[p] = binaryVeloc[d].y;
-      pdb.atoms.z[p] = binaryVeloc[d].z;
+      vel.x[p] = binaryVeloc[d].x;
+      vel.y[p] = binaryVeloc[d].y;
+      vel.z[p] = binaryVeloc[d].z;
     }
   }
 }
