@@ -12,10 +12,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h" //For uint, XYZ
 #include <cmath>
 #include <iostream>
-#ifdef GOMC_CUDA
-#include <cuda.h>
-#endif
-
 
 #ifndef DBL_MAX
 #define DBL_MAX 1.7976931348623158e+308
