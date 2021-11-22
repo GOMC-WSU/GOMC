@@ -543,7 +543,6 @@ void CallBoxForceReciprocalGPU(
   const std::vector<int> &lengthMol,
   double alpha,
   double alphaSq,
-  double qqFact,
   double constValue,
   uint imageSize,
   XYZArray const &molCoords,
@@ -610,7 +609,6 @@ void CallBoxForceReciprocalGPU(
     gpu_lengthMol,
     alpha,
     alphaSq,
-    qqFact,
     constValue,
     imageSize,
     vars->gpu_kxRef[box],
@@ -672,7 +670,6 @@ __global__ void BoxForceReciprocalGPU(
   int *gpu_lengthMol,
   double alpha,
   double alphaSq,
-  double qqFact,
   double constValue,
   int imageSize,
   double *gpu_kx,
@@ -755,7 +752,7 @@ __global__ void BoxForceReciprocalGPU(
         dist = sqrt(distSq);
 
         double expConstValue = exp(-1.0 * alphaSq * distSq);
-        double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
+        double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * num::qqFactGPU;
         intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
         intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
         forceX -= intraForce * distVect.x;

@@ -310,7 +310,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                      bool sc_coul,
                      double sc_sigma_6,
                      double sc_alpha,
-                     double qqFact,
                      uint sc_power,
                      uint const box)
 {
@@ -421,7 +420,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       sc_coul,
       sc_sigma_6,
       sc_alpha,
-      qqFact,
       sc_power,
       vars->gpu_rMin,
       vars->gpu_rMaxSq,
@@ -815,7 +813,6 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             bool sc_coul,
                             double sc_sigma_6,
                             double sc_alpha,
-                            double qqFact,
                             uint sc_power,
                             double *gpu_rMin,
                             double *gpu_rMaxSq,
@@ -894,7 +891,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
           //initialize forceReal in case qi_qj_fact == 0.0
           forceReal =  make_double3(0.0, 0.0, 0.0);
           if(qi_qj_fact != 0.0) {
-            qi_qj_fact *= qqFact;
+            qi_qj_fact *= num::qqFactGPU;
             double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
                                    gpu_isFraction, gpu_molIndex,
                                    gpu_lambdaCoulomb);
