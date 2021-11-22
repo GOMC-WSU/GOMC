@@ -47,7 +47,7 @@ void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inp
   // Read the binary velocity and update the buffer
   if(inputFiles.restart.restartFromBinaryVelFile) {
     ReadVelocity(pdb, inputFiles, molLookup, mols);
-    UpdateVelocity(pdb, molLookup, mols);
+    UpdateVelocity(pdb, molLookup, mols, vel);
   }
 }
 
@@ -187,7 +187,7 @@ void ExtendedSystem::ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles,
   }
 }
 
-void ExtendedSystem::UpdateVelocity(PDBSetup &pdb, 
+void ExtendedSystem::UpdateVelocity(Velocity & vel, 
                                     MoleculeLookup & molLookup,
                                     Molecules & mols)
 {

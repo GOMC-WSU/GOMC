@@ -53,7 +53,7 @@ class ExtendedSystem  {
                           MoleculeLookup & molLookup,
                           Molecules & mols);
     // Reads the binary velocities and updates the X Y Z velocity data structure
-    void UpdateVelocity(PDBSetup &pdb, 
+    void UpdateVelocity(Velocity & vel, 
                           MoleculeLookup & molLookup, 
                           Molecules & mols);
     void ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles, 
