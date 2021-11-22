@@ -278,7 +278,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
         if(electrostatic) {
           double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
           if(qi_qj_fact != 0.0) {
-            qi_qj_fact *= num::qqFactGPU;
+            qi_qj_fact *= qqFactGPU;
             double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
                                    gpu_isFraction, gpu_molIndex,
                                    gpu_lambdaCoulomb);

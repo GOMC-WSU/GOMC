@@ -752,7 +752,7 @@ __global__ void BoxForceReciprocalGPU(
         dist = sqrt(distSq);
 
         double expConstValue = exp(-1.0 * alphaSq * distSq);
-        double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * num::qqFactGPU;
+        double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFactGPU;
         intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
         intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
         forceX -= intraForce * distVect.x;

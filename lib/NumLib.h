@@ -24,11 +24,6 @@ namespace num
 {
 static const double dbl_margin = 0.00001;
 static const double qqFact = 167103.208067979;
-#ifdef GOMC_CUDA
-//Need a separate float constant for device code with the MSVC compiler
-//See CUDA Programming Guide section I.4.13 for details 
-static const __device__ double qqFactGPU = qqFact;
-#endif
 static const double BIGNUM = DBL_MAX;
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
