@@ -28,7 +28,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifdef GOMC_CUDA
 //Need a separate float constant for device code with the MSVC compiler
 //See CUDA Programming Guide section I.4.13 for details 
-static const __device__ double qqFactGPU = qqFact;
+static const __device__ double qqFactGPU = 167103.208067979;
 #endif
 
 namespace num
