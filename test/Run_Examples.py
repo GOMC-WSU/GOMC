@@ -130,5 +130,8 @@ for example in all_examples:
         Log_Template_file.write(str(write_log_data))
         Log_Template_file.flush()
         """
-    for index, row in ex_df.iterrows():
-        print("diff file {}".format(row['PathToExample']+" pdb traj"))
+
+    cross = ex_df.merge(ex_df, on=['Example'],how='outer')
+    for index, row in cross.iterrows():
+        print("diff file {} {}".format(row['PathToExample_x']+" pdb traj", row['PathToExample_y']+" pdb traj"))
+
