@@ -100,7 +100,7 @@ df = pd.DataFrame(listOfTests, columns = ['PathToBinary', 'PathToExample', 'Bina
 df = df.sort_values(by=['Example'])
 print(df)
 for index, row in df.iterrows():
-    print(index)
+#    print(index)
     print(row)
 """
     os.chdir(row['PathToExample'])
