@@ -11,6 +11,7 @@ import time
 import datetime
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
+from filecmp import cmp
 binaries_dict = {}
 GPU_binaries_dict = {}
 
@@ -131,7 +132,18 @@ for example in all_examples:
         Log_Template_file.flush()
         """
 
+    # Create a list of the PDB files in this example
+    full_path_pdb_files = sorted(glob.glob(os.path.join(row['PathToExample'],'*.pdb')), key=os.path.getmtime)
+    just_file_names = []
+    for path in full_path_pdb_files:
+        just_file_names.append(os.path.basename(path)) 
+    print(just_file_names) 
     cross = ex_df.merge(ex_df, on=['Example'],how='outer')
     for index, row in cross.iterrows():
-        print("diff file {} {}".format(row['PathToExample_x']+" pdb traj", row['PathToExample_y']+" pdb traj"))
+        for pdb_file in just_file_names:
+            f1 = os.path.join(row['PathToExample_x'],pdb_file)
+            f2 = os.path.join(row['PathToExample_y'],pdb_file)
+            result = cmp(f1, f2, shallow=False)
+            print("{} == {} : {}".format(f1, f2, result))
+                        
 
