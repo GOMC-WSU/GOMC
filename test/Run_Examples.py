@@ -1,5 +1,14 @@
 #!/usr/bin/python
 
+HEADER = '\033[95m'
+OKBLUE = '\033[94m'
+OKGREEN = '\033[92m'
+WARNING = '\033[93m'
+FAIL = '\033[91m'
+ENDC = '\033[0m'
+BOLD = '\033[1m'
+UNDERLINE = '\033[4m'
+
 def substring_after(s, delim):
     return s.partition(delim)[2]
 
@@ -70,32 +79,33 @@ for root, dirs, files in os.walk("."):
 
             if cpuOrGpu+"NVT"+newOrRef in binaries_dict and 'NVT' in path and 'GEMC_NVT' not in path:    
                 print("Call GOMC")
-                command = binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,"NVT_"+os.path.basename(root)
-                print(binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,"NVT_"+os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,cpuOrGpu,newOrRef,"NVT_"+os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,cpuOrGpu,newOrRef,"NVT_"+os.path.basename(root))
                 listOfTests.append(command)
             elif cpuOrGpu+"NPT"+newOrRef in binaries_dict and 'NPT' in path and 'GEMC_NPT' not in path:    
                 print("Call GOMC")
-                print(binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,"NPT_"+os.path.basename(root))
-                command = binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,"NPT_"+os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,cpuOrGpu,newOrRef,"NPT_"+os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,cpuOrGpu,newOrRef,"NPT_"+os.path.basename(root)
                 listOfTests.append(command)
             elif cpuOrGpu+"GCMC"+newOrRef in binaries_dict and 'GCMC' in path:
                 print("Call GOMC")
-                print(binaries_dict[cpuOrGpu+"GCMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GCMC"+newOrRef,"GCMC_"+os.path.basename(root))
-                command = binaries_dict[cpuOrGpu+"GCMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GCMC"+newOrRef,"GCMC_"+os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"GCMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GCMC"+newOrRef,cpuOrGpu,newOrRef,"GCMC_"+os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"GCMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GCMC"+newOrRef,cpuOrGpu,newOrRef,"GCMC_"+os.path.basename(root)
                 listOfTests.append(command)
             elif cpuOrGpu+"GEMC"+newOrRef in binaries_dict and 'GEMC_NVT' in path:
                 print("Call GOMC")
-                print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NVT"+newOrRef,"GEMC_NPT_"+os.path.basename(root))
-                command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NVT"+newOrRef,"GEMC_NVT_"+os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NVT"+newOrRef,cpuOrGpu,newOrRef,"GEMC_NPT_"+os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NVT"+newOrRef,cpuOrGpu,newOrRef,"GEMC_NVT_"+os.path.basename(root)
                 listOfTests.append(command)
             elif cpuOrGpu+"GEMC"+newOrRef in binaries_dict and 'GEMC_NPT' in path:
                 print("Call GOMC")
-                print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,"GEMC_NPT_"+os.path.basename(root))
-                command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,"GEMC_NPT_"+os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,cpuOrGpu,newOrRef,"GEMC_NPT_"+os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,cpuOrGpu,newOrRef,"GEMC_NPT_"+os.path.basename(root)
                 listOfTests.append(command)
 print(listOfTests)
 # Create the pandas DataFrame
-df = pd.DataFrame(listOfTests, columns = ['PathToBinary', 'PathToExample', 'Binary', 'Example'])
+colNames = ['PathToBinary', 'PathToExample', 'Binary', 'CPU_or_GPU','New_or_Ref','Example']
+df = pd.DataFrame(listOfTests, columns = colNames)
 df = df.sort_values(by=['Example'])
 print(df)
 #for index, row in df.iterrows():
@@ -103,11 +113,16 @@ print(df)
 #    print(row)
 grouped = df.groupby(['Example'])
 all_examples = df['Example'].unique()
+CPU_v_GPU_global = True
+New_v_Ref_global = True
+cross_bool_global = True
+CPU_v_GPU_exists_global = False
+New_v_Ref_exists_global = False
+cross_exists_global = False
 for example in all_examples:
     ex_df = grouped.get_group(example)
     for index, row in ex_df.iterrows():
-        print("run file {}".format(row['PathToExample']+" conf"))
-        """
+        #print("run file {}".format(row['PathToExample']+" conf"))
         os.chdir(row['PathToExample'])
         write_log_data = "Changing directory to {}\n".format(row['PathToExample'])
         Log_Template_file.write(str(write_log_data))
@@ -128,8 +143,7 @@ for example in all_examples:
         print(str(write_log_data))
         Log_Template_file.write(str(write_log_data))
         Log_Template_file.flush()
-        """
-
+    
     # Create a list of the PDB files in this example
     full_path_pdb_files = sorted(glob.glob(os.path.join(row['PathToExample'],'*.pdb')), key=os.path.getmtime)
     just_file_names = []
@@ -138,12 +152,65 @@ for example in all_examples:
     print(just_file_names) 
     cross = ex_df.merge(ex_df, on=['Example'],how='outer')
     print('---', ex_df['Example'].iloc[0])
+    CPU_v_GPU = True
+    New_v_Ref = True
+    cross_bool = True
+    CPU_v_GPU_exists = False
+    New_v_Ref_exists = False
+    cross_exists = False
     for pdb_file in just_file_names:
         print(2 * '---', pdb_file)
+        my_tuples = []
         for index, row in cross.iterrows():
             f1 = os.path.join(row['PathToExample_x'],pdb_file)
             f2 = os.path.join(row['PathToExample_y'],pdb_file)
-            result = cmp(f1, f2, shallow=False)
-            print("{} == {} : {}".format(f1, f2, result))
-                        
+            if ((row['CPU_or_GPU_x'] != row['CPU_or_GPU_y']) and (row['New_or_Ref_x'] == row['New_or_Ref_y'])):
+                CPU_v_GPU_exists = True
+                CPU_v_GPU_exists_global = True
+                result = cmp(f1, f2, shallow=False)
+                CPU_v_GPU = CPU_v_GPU and result
+                CPU_v_GPU_global = CPU_v_GPU_global and result
+            elif ((row['CPU_or_GPU_x'] == row['CPU_or_GPU_y']) and (row['New_or_Ref_x'] != row['New_or_Ref_y'])):
+                New_v_Ref_exists = True
+                New_v_Ref_exists_global = True
+                result = cmp(f1, f2, shallow=False)
+                New_v_Ref = New_v_Ref and result                                        
+                New_v_Ref_global = New_v_Ref_global and result                                        
+            elif ((row['CPU_or_GPU_x'] != row['CPU_or_GPU_y']) and (row['New_or_Ref_x'] != row['New_or_Ref_y'])):
+                cross_exists = True
+                cross_exists_global = True
+                result = cmp(f1, f2, shallow=False)
+                cross_bool = cross_bool and result                                        
+                cross_bool_global = cross_bool_global and result                                        
+    if(CPU_v_GPU_exists):
+        if(CPU_v_GPU):
+            print((3 * '---')+"CPU_v_GPU: "+ OKGREEN + "PASS" + ENDC)
+        else:
+            print((3 * '---')+"CPU_v_GPU: "+ FAIL + "FAIL" + ENDC)
+    if(New_v_Ref_exists):
+        if(New_v_Ref):
+            print((3 * '---')+"New vs Ref: "+ OKGREEN + "PASS" + ENDC)
+        else:
+            print((3 * '---')+"New vs Ref: "+ FAIL + "FAIL" + ENDC)
+    if(cross_exists):
+        if(cross_bool):
+            print((3 * '---')+"CPU vs GPU X New vs Ref: "+ OKGREEN + "PASS" + ENDC)
+        else:
+            print((3 * '---')+"CPU vs GPU X New vs Ref: "+ FAIL + "FAIL" + ENDC)
 
+
+if(CPU_v_GPU_exists_global):
+    if(CPU_v_GPU_global):
+        print("CPU_v_GPU Global: "+ OKGREEN + "PASS" + ENDC)
+    else:
+        print("CPU_v_GPU Global: "+ FAIL + "FAIL" + ENDC)
+if(New_v_Ref_exists_global):
+    if(New_v_Ref_global):
+        print("New vs Ref Global: "+ OKGREEN + "PASS" + ENDC)
+    else:
+        print("New vs Ref Global: "+ FAIL + "FAIL" + ENDC)
+if(cross_exists_global):
+    if(cross_bool_global):
+        print("CPU vs GPU X New vs Ref Global: "+ OKGREEN + "PASS" + ENDC)
+    else:
+        print("CPU vs GPU X New vs Ref Global: "+ FAIL + "FAIL" + ENDC)
