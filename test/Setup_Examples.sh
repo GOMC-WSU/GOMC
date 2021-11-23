@@ -1,22 +1,21 @@
 #!/bin/bash
 git clone https://github.com/GOMC-WSU/GOMC_Examples.git
 mkdir integration
-cd integration
 
-mkdir new_cpu
-cp -frd GOMC_Examples new_cpu
+mkdir integration/new_cpu
+cp -frd GOMC_Examples integration/new_cpu
 
-mkdir ref_cpu
-cp -frd GOMC_Examples ref_cpu
+mkdir integration/ref_cpu
+cp -frd GOMC_Examples integration/ref_cpu
 
-mkdir new_gpu
-cp -frd GOMC_Examples new_gpu
+mkdir integration/new_gpu
+cp -frd GOMC_Examples integration/new_gpu
 
-mkdir ref_gpu
-cp -frd GOMC_Examples ref_gpu
+mkdir integration/ref_gpu
+cp -frd GOMC_Examples integration/ref_gpu
 
+cd ..
 
-cd ../..
 startingBranch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
 echo "Building $startingBranch binaries"
 
