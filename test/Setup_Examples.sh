@@ -3,40 +3,40 @@ git clone https://github.com/GOMC-WSU/GOMC_Examples.git
 mkdir integration
 cd integration
 
-mkdir new_feature_cpu
-cp -frd GOMC_Examples new_feature_cpu
+mkdir new_cpu
+cp -frd GOMC_Examples new_cpu
 
 mkdir ref_cpu
 cp -frd GOMC_Examples ref_cpu
 
-mkdir new_feature_gpu
-cp -frd GOMC_Examples new_feature_gpu
+mkdir new_gpu
+cp -frd GOMC_Examples new_gpu
 
 mkdir ref_gpu
 cp -frd GOMC_Examples ref_gpu
 
 
 cd ../..
-branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
-echo "Building $branch binaries"
+startingBranch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+echo "Building $startingBranch binaries"
 
 ./metamake.sh -g NVT
-mkdir -p test/new_feature_binaries
-cp -frdp ./bin/* test/new_feature_binaries
+mkdir -p test/new_binaries
+cp -frdp ./bin/* test/new_binaries
 
 
-echo "$branch"
-if [ $branch == "development" ]; then
+echo "$startingBranch"
+if [ $startingBranch == "development" ]; then
 	echo "I am on development; checking out main"
 	git checkout main
 else
-	echo "I am on $branch; checking out development"
+	echo "I am on $startingBranch; checking out development"
 	git checkout development
 fi
 
 rm -frd bin
-branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
-echo "Building $branch binaries"
+refBranch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+echo "Building $refBbranch binaries"
 ./metamake.sh -g NVT
 mkdir -p test/ref_binaries
 cp -frd ./bin/* test/ref_binaries
