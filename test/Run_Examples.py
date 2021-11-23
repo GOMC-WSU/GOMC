@@ -6,37 +6,33 @@ def substring_after(s, delim):
 import os
 import glob
 import sys
-import subprocess
 import pandas as pd
-
-CPU_binaries_dict = {}
+import time
+import datetime
+import subprocess
+from subprocess import Popen, PIPE, STDOUT
+binaries_dict = {}
 GPU_binaries_dict = {}
 
 os.chdir("new_feature_binaries")
 pathToDir = os.getcwd()
-CPU_binaries_new_feature = sorted(glob.glob('*_CPU_*'), key=os.path.getmtime)
-GPU_binaries_new_feature = sorted(glob.glob('*_GPU_*'), key=os.path.getmtime)
-
-for binary in CPU_binaries_new_feature:
-    CPU_binaries_dict[substring_after(binary, "GOMC_CPU_")+"_new"] = os.path.join(pathToDir, binary)
-
-for binary in GPU_binaries_new_feature:
-    GPU_binaries_dict[substring_after(binary, "GOMC_GPU_")+"_new"] = os.path.join(pathToDir, binary)
+binaries_cpu_new = sorted(glob.glob('GOMC_CPU_*'), key=os.path.getmtime)
+binaries_gpu_new = sorted(glob.glob('GOMC_GPU_*'), key=os.path.getmtime)
+for binary in binaries_cpu_new:
+    binaries_dict[substring_after(binary, "GOMC_")+"_new"] = os.path.join(pathToDir, binary)
+for binary in binaries_gpu_new:
+    binaries_dict[substring_after(binary, "GOMC_")+"_new"] = os.path.join(pathToDir, binary)
 
 os.chdir("../ref_binaries")
 pathToDir = os.getcwd()
-CPU_binaries_ref = sorted(glob.glob('*_CPU_*'), key=os.path.getmtime)
-GPU_binaries_ref = sorted(glob.glob('*_GPU_*'), key=os.path.getmtime)
+binaries_cpu_ref = sorted(glob.glob('GOMC_CPU_*'), key=os.path.getmtime)
+binaries_gpu_ref = sorted(glob.glob('GOMC_GPU_*'), key=os.path.getmtime)
+for binary in binaries_cpu_ref:
+    binaries_dict[substring_after(binary, "GOMC_")+"_ref"] = os.path.join(pathToDir, binary)
+for binary in binaries_gpu_ref:
+    binaries_dict[substring_after(binary, "GOMC_")+"_ref"] = os.path.join(pathToDir, binary)
 
-for binary in CPU_binaries_ref:
-    CPU_binaries_dict[substring_after(binary, "GOMC_CPU_")+"_ref"] = os.path.join(pathToDir, binary)
-
-for binary in GPU_binaries_ref:
-    GPU_binaries_dict[substring_after(binary, "GOMC_GPU_")+"_ref"] = os.path.join(pathToDir, binary)
-
-
-print("CPU Binaries Dict", CPU_binaries_dict)
-print("GPU Binaries Dict", GPU_binaries_dict)
+print("Binaries Dict", binaries_dict)
 
 os.chdir("../integration")
 
@@ -62,34 +58,34 @@ for root, dirs, files in os.walk("."):
                 newOrRef = "_ref"
 
             run = False
-            if "NVT"+newOrRef in CPU_binaries_dict and 'NVT' in path and 'GEMC_NVT' not in path:    
+            if cpuOrGpu+"NVT"+newOrRef in binaries_dict and 'NVT' in path and 'GEMC_NVT' not in path:    
                 print("Call GOMC")
-                command = CPU_binaries_dict["NVT"+newOrRef],os.path.abspath(root),os.path.basename(root)
-                print(CPU_binaries_dict["NVT"+newOrRef],os.path.abspath(root),os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,os.path.basename(root))
                 listOfTests.append(command)
                 run = True
-            elif "NPT"+newOrRef in CPU_binaries_dict and 'NPT' in path and 'GEMC_NPT' not in path:    
+            elif cpuOrGpu+"NPT"+newOrRef in binaries_dict and 'NPT' in path and 'GEMC_NPT' not in path:    
                 print("Call GOMC")
-                print(CPU_binaries_dict["NPT"+newOrRef],os.path.abspath(root),os.path.basename(root))
-                command = CPU_binaries_dict["NPT"+newOrRef],os.path.abspath(root),os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,os.path.basename(root)
                 listOfTests.append(command)
                 run = True
-            elif "GCMC"+newOrRef in CPU_binaries_dict and 'GCMC' in path:
+            elif cpuOrGpu+"GCMC"+newOrRef in binaries_dict and 'GCMC' in path:
                 print("Call GOMC")
-                print(CPU_binaries_dict["GCMC"+newOrRef],os.path.abspath(root),os.path.basename(root))
-                command = CPU_binaries_dict["GCMC"+newOrRef],os.path.abspath(root),os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"GCMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GCMC"+newOrRef,os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"GCMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GCMC"+newOrRef,os.path.basename(root)
                 listOfTests.append(command)
                 run = True
-            elif "GEMC"+newOrRef in CPU_binaries_dict and 'GEMC_NVT' in path:
+            elif cpuOrGpu+"GEMC"+newOrRef in binaries_dict and 'GEMC_NVT' in path:
                 print("Call GOMC")
-                print(CPU_binaries_dict["GEMC"+newOrRef],os.path.abspath(root),os.path.basename(root))
-                command = CPU_binaries_dict["GEMC"+newOrRef],os.path.abspath(root),os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NVT"+newOrRef,os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NVT"+newOrRef,os.path.basename(root)
                 listOfTests.append(command)
                 run = True
-            elif "GEMC"+newOrRef in CPU_binaries_dict and 'GEMC_NPT' in path:
+            elif cpuOrGpu+"GEMC"+newOrRef in binaries_dict and 'GEMC_NPT' in path:
                 print("Call GOMC")
-                print(CPU_binaries_dict["GEMC"+newOrRef],os.path.abspath(root),os.path.basename(root))
-                command = CPU_binaries_dict["GEMC"+newOrRef],os.path.abspath(root),os.path.basename(root)
+                print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,os.path.basename(root))
+                command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,os.path.basename(root)
                 listOfTests.append(command)
                 run = True
             else:
@@ -97,13 +93,31 @@ for root, dirs, files in os.walk("."):
             
 print(listOfTests)
 # Create the pandas DataFrame
-df = pd.DataFrame(listOfTests, columns = ['PathToBinary', 'PathToExample', 'Example'])
+df = pd.DataFrame(listOfTests, columns = ['PathToBinary', 'PathToExample', 'Binary', 'Example'])
 df = df.sort_values(by=['Example'])
 print(df)
-#            if(run):
-#                exec_GOMC_run_command = subprocess.Popen(command, shell=True, stderr=subprocess.STDOUT)
-#                write_log_data = f'Waiting for GOMC Example {command} to finish.'
-#                Log_Template_file.write(str(write_log_data))
-#                print(str(write_log_data))
-#                GOMC_pid_status = os.waitpid(exec_GOMC_run_command.pid, os.WSTOPPED)  # pauses python until box 0 sim done
-#                write_log_data = f'The GOMC Example {command} is finished.'
+for index, row in df.iterrows():
+    print(index)
+    print(row)
+"""
+    os.chdir(row['PathToExample'])
+    write_log_data = "Changing directory to {}\n".format(row['PathToExample'])
+    Log_Template_file.write(str(write_log_data))
+    command = (row['PathToBinary'] + " in.conf > out.log")
+    write_log_data = "Issuing command: {}\n".format(command)
+    Log_Template_file.write(str(write_log_data))
+    start = time.time()
+    exec_GOMC_run_command = subprocess.Popen(command, shell=True, stderr=STDOUT)
+    write_log_data = "Waiting for GOMC Example {} {} to finish.\n".format(row['Binary'],row['Example'])
+    print(str(write_log_data))
+    Log_Template_file.write(str(write_log_data))
+    GOMC_pid_status = os.waitpid(exec_GOMC_run_command.pid, os.WSTOPPED)  # pauses python until box 0 sim done    
+    end = time.time()
+    write_log_data = "Elapsed time: {}.\n".format(datetime.timedelta(seconds=end-start))
+    Log_Template_file.write(str(write_log_data))
+    print(str(write_log_data))
+    write_log_data = "The GOMC Example {} {} has finished.\n".format(row['Binary'],row['Example'])
+    print(str(write_log_data))
+    Log_Template_file.write(str(write_log_data))
+    Log_Template_file.flush()
+"""
