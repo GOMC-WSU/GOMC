@@ -41,4 +41,4 @@ echo "Building $refBbranch binaries"
 mkdir -p test/ref_binaries
 cp -frd ./bin/* test/ref_binaries
 cd test
-
+git checkout $startingBranch
