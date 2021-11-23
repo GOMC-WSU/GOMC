@@ -14,7 +14,7 @@ from subprocess import Popen, PIPE, STDOUT
 binaries_dict = {}
 GPU_binaries_dict = {}
 
-os.chdir("new_feature_binaries")
+os.chdir("new_binaries")
 pathToDir = os.getcwd()
 binaries_cpu_new = sorted(glob.glob('GOMC_CPU_*'), key=os.path.getmtime)
 binaries_gpu_new = sorted(glob.glob('GOMC_GPU_*'), key=os.path.getmtime)
@@ -47,50 +47,53 @@ listOfTests = []
 # traverse root directory, and list directories as dirs and files as files
 for root, dirs, files in os.walk("."):
     path = root.split(os.sep)
-#    print((len(path) - 1) * '---', os.path.basename(root))
+    print((len(path) - 1) * '---', os.path.basename(root))
     for file in files:
-#        print(len(path) * '---', file)
+        print(len(path) * '---', file)
         if file==confFileName:
             newOrRef = ""
-            if "new_feature_cpu" in path:
+            cpuOrGpu = ""
+            if "new_cpu" in path:
                 newOrRef = "_new"
+                cpuOrGpu = "CPU_"
             elif "ref_cpu" in path:
                 newOrRef = "_ref"
+                cpuOrGpu = "CPU_"
+            elif "new_gpu" in path:
+                newOrRef = "_new"
+                cpuOrGpu = "GPU_"
+                
+            elif "ref_gpu" in path:
+                newOrRef = "_ref"
+                cpuOrGpu = "GPU_"
 
-            run = False
             if cpuOrGpu+"NVT"+newOrRef in binaries_dict and 'NVT' in path and 'GEMC_NVT' not in path:    
                 print("Call GOMC")
                 command = binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,os.path.basename(root)
                 print(binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,os.path.basename(root))
                 listOfTests.append(command)
-                run = True
             elif cpuOrGpu+"NPT"+newOrRef in binaries_dict and 'NPT' in path and 'GEMC_NPT' not in path:    
                 print("Call GOMC")
                 print(binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,os.path.basename(root))
                 command = binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,os.path.basename(root)
                 listOfTests.append(command)
-                run = True
             elif cpuOrGpu+"GCMC"+newOrRef in binaries_dict and 'GCMC' in path:
                 print("Call GOMC")
                 print(binaries_dict[cpuOrGpu+"GCMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GCMC"+newOrRef,os.path.basename(root))
                 command = binaries_dict[cpuOrGpu+"GCMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GCMC"+newOrRef,os.path.basename(root)
                 listOfTests.append(command)
-                run = True
             elif cpuOrGpu+"GEMC"+newOrRef in binaries_dict and 'GEMC_NVT' in path:
                 print("Call GOMC")
                 print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NVT"+newOrRef,os.path.basename(root))
                 command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NVT"+newOrRef,os.path.basename(root)
                 listOfTests.append(command)
-                run = True
             elif cpuOrGpu+"GEMC"+newOrRef in binaries_dict and 'GEMC_NPT' in path:
                 print("Call GOMC")
                 print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,os.path.basename(root))
                 command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,os.path.basename(root)
                 listOfTests.append(command)
-                run = True
             else:
-                run = False
-            
+                print(cpuOrGpu+"GEMC"+newOrRef)            
 print(listOfTests)
 # Create the pandas DataFrame
 df = pd.DataFrame(listOfTests, columns = ['PathToBinary', 'PathToExample', 'Binary', 'Example'])
