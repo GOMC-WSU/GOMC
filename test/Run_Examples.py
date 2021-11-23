@@ -93,8 +93,6 @@ for root, dirs, files in os.walk("."):
                 print(binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,"GEMC_NPT_"+os.path.basename(root))
                 command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"GEMC_NPT"+newOrRef,"GEMC_NPT_"+os.path.basename(root)
                 listOfTests.append(command)
-            else:
-                print(cpuOrGpu+"GEMC"+newOrRef)            
 print(listOfTests)
 # Create the pandas DataFrame
 df = pd.DataFrame(listOfTests, columns = ['PathToBinary', 'PathToExample', 'Binary', 'Example'])
@@ -139,8 +137,10 @@ for example in all_examples:
         just_file_names.append(os.path.basename(path)) 
     print(just_file_names) 
     cross = ex_df.merge(ex_df, on=['Example'],how='outer')
-    for index, row in cross.iterrows():
-        for pdb_file in just_file_names:
+    print('---', ex_df['Example'].iloc[0])
+    for pdb_file in just_file_names:
+        print(2 * '---', pdb_file)
+        for index, row in cross.iterrows():
             f1 = os.path.join(row['PathToExample_x'],pdb_file)
             f2 = os.path.join(row['PathToExample_y'],pdb_file)
             result = cmp(f1, f2, shallow=False)
