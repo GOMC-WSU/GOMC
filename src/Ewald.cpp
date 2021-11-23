@@ -1105,18 +1105,12 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
       continue;
     }
     for (uint j = i + 1; j < atomSize; j++) {
-      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+      currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box);
       dist = sqrt(distSq);
       correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                      erf(ff.alpha[box] * dist) / dist);
     }
-    // within cutoff
-    // CalcCoul = qiqj/r(erfc(alpha*r)+erf(alpha*r))
-                    
-    // outside cutoff
-    // erf(alpha*r)*qiqj/r
-    // CalcCoul = erf
   }
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_MOL);
