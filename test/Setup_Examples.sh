@@ -19,9 +19,9 @@ cd ..
 startingBranch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
 echo "Building $startingBranch binaries"
 
-#./metamake.sh -g NVT
-#mkdir -p test/new_binaries
-#cp -frdp ./bin/* test/new_binaries
+./metamake.sh -g NVT
+mkdir -p test/new_binaries
+cp -frdp ./bin/* test/new_binaries
 
 echo "$startingBranch"
 if [ $startingBranch == "development" ]; then
@@ -34,7 +34,7 @@ fi
 
 rm -frd bin
 refBranch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
-echo "Building $refBbranch binaries"
+echo "Building $refBranch binaries"
 ./metamake.sh -g NVT
 mkdir -p test/ref_binaries
 cp -frd ./bin/* test/ref_binaries
