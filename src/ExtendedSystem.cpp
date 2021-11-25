@@ -42,7 +42,7 @@ void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inp
   if(inputFiles.restart.restartFromBinaryCoorFile) {
     ReadCoordinate(pdb, inputFiles, molLookup, mols);
     UpdateCoordinate(pdb, molLookup, mols);    
-    UpdateMinMaxAtoms(pdb, molLookup, mols);
+    UpdateMinMaxAtoms(pdb, inputFiles, molLookup, mols);
   }
   // Read the binary velocity and update the buffer
   if(inputFiles.restart.restartFromBinaryVelFile) {
@@ -113,10 +113,10 @@ void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFile
   }
 }
 
-void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb, 
+void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb,
+                                      config_setup::Input inputFiles, 
                                       MoleculeLookup & molLookup,
-                                      Molecules & mols,
-                                      config_setup::Input inputFiles){
+                                      Molecules & mols){
   XYZArray binaryCoorSOA(binaryCoor);
   for (uint b = 0; b < BOX_TOTAL; b++) {
     if(inputFiles.files.binaryCoorInput.defined[b]) {

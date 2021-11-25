@@ -49,10 +49,10 @@ class ExtendedSystem  {
                           Molecules & mols);
     void ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup,
                                      Molecules & mols);
-    void UpdateMinMaxAtoms(PDBSetup &pdb, 
+    void UpdateMinMaxAtoms(PDBSetup &pdb,
+                          config_setup::Input inputFiles, 
                           MoleculeLookup & molLookup,
-                          Molecules & mols,
-                          config_setup::Input inputFiles);
+                          Molecules & mols);
     // Reads the binary velocities and updates the X Y Z velocity data structure
     void UpdateVelocity(Velocity & vel, 
                           MoleculeLookup & molLookup, 
