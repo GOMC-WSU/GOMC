@@ -58,7 +58,11 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   //find the starting index
   for (int mol = 0; mol < molLookup.molLookupCount; mol++){
-    trajectoryI = molLookup.restartMoleculeIndices[mol];
+    if (mols.restartFromCheckpoint){
+      trajectoryI = molLookup.restartMoleculeIndices[mol];
+    } else {
+      trajectoryI = mol;
+    }
     dataI = mol;
     //Loop through particles in mol.
     mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
@@ -194,7 +198,11 @@ void ExtendedSystem::UpdateVelocity(Velocity & vel,
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   //find the starting index
   for (int mol = 0; mol < molLookup.molLookupCount; mol++){
-    trajectoryI = molLookup.restartMoleculeIndices[mol];
+    if (mols.restartFromCheckpoint){
+      trajectoryI = molLookup.restartMoleculeIndices[mol];
+    } else {
+      trajectoryI = mol;
+    }
     dataI = mol;
     //Loop through particles in mol.
     mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
