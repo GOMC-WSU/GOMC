@@ -115,38 +115,40 @@ void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFile
 
 void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb, 
                                       MoleculeLookup & molLookup,
-                                      Molecules & mols){
+                                      Molecules & mols,
+                                      config_setup::Input inputFiles){
+  XYZArray binaryCoorSOA(binaryCoor);
   for (uint b = 0; b < BOX_TOTAL; b++) {
-    int stRange, endRange;
-    // -1 because we want to exclude the last array index  
-    // Box 0
-    // [0, numAtomsBox0)
-    // Box 1
-    // [numAtomsBox0, numAtomsBox0 + numAtomsBox1)
+    if(inputFiles.files.binaryCoorInput.defined[b]) {
+      int stRange, endRange;
+      // -1 because we want to exclude the last array index  
+      // Box 0
+      // [0, numAtomsBox0)
+      // Box 1
+      // [numAtomsBox0, numAtomsBox0 + numAtomsBox1)
 
-    // To prevent segfault
-    if (numAtomsInBox[b] == 0)
-      return;
+      // To prevent segfault
+      if (numAtomsInBox[b] == 0)
+        return;
 
-    if (b == 0){
-      stRange = 0;
-      endRange = numAtomsInBox[0] - 1;
-    } else if (b == 1) {
-      stRange = numAtomsInBox[0];
-      endRange = stRange + numAtomsInBox[1] - 1;
-    } else {
-      std::cout << "Error: Only Box 0 and Box 1 supported!" << std::endl;
-      exit(EXIT_FAILURE);
+      if (b == 0){
+        stRange = 0;
+        endRange = numAtomsInBox[0] - 1;
+      } else if (b == 1) {
+        stRange = numAtomsInBox[0];
+        endRange = stRange + numAtomsInBox[1] - 1;
+      } else {
+        std::cout << "Error: Only Box 0 and Box 1 supported!" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+
+      pdb.atoms.min[b].x = *std::min_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
+      pdb.atoms.min[b].y = *std::min_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
+      pdb.atoms.min[b].z = *std::min_element(binaryCoorSOA.z + stRange, binaryCoorSOA.z + endRange);
+      pdb.atoms.max[b].x = *std::max_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
+      pdb.atoms.max[b].y = *std::max_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
+      pdb.atoms.max[b].z = *std::max_element(binaryCoorSOA.z + stRange, binaryCoorSOA.z + endRange);
     }
-
-    XYZArray binaryCoorSOA(binaryCoor);
-
-    pdb.atoms.min[b].x = *std::min_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
-    pdb.atoms.min[b].y = *std::min_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
-    pdb.atoms.min[b].z = *std::min_element(binaryCoorSOA.z + stRange, binaryCoorSOA.z + endRange);
-    pdb.atoms.max[b].x = *std::max_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
-    pdb.atoms.max[b].y = *std::max_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
-    pdb.atoms.max[b].z = *std::max_element(binaryCoorSOA.z + stRange, binaryCoorSOA.z + endRange);
   }
 }
 

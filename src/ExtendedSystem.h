@@ -51,7 +51,8 @@ class ExtendedSystem  {
                                      Molecules & mols);
     void UpdateMinMaxAtoms(PDBSetup &pdb, 
                           MoleculeLookup & molLookup,
-                          Molecules & mols);
+                          Molecules & mols,
+                          config_setup::Input inputFiles);
     // Reads the binary velocities and updates the X Y Z velocity data structure
     void UpdateVelocity(Velocity & vel, 
                           MoleculeLookup & molLookup, 
