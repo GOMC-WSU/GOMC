@@ -63,8 +63,7 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
       mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
     } else {
       trajectoryI = mol;
-      mols.GetOrderedRangeStartStop(dataStart, dataEnd, dataI);
-
+      mols.GetRangeStartStop(dataStart, dataEnd, dataI);
     }
     dataI = mol;
     mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
@@ -205,8 +204,7 @@ void ExtendedSystem::UpdateVelocity(Velocity & vel,
       mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
     } else {
       trajectoryI = mol;
-      mols.GetOrderedRangeStartStop(dataStart, dataEnd, dataI);
-
+      mols.GetRangeStartStop(dataStart, dataEnd, dataI);
     }
     dataI = mol;
     mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
