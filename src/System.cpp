@@ -272,12 +272,17 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 void System::ChooseAndRunMove(const ulong step)
 {
   if(restartFromCheckpoint)
-    r123wrapper.SetStep(step);
-  else
     r123wrapper.SetStep(trueStep + step - startStepRef);
+  else
+    r123wrapper.SetStep(step);
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
+#ifndef NDEBUG
+  std::cout << "Step " << step+1 << ": picked move #" << majKind << ": "
+            << PrintMove(majKind) << " move" << std::endl;
+  std::cout << "Random number chosen is " << draw << std::endl;
+#endif
   time.SetStart();
   RunMove(majKind, draw, step);
   time.SetStop();
