@@ -86,9 +86,9 @@ const uint BOX1 = 1;
 //     25. TargetedSwap (b0->b1)     26. TargetedSwap (b1->b0)
 //     27. Vol. (b0->b1)             28. Vol. (b1->b0)
 //
-//NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. MultiParticle (box 0)
+//NPT : 1. Disp (box 0)             2. Rotate (box 0)     3. MultiParticle (box 0)
 //      4. MultiParticle_BM (box 0) 5. IntraSwap (box 0)  6. Regrowth (box 0)
-//      7. IntraMEMC (box 0)    8. CrankShaft (box 0) 9. IntraTargetedSwap (box 0)
+//      7. IntraMEMC (box 0)        8. CrankShaft (box 0) 9. IntraTargetedSwap (box 0)
 //     10. Vol. (box 0)         
 //AUTO REJECTION OR ACCEPTANCE FLAGS
 
@@ -98,8 +98,6 @@ namespace fail_state
 const uint NO_FAIL = 1;
 const uint ROTATE_ON_SINGLE_ATOM = 2;
 const uint NO_MOL_OF_KIND_IN_BOX = 3;
-}
-
 }
 
 
@@ -160,7 +158,10 @@ std::string printMoveName(uint moveConst)
     default:
       moveName = "Update printMove() function!!! Undefined";
   }
+
   return moveName;
+}
+
 }
 #endif /*NDEBUG*/
 #endif /*MOVES_CONST_H*/
