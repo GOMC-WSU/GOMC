@@ -497,7 +497,7 @@ inline bool SystemPotential::ComparePotentials(SystemPotential & other)
 }
 
 #ifndef NDEBUG
-inline std::ostream& operator<<(std::ostream& out, const Energy& en)
+inline std::ostream& operator<<(std::ostream& out, Energy& en)
 {
   en.Total();
   en.TotalElect();

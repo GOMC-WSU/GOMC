@@ -104,7 +104,7 @@ const uint NO_MOL_OF_KIND_IN_BOX = 3;
 
 
 #ifndef NDEBUG
-std::string printMove(uint moveConst)
+std::string printMoveName(uint moveConst)
 {
   std::string moveName;
   switch (moveConst) {
@@ -162,4 +162,5 @@ std::string printMove(uint moveConst)
   }
   return moveName;
 }
+#endif /*NDEBUG*/
 #endif /*MOVES_CONST_H*/

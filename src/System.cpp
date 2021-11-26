@@ -280,7 +280,7 @@ void System::ChooseAndRunMove(const ulong step)
   PickMove(majKind, draw);
 #ifndef NDEBUG
   std::cout << "Step " << step+1 << ": picked move #" << majKind << ": "
-            << PrintMove(majKind) << " move" << std::endl;
+            << printMoveName(majKind) << " move" << std::endl;
   std::cout << "Random number chosen is " << draw << std::endl;
 #endif
   time.SetStart();

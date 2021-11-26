@@ -90,7 +90,6 @@ void Simulation::RunSimulation(void)
         std::cout << "Step " << step+1 << std::fixed << std::setprecision(7) << ": Box 1 Energies" << std::endl;
         std::cout << en1 << std::endl;
       }
-    }
 #endif
 
     if((step + 1) == cpu->equilSteps) {
