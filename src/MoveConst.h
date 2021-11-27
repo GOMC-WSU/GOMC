@@ -161,7 +161,6 @@ std::string printMoveName(uint moveConst)
 
   return moveName;
 }
-
-}
 #endif /*NDEBUG*/
+} //end namespace mv
 #endif /*MOVES_CONST_H*/
