@@ -502,10 +502,10 @@ inline std::ostream& operator<<(std::ostream& out, Energy& en)
   //Save existing settings for the ostream
   std::streamsize ss = out.precision();
   std::ios_base::fmtflags ff = out.flags();
-  
+
   en.Total();
   en.TotalElect();
-  
+
   out << std::setprecision(6) << std::fixed;
   out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond << "  IntraNB: "
       << en.intraNonbond << "  Inter: " << en.inter << "  Tc: " << en.tc;
