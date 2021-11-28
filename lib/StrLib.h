@@ -71,6 +71,67 @@ inline std::string TrimCharArrNoNullTerm
 
   return str.substr(strBegin, strRange);
 }
+
+inline std::string MoveTypetoStr(uint moveType)
+{
+  std::string moveTypeStr;
+  switch (moveType) {
+    case 0:
+      moveTypeStr = "DISPLACE";
+      break;
+    case 1:
+      moveTypeStr = "ROTATE";
+      break;
+    case 2:
+      moveTypeStr = "MULTIPARTICLE";
+      break;
+    case 3:
+      moveTypeStr = "BROWNIAN MULTIPARTICLE";
+      break;
+    case 4:
+      moveTypeStr = "INTRA_SWAP";
+      break;
+    case 5:
+      moveTypeStr = "REGROWTH";
+      break;
+    case 6:
+      moveTypeStr = "INTRA_MEMC";
+      break;
+    case 7:
+      moveTypeStr = "CRANKSHAFT";
+      break;
+    case 8:
+      moveTypeStr = "INTRA_TARGETED_SWAP";
+      break;
+#if ENSEMBLE == NPT
+    case 9:
+      moveTypeStr = "VOL_TRANSFER";
+      break;
+#elif ENSEMBLE == GCMC || ENSEMBLE == GEMC
+    case 9:
+      moveTypeStr = "MEMC";
+      break;
+    case 10:
+      moveTypeStr = "MOL_TRANSFER";
+      break;
+    case 11:
+      moveTypeStr = "NE_MTMC";
+      break;
+    case 12:
+      moveTypeStr = "TARGETED_SWAP";
+      break;
+#elif ENSEMBLE == GEMC
+    case 13:
+      moveTypeStr = "VOL_TRANSFER";
+      break;
+#endif
+    default:
+      moveTypeStr = "Update printMove() function!!! Undefined";
+  }
+
+  return moveTypeStr;
+}
+
 }
 
 #endif /*STR_LIB_H*/

@@ -74,24 +74,9 @@ System::~System()
     delete boxDimensions;
   if (calcEwald != NULL)
     delete calcEwald;
-  delete moves[mv::DISPLACE];
-  delete moves[mv::ROTATE];
-  delete moves[mv::MULTIPARTICLE];
-  delete moves[mv::MULTIPARTICLE_BM];
-  delete moves[mv::INTRA_SWAP];
-  delete moves[mv::REGROWTH];
-  delete moves[mv::INTRA_MEMC];
-  delete moves[mv::CRANKSHAFT];
-  delete moves[mv::INTRA_TARGETED_SWAP];
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  delete moves[mv::VOL_TRANSFER];
-#endif
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  delete moves[mv::MOL_TRANSFER];
-  delete moves[mv::MEMC];
-  delete moves[mv::NE_MTMC];
-  delete moves[mv::TARGETED_SWAP];
-#endif
+  for (int m=0; m < mv::MOVE_KINDS_TOTAL; ++m) {
+    delete moves[m];
+  }
 #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     delete prngParallelTemp;
@@ -280,7 +265,7 @@ void System::ChooseAndRunMove(const ulong step)
   PickMove(majKind, draw);
 #ifndef NDEBUG
   std::cout << "Step " << step+1 << ": picked move #" << majKind << ": "
-            << mv::printMoveName(majKind) << " move" << std::endl;
+            << str::MoveTypetoStr(majKind) << " move" << std::endl;
   std::cout << "Random number chosen is " << draw << std::endl;
 #endif
   time.SetStart();
