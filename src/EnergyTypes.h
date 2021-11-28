@@ -499,14 +499,24 @@ inline bool SystemPotential::ComparePotentials(SystemPotential & other)
 #ifndef NDEBUG
 inline std::ostream& operator<<(std::ostream& out, Energy& en)
 {
+  //Save existing settings for the ostream
+  std::streamsize ss = out.precision();
+  std::ios_base::fmtflags ff = out.flags();
+  
   en.Total();
   en.TotalElect();
-  out << "Total: " << en.total << "  IntraB: " << en.intraBond << "  IntraNB: "
+  
+  out << std::setprecision(6) << std::fixed;
+  out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond << "  IntraNB: "
       << en.intraNonbond << "  Inter: " << en.inter << "  Tc: " << en.tc;
   if (en.totalElect > 0.0) {
-    out << std::endl << "Total Electric: " << en.totalElect << "  Real: " << en.real
+    out << std::endl << "\tTotal Electric: " << en.totalElect << "  Real: " << en.real
         << "  Recip: " << en.recip << "  Self: " << en.self << "  Correction: "
         << en.correction;
+
+  //Restore ostream settings to prior value
+  out << std::setprecision(ss);
+  out.setf(ff);
   }
   return out;
 }
