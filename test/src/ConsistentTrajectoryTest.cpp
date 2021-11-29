@@ -31,12 +31,13 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
+    std::string inputFileString("in.conf");
     int result = chdir("./test/input/Systems/AR_KR/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation base("in.conf");
+        Simulation base(inputFileString.c_str());
         base_runsteps = base.GetRunSteps();
         base.RunSimulation();
     }
@@ -45,7 +46,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation K_1("in.conf");
+        Simulation K_1(inputFileString.c_str());
         K_1_true_step = K_1.GetTrueStep();
         K_1_runsteps = K_1.GetRunSteps();
         EXPECT_EQ(base_runsteps == K_1_true_step, true);
@@ -57,7 +58,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation K_N("in.conf");
+        Simulation K_N(inputFileString.c_str());
         K_N_true_step = K_N.GetTrueStep();
         EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
         K_N.RunSimulation();
@@ -67,7 +68,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation SingleRun("in.conf");
+        Simulation SingleRun(inputFileString.c_str());
         SingleRun.RunSimulation();
     }
     result = chdir("../../../../..");
@@ -298,12 +299,13 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
+    std::string inputFileString("in.conf");
     int result = chdir("./test/input/Systems/PEN_HEX/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation base("in.conf");
+        Simulation base(inputFileString.c_str());
         base_runsteps = base.GetRunSteps();
         base.RunSimulation();
     }
@@ -312,7 +314,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation Continued("in.conf");
+        Simulation Continued(inputFileString.c_str());
         Continued_true_step = Continued.GetTrueStep();
         // Steps index from 0, hence minus 1
         EXPECT_EQ(base_runsteps == Continued_true_step, true);
@@ -323,7 +325,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation SingleRun("in.conf");
+        Simulation SingleRun(inputFileString.c_str());
         SingleRun.RunSimulation();
     }
     result = chdir("../../../../..");
@@ -436,13 +438,14 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
+    std::string inputFileString("in.conf");
 
     int result = chdir("./test/input/Systems/ISOPEN_NEOPEN/Base/");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation base("in.conf");
+        Simulation base(inputFileString.c_str());
         base_runsteps = base.GetRunSteps();
         base.RunSimulation();
     }
@@ -451,7 +454,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation K_1("in.conf");
+        Simulation K_1(inputFileString.c_str());
         K_1_true_step = K_1.GetTrueStep();
         K_1_runsteps = K_1.GetRunSteps();
         // Steps index from 0, hence minus 1
@@ -463,7 +466,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation K_N("in.conf");
+        Simulation K_N(inputFileString.c_str());
         K_N_true_step = K_N.GetTrueStep();
         EXPECT_EQ(base_runsteps + K_1_runsteps == K_N_true_step, true);
         K_N.RunSimulation();
@@ -473,7 +476,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation SingleRun("in.conf");
+        Simulation SingleRun(inputFileString.c_str());
         SingleRun.RunSimulation();
     }
     result = chdir("../../../../..");
