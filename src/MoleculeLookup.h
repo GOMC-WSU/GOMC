@@ -138,9 +138,9 @@ public:
   bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box) const
   {
     uint index = std::find(
-                  molLookup.begin() + boxAndKindStart[box * numKinds + kindIdx],
-                  molLookup.begin() + boxAndKindStart[box * numKinds + kindIdx + 1], molIdx)
-                - molLookup.begin();
+                  molLookup + boxAndKindStart[box * numKinds + kindIdx],
+                  molLookup + boxAndKindStart[box * numKinds + kindIdx + 1], molIdx)
+                - molLookup;
 
     return ((molLookup[index] == molIdx));
   }
@@ -214,8 +214,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   //of that kind/box
   std::vector<uint32_t> boxAndKindStartVec;
   std::vector<uint32_t> boxAndKindSwappableCountsVec;
-  uint32_t boxAndKindStartCountVec;
-  uint32_t numKindsVec;
 
   std::vector<int32_t> molIndexVec; // stores the molecule index for global atom index
   std::vector<int32_t> atomIndexVec; // stores the local atom index for global atom index
@@ -225,12 +223,12 @@ static uint GetConsensusMolBeta( const uint pStart,
 
 
   // For consistent trajectory ordering across checkpoints
-  std::vector<uint32_t> restartMoleculeIndicesVec;
+  std::vector<uint32_t> restartMoleculeIndices;
   uint32_t restartedNumAtomsInBox[BOX_TOTAL];
 
-  std::vector <uint32_t> fixedMoleculeVec;
-  std::vector <uint32_t> canSwapKindVec; //Kinds that can move intra and inter box
-  std::vector <uint32_t> canMoveKindVec; //Kinds that can move intra box only
+  std::vector <uint32_t> fixedMolecule;
+  std::vector <uint32_t> canSwapKind; //Kinds that can move intra and inter box
+  std::vector <uint32_t> canMoveKind; //Kinds that can move intra box only
 
 
   // make CheckpointOutput class a friend so it can print all the private data
@@ -241,16 +239,16 @@ static uint GetConsensusMolBeta( const uint pStart,
     void serialize(Archive & ar, const unsigned int version)
     {
       ar & molLookupVec;
-      ar & molLookupCountVec;
+      ar & molLookupCount;
       ar & boxAndKindStartVec;
       ar & boxAndKindSwappableCountsVec;
-      ar & boxAndKindStartCountVec;
-      ar & numKindsVec;
-      ar & restartMoleculeIndicesVec;
-      ar & restartedNumAtomsInBoxVec;
-      ar & fixedMoleculeVec;
-      ar & canSwapKindVec;
-      ar & canMoveKindVec;
+      ar & boxAndKindStartCount;
+      ar & numKinds;
+      ar & restartMoleculeIndices;
+      ar & restartedNumAtomsInBox;
+      ar & fixedMolecule;
+      ar & canSwapKind;
+      ar & canMoveKind;
       ar & molIndexVec;
       ar & atomIndexVec;
       ar & molKindVec;

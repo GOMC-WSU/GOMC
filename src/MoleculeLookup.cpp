@@ -46,10 +46,10 @@ void MoleculeLookup::Init(const Molecules& mols,
   // If we restFromChk, this info comes from file
   if (restartFromCheckpoint){
     molLookup = vect::TransferInto<uint32_t>(molLookup, molLookupVec);
-    molIndex = vect::TransferInto<uint32_t>(molIndex, molIndexVec);
-    atomIndex = vect::TransferInto<uint32_t>(atomIndex, atomIndexVec);
-    molKind = vect::TransferInto<uint32_t>(molKind, molKindVec);
-    atomKind = vect::TransferInto<uint32_t>(atomKind, atomKindVec);
+    molIndex = vect::TransferInto<int32_t>(molIndex, molIndexVec);
+    atomIndex = vect::TransferInto<int32_t>(atomIndex, atomIndexVec);
+    molKind = vect::TransferInto<int32_t>(molKind, molKindVec);
+    atomKind = vect::TransferInto<int32_t>(atomKind, atomKindVec);
     atomCharge = vect::TransferInto<double>(atomCharge, atomChargeVec);
     boxAndKindStart = vect::TransferInto<uint32_t>(boxAndKindStart, boxAndKindStartVec);
     boxAndKindSwappableCounts = vect::TransferInto<uint32_t>(boxAndKindSwappableCounts, boxAndKindSwappableCountsVec);
@@ -181,9 +181,9 @@ bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
                                  const uint intoBox, const uint kind)
 {
   uint index = std::find(
-                 molLookup.begin() + boxAndKindStart[currentBox * numKinds + kind],
-                 molLookup.begin() + boxAndKindStart[currentBox * numKinds + kind + 1], mol)
-               - molLookup.begin();
+                 molLookup + boxAndKindStart[currentBox * numKinds + kind],
+                 molLookup + boxAndKindStart[currentBox * numKinds + kind + 1], mol)
+               - molLookup;
   assert(index != boxAndKindStart[currentBox * numKinds + kind + 1]);
   assert(molLookup[index] == mol);
   Shift(index, currentBox, intoBox, kind);
@@ -275,12 +275,12 @@ MoleculeLookup::box_iterator::box_iterator(const uint* _pLook, const uint* _pSec
 
 MoleculeLookup::box_iterator MoleculeLookup::BoxBegin(const uint box) const
 {
-  return box_iterator(&molLookup[0], &boxAndKindStart[box * numKinds]);
+  return box_iterator(molLookup, boxAndKindStart + box * numKinds);
 }
 
 MoleculeLookup::box_iterator MoleculeLookup::BoxEnd(const uint box) const
 {
-  return box_iterator(&molLookup[0], &boxAndKindStart[(box + 1)* numKinds]);
+  return box_iterator(molLookup, boxAndKindStart + (box + 1) * numKinds);
 }
 
 MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
