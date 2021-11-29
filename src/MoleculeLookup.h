@@ -190,6 +190,7 @@ static uint GetConsensusMolBeta( const uint pStart,
   //move selection
   uint32_t* molLookup;
   uint32_t molLookupCount;
+  uint32_t atomCount;
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
@@ -230,7 +231,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   std::vector <uint32_t> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint32_t> canMoveKind; //Kinds that can move intra box only
 
-
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
   private:
@@ -240,6 +240,7 @@ static uint GetConsensusMolBeta( const uint pStart,
     {
       ar & molLookupVec;
       ar & molLookupCount;
+      ar & atomCount;
       ar & boxAndKindStartVec;
       ar & boxAndKindSwappableCountsVec;
       ar & boxAndKindStartCount;
@@ -255,6 +256,10 @@ static uint GetConsensusMolBeta( const uint pStart,
       ar & atomKindVec;
       ar & atomChargeVec;
     }
+
+
+template <class T>
+void wrapArrayInVector( T *sourceArray, size_t arraySize, std::vector<T, std::allocator<T> > &targetVector );
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
