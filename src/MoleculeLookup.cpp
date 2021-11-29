@@ -134,24 +134,6 @@ void MoleculeLookup::Init(const Molecules& mols,
 
     boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
   }
-/*
-  molLookupVec = wrapArrayInVector(molLookup, molLookupCount);
-  molIndexVec = wrapArrayInVector(molIndex, atomCount);
-  atomIndexVec = wrapArrayInVector(atomIndex, atomCount);
-  molKindVec = wrapArrayInVector(molKind, atomCount);
-  atomKindVec = wrapArrayInVector(atomKind, atomCount);
-  atomChargeVec = wrapArrayInVector(atomCharge, atomCount);
-  boxAndKindStartVec = wrapArrayInVector(boxAndKindStart, boxAndKindStartCount);
-  boxAndKindSwappableCountsVec = wrapArrayInVector(boxAndKindSwappableCounts, numKinds * BOX_TOTAL);
-*/
-  wrapArrayInVector(molLookup, molLookupCount, molLookupVec);
-  wrapArrayInVector(molIndex, atomCount, molIndexVec);
-  wrapArrayInVector(atomIndex, atomCount, atomIndexVec);
-  wrapArrayInVector(molKind, atomCount, molKindVec);
-  wrapArrayInVector(atomKind, atomCount, atomKindVec);
-  wrapArrayInVector(atomCharge, atomCount, atomChargeVec);
-  wrapArrayInVector(boxAndKindStart, boxAndKindStartCount, boxAndKindStartVec);
-  wrapArrayInVector(boxAndKindSwappableCounts, numKinds * BOX_TOTAL, boxAndKindSwappableCountsVec);
 // allocate and set gpu variables
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars = ff.particles->getCUDAVars();
@@ -162,25 +144,6 @@ void MoleculeLookup::Init(const Molecules& mols,
   cudaMemcpy(cudaVars->gpu_startAtomIdx, mols.start, numMol * sizeof(int), cudaMemcpyHostToDevice);
 #endif
 
-}
-
-// Wraps array in pointer so we don't have to copy the data needlessly
-// https://stackoverflow.com/questions/7278347/c-pointer-array-to-vector/15203325
-/*
-template<typename T> std::vector<T> MoleculeLookup::wrapArrayInVector(T* sourceArray, size_t arraySize) {
-    std::vector<T> targetVector;
-    std::vector<T>::_Mybase* basePtr = (std::vector<T>::_Mybase*)((void*)&targetVector);
-    basePtr->_Get_data()._Myfirst = sourceArray;
-    basePtr->_Get_data()._Mylast = basePtr->_Get_data()._Myend = basePtr->_Get_data()._Myfirst + arraySize;
-    return targetVector;
-}
-*/
-template <class T>
-void MoleculeLookup::wrapArrayInVector( T *sourceArray, size_t arraySize, std::vector<T, std::allocator<T> > &targetVector ) {
-  typename std::_Vector_base<T, std::allocator<T> >::_Vector_impl *vectorPtr =
-    (typename std::_Vector_base<T, std::allocator<T> >::_Vector_impl *)((void *) &targetVector);
-  vectorPtr->_M_start = sourceArray;
-  vectorPtr->_M_finish = vectorPtr->_M_end_of_storage = vectorPtr->_M_start + arraySize;
 }
 
 uint MoleculeLookup::NumInBox(const uint box) const

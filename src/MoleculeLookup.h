@@ -256,10 +256,6 @@ static uint GetConsensusMolBeta( const uint pStart,
       ar & atomKindVec;
       ar & atomChargeVec;
     }
-
-
-template <class T>
-void wrapArrayInVector( T *sourceArray, size_t arraySize, std::vector<T, std::allocator<T> > &targetVector );
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
