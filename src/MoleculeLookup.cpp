@@ -24,25 +24,36 @@ void MoleculeLookup::Init(const Molecules& mols,
                           Forcefield &ff,
                           bool restartFromCheckpoint)
 {
+
+  // Always allocate the raw array memory
+  numKinds = mols.GetKindsCount();
+
+  molLookup = new uint[mols.count];
+  molLookupCount = mols.count;
+  // beta has same size as total number of atoms
+  molIndex = new int[atomData.beta.size()];
+  atomIndex = new int[atomData.beta.size()];
+  molKind = new int[atomData.beta.size()];
+  atomKind = new int[atomData.beta.size()];
+  atomCharge = new double[atomData.beta.size()];
+
+  //+1 to store end value
+  boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
+  boxAndKindSwappableCounts = new uint[numKinds * BOX_TOTAL];
+
+  boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
+
   // If we restFromChk, this info comes from file
-  if (!restartFromCheckpoint){
-    numKinds = mols.GetKindsCount();
-    molLookup.resize(mols.count);
-    molLookupCount = mols.count;
-    // beta has same size as total number of atoms
-    molIndex.resize(atomData.beta.size());
-    atomIndex.resize(atomData.beta.size());
-    molKind.resize(atomData.beta.size());
-    atomKind.resize(atomData.beta.size());
-    atomCharge.resize(atomData.beta.size());
-    
-
-    //+1 to store end value
-    boxAndKindStart.resize(numKinds * BOX_TOTAL + 1);
-    boxAndKindSwappableCounts.resize(numKinds * BOX_TOTAL);
-
-    boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
-
+  if (restartFromCheckpoint){
+    molLookup = vect::TransferInto<uint32_t>(molLookup, molLookupVec);
+    molIndex = vect::TransferInto<uint32_t>(molIndex, molIndexVec);
+    atomIndex = vect::TransferInto<uint32_t>(atomIndex, atomIndexVec);
+    molKind = vect::TransferInto<uint32_t>(molKind, molKindVec);
+    atomKind = vect::TransferInto<uint32_t>(atomKind, atomKindVec);
+    atomCharge = vect::TransferInto<double>(atomCharge, atomChargeVec);
+    boxAndKindStart = vect::TransferInto<uint32_t>(boxAndKindStart, boxAndKindStartVec);
+    boxAndKindSwappableCounts = vect::TransferInto<uint32_t>(boxAndKindSwappableCounts, boxAndKindSwappableCountsVec);
+  } else {
     // vector[box][kind] = list of mol indices for kind in box
     std::vector<std::vector<std::vector<uint> > > indexVector;
     indexVector.resize(BOX_TOTAL);
@@ -101,10 +112,10 @@ void MoleculeLookup::Init(const Molecules& mols,
     }
 
 
-    uint* progress = &molLookup[0];
+    uint* progress = molLookup;
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       for (uint k = 0; k < numKinds; ++k) {
-        boxAndKindStart[b * numKinds + k] = progress - &molLookup[0];
+        boxAndKindStart[b * numKinds + k] = progress - molLookup;
         progress = std::copy(indexVector[b][k].begin(),
                             indexVector[b][k].end(), progress);
       }
@@ -123,6 +134,8 @@ void MoleculeLookup::Init(const Molecules& mols,
 #endif
 
 }
+
+
 
 uint MoleculeLookup::NumInBox(const uint box) const
 {

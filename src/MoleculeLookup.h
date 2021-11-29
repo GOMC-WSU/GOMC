@@ -207,30 +207,30 @@ static uint GetConsensusMolBeta( const uint pStart,
   // We save/load the data to/from vectors for serialization purposes.
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
-  std::vector<uint32_t> molLookup_Vec;
+  std::vector<uint32_t> molLookupVec;
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
-  std::vector<uint32_t> boxAndKindStart_Vec;
-  std::vector<uint32_t> boxAndKindSwappableCounts_Vec;
-  uint32_t boxAndKindStartCount_Vec;
-  uint32_t numKinds_Vec;
+  std::vector<uint32_t> boxAndKindStartVec;
+  std::vector<uint32_t> boxAndKindSwappableCountsVec;
+  uint32_t boxAndKindStartCountVec;
+  uint32_t numKindsVec;
 
-  std::vector<int32_t> molIndex_Vec; // stores the molecule index for global atom index
-  std::vector<int32_t> atomIndex_Vec; // stores the local atom index for global atom index
-  std::vector<int32_t> molKind_Vec; // stores the molecule kind for global atom index
-  std::vector<int32_t> atomKind_Vec; // stores the atom kind for global atom index
-  std::vector<double> atomCharge_Vec; // stores the atom's charge for global atom index
+  std::vector<int32_t> molIndexVec; // stores the molecule index for global atom index
+  std::vector<int32_t> atomIndexVec; // stores the local atom index for global atom index
+  std::vector<int32_t> molKindVec; // stores the molecule kind for global atom index
+  std::vector<int32_t> atomKindVec; // stores the atom kind for global atom index
+  std::vector<double> atomChargeVec; // stores the atom's charge for global atom index
 
 
   // For consistent trajectory ordering across checkpoints
-  std::vector<uint32_t> restartMoleculeIndices_Vec;
+  std::vector<uint32_t> restartMoleculeIndicesVec;
   uint32_t restartedNumAtomsInBox[BOX_TOTAL];
 
-  std::vector <uint32_t> fixedMolecule_Vec;
-  std::vector <uint32_t> canSwapKind_Vec; //Kinds that can move intra and inter box
-  std::vector <uint32_t> canMoveKind_Vec; //Kinds that can move intra box only
+  std::vector <uint32_t> fixedMoleculeVec;
+  std::vector <uint32_t> canSwapKindVec; //Kinds that can move intra and inter box
+  std::vector <uint32_t> canMoveKindVec; //Kinds that can move intra box only
 
 
   // make CheckpointOutput class a friend so it can print all the private data
@@ -240,22 +240,22 @@ static uint GetConsensusMolBeta( const uint pStart,
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-      ar & molLookup_Vec;
-      ar & molLookupCount_Vec;
-      ar & boxAndKindStart_Vec;
-      ar & boxAndKindSwappableCounts_Vec;
-      ar & boxAndKindStartCount_Vec;
-      ar & numKinds_Vec;
-      ar & restartMoleculeIndices_Vec;
-      ar & restartedNumAtomsInBox_Vec;
-      ar & fixedMolecule_Vec;
-      ar & canSwapKind_Vec;
-      ar & canMoveKind_Vec;
-      ar & molIndex_Vec;
-      ar & atomIndex_Vec;
-      ar & molKind_Vec;
-      ar & atomKind_Vec;
-      ar & atomCharge_Vec;
+      ar & molLookupVec;
+      ar & molLookupCountVec;
+      ar & boxAndKindStartVec;
+      ar & boxAndKindSwappableCountsVec;
+      ar & boxAndKindStartCountVec;
+      ar & numKindsVec;
+      ar & restartMoleculeIndicesVec;
+      ar & restartedNumAtomsInBoxVec;
+      ar & fixedMoleculeVec;
+      ar & canSwapKindVec;
+      ar & canMoveKindVec;
+      ar & molIndexVec;
+      ar & atomIndexVec;
+      ar & molKindVec;
+      ar & atomKindVec;
+      ar & atomChargeVec;
     }
 };
 
