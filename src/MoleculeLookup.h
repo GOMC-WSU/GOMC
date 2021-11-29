@@ -29,10 +29,21 @@ class MoleculeLookup
 {
 public:
 
-  MoleculeLookup(){}
+  MoleculeLookup(): molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL),
+   molIndex(NULL), atomIndex(NULL), molKind(NULL), atomKind(NULL), atomCharge(NULL) {}
+
 
   ~MoleculeLookup()
-  {}
+  {
+    delete[] molLookup;
+    delete[] boxAndKindStart;
+    delete[] molIndex;
+    delete[] atomIndex;
+    delete[] molKind;
+    delete[] atomKind;
+    delete[] atomCharge;
+    delete[] boxAndKindSwappableCounts;
+  }
 
   MoleculeLookup& operator=(const MoleculeLookup & rhs);
   bool operator==(const MoleculeLookup & rhs);
@@ -173,31 +184,54 @@ static uint GetConsensusMolBeta( const uint pStart,
              const uint intoBox, const uint kind);
 #endif
 
+  // We keep the data stored in raw pointers for vectorization purposes.
 
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
-  std::vector<uint32_t> molLookup;
+  uint32_t* molLookup;
   uint32_t molLookupCount;
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
-  std::vector<uint32_t> boxAndKindStart;
-  std::vector<uint32_t> boxAndKindSwappableCounts;
+  uint32_t* boxAndKindStart;
+  uint32_t* boxAndKindSwappableCounts;
   uint32_t boxAndKindStartCount;
   uint32_t numKinds;
-  /* For consistent trajectory ordering across checkpoints */
-  std::vector<uint32_t> restartMoleculeIndices;
+  int32_t *molIndex; // stores the molecule index for global atom index
+  int32_t *atomIndex; // stores the local atom index for global atom index
+  int32_t *molKind; // stores the molecule kind for global atom index
+  int32_t *atomKind; // stores the atom kind for global atom index
+  double *atomCharge; // stores the atom's charge for global
+
+  // We save/load the data to/from vectors for serialization purposes.
+  //array of indices for type Molecule, sorted by box and kind for
+  //move selection
+  std::vector<uint32_t> molLookup_Vec;
+  //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
+  //molLookup
+  //index [BOX_TOTAL * kind + box + 1] is the element after the end
+  //of that kind/box
+  std::vector<uint32_t> boxAndKindStart_Vec;
+  std::vector<uint32_t> boxAndKindSwappableCounts_Vec;
+  uint32_t boxAndKindStartCount_Vec;
+  uint32_t numKinds_Vec;
+
+  std::vector<int32_t> molIndex_Vec; // stores the molecule index for global atom index
+  std::vector<int32_t> atomIndex_Vec; // stores the local atom index for global atom index
+  std::vector<int32_t> molKind_Vec; // stores the molecule kind for global atom index
+  std::vector<int32_t> atomKind_Vec; // stores the atom kind for global atom index
+  std::vector<double> atomCharge_Vec; // stores the atom's charge for global atom index
+
+
+  // For consistent trajectory ordering across checkpoints
+  std::vector<uint32_t> restartMoleculeIndices_Vec;
   uint32_t restartedNumAtomsInBox[BOX_TOTAL];
 
-  std::vector <uint32_t> fixedMolecule;
-  std::vector <uint32_t> canSwapKind; //Kinds that can move intra and inter box
-  std::vector <uint32_t> canMoveKind; //Kinds that can move intra box only
-  std::vector<int32_t> molIndex; // stores the molecule index for global atom index
-  std::vector<int32_t> atomIndex; // stores the local atom index for global atom index
-  std::vector<int32_t> molKind; // stores the molecule kind for global atom index
-  std::vector<int32_t> atomKind; // stores the atom kind for global atom index
-  std::vector<double> atomCharge; // stores the atom's charge for global atom index
+  std::vector <uint32_t> fixedMolecule_Vec;
+  std::vector <uint32_t> canSwapKind_Vec; //Kinds that can move intra and inter box
+  std::vector <uint32_t> canMoveKind_Vec; //Kinds that can move intra box only
+
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
@@ -206,22 +240,22 @@ static uint GetConsensusMolBeta( const uint pStart,
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-      ar & molLookup;
-      ar & molLookupCount;
-      ar & boxAndKindStart;
-      ar & boxAndKindSwappableCounts;
-      ar & boxAndKindStartCount;
-      ar & numKinds;
-      ar & restartMoleculeIndices;
-      ar & restartedNumAtomsInBox;
-      ar & fixedMolecule;
-      ar & canSwapKind;
-      ar & canMoveKind;
-      ar & molIndex;
-      ar & atomIndex;
-      ar & molKind;
-      ar & atomKind;
-      ar & atomCharge;
+      ar & molLookup_Vec;
+      ar & molLookupCount_Vec;
+      ar & boxAndKindStart_Vec;
+      ar & boxAndKindSwappableCounts_Vec;
+      ar & boxAndKindStartCount_Vec;
+      ar & numKinds_Vec;
+      ar & restartMoleculeIndices_Vec;
+      ar & restartedNumAtomsInBox_Vec;
+      ar & fixedMolecule_Vec;
+      ar & canSwapKind_Vec;
+      ar & canMoveKind_Vec;
+      ar & molIndex_Vec;
+      ar & atomIndex_Vec;
+      ar & molKind_Vec;
+      ar & atomKind_Vec;
+      ar & atomCharge_Vec;
     }
 };
 
