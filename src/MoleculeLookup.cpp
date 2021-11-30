@@ -39,31 +39,15 @@ void MoleculeLookup::Init(const Molecules& mols,
   atomCharge = new double[atomCount];
 
   //+1 to store end value
-  boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
-  boxAndKindSwappableCounts = new uint[numKinds * BOX_TOTAL];
+  boxAndKindStartLength = numKinds * BOX_TOTAL + 1;
+  boxAndKindSwappableLength = numKinds * BOX_TOTAL;
 
-  boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
+  boxAndKindStart = new uint[boxAndKindStartLength];
+  boxAndKindSwappableCounts = new uint[boxAndKindSwappableLength];
 
   // If we restFromChk, this info comes from file
   if (restartFromCheckpoint){
-    molLookup = vect::TransferInto<uint32_t>(molLookup, molLookupVec);
-    molIndex = vect::TransferInto<int32_t>(molIndex, molIndexVec);
-    atomIndex = vect::TransferInto<int32_t>(atomIndex, atomIndexVec);
-    molKind = vect::TransferInto<int32_t>(molKind, molKindVec);
-    atomKind = vect::TransferInto<int32_t>(atomKind, atomKindVec);
-    atomCharge = vect::TransferInto<double>(atomCharge, atomChargeVec);
-    boxAndKindStart = vect::TransferInto<uint32_t>(boxAndKindStart, boxAndKindStartVec);
-    boxAndKindSwappableCounts = vect::TransferInto<uint32_t>(boxAndKindSwappableCounts, boxAndKindSwappableCountsVec);
-    
-    // Clear these vectors from checkpoint, so we can replace them with vector wrappers of the arrays
-    molLookupVec.clear();
-    molIndexVec.clear();
-    atomIndexVec.clear();
-    molKindVec.clear();
-    atomKindVec.clear();
-    atomChargeVec.clear();
-    boxAndKindStartVec.clear();
-    boxAndKindSwappableCountsVec.clear();
+    // Do nothing
   } else {
     // vector[box][kind] = list of mol indices for kind in box
     std::vector<std::vector<std::vector<uint> > > indexVector;
@@ -301,7 +285,7 @@ MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
   //of that kind/box
   boxAndKindStartVec = rhs.boxAndKindStartVec;
   boxAndKindSwappableCounts = rhs.boxAndKindSwappableCounts;
-  boxAndKindStartCount = rhs.boxAndKindStartCount;
+  boxAndKindStartLength = rhs.boxAndKindStartLength;
   numKinds = rhs.numKinds;
   fixedMolecule = rhs.fixedMolecule;
   canSwapKind = rhs.canSwapKind; //Kinds that can move intra and inter box
@@ -332,7 +316,7 @@ bool MoleculeLookup::operator==(const MoleculeLookup & rhs){
   //of that kind/box
   result &= (boxAndKindStartVec == rhs.boxAndKindStartVec);
   result &= (boxAndKindSwappableCounts == rhs.boxAndKindSwappableCounts);
-  result &= (boxAndKindStartCount == rhs.boxAndKindStartCount);
+  result &= (boxAndKindStartLength == rhs.boxAndKindStartLength);
   result &= (numKinds == rhs.numKinds);
   result &= (fixedMolecule == rhs.fixedMolecule);
   result &= (canSwapKind == rhs.canSwapKind); //Kinds that can move intra and inter box
@@ -354,7 +338,7 @@ void MoleculeLookup::swap(MoleculeLookup& oldMolLookup, MoleculeLookup& newMolLo
   swap(oldMolLookup.atomIndexVec, newMolLookup.atomIndexVec);
   swap(oldMolLookup.atomKindVec, newMolLookup.atomKindVec);
   swap(oldMolLookup.boxAndKindStartVec, newMolLookup.boxAndKindStartVec);
-  swap(oldMolLookup.boxAndKindStartCount, newMolLookup.boxAndKindStartCount);
+  swap(oldMolLookup.boxAndKindStartLength, newMolLookup.boxAndKindStartLength);
   swap(oldMolLookup.boxAndKindSwappableCountsVec, newMolLookup.boxAndKindSwappableCountsVec);
   swap(oldMolLookup.canMoveKind, newMolLookup.canMoveKind);
   swap(oldMolLookup.canSwapKind, newMolLookup.canSwapKind);

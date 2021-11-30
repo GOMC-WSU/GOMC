@@ -13,6 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Forcefield.h"
 #include <vector>
 #include <cstring>
+
+#include <cereal/access.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/cereal.hpp>
+
 class CheckpointOutput;
 
 namespace pdb_setup
@@ -186,19 +191,24 @@ static uint GetConsensusMolBeta( const uint pStart,
 
   // We keep the data stored in raw pointers for vectorization purposes.
 
+
+  uint32_t molLookupCount;
+  uint32_t atomCount;
+  uint32_t  boxAndKindStartLength;
+  uint32_t boxAndKindSwappableLength;
+  uint32_t numKinds;
+
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
   uint32_t* molLookup;
-  uint32_t molLookupCount;
-  uint32_t atomCount;
+
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
   uint32_t* boxAndKindStart;
   uint32_t* boxAndKindSwappableCounts;
-  uint32_t boxAndKindStartCount;
-  uint32_t numKinds;
+
   int32_t *molIndex; // stores the molecule index for global atom index
   int32_t *atomIndex; // stores the local atom index for global atom index
   int32_t *molKind; // stores the molecule kind for global atom index
@@ -238,23 +248,16 @@ static uint GetConsensusMolBeta( const uint pStart,
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-      ar & molLookupVec;
       ar & molLookupCount;
-      ar & atomCount;
-      ar & boxAndKindStartVec;
-      ar & boxAndKindSwappableCountsVec;
-      ar & boxAndKindStartCount;
+      ar & boxAndKindStartLength;
+      ar & boxAndKindSwappableLength;
       ar & numKinds;
       ar & restartMoleculeIndices;
       ar & restartedNumAtomsInBox;
       ar & fixedMolecule;
       ar & canSwapKind;
       ar & canMoveKind;
-      ar & molIndexVec;
-      ar & atomIndexVec;
-      ar & molKindVec;
-      ar & atomKindVec;
-      ar & atomChargeVec;
+      ar & atomCount;
     }
 };
 

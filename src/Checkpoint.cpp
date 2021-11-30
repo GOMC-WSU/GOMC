@@ -142,26 +142,7 @@ void Checkpoint::GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef,
 void Checkpoint::GatherMoleculeLookup(MoleculeLookup & molLookupRef,
                                       const Molecules & molRef){
 
-  molLookupRef.molLookupVec.clear();
-  molLookupRef.molIndexVec.clear();
-  molLookupRef.atomIndexVec.clear();
-  molLookupRef.molKindVec.clear();
-  molLookupRef.atomKindVec.clear();
-  molLookupRef.atomChargeVec.clear();
-  molLookupRef.boxAndKindStartVec.clear();
-  molLookupRef.boxAndKindSwappableCountsVec.clear();
-
-  molLookupRef.molLookupVec.insert(molLookupRef.molLookupVec.end(), &molLookupRef.molLookup[0], &molLookupRef.molLookup[molLookupRef.molLookupCount]);
-  molLookupRef.molIndexVec.insert(molLookupRef.molIndexVec.end(), &molLookupRef.molIndex[0], &molLookupRef.molIndex[molLookupRef.atomCount]);
-  molLookupRef.atomIndexVec.insert(molLookupRef.atomIndexVec.end(), &molLookupRef.atomIndex[0], &molLookupRef.atomIndex[molLookupRef.atomCount]);
-  molLookupRef.molKindVec.insert(molLookupRef.molKindVec.end(), &molLookupRef.molKind[0], &molLookupRef.molKind[molLookupRef.atomCount]);
-  molLookupRef.atomKindVec.insert(molLookupRef.atomKindVec.end(), &molLookupRef.atomKind[0], &molLookupRef.atomKind[molLookupRef.atomCount]);
-  molLookupRef.atomChargeVec.insert(molLookupRef.atomChargeVec.end(), &molLookupRef.atomCharge[0], &molLookupRef.atomCharge[molLookupRef.atomCount]);
-  molLookupRef.boxAndKindStartVec.insert(molLookupRef.boxAndKindStartVec.end(), &molLookupRef.boxAndKindStart[0], &molLookupRef.boxAndKindStart[molLookupRef.boxAndKindStartCount]);
-  molLookupRef.boxAndKindSwappableCountsVec.insert(molLookupRef.boxAndKindSwappableCountsVec.end(), &molLookupRef.boxAndKindSwappableCounts[0], &molLookupRef.boxAndKindSwappableCounts[molLookupRef.numKinds * BOX_TOTAL]);
-
   GatherRestartMoleculeIndices(molLookupRef, molRef);
-
   originalMoleculeLookup = molLookupRef;
 }
 /* 

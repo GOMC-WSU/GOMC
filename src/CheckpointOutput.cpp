@@ -81,6 +81,15 @@ void CheckpointOutput::saveCheckpointFile(const ulong & step,
   cereal::BinaryOutputArchive oa(ofs);
   oa << chkObj;
 
+  oa(cereal::binary_data( molLookRef.molLookup, sizeof(std::uint32_t) * molLookRef.molLookupCount ));
+  oa(cereal::binary_data( molLookRef.boxAndKindStart, sizeof(std::uint32_t) * molLookRef.boxAndKindStartLength ));
+  oa(cereal::binary_data( molLookRef.boxAndKindSwappableCounts, sizeof(std::uint32_t) * molLookRef.boxAndKindSwappableLength ));
+  oa(cereal::binary_data( molLookRef.molIndex, sizeof(std::int32_t) * molLookRef.atomCount ));
+  oa(cereal::binary_data( molLookRef.atomIndex, sizeof(std::int32_t) * molLookRef.atomCount ));
+  oa(cereal::binary_data( molLookRef.molKind, sizeof(std::int32_t) * molLookRef.atomCount ));
+  oa(cereal::binary_data( molLookRef.atomKind, sizeof(std::int32_t) * molLookRef.atomCount ));
+  oa(cereal::binary_data( molLookRef.atomCharge, sizeof(double) * molLookRef.atomCount ));
+
 }
 
 
