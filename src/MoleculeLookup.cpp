@@ -24,31 +24,31 @@ void MoleculeLookup::Init(const Molecules& mols,
                           Forcefield &ff,
                           bool restartFromCheckpoint)
 {
-
-  // Always allocate the raw array memory
-  numKinds = mols.GetKindsCount();
-
-  molLookup = new uint[mols.count];
-  molLookupCount = mols.count;
-  // beta has same size as total number of atoms
-  atomCount = atomData.beta.size();
-  molIndex = new int[atomCount];
-  atomIndex = new int[atomCount];
-  molKind = new int[atomCount];
-  atomKind = new int[atomCount];
-  atomCharge = new double[atomCount];
-
-  //+1 to store end value
-  boxAndKindStartLength = numKinds * BOX_TOTAL + 1;
-  boxAndKindSwappableLength = numKinds * BOX_TOTAL;
-
-  boxAndKindStart = new uint[boxAndKindStartLength];
-  boxAndKindSwappableCounts = new uint[boxAndKindSwappableLength];
-
   // If we restFromChk, this info comes from file
   if (restartFromCheckpoint){
     // Do nothing
   } else {
+  // Always allocate the raw array memory
+    numKinds = mols.GetKindsCount();
+
+    molLookup = new uint[mols.count];
+    molLookupCount = mols.count;
+    // beta has same size as total number of atoms
+    atomCount = atomData.beta.size();
+    molIndex = new int[atomCount];
+    atomIndex = new int[atomCount];
+    molKind = new int[atomCount];
+    atomKind = new int[atomCount];
+    atomCharge = new double[atomCount];
+
+    //+1 to store end value
+    boxAndKindStartLength = numKinds * BOX_TOTAL + 1;
+    boxAndKindSwappableLength = numKinds * BOX_TOTAL;
+
+    boxAndKindStart = new uint[boxAndKindStartLength];
+    boxAndKindSwappableCounts = new uint[boxAndKindSwappableLength];
+
+
     // vector[box][kind] = list of mol indices for kind in box
     std::vector<std::vector<std::vector<uint> > > indexVector;
     indexVector.resize(BOX_TOTAL);
@@ -277,24 +277,33 @@ MoleculeLookup::box_iterator MoleculeLookup::BoxEnd(const uint box) const
 }
 
 MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
-  molLookupVec = rhs.molLookupVec;
+  
   molLookupCount = rhs.molLookupCount;
-  //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
-  //molLookup
-  //index [BOX_TOTAL * kind + box + 1] is the element after the end
-  //of that kind/box
-  boxAndKindStartVec = rhs.boxAndKindStartVec;
-  boxAndKindSwappableCounts = rhs.boxAndKindSwappableCounts;
   boxAndKindStartLength = rhs.boxAndKindStartLength;
+  boxAndKindSwappableLength = rhs.boxAndKindSwappableLength;
+  atomCount = rhs.atomCount;
   numKinds = rhs.numKinds;
+
+  if (molLookup == NULL)
+    molLookup = new uint[molLookupCount];
+  if (molIndex == NULL)
+    molIndex = new int[atomCount];
+  if (atomIndex == NULL)
+    atomIndex = new int[atomCount];
+  if (molKind == NULL)
+    molKind = new int[atomCount];
+  if (atomKind == NULL)
+    atomKind = new int[atomCount];  
+  if (atomCharge == NULL)
+    atomCharge = new double[atomCount];
+  if (boxAndKindStart == NULL)
+    boxAndKindStart = new uint[boxAndKindStartLength];
+  if (boxAndKindSwappableCounts == NULL)
+    boxAndKindSwappableCounts = new uint[boxAndKindSwappableLength];
+
   fixedMolecule = rhs.fixedMolecule;
   canSwapKind = rhs.canSwapKind; //Kinds that can move intra and inter box
   canMoveKind = rhs.canMoveKind; //Kinds that can move intra box only
-  molIndexVec = rhs.molIndexVec; // stores the molecule index for global atom index
-  atomIndexVec = rhs.atomIndexVec; // stores the local atom index for global atom index
-  molKindVec = rhs.molKindVec; // stores the molecule kind for global atom index
-  atomKindVec = rhs.atomKindVec; // stores the atom kind for global atom index
-  atomChargeVec = rhs.atomChargeVec; // stores the atom's charge for global atom index
 
   /* For consistent trajectory ordering across checkpoints */
   restartMoleculeIndices = rhs.restartMoleculeIndices;
@@ -307,49 +316,35 @@ MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
 
 bool MoleculeLookup::operator==(const MoleculeLookup & rhs){
   bool result = true;
-
-  result &= (molLookupVec == rhs.molLookupVec);
   result &= (molLookupCount == rhs.molLookupCount);
+  for (int index = 0; index < molLookupCount; ++index){
+    result &= (molLookup[index] == rhs.molLookup[index]);
+  }
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
-  result &= (boxAndKindStartVec == rhs.boxAndKindStartVec);
-  result &= (boxAndKindSwappableCounts == rhs.boxAndKindSwappableCounts);
   result &= (boxAndKindStartLength == rhs.boxAndKindStartLength);
+  for (int index = 0; index < boxAndKindStartLength; ++index){
+    result &= (boxAndKindStart[index] == rhs.boxAndKindStart[index]);
+  }
+  result &= (boxAndKindSwappableLength == rhs.boxAndKindSwappableLength);
+  for (int index = 0; index < boxAndKindSwappableLength; ++index){
+    result &= (boxAndKindSwappableCounts[index] == rhs.boxAndKindSwappableCounts[index]);
+  }
   result &= (numKinds == rhs.numKinds);
   result &= (fixedMolecule == rhs.fixedMolecule);
   result &= (canSwapKind == rhs.canSwapKind); //Kinds that can move intra and inter box
   result &= (canMoveKind == rhs.canMoveKind); //Kinds that can move intra box only
-  result &= (molIndexVec == rhs.molIndexVec); // stores the molecule index for global atom index
-  result &= (atomIndexVec == rhs.atomIndexVec); // stores the local atom index for global atom index
-  result &= (molKindVec == rhs.molKindVec); // stores the molecule kind for global atom index
-  result &= (atomKindVec == rhs.atomKindVec); // stores the atom kind for global atom index
-  result &= (atomChargeVec == rhs.atomChargeVec); // stores the atom's charge for global atom index
-
+  result &= (atomCount == rhs.atomCount);
+  for (int index = 0; index < atomCount; ++index){
+    result &= (molIndex[index] == rhs.molIndex[index]); // stores the molecule index for global atom index
+    result &= (atomIndex[index] == rhs.atomIndex[index]); // stores the local atom index for global atom index
+    result &= (molKind[index] == rhs.molKind[index]); // stores the molecule kind for global atom index
+    result &= (atomKind[index] == rhs.atomKind[index]); // stores the atom kind for global atom index
+    result &= (atomCharge[index] == rhs.atomCharge[index]); // stores the atom's charge for global atom index
+  }
   return result;
 
 }
 
-void MoleculeLookup::swap(MoleculeLookup& oldMolLookup, MoleculeLookup& newMolLookup)
-{
-  using std::swap;
-  swap(oldMolLookup.atomChargeVec, newMolLookup.atomChargeVec);
-  swap(oldMolLookup.atomIndexVec, newMolLookup.atomIndexVec);
-  swap(oldMolLookup.atomKindVec, newMolLookup.atomKindVec);
-  swap(oldMolLookup.boxAndKindStartVec, newMolLookup.boxAndKindStartVec);
-  swap(oldMolLookup.boxAndKindStartLength, newMolLookup.boxAndKindStartLength);
-  swap(oldMolLookup.boxAndKindSwappableCountsVec, newMolLookup.boxAndKindSwappableCountsVec);
-  swap(oldMolLookup.canMoveKind, newMolLookup.canMoveKind);
-  swap(oldMolLookup.canSwapKind, newMolLookup.canSwapKind);
-  swap(oldMolLookup.fixedMolecule, newMolLookup.fixedMolecule);
-  swap(oldMolLookup.molIndexVec, newMolLookup.molIndexVec);
-  swap(oldMolLookup.molKindVec, newMolLookup.molKindVec);
-  swap(oldMolLookup.molLookupVec, newMolLookup.molLookupVec);
-  swap(oldMolLookup.molLookupCount, newMolLookup.molLookupCount);
-  swap(oldMolLookup.numKinds, newMolLookup.numKinds);
-    /* For consistent trajectory ordering across checkpoints */
-  swap(oldMolLookup.restartMoleculeIndices, newMolLookup.restartMoleculeIndices);
-  for (int b = 0; b < BOX_TOTAL; ++b)
-    swap(oldMolLookup.restartedNumAtomsInBox[b], newMolLookup.restartedNumAtomsInBox[b]);
-}

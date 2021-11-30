@@ -47,6 +47,15 @@ void CheckpointSetup::loadCheckpointFile(){
   cereal::BinaryInputArchive ia(ifs);
   ia >> chkObj;
   SetCheckpointData();
+  ia(cereal::binary_data( molLookupRef.molLookup, sizeof(std::uint32_t) * molLookupRef.molLookupCount ));
+  ia(cereal::binary_data( molLookupRef.boxAndKindStart, sizeof(std::uint32_t) * molLookupRef.boxAndKindStartLength ));
+  ia(cereal::binary_data( molLookupRef.boxAndKindSwappableCounts, sizeof(std::uint32_t) * molLookupRef.boxAndKindSwappableLength ));
+  ia(cereal::binary_data( molLookupRef.molIndex, sizeof(std::int32_t) * molLookupRef.atomCount ));
+  ia(cereal::binary_data( molLookupRef.atomIndex, sizeof(std::int32_t) * molLookupRef.atomCount ));
+  ia(cereal::binary_data( molLookupRef.molKind, sizeof(std::int32_t) * molLookupRef.atomCount ));
+  ia(cereal::binary_data( molLookupRef.atomKind, sizeof(std::int32_t) * molLookupRef.atomCount ));
+  ia(cereal::binary_data( molLookupRef.atomCharge, sizeof(double) * molLookupRef.atomCount ));
+
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 

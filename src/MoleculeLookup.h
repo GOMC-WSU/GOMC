@@ -37,25 +37,28 @@ public:
   MoleculeLookup(): molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL),
    molIndex(NULL), atomIndex(NULL), molKind(NULL), atomKind(NULL), atomCharge(NULL) {}
 
-
   ~MoleculeLookup()
   {
-    delete[] molLookup;
-    delete[] boxAndKindStart;
-    delete[] molIndex;
-    delete[] atomIndex;
-    delete[] molKind;
-    delete[] atomKind;
-    delete[] atomCharge;
-    delete[] boxAndKindSwappableCounts;
+    if (molLookup != NULL)
+      delete[] molLookup;
+    if (molIndex != NULL)
+      delete[] molIndex;
+    if (atomIndex != NULL)
+      delete[] atomIndex;
+    if (molKind != NULL)
+      delete[] molKind;
+    if (atomKind != NULL)
+      delete[] atomKind;
+    if (atomCharge != NULL)
+      delete[] atomCharge;
+    if (boxAndKindStart != NULL)
+      delete[] boxAndKindStart;
+    if (boxAndKindSwappableCounts != NULL)
+      delete[] boxAndKindSwappableCounts;
   }
 
   MoleculeLookup& operator=(const MoleculeLookup & rhs);
   bool operator==(const MoleculeLookup & rhs);
-
-
-  static void swap(MoleculeLookup& oldMolLookup, MoleculeLookup& newMolLookup);
-
 
   //Initialize this object to be consistent with Molecules mols
   void Init(Molecules const& mols, const pdb_setup::Atoms& atomData,
@@ -215,24 +218,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   int32_t *atomKind; // stores the atom kind for global atom index
   double *atomCharge; // stores the atom's charge for global
 
-  // We save/load the data to/from vectors for serialization purposes.
-  //array of indices for type Molecule, sorted by box and kind for
-  //move selection
-  std::vector<uint32_t> molLookupVec;
-  //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
-  //molLookup
-  //index [BOX_TOTAL * kind + box + 1] is the element after the end
-  //of that kind/box
-  std::vector<uint32_t> boxAndKindStartVec;
-  std::vector<uint32_t> boxAndKindSwappableCountsVec;
-
-  std::vector<int32_t> molIndexVec; // stores the molecule index for global atom index
-  std::vector<int32_t> atomIndexVec; // stores the local atom index for global atom index
-  std::vector<int32_t> molKindVec; // stores the molecule kind for global atom index
-  std::vector<int32_t> atomKindVec; // stores the atom kind for global atom index
-  std::vector<double> atomChargeVec; // stores the atom's charge for global atom index
-
-
   // For consistent trajectory ordering across checkpoints
   std::vector<uint32_t> restartMoleculeIndices;
   uint32_t restartedNumAtomsInBox[BOX_TOTAL];
@@ -249,6 +234,7 @@ static uint GetConsensusMolBeta( const uint pStart,
     void serialize(Archive & ar, const unsigned int version)
     {
       ar & molLookupCount;
+      ar & atomCount;
       ar & boxAndKindStartLength;
       ar & boxAndKindSwappableLength;
       ar & numKinds;
@@ -257,7 +243,6 @@ static uint GetConsensusMolBeta( const uint pStart,
       ar & fixedMolecule;
       ar & canSwapKind;
       ar & canMoveKind;
-      ar & atomCount;
     }
 };
 
