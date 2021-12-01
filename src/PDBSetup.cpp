@@ -172,20 +172,16 @@ void Atoms::Clear()
 
 void Atoms::GetMinMaxAtoms(const uint b){
   int stRange, endRange;
-  // -1 because we want to exclude the last array index  
-  // Box 0
-  // [0, numAtomsBox0)
-  // Box 1
-  // [numAtomsBox0, numAtomsBox0 + numAtomsBox1)
-  
+
   // To prevent segfault
   if (numAtomsInBox[b] == 0)
     return;
 
   boxAtomOffset[b+1] = boxAtomOffset[b] + numAtomsInBox[b];
-  
+
   stRange = boxAtomOffset[b];
-  endRange = boxAtomOffset[b+1];
+  // -1 because we renumber a count to start from 0
+  endRange = boxAtomOffset[b+1] - 1;
 
   min[b].x = *std::min_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
   min[b].y = *std::min_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));

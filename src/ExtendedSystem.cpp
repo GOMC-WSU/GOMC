@@ -122,7 +122,8 @@ void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb,
     if(inputFiles.files.binaryCoorInput.defined[b]) {
       int stRange, endRange;
       stRange = pdb.atoms.boxAtomOffset[b];
-      endRange = pdb.atoms.boxAtomOffset[b+1];
+      // -1 because we renumber a count to start from 0
+      endRange = pdb.atoms.boxAtomOffset[b+1] - 1;
 
       pdb.atoms.min[b].x = *std::min_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
       pdb.atoms.min[b].y = *std::min_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
