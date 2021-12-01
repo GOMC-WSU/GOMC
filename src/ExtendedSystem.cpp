@@ -120,6 +120,9 @@ void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb,
   XYZArray binaryCoorSOA(binaryCoor);
   for (uint b = 0; b < BOX_TOTAL; b++) {
     if(inputFiles.files.binaryCoorInput.defined[b]) {
+      // To prevent segfault
+      if (pdb.atoms.numAtomsInBox[b] == 0)
+        return;
       int stRange, endRange;
       stRange = pdb.atoms.boxAtomOffset[b];
       // -1 because we renumber a count to start from 0
