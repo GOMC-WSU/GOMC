@@ -158,6 +158,7 @@ void Atoms::Clear()
   for (uint b = 0; b < BOX_TOTAL; b++) {
     numAtomsInBox[b] = 0;
   }
+  boxAtomOffset[0] = 0;
 }
 
 // This method of finding minimum assumes all the box 0 atoms 
@@ -181,16 +182,11 @@ void Atoms::GetMinMaxAtoms(const uint b){
   if (numAtomsInBox[b] == 0)
     return;
 
-  if (b == 0){
-    stRange = 0;
-    endRange = numAtomsInBox[0] - 1;
-  } else if (b == 1) {
-    stRange = numAtomsInBox[0];
-    endRange = stRange + numAtomsInBox[1] - 1;
-  } else {
-    std::cout << "Error: Only Box 0 and Box 1 supported!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+  boxAtomOffset[b+1] = boxAtomOffset[b] + numAtomsInBox[b];
+  
+  stRange = boxAtomOffset[b];
+  endRange = boxAtomOffset[b+1];
+
   min[b].x = *std::min_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
   min[b].y = *std::min_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));
   min[b].z = *std::min_element(std::next(z.begin(), stRange), std::next(z.begin(), endRange));

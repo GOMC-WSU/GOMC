@@ -41,7 +41,7 @@ public:
   }
 
   //Create a struct of arrays from an array of structs
-  XYZArray(std::vector<XYZ> AOS)
+  XYZArray(const std::vector<XYZ> & AOS)
   {
     allocDone = false;
     Init(AOS.size());

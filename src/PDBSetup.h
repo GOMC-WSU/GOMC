@@ -127,6 +127,9 @@ public:
   //second box read (restart only)
   uint currBox, count;
   uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
+  // Atom start -inclusive | Atom end - exclusive
+  // [boxAtomOffset[BOX]   | boxAtomOffset[BOX+1])
+  uint boxAtomOffset[BOX_TOTAL + 1];
   XYZ min[BOX_TOTAL];
   XYZ max[BOX_TOTAL];
   
