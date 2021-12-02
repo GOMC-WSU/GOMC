@@ -264,9 +264,9 @@ void System::ChooseAndRunMove(const ulong step)
   uint majKind = 0;
   PickMove(majKind, draw);
 #ifndef NDEBUG
-  std::cout << "Step " << step+1 << ": picked move #" << majKind << ": "
+  std::cout << "Step " << step+1 << ": Picked move #" << majKind << ": "
             << str::MoveTypetoStr(majKind) << " move" << std::endl;
-  std::cout << "Random number chosen is " << draw << std::endl;
+  std::cout << "Random number drawn for picking move type is " << draw << std::endl;
 #endif
   time.SetStart();
   RunMove(majKind, draw, step);
