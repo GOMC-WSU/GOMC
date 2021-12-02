@@ -120,10 +120,11 @@ inline std::string MoveTypetoStr(uint moveType)
     case 12:
       moveTypeStr = "TARGETED_SWAP";
       break;
-#elif ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC
     case 13:
       moveTypeStr = "VOL_TRANSFER";
       break;
+#endif
 #endif
     default:
       moveTypeStr = "Update printMove() function!!! Undefined";
