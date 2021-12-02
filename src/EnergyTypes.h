@@ -509,7 +509,7 @@ inline std::ostream& operator<<(std::ostream& out, Energy& en)
   out << std::setprecision(6) << std::fixed;
   out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond << "  IntraNB: "
       << en.intraNonbond << "  Inter: " << en.inter << "  Tc: " << en.tc;
-  if (en.totalElect > 0.0) {
+  if (en.totalElect != 0.0) {
     out << std::endl << "\tTotal Electric: " << en.totalElect << "  Real: " << en.real
         << "  Recip: " << en.recip << "  Self: " << en.self << "  Correction: "
         << en.correction;
