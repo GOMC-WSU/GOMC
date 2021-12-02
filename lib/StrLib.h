@@ -77,57 +77,57 @@ inline std::string MoveTypetoStr(uint moveType)
   std::string moveTypeStr;
   switch (moveType) {
     case 0:
-      moveTypeStr = "DISPLACE";
+      moveTypeStr = "Displacement";
       break;
     case 1:
-      moveTypeStr = "ROTATE";
+      moveTypeStr = "Rotation";
       break;
     case 2:
-      moveTypeStr = "MULTIPARTICLE";
+      moveTypeStr = "MultiParticle";
       break;
     case 3:
-      moveTypeStr = "BROWNIAN MULTIPARTICLE";
+      moveTypeStr = "MultiParticle-Brownian";
       break;
     case 4:
-      moveTypeStr = "INTRA_SWAP";
+      moveTypeStr = "Intra-Swap";
       break;
     case 5:
-      moveTypeStr = "REGROWTH";
+      moveTypeStr = "Regrowth";
       break;
     case 6:
-      moveTypeStr = "INTRA_MEMC";
+      moveTypeStr = "Intra-MEMC";
       break;
     case 7:
-      moveTypeStr = "CRANKSHAFT";
+      moveTypeStr = "Crank-Shaft";
       break;
     case 8:
-      moveTypeStr = "INTRA_TARGETED_SWAP";
+      moveTypeStr = "Intra-Targeted-Transfer";
       break;
 #if ENSEMBLE == NPT
     case 9:
-      moveTypeStr = "VOL_TRANSFER";
+      moveTypeStr = "Vol-Transfer";
       break;
 #elif ENSEMBLE == GCMC || ENSEMBLE == GEMC
     case 9:
       moveTypeStr = "MEMC";
       break;
     case 10:
-      moveTypeStr = "MOL_TRANSFER";
+      moveTypeStr = "Mol-Transfer";
       break;
     case 11:
-      moveTypeStr = "NE_MTMC";
+      moveTypeStr = "nonEq Mol-Transfer";
       break;
     case 12:
-      moveTypeStr = "TARGETED_SWAP";
+      moveTypeStr = "Targeted-Transfer";
       break;
 #if ENSEMBLE == GEMC
     case 13:
-      moveTypeStr = "VOL_TRANSFER";
+      moveTypeStr = "Vol-Transfer";
       break;
 #endif
 #endif
     default:
-      moveTypeStr = "Update printMove() function!!! Undefined";
+      moveTypeStr = "Update MoveTypetoStr() function in lib/StrLib.h!!! Undefined";
   }
 
   return moveTypeStr;
