@@ -86,43 +86,43 @@ inline std::string MoveTypetoStr(uint moveType)
       moveTypeStr = "MultiParticle";
       break;
     case 3:
-      moveTypeStr = "MultiParticle-Brownian";
+      moveTypeStr = "MultiParticle with Brownian Motion";
       break;
     case 4:
-      moveTypeStr = "Intra-Swap";
+      moveTypeStr = "Intra Molecule Swap";
       break;
     case 5:
       moveTypeStr = "Regrowth";
       break;
     case 6:
-      moveTypeStr = "Intra-MEMC";
+      moveTypeStr = "Intra Molecule Exchange";
       break;
     case 7:
-      moveTypeStr = "Crank-Shaft";
+      moveTypeStr = "Crankshaft";
       break;
     case 8:
-      moveTypeStr = "Intra-Targeted-Transfer";
+      moveTypeStr = "Intra Targeted Transfer";
       break;
 #if ENSEMBLE == NPT
     case 9:
-      moveTypeStr = "Vol-Transfer";
+      moveTypeStr = "Volume Transfer";
       break;
 #elif ENSEMBLE == GCMC || ENSEMBLE == GEMC
     case 9:
-      moveTypeStr = "MEMC";
+      moveTypeStr = "Molecule Exchange";
       break;
     case 10:
-      moveTypeStr = "Mol-Transfer";
+      moveTypeStr = "Molecule Transfer";
       break;
     case 11:
-      moveTypeStr = "nonEq Mol-Transfer";
+      moveTypeStr = "Nonequilibrium Molecule Transfer";
       break;
     case 12:
-      moveTypeStr = "Targeted-Transfer";
+      moveTypeStr = "Targeted Transfer";
       break;
 #if ENSEMBLE == GEMC
     case 13:
-      moveTypeStr = "Vol-Transfer";
+      moveTypeStr = "Volume Transfer";
       break;
 #endif
 #endif
