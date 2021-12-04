@@ -45,6 +45,7 @@ void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inp
     ReadCoordinate(pdb, inputFiles, molLookup, mols);
     UpdateCoordinate(pdb, inputFiles, molLookup, mols);    
     UpdateMinMaxAtoms(pdb, inputFiles, molLookup, mols);
+    binaryCoor.clear();
   }
   // Read the binary velocity and update the buffer
   if(inputFiles.restart.restartFromBinaryVelFile) {
@@ -52,6 +53,7 @@ void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inp
     binaryVeloc.resize(pdb.atoms.beta.size());
     ReadVelocity(pdb, inputFiles, molLookup, mols);
     UpdateVelocity(vel, inputFiles, molLookup, mols);
+    binaryVeloc.clear();
   }
 }
 
