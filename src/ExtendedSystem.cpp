@@ -98,7 +98,7 @@ void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFile
     if(inputFiles.files.binaryCoorInput.defined[b]) {
       std::string fName = inputFiles.files.binaryCoorInput.name[b];  
       if (mols.restartFromCheckpoint)
-        read_binary_file(fName.c_str(), &binaryCoor[pdb.atoms.boxAtomOffset[b]], pdb.atoms.numAtomsInBox[b]);
+        read_binary_file(fName.c_str(), &binaryCoor[pdb.atoms.boxAtomOffset[b]], molLookup.restartedNumAtomsInBox[b]);
       else
         read_binary_file(fName.c_str(), &binaryCoor[pdb.atoms.boxAtomOffset[b]], pdb.atoms.numAtomsInBox[b]);
     }
@@ -138,7 +138,7 @@ void ExtendedSystem::ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles,
     if(inputFiles.files.binaryVelInput.defined[b]) {
       std::string fName = inputFiles.files.binaryVelInput.name[b];  
       if (mols.restartFromCheckpoint)
-        read_binary_file(fName.c_str(), &binaryVeloc[pdb.atoms.boxAtomOffset[b]], pdb.atoms.numAtomsInBox[b]);
+        read_binary_file(fName.c_str(), &binaryVeloc[pdb.atoms.boxAtomOffset[b]], molLookup.restartedNumAtomsInBox[b]);
       else
         read_binary_file(fName.c_str(), &binaryVeloc[pdb.atoms.boxAtomOffset[b]], pdb.atoms.numAtomsInBox[b]);
     }

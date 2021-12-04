@@ -168,6 +168,14 @@ void CheckpointSetup::SetPDBSetupAtoms(){
       chkObj.originalAtoms.box[p] = pdbAtomsRef.box[d];
     }
   }
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    chkObj.originalAtoms.numAtomsInBox[b] = pdbAtomsRef.numAtomsInBox[b];
+    chkObj.originalAtoms.min[b] = pdbAtomsRef.min[b];
+    chkObj.originalAtoms.max[b] = pdbAtomsRef.max[b];
+  }
+  for (int b = 0; b < BOX_TOTAL + 1; ++b){
+    chkObj.originalAtoms.boxAtomOffset[b] = pdbAtomsRef.boxAtomOffset[b];
+  }
   // Should do a default assignment of the vectors and primitives.
   pdbAtomsRef = chkObj.originalAtoms;
 }
