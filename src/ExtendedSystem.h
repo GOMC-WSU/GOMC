@@ -45,7 +45,8 @@ class ExtendedSystem  {
     void UpdateCellBasis(PDBSetup &pdb, const int box);
     // Reads the binary coordinates and updates the X Y Z coordinates in pdb data structure
     void UpdateCoordinate(PDBSetup &pdb, 
-                          MoleculeLookup & molLookup, 
+                          config_setup::Input inputFiles,
+                          MoleculeLookup & molLookup,
                           Molecules & mols);
     void ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup,
                                      Molecules & mols);
@@ -55,8 +56,9 @@ class ExtendedSystem  {
                           Molecules & mols);
     // Reads the binary velocities and updates the X Y Z velocity data structure
     void UpdateVelocity(Velocity & vel, 
-                          MoleculeLookup & molLookup, 
-                          Molecules & mols);
+                        config_setup::Input inputFiles,
+                        MoleculeLookup & molLookup,
+                        Molecules & mols);
     void ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles, 
                           MoleculeLookup & molLookup, Molecules & mols);
     // the time steps in xsc file
@@ -76,7 +78,7 @@ class ExtendedSystem  {
     // Stores the binary coordinates of both boxes
     std::vector<XYZ> binaryCoor;
     // For Loading 
-    int numAtoms;
+    int totalNumAtoms;
     int numAtomsInBox[BOX_TOTAL];
     int boxStart[BOX_TOTAL];
 
