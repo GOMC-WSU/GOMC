@@ -86,10 +86,10 @@ inline std::string MoveTypetoStr(uint moveType)
       moveTypeStr = "MultiParticle";
       break;
     case 3:
-      moveTypeStr = "MultiParticle with Brownian Motion";
+      moveTypeStr = "Brownian-like MultiParticle";
       break;
     case 4:
-      moveTypeStr = "Intra Molecule Swap";
+      moveTypeStr = "Intra Molecule Transfer";
       break;
     case 5:
       moveTypeStr = "Regrowth";
