@@ -42,10 +42,12 @@ TEST(CheckpointTest, CheckPEN_HEX) {
     MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
     MoveSettings & Continued_ms = Continued.GetMoveSettings();
     MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
+    Coordinates & Continued_coords = Continued.GetCoordinates();
+    Coordinates & SingleRun_coords = SingleRun.GetCoordinates();
 
     EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
     EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
-
+    EXPECT_EQ(Continued_coords.operator==(SingleRun_coords), true);
 
     result = chdir("../../../../..");
     if (result){
