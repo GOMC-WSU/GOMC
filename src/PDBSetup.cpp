@@ -158,7 +158,9 @@ void Atoms::Clear()
   for (uint b = 0; b < BOX_TOTAL; b++) {
     numAtomsInBox[b] = 0;
   }
-  boxAtomOffset[0] = 0;
+  for (uint b = 0; b < BOX_TOTAL+1; b++) {
+    boxAtomOffset[0] = 0;
+  }
 }
 
 // This method of finding minimum assumes all the box 0 atoms 
@@ -173,11 +175,11 @@ void Atoms::Clear()
 void Atoms::GetMinMaxAtoms(const uint b){
   int stRange, endRange;
 
-  // To prevent segfault
+  boxAtomOffset[b+1] = boxAtomOffset[b] + numAtomsInBox[b];
+
+  // To prevent segfault, but we still need to set atomOffset
   if (numAtomsInBox[b] == 0)
     return;
-
-  boxAtomOffset[b+1] = boxAtomOffset[b] + numAtomsInBox[b];
 
   stRange = boxAtomOffset[b];
   endRange = boxAtomOffset[b+1];
