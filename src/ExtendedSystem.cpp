@@ -71,7 +71,7 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
   //find the starting index
   for (uint box = 0; box < BOX_TOTAL; ++box) {
-    if(inputFiles.files.binaryVelInput.defined[box]) {
+    if(inputFiles.files.binaryCoorInput.defined[box]) {
       //find the starting index
       for (int mol = boxMoleculeOffset[box]; mol < boxMoleculeOffset[box+1]; ++mol){    dataI = mol;
         if (mols.restartFromCheckpoint){
