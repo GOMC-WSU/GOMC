@@ -288,13 +288,6 @@ MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
   canSwapKind = rhs.canSwapKind; //Kinds that can move intra and inter box
   canMoveKind = rhs.canMoveKind; //Kinds that can move intra box only
 
-  AllocateMemory(rhs.molLookupCount, 
-                rhs.atomCount,
-                rhs.boxAndKindStartLength,
-                rhs.boxAndKindSwappableLength);
-
-  // Dynamic deep copy is done directly from serialization into allocated memory
-
   return *this;
 
 }
@@ -304,21 +297,21 @@ void MoleculeLookup::AllocateMemory(int molLookupCount,
                                     int boxAndKindStartLength,
                                     int boxAndKindSwappableLength){
   if (molLookup == NULL)
-    molLookup = new uint[molLookupCount];
+    molLookup = new uint32_t[molLookupCount];
   if (molIndex == NULL)
-    molIndex = new int[atomCount];
+    molIndex = new int32_t[atomCount];
   if (atomIndex == NULL)
-    atomIndex = new int[atomCount];
+    atomIndex = new int32_t[atomCount];
   if (molKind == NULL)
-    molKind = new int[atomCount];
+    molKind = new int32_t[atomCount];
   if (atomKind == NULL)
-    atomKind = new int[atomCount];  
+    atomKind = new int32_t[atomCount];  
   if (atomCharge == NULL)
     atomCharge = new double[atomCount];
   if (boxAndKindStart == NULL)
-    boxAndKindStart = new uint[boxAndKindStartLength];
+    boxAndKindStart = new uint32_t[boxAndKindStartLength];
   if (boxAndKindSwappableCounts == NULL)
-    boxAndKindSwappableCounts = new uint[boxAndKindSwappableLength];
+    boxAndKindSwappableCounts = new uint32_t[boxAndKindSwappableLength];
 }
 
 bool MoleculeLookup::operator==(const MoleculeLookup & rhs){

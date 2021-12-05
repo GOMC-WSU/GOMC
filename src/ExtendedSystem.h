@@ -36,7 +36,7 @@ class ExtendedSystem  {
   public:
   ExtendedSystem();
   ~ExtendedSystem() {};
-  void Init(PDBSetup &pdb, Velocity &vel, config_setup::Input inputFiles,
+  void Init(PDBSetup &pdb, Velocity &vel, config_setup::Input & inputFiles,
             MoleculeLookup & molLookup, Molecules & mols);
   private:
     // Reads the xsc file and store/calculate cellBasis data
@@ -45,21 +45,21 @@ class ExtendedSystem  {
     void UpdateCellBasis(PDBSetup &pdb, const int box);
     // Reads the binary coordinates and updates the X Y Z coordinates in pdb data structure
     void UpdateCoordinate(PDBSetup &pdb, 
-                          config_setup::Input inputFiles,
+                          config_setup::Input & inputFiles,
                           MoleculeLookup & molLookup,
                           Molecules & mols);
-    void ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup,
+    void ReadCoordinate(PDBSetup &pdb, config_setup::Input & inputFiles, MoleculeLookup & molLookup,
                                      Molecules & mols);
     void UpdateMinMaxAtoms(PDBSetup &pdb,
-                          config_setup::Input inputFiles, 
+                          config_setup::Input & inputFiles, 
                           MoleculeLookup & molLookup,
                           Molecules & mols);
     // Reads the binary velocities and updates the X Y Z velocity data structure
     void UpdateVelocity(Velocity & vel, 
-                        config_setup::Input inputFiles,
+                        config_setup::Input & inputFiles,
                         MoleculeLookup & molLookup,
                         Molecules & mols);
-    void ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles, 
+    void ReadVelocity(PDBSetup &pdb, config_setup::Input & inputFiles, 
                           MoleculeLookup & molLookup, Molecules & mols);
     // the time steps in xsc file
     ulong firstStep;

@@ -180,8 +180,7 @@ void Atoms::GetMinMaxAtoms(const uint b){
   boxAtomOffset[b+1] = boxAtomOffset[b] + numAtomsInBox[b];
 
   stRange = boxAtomOffset[b];
-  // -1 because we renumber a count to start from 0
-  endRange = boxAtomOffset[b+1] - 1;
+  endRange = boxAtomOffset[b+1];
 
   min[b].x = *std::min_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
   min[b].y = *std::min_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));

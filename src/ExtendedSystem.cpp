@@ -25,7 +25,7 @@ ExtendedSystem::ExtendedSystem()
   }
 }
 
-void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inputFiles,
+void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input & inputFiles,
                           MoleculeLookup & molLookup, Molecules & mols)
 {
   // Read the extended system file and update the cellBasis data
@@ -58,7 +58,7 @@ void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inp
 }
 
 void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, 
-                                      config_setup::Input inputFiles,
+                                      config_setup::Input & inputFiles,
                                       MoleculeLookup & molLookup,
                                       Molecules & mols)
 {
@@ -91,7 +91,7 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
   }
 }
 
-void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup,
+void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input & inputFiles, MoleculeLookup & molLookup,
                                      Molecules & mols){
   for(int b = 0; b < BOX_TOTAL; b++) {
     if(inputFiles.files.binaryCoorInput.defined[b]) {
@@ -102,7 +102,7 @@ void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input inputFile
 }
 
 void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb,
-                                      config_setup::Input inputFiles, 
+                                      config_setup::Input & inputFiles, 
                                       MoleculeLookup & molLookup,
                                       Molecules & mols){
   XYZArray binaryCoorSOA(binaryCoor);
@@ -113,8 +113,7 @@ void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb,
         return;
       int stRange, endRange;
       stRange = pdb.atoms.boxAtomOffset[b];
-      // -1 because we renumber a count to start from 0
-      endRange = pdb.atoms.boxAtomOffset[b+1] - 1;
+      endRange = pdb.atoms.boxAtomOffset[b+1];
 
       pdb.atoms.min[b].x = *std::min_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
       pdb.atoms.min[b].y = *std::min_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
@@ -128,7 +127,7 @@ void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb,
 
 
 
-void ExtendedSystem::ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup,
+void ExtendedSystem::ReadVelocity(PDBSetup &pdb, config_setup::Input & inputFiles, MoleculeLookup & molLookup,
                                      Molecules & mols){
   for(int b = 0; b < BOX_TOTAL; b++) {
     if(inputFiles.files.binaryVelInput.defined[b]) {
@@ -139,7 +138,7 @@ void ExtendedSystem::ReadVelocity(PDBSetup &pdb, config_setup::Input inputFiles,
 }
 
 void ExtendedSystem::UpdateVelocity(Velocity & vel, 
-                                    config_setup::Input inputFiles,
+                                    config_setup::Input & inputFiles,
                                     MoleculeLookup & molLookup,
                                     Molecules & mols)
 {
