@@ -106,41 +106,12 @@ void Checkpoint::GatherMoveSettings(MoveSettings & movSetRef){
       isSingleMoveAccepted[b] = movSetRef.isSingleMoveAccepted[b];
 }
 
-/* 
-   Got rid of the if condition of whether this was a restFromChk or not
-   since the new method for restart from chk should believe it is always
-   NOT restarting from chk. 
-*/
-void Checkpoint::GatherRestartMoleculeIndices(MoleculeLookup & molLookupRef,
-                                              const Molecules & molRef){
-  molLookupRef.restartMoleculeIndices.clear();
-  molLookupRef.restartMoleculeIndices.resize(molLookupRef.molLookupCount);
-  uint molCounter = 0, b, k, kI, countByKind, sizeOfKind, molI;
-  for (b = 0; b < BOX_TOTAL; ++b) {
-    for (k = 0; k < molLookupRef.numKinds; ++k) {
-      countByKind = molLookupRef.NumKindInBox(k, b);
-      sizeOfKind = molRef.kinds[k].NumAtoms();
-    }
-
-    for (k = 0; k < molLookupRef.numKinds; ++k) {
-      countByKind = molLookupRef.NumKindInBox(k, b);
-      for (kI = 0; kI < countByKind; ++kI) {
-        molI = molLookupRef.GetMolNum(kI, k, b);
-        molLookupRef.restartMoleculeIndices[molCounter] = molI;
-        ++molCounter;
-      }
-    }
-  }
-}
-
 /* Create vector versions of the arrays for simple serialization.
    Also create a permuted list of indices indicating the load position
    of the restarted pdb/psf molecules into the original PDBAtoms data structure.
  */
 void Checkpoint::GatherMoleculeLookup(MoleculeLookup & molLookupRef,
                                       const Molecules & molRef){
-
-  GatherRestartMoleculeIndices(molLookupRef, molRef);
   originalMoleculeLookup = molLookupRef;
 }
 /* 

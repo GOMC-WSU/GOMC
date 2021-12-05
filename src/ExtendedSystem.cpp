@@ -72,11 +72,10 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
                                     end = molLookup.BoxEnd(box);
       while (mol != end) {
         dataI = *mol;
+        trajectoryI = *mol;
         if (mols.restartFromCheckpoint){
-          trajectoryI = molLookup.restartMoleculeIndices[*mol];
           mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
         } else {
-          trajectoryI = *mol;
           mols.GetRangeStartStop(dataStart, dataEnd, dataI);
         }
         mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
@@ -154,8 +153,8 @@ void ExtendedSystem::UpdateVelocity(Velocity & vel,
                                     end = molLookup.BoxEnd(box);
       while (mol != end) {
         dataI = *mol;
+        trajectoryI = *mol;
         if (mols.restartFromCheckpoint){
-          trajectoryI = molLookup.restartMoleculeIndices[*mol];
           mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
         } else {
           trajectoryI = *mol;

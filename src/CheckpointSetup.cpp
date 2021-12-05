@@ -46,7 +46,7 @@ void CheckpointSetup::loadCheckpointFile(){
   }
   cereal::BinaryInputArchive ia(ifs);
   ia >> chkObj;
-  SetCheckpointData();
+  SetMoleculeLookup();
   ia(cereal::binary_data( molLookupRef.molLookup, sizeof(std::uint32_t) * molLookupRef.molLookupCount ));
   ia(cereal::binary_data( molLookupRef.boxAndKindStart, sizeof(std::uint32_t) * molLookupRef.boxAndKindStartLength ));
   ia(cereal::binary_data( molLookupRef.boxAndKindSwappableCounts, sizeof(std::uint32_t) * molLookupRef.boxAndKindSwappableLength ));
@@ -55,7 +55,7 @@ void CheckpointSetup::loadCheckpointFile(){
   ia(cereal::binary_data( molLookupRef.molKind, sizeof(std::int32_t) * molLookupRef.atomCount ));
   ia(cereal::binary_data( molLookupRef.atomKind, sizeof(std::int32_t) * molLookupRef.atomCount ));
   ia(cereal::binary_data( molLookupRef.atomCharge, sizeof(double) * molLookupRef.atomCount ));
-
+  SetCheckpointData();
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
@@ -70,7 +70,6 @@ void CheckpointSetup::SetCheckpointData(){
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  SetMoleculeLookup();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
 }
@@ -84,7 +83,6 @@ void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  SetMoleculeLookup();
   SetMoleculeSetup();
   SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
@@ -154,8 +152,8 @@ void CheckpointSetup::SetMoleculeSetup(){
 
 void CheckpointSetup::SetPDBSetupAtoms(){
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
-  for (int mol = 0; mol < chkObj.originalMolSetup.molVars.moleculeIteration; mol++){
-    trajectoryI = chkObj.originalMoleculeLookup.restartMoleculeIndices[mol];
+  for (int mol = 0; mol < molLookupRef.molLookupCount; ++mol){
+    trajectoryI = molLookupRef.molLookup[mol];
     dataI = mol;
     //Loop through particles in mol.
     GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);

@@ -137,11 +137,6 @@ public:
     return molLookup[boxAndKindStart[box * numKinds + kind] + subIndex];
   }
 
-  uint GetSortedMolNum(const uint subIndex, const uint kind, const uint box)
-  {
-    return restartMoleculeIndices[molLookup[boxAndKindStart[box * numKinds + kind] + subIndex]];
-  }
-
   // determine if molecule is in this box or not
   bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box) const
   {
@@ -218,10 +213,6 @@ static uint GetConsensusMolBeta( const uint pStart,
   int32_t *atomKind; // stores the atom kind for global atom index
   double *atomCharge; // stores the atom's charge for global
 
-  // For consistent trajectory ordering across checkpoints
-  std::vector<uint32_t> restartMoleculeIndices;
-  uint32_t restartedNumAtomsInBox[BOX_TOTAL];
-
   std::vector <uint32_t> fixedMolecule;
   std::vector <uint32_t> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint32_t> canMoveKind; //Kinds that can move intra box only
@@ -238,12 +229,15 @@ static uint GetConsensusMolBeta( const uint pStart,
       ar & boxAndKindStartLength;
       ar & boxAndKindSwappableLength;
       ar & numKinds;
-      ar & restartMoleculeIndices;
-      ar & restartedNumAtomsInBox;
       ar & fixedMolecule;
       ar & canSwapKind;
       ar & canMoveKind;
     }
+
+    void AllocateMemory(int molLookupCount,
+                        int atomCount,
+                        int boxAndKindStartLength,
+                        int boxAndKindSwappableLength);
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
