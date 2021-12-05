@@ -63,30 +63,22 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
                                       Molecules & mols)
 {
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
-  //find the starting index    
-  for (uint box = 0; box < BOX_TOTAL; ++box) {
-    if(inputFiles.files.binaryVelInput.defined[box]) {
-      // If we want to support only loading box 1 from binary
-      // We need a box iterator.
-      MoleculeLookup::box_iterator mol = molLookup.BoxBegin(box),
-                                    end = molLookup.BoxEnd(box);
-      while (mol != end) {
-        dataI = *mol;
-        trajectoryI = *mol;
-        if (mols.restartFromCheckpoint){
-          mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
-        } else {
-          mols.GetRangeStartStop(dataStart, dataEnd, dataI);
-        }
-        mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
-        //Loop through particles in mol.
-        for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
-          pdb.atoms.x[p] = binaryCoor[d].x;
-          pdb.atoms.y[p] = binaryCoor[d].y;
-          pdb.atoms.z[p] = binaryCoor[d].z;
-        }
-        ++mol;
-      }
+  //find the starting index
+  for (int mol = 0; mol < molLookup.molLookupCount; mol++){
+    dataI = mol;
+    if (mols.restartFromCheckpoint){
+      trajectoryI = molLookup.molLookup[mol];
+      mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
+    } else {
+      trajectoryI = mol;
+      mols.GetRangeStartStop(dataStart, dataEnd, dataI);
+    }
+    mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
+    //Loop through particles in mol.
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      pdb.atoms.x[p] = binaryCoor[d].x;
+      pdb.atoms.y[p] = binaryCoor[d].y;
+      pdb.atoms.z[p] = binaryCoor[d].z;
     }
   }
 }
@@ -143,31 +135,22 @@ void ExtendedSystem::UpdateVelocity(Velocity & vel,
                                     Molecules & mols)
 {
   uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
-  //find the starting index    
-  for (uint box = 0; box < BOX_TOTAL; ++box) {
-    if(inputFiles.files.binaryVelInput.defined[box]) {
-      // If we want to support only loading box 1 from binary
-      // We need a box iterator.
-      MoleculeLookup::box_iterator mol = molLookup.BoxBegin(box),
-                                    end = molLookup.BoxEnd(box);
-      while (mol != end) {
-        dataI = *mol;
-        trajectoryI = *mol;
-        if (mols.restartFromCheckpoint){
-          mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
-        } else {
-          trajectoryI = *mol;
-          mols.GetRangeStartStop(dataStart, dataEnd, dataI);
-        }
-        mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
-        //Loop through particles in mol.
-        for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
-          vel.x[p] = binaryVeloc[d].x;
-          vel.y[p] = binaryVeloc[d].y;
-          vel.z[p] = binaryVeloc[d].z;
-        }
-        ++mol;
-      }
+  //find the starting index
+  for (int mol = 0; mol < molLookup.molLookupCount; mol++){
+    dataI = mol;
+    if (mols.restartFromCheckpoint){
+      trajectoryI = molLookup.molLookup[mol];
+      mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
+    } else {
+      trajectoryI = mol;
+      mols.GetRangeStartStop(dataStart, dataEnd, dataI);
+    }
+    mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
+    //Loop through particles in mol.
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      vel.x[p] = binaryVeloc[d].x;
+      vel.y[p] = binaryVeloc[d].y;
+      vel.z[p] = binaryVeloc[d].z;
     }
   }
 }
