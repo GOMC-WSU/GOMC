@@ -28,6 +28,7 @@ public:
     ulong GetRunSteps();
     MoleculeLookup & GetMolLookup();
     MoveSettings & GetMoveSettings();
+    Coordinates & GetCoordinates();
     SystemPotential & GetSystemEnergy(void);
   #endif
 private:

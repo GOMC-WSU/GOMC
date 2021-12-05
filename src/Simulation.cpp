@@ -197,6 +197,10 @@ MoveSettings & Simulation::GetMoveSettings(){
   return system->moveSettings;
 }
 
+Coordinates & Simulation::GetCoordinates(){
+  return system->coordinates;
+}
+
 ulong Simulation::GetTrueStep(){
   return system->trueStep;
 }

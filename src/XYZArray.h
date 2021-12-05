@@ -54,6 +54,7 @@ public:
 
   XYZArray(const XYZArray& other);
   XYZArray& operator=(XYZArray other);
+  bool operator==(const XYZArray & other);
 
   friend void swap(XYZArray& a1, XYZArray& a2);
   ~XYZArray(void)
@@ -378,6 +379,18 @@ inline XYZArray& XYZArray::operator=(XYZArray other)
   swap(*this, other);
   return *this;
 }
+
+//Equality operator for unit testing
+inline bool XYZArray::operator==(const XYZArray & other){
+  bool result = true;
+  for(uint i = 0; i < count; i++) {
+    result &= (x[i] == other.x[i]);
+    result &= (y[i] == other.y[i]);
+    result &= (z[i] == other.z[i]);
+  }
+  return result;
+}
+
 
 inline void swap(XYZArray& a1, XYZArray& a2)
 {
