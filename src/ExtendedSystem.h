@@ -75,12 +75,12 @@ class ExtendedSystem  {
     double cellAngle[BOX_TOTAL][3];
     // Check to see if xsc is defined
     bool hasCellBasis[BOX_TOTAL];
+
+    // Offset array of molecule lookup array
+    int boxMoleculeOffset[BOX_TOTAL+1];
+
     // Stores the binary coordinates of both boxes
     std::vector<XYZ> binaryCoor;
-    // For Loading 
-    int totalNumAtoms;
-    int numAtomsInBox[BOX_TOTAL];
-    int boxStart[BOX_TOTAL];
 
     // Stores the binary velocities of both boxes
     std::vector<XYZ> binaryVeloc;
