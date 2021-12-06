@@ -30,7 +30,10 @@ namespace mol_setup
 {
 struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
-  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames;
+  // moleculeNames - length number of molecules
+  // moleculeKindNames - length number of kinds
+  // uniqueMapKeys - length number of kinds
+  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames, uniqueMapKeys;
   uint lastAtomIndexInBox0 = 0;
   uint numberMolsInBox0 = 0;
   uint molKindIndex = 0;
@@ -147,8 +150,10 @@ public:
   bool incomplete;
   bool isMultiResidue;
   std::vector<uint> intraMoleculeResIDs;
-  // Used to name the single-residue molecules
-  std::string residueName;
+  // Used to map chemical potentials in config file to molecules
+  // Note for proteins there is some guesswork.  As they are encountered
+  // in the psf file they are named PROTA, PROTB, ..
+  std::string moleculeName;
 };
 
 //List of dihedrals with atom at one end, atom first

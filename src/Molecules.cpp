@@ -80,7 +80,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
     countByKind[mk] =
       std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
                  setup.mol.molVars.moleculeKindNames[mk]);
-    kinds[mk].Init(mk, setup.mol.molVars.moleculeKindNames[mk], setup, forcefield, sys);
+    kinds[mk].Init(mk, setup.mol.molVars.uniqueMapKeys[mk], setup, forcefield, sys);
   }
 
 #if ENSEMBLE == GCMC

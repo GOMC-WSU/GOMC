@@ -590,10 +590,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         kindMap[fragName].kindIndex = molVars.molKindIndex;
         molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + kindMap[fragName].firstAtomID - 1);
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
-        molVars.moleculeKindNames.push_back(fragName);
+        molVars.moleculeKindNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].residueName));
+        molVars.uniqueMapKeys.push_back(fragName);
         molVars.moleculeNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].residueName));
         molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
-        
+        kindMap[fragName].moleculeName = kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].residueName);
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
         molVars.molKindIndex++;
         if (newSize){

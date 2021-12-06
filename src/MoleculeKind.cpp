@@ -39,7 +39,7 @@ void MoleculeKind::Init
     exit(EXIT_FAILURE);
   }
   const mol_setup::MolKind& molData = dataIterator->second;
-  name = l_name;
+  name = molData.moleculeName;
 
 #if ENSEMBLE == GCMC
   std::map<std::string, double>::const_iterator kindCPIt =
