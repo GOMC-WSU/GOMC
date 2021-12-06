@@ -557,6 +557,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
 
           kindMap[fragName] = MolKind();
           kindMap[fragName].isMultiResidue = true;
+          kindMap[fragName].residueName = fragName;
           uint intraResID = 0;
           uint compareResID = allAtoms[it->front()].residueID;
           for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
@@ -577,7 +578,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
           molVars.stringSuffixNonMultiResidue++;
           kindMap[fragName] = MolKind();
           kindMap[fragName].isMultiResidue = false;
-          kindMap[fragName].residueName = false;
+          kindMap[fragName].residueName = allAtoms[it->front()].residue;
           for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
           connectedComponentIt != it->cend(); connectedComponentIt++){
             kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
