@@ -34,7 +34,8 @@ struct MoleculeVariables {
   uint lastAtomIndexInBox0 = 0;
   uint numberMolsInBox0 = 0;
   uint molKindIndex = 0;
-  uint stringSuffix = 0;
+  uint stringSuffixMultiResidue = 0;
+  uint stringSuffixNonMultiResidue = 0;
   uint moleculeIteration = 0;
 };
 
