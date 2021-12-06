@@ -20,5 +20,5 @@
 # Clear the environment from any previously loaded modules
 cd /home6/greg/GOMC/test
 bash ./Setup_Examples.sh
-python Run_Examples.py
+python Run_Examples.py > integrationTest.log
 # End of submit file
