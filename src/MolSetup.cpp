@@ -426,7 +426,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             /* Boilerplate PDB Data modifications for matches */
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
-            molVars.moleculeNames.push_back(fragName);
+            molVars.moleculeNames.push_back((*kindMapFromBox1)[fragName].isMultiResidue ? fragName : ((*kindMapFromBox1)[fragName].residueName);
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             /* Boilerplate PDB Data modifications for matches */
@@ -525,10 +525,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
           }
           // Found a match
           if (itPair.second == it->cend()) {
+            fragName = *sizeConsistentEntries;
             // Modify PDBData
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
-            molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
-            molVars.moleculeNames.push_back(*sizeConsistentEntries);
+            molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
+            molVars.moleculeNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].residueName);
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             newMapEntry = false;
