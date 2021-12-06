@@ -147,6 +147,8 @@ public:
   bool incomplete;
   bool isMultiResidue;
   std::vector<uint> intraMoleculeResIDs;
+  // Used to name the single-residue molecules
+  std::string residueName;
 };
 
 //List of dihedrals with atom at one end, atom first
