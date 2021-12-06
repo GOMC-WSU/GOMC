@@ -16,7 +16,7 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
                    const MoleculeKind& kind, const Setup& set) :
   data(sys, ff, set)
 {
-  mol_setup::MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
+  mol_setup::MolMap::const_iterator it = set.mol.kindMap.find(kind.uniqueName);
   assert(it != set.mol.kindMap.end());
   const mol_setup::MolKind setupKind = it->second;
   uint size = kind.NumAtoms();
