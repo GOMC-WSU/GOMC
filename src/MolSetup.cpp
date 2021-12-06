@@ -426,7 +426,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             /* Boilerplate PDB Data modifications for matches */
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
-            molVars.moleculeNames.push_back((*kindMapFromBox1)[fragName].isMultiResidue ? fragName : ((*kindMapFromBox1)[fragName].residueName));
+            molVars.moleculeNames.push_back((*kindMapFromBox1)[fragName].isMultiResidue ? fragName : ((*kindMapFromBox1)[fragName].moleculeName));
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             /* Boilerplate PDB Data modifications for matches */
@@ -529,7 +529,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             // Modify PDBData
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
-            molVars.moleculeNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].residueName));
+            molVars.moleculeNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].moleculeName));
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             newMapEntry = false;
@@ -558,7 +558,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
 
           kindMap[fragName] = MolKind();
           kindMap[fragName].isMultiResidue = true;
-          kindMap[fragName].residueName = fragName;
+          kindMap[fragName].moleculeName = fragName;
           uint intraResID = 0;
           uint compareResID = allAtoms[it->front()].residueID;
           for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
@@ -579,7 +579,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
           molVars.stringSuffixNonMultiResidue++;
           kindMap[fragName] = MolKind();
           kindMap[fragName].isMultiResidue = false;
-          kindMap[fragName].residueName = allAtoms[it->front()].residue;
+          kindMap[fragName].moleculeName = allAtoms[it->front()].residue;
           for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
           connectedComponentIt != it->cend(); connectedComponentIt++){
             kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
@@ -590,11 +590,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         kindMap[fragName].kindIndex = molVars.molKindIndex;
         molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + kindMap[fragName].firstAtomID - 1);
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
-        molVars.moleculeKindNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].residueName));
+        molVars.moleculeKindNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].moleculeName));
         molVars.uniqueMapKeys.push_back(fragName);
-        molVars.moleculeNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].residueName));
+        molVars.moleculeNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].moleculeName));
         molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
-        kindMap[fragName].moleculeName = kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].residueName);
+        kindMap[fragName].moleculeName = kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].moleculeName);
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
         molVars.molKindIndex++;
         if (newSize){
@@ -841,7 +841,7 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
   std::cout << "\nMolecules in PSF:\n";
   MolMap::const_iterator it = kindMap.begin();
   while (it != kindMap.end()) {
-    std::cout << "Molecule Kind: " << it->first << std::endl;
+    std::cout << "Molecule Kind: " << it->second.moleculeName << std::endl;
     std::cout << "Idx\tname\ttype\tcharge\tmass\n";
     for (uint i = 0; i < it->second.atoms.size(); i++) {
       std::cout << i << "\t" << it->second.atoms[i].name << '\t' <<
