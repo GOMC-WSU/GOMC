@@ -200,7 +200,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   CallBoxInterGPU(forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
                   neighborList, coords, boxAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
-                  forcefield.sc_sigma_6, forcefield.sc_alpha, num::qqFact,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
 #else
 #ifdef _OPENMP
@@ -327,7 +327,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                   particleKind, particleMol, tempREn, tempLJEn,
                   aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
                   atomCount, molCount, forcefield.sc_coul,
-                  forcefield.sc_sigma_6, forcefield.sc_alpha, num::qqFact,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
 
 #else
