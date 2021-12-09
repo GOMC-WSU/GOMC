@@ -46,7 +46,7 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
 {
   molKinds.resize(set.mol.kindMap.size());
  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
-    molKinds[i] = set.mol.kindMap[set.mol.molVars.moleculeKindNames[i]];
+    molKinds[i] = set.mol.kindMap[set.mol.molVars.uniqueMapKeys[i]];
   }
   outFName = set.config.out.state.files.psf.name;
   /* To eliminate arithmetic exceptions */
