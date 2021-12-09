@@ -19,7 +19,7 @@ OutputVars::OutputVars(System & sys, StaticVals const& statV, const std::vector<
 {
   InitRef(sys, statV);
   for (int b = 0; b < BOX_TOTAL; ++b){
-    compressability[b] = 0.0;
+    compressibility[b] = 0.0;
     enthalpy[b] = 0.0;
   }
   #if ENSEMBLE == GEMC
@@ -190,10 +190,10 @@ void OutputVars::CalcAndConvert(ulong step)
         pressure[b] = rawPressure[b];
         pressure[b] *= unit::K_MOLECULE_PER_A3_TO_BAR;
         if(numByBox[b] != 0){
-          compressability[b] = (pressure[b]) * (volumeRef[b]) / numByBox[b] / (T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR);
+          compressibility[b] = (pressure[b]) * (volumeRef[b]) / numByBox[b] / (T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR);
           enthalpy[b] = (energyRef[b].total / numByBox[b] + rawPressure[b] * volumeRef[b] / numByBox[b]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL;
         } else {
-          compressability[b] = 0.0;
+          compressibility[b] = 0.0;
           enthalpy[b] = 0.0;
         }
 #if ENSEMBLE == GEMC
