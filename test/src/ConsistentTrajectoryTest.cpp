@@ -738,10 +738,10 @@ TEST(ConsistentTrajectoryTest, CheckBPTI_TIP3) {
     PDBSetup pdb_SingleRun;
     frameNum = 1;
     pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum); 
-    for(int frame = 0; frame < 100; ++frame){
+    for(int frame = 0; frame < 10; ++frame){
         lastFrame = 2 + frame; 
         pdbContinued_Base_To_Continued.Init(rsContinued, pdbnamesContinued, lastFrame);
-        lastFrame = 102 + frame;
+        lastFrame = 12 + frame;
         pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
 
             // Checks if the last frame the SingleRun traj match the last frame of K_N traj
