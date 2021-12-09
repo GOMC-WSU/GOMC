@@ -18,6 +18,19 @@ OutputVars::OutputVars(System & sys, StaticVals const& statV, const std::vector<
   T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy), molKindNames(molKindNames)
 {
   InitRef(sys, statV);
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    compressability[b] = 0.0;
+    enthalpy[b] = 0.0;
+  }
+  #if ENSEMBLE == GEMC
+  liqBox = 0;
+  vapBox = 0;
+  heatOfVap = 0.0;
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    heatOfVap_energy_term_box[b] = 0.0;
+    heatOfVap_density_term_box[b] = 0.0;
+  }
+  #endif
 }
 
 void OutputVars::InitRef(System & sys, StaticVals const& statV)
@@ -101,11 +114,28 @@ void OutputVars::CalcAndConvert(ulong step)
   molLookupRef->TotalAndDensity(numByBox,  numByKindBox, molFractionByKindBox,
                                 densityByKindBox, volInvRef);
 
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    densityTot[b] = 0.0;
+    for (uint k = 0; k < numKinds; k++) {
+      double density = densityByKindBox[k + numKinds * b];
+
+      // Convert density to g/ml (which is equivalent to g/cm3)
+      // To get kg/m3, multiply output densities by 1000.
+      density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
+                 kindsRef[k].molMass;
+      densityTot[b] += density;
+    }
+    densityTot[b] *= 1000;
+  }
+
 #if ENSEMBLE == GEMC
   //Determine which box is liquid for purposes of heat of vap.
-  if (densityByKindBox[numKinds] > densityByKindBox[0]) {
+  if (densityTot[mv::BOX1] >= densityTot[mv::BOX0]) {
     vapBox = mv::BOX0;
     liqBox = mv::BOX1;
+  } else {
+    vapBox = mv::BOX1;
+    liqBox = mv::BOX0;
   }
 #endif
 
@@ -163,8 +193,8 @@ void OutputVars::CalcAndConvert(ulong step)
           compressability[b] = (pressure[b]) * (volumeRef[b]) / numByBox[b] / (T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR);
           enthalpy[b] = (energyRef[b].total / numByBox[b] + rawPressure[b] * volumeRef[b] / numByBox[b]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL;
         } else {
-          compressability[b] = 0;
-          enthalpy[b] = 0;
+          compressability[b] = 0.0;
+          enthalpy[b] = 0.0;
         }
 #if ENSEMBLE == GEMC
         // delta Hv = (Uv-Ul) + P(Vv-Vl)
@@ -193,19 +223,5 @@ void OutputVars::CalcAndConvert(ulong step)
 #endif
       }
     }
-  }
-
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    densityTot[b] = 0.0;
-    for (uint k = 0; k < numKinds; k++) {
-      double density = densityByKindBox[k + numKinds * b];
-
-      // Convert density to g/ml (which is equivalent to g/cm3)
-      // To get kg/m3, multiply output densities by 1000.
-      density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
-                 kindsRef[k].molMass;
-      densityTot[b] += density;
-    }
-    densityTot[b] *= 1000;
   }
 }
