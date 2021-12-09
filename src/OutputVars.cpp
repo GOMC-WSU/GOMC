@@ -18,6 +18,15 @@ OutputVars::OutputVars(System & sys, StaticVals const& statV, const std::vector<
   T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy), molKindNames(molKindNames)
 {
   InitRef(sys, statV);
+  #if ENSEMBLE == GEMC
+  liqBox = 0;
+  vapBox = 0;
+  heatOfVap = 0.0;
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    heatOfVap_energy_term_box[b] = 0.0;
+    heatOfVap_density_term_box[b] = 0.0;
+  }
+  #endif
 }
 
 void OutputVars::InitRef(System & sys, StaticVals const& statV)
@@ -35,7 +44,6 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
   movePercRef = statV.movePerc;
   pCalcFreq = statV.simEventFreq.pCalcFreq;
   pressureCalc = statV.simEventFreq.pressureCalc;
-
   virial = new Virial[BOXES_WITH_U_NB];
 }
 
