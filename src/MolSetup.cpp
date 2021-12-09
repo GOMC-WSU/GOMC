@@ -401,7 +401,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
     /* Search by size for existing molecules from Box 1 if it exists*/
       SizeMap::iterator sizeIt = sizeMapFromBox1->find(it->size());
 
-      /* Found no matching molecules from Box 1 by size */
+      // Found a match in the old molMap.
       if (sizeIt != sizeMapFromBox1->end()) {
         /* Iterate through all the size consistent map entries */
         for (std::vector<std::string>::const_iterator sizeConsistentEntries = sizeIt->second.cbegin();
@@ -418,7 +418,8 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
               break;
             }
           }
-          // Found a match in the old molMap.
+
+          /* Found no matching molecules in Box 2 map */
           if (itPair.second == it->cend()) {
 
             /* Get the map key */
@@ -468,6 +469,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
               kindMap[fragName].firstAtomID = it->front() + 1;
               kindMap[fragName].firstMolID = allAtoms[it->front()].residueID;
               kindMap[fragName].kindIndex = (*kindMapFromBox1)[fragName].kindIndex;
+              kindMap[fragName].moleculeName = (*kindMapFromBox1)[fragName].isMultiResidue ? fragName : (*kindMapFromBox1)[fragName].moleculeName;
               MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
 
               /* Finally, search new sizeMap for existing entry of same size as old molecule.
@@ -594,7 +596,6 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         molVars.uniqueMapKeys.push_back(fragName);
         molVars.moleculeNames.push_back(kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].moleculeName));
         molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
-        kindMap[fragName].moleculeName = kindMap[fragName].isMultiResidue ? fragName : (kindMap[fragName].moleculeName);
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
         molVars.molKindIndex++;
         if (newSize){
