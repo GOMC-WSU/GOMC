@@ -114,10 +114,16 @@ TEST(CheckpointTest, CheckBPTI_TIP3) {
     MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
     Coordinates & Continued_coords = Continued.GetCoordinates();
     Coordinates & SingleRun_coords = SingleRun.GetCoordinates();
+    Velocity & Continued_velocs = Continued.GetVelocities();
+    Velocity & SingleRun_velocs = SingleRun.GetVelocities();
+    ExtendedSystem & Continued_xsc = Continued.GetXSC();
+    ExtendedSystem & SingleRun_xsc = SingleRun.GetXSC();
 
     EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
     EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
     EXPECT_EQ(Continued_coords.operator==(SingleRun_coords), true);
+    EXPECT_EQ(Continued_velocs.operator==(SingleRun_velocs), true);
+    EXPECT_EQ(Continued_xsc.operator==(SingleRun_xsc), true);
 
     result = chdir("../../../../..");
     if (result){

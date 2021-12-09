@@ -201,6 +201,14 @@ Coordinates & Simulation::GetCoordinates(){
   return system->coordinates;
 }
 
+Velocity & Simulation::GetVelocities(){
+  return system->vel;
+}
+
+ExtendedSystem & Simulation::GetXSC(){
+  return system->xsc;
+}
+
 ulong Simulation::GetTrueStep(){
   return system->trueStep;
 }

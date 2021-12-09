@@ -29,6 +29,8 @@ public:
     MoleculeLookup & GetMolLookup();
     MoveSettings & GetMoveSettings();
     Coordinates & GetCoordinates();
+    Velocity & GetVelocities();
+    ExtendedSystem & GetXSC();
     SystemPotential & GetSystemEnergy(void);
   #endif
 private:
