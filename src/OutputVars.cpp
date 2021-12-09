@@ -115,9 +115,13 @@ void OutputVars::CalcAndConvert(ulong step)
 
 #if ENSEMBLE == GEMC
   //Determine which box is liquid for purposes of heat of vap.
-  if (densityByKindBox[numKinds] > densityByKindBox[0]) {
+  //Determine which box is liquid for purposes of heat of vap.
+  if (densityTot[mv::BOX1] >= densityTot[mv::BOX0]) {
     vapBox = mv::BOX0;
     liqBox = mv::BOX1;
+  } else {
+    vapBox = mv::BOX1;
+    liqBox = mv::BOX0;
   }
 #endif
 
@@ -175,8 +179,8 @@ void OutputVars::CalcAndConvert(ulong step)
           compressability[b] = (pressure[b]) * (volumeRef[b]) / numByBox[b] / (T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR);
           enthalpy[b] = (energyRef[b].total / numByBox[b] + rawPressure[b] * volumeRef[b] / numByBox[b]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL;
         } else {
-          compressability[b] = 0;
-          enthalpy[b] = 0;
+          compressability[b] = 0.0;
+          enthalpy[b] = 0.0;
         }
 #if ENSEMBLE == GEMC
         // delta Hv = (Uv-Ul) + P(Vv-Vl)
