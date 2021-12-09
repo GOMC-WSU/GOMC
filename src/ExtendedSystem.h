@@ -36,6 +36,8 @@ class ExtendedSystem  {
   public:
   ExtendedSystem();
   ~ExtendedSystem() {};
+  //Equality operator for unit testing
+  bool operator==(const ExtendedSystem & other);
   void Init(PDBSetup &pdb, Velocity &vel, config_setup::Input & inputFiles,
             MoleculeLookup & molLookup, Molecules & mols);
   private:

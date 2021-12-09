@@ -25,6 +25,30 @@ ExtendedSystem::ExtendedSystem()
   }
 }
 
+//Equality operator for unit testing
+bool ExtendedSystem::operator==(const ExtendedSystem & other){
+  bool result = true;
+  result &= (firstStep == other.firstStep);
+  result &= (axis == other.axis);
+  // These are cleared after use, so unneccessary
+  result &= (binaryCoor == other.binaryCoor);
+  result &= (binaryVeloc == other.binaryVeloc);
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    result &= (center[b] == other.center[b]);
+    result &= (cellBasis[b] == other.cellBasis[b]);
+    result &= (hasCellBasis[b] == other.hasCellBasis[b]);
+    for(uint a = 0; a < 3; a++) {
+      result &= (cosAngle[b][a] == other.cosAngle[b][a]);
+      result &= (cellAngle[b][a] == other.cellAngle[b][a]);
+    }
+  }
+  for(uint b = 0; b < BOX_TOTAL+1; b++) {
+    result &= (boxMoleculeOffset[b] == other.boxMoleculeOffset[b]);
+  }
+  return result;
+}
+
 void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input & inputFiles,
                           MoleculeLookup & molLookup, Molecules & mols)
 {
