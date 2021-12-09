@@ -31,8 +31,8 @@ bool ExtendedSystem::operator==(const ExtendedSystem & other){
   result &= (firstStep == other.firstStep);
   result &= (axis == other.axis);
   // These are cleared after use, so unneccessary
-  result &= (binaryCoor == other.binaryCoor);
-  result &= (binaryVeloc == other.binaryVeloc);
+  //result &= (binaryCoor == other.binaryCoor);
+  //result &= (binaryVeloc == other.binaryVeloc);
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
     result &= (center[b] == other.center[b]);
