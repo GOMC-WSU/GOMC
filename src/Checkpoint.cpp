@@ -91,15 +91,14 @@ void Checkpoint::GatherMoveSettings(MoveSettings & movSetRef){
     // Move Settings Vectors
     scaleVec = movSetRef.scale;
     acceptPercentVec = movSetRef.acceptPercent;
-    
     acceptedVec = movSetRef.accepted;
     triesVec = movSetRef.tries;
     tempAcceptedVec = movSetRef.tempAccepted;
     tempTriesVec = movSetRef.tempTries;
+    mp_triesVec = movSetRef.mp_tries;
     mp_acceptedVec = movSetRef.mp_accepted;
     mp_interval_acceptedVec = movSetRef.mp_interval_accepted;
     mp_interval_triesVec = movSetRef.mp_interval_tries;
-    mp_triesVec = movSetRef.mp_tries;
     mp_r_maxVec = movSetRef.mp_r_max;
     mp_t_maxVec = movSetRef.mp_t_max;
     for (int b = 0; b < BOXES_WITH_U_NB; ++b)

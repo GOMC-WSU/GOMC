@@ -110,7 +110,8 @@ void CheckpointSetup::SetTrueStepNumber()
 
 void CheckpointSetup::SetMoveSettings()
 {
-  moveSetRef.scale = chkObj.scaleVec;
+  // Move Settings Vectors
+  moveSetRef.scale =  chkObj.scaleVec;
   moveSetRef.acceptPercent = chkObj.acceptPercentVec;
   moveSetRef.accepted = chkObj.acceptedVec;
   moveSetRef.tries = chkObj.triesVec;
@@ -120,8 +121,8 @@ void CheckpointSetup::SetMoveSettings()
   moveSetRef.mp_accepted = chkObj.mp_acceptedVec;
   moveSetRef.mp_interval_accepted = chkObj.mp_interval_acceptedVec;
   moveSetRef.mp_interval_tries = chkObj.mp_interval_triesVec;
-  moveSetRef.mp_t_max = chkObj.mp_t_maxVec;
   moveSetRef.mp_r_max = chkObj.mp_r_maxVec;
+  moveSetRef.mp_t_max = chkObj.mp_t_maxVec;
   for (int b = 0; b < BOXES_WITH_U_NB; ++b)
     moveSetRef.isSingleMoveAccepted[b] = chkObj.isSingleMoveAccepted[b];
 }
