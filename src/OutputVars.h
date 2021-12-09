@@ -73,7 +73,6 @@ public:
   double heatOfVap;
   double heatOfVap_energy_term_box[BOX_TOTAL];
   double heatOfVap_density_term_box[BOX_TOTAL];
-
 #endif
 };
 
