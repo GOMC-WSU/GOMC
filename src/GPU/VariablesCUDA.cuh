@@ -11,6 +11,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include "EnsemblePreprocessor.h"
+#include "NumLib.h"
+
+//Need a separate float constant for device code with the MSVC compiler
+//See CUDA Programming Guide section I.4.13 for details 
+static const __device__ double qqFactGPU = num::qqFact;
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
