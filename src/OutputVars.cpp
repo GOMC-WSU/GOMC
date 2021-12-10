@@ -18,7 +18,7 @@ OutputVars::OutputVars(System & sys, StaticVals const& statV, const std::vector<
   T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy), molKindNames(molKindNames)
 {
   InitRef(sys, statV);
-  for (int b = 0; b < BOX_TOTAL; ++b){
+  for (int b = 0; b < BOXES_WITH_U_NB; ++b){
     compressibility[b] = 0.0;
     enthalpy[b] = 0.0;
   }
