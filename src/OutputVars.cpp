@@ -26,7 +26,7 @@ OutputVars::OutputVars(System & sys, StaticVals const& statV, const std::vector<
   liqBox = 0;
   vapBox = 0;
   heatOfVap = 0.0;
-  for (int b = 0; b < BOX_TOTAL; ++b){
+  for (int b = 0; b < BOXES_WITH_U_NB; ++b){
     heatOfVap_energy_term_box[b] = 0.0;
     heatOfVap_density_term_box[b] = 0.0;
   }
@@ -128,17 +128,6 @@ void OutputVars::CalcAndConvert(ulong step)
     densityTot[b] *= 1000;
   }
 
-#if ENSEMBLE == GEMC
-  //Determine which box is liquid for purposes of heat of vap.
-  if (densityTot[mv::BOX1] >= densityTot[mv::BOX0]) {
-    vapBox = mv::BOX0;
-    liqBox = mv::BOX1;
-  } else {
-    vapBox = mv::BOX1;
-    liqBox = mv::BOX0;
-  }
-#endif
-
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
     //Account for dimensionality of virial (raw "virial" is actually a
     //multiple of the true virial, based on the dimensions stress is exerted
@@ -196,32 +185,44 @@ void OutputVars::CalcAndConvert(ulong step)
           compressibility[b] = 0.0;
           enthalpy[b] = 0.0;
         }
-#if ENSEMBLE == GEMC
-        // delta Hv = (Uv-Ul) + P(Vv-Vl)
-        if (numByBox[vapBox] != 0){
-          heatOfVap_energy_term_box[vapBox] = energyRef[vapBox].total / numByBox[vapBox];
-          heatOfVap_density_term_box[vapBox] = volumeRef[vapBox] / numByBox[vapBox];
-        } else {
-          heatOfVap_energy_term_box[vapBox] = 0.0;
-          heatOfVap_density_term_box[vapBox] = 0.0;
-        }
-
-        if (numByBox[liqBox] != 0){
-          heatOfVap_energy_term_box[liqBox] = energyRef[liqBox].total / numByBox[liqBox];
-          heatOfVap_density_term_box[liqBox] = volumeRef[liqBox] / numByBox[liqBox];
-        } else {
-          heatOfVap_energy_term_box[liqBox] = 0.0;
-          heatOfVap_density_term_box[liqBox] = 0.0;
-        }     
-
-        heatOfVap = heatOfVap_energy_term_box[vapBox] -
-                    heatOfVap_energy_term_box[liqBox];
-        heatOfVap += rawPressure[vapBox] *
-                     (heatOfVap_density_term_box[vapBox] -
-                      heatOfVap_density_term_box[liqBox]);
-        heatOfVap *= unit::K_TO_KJ_PER_MOL;
-#endif
       }
     }
   }
+#if ENSEMBLE == GEMC
+  if (pressureCalc) {
+    if((step + 1) % pCalcFreq == 0 || step == 0) {
+      //Determine which box is liquid for purposes of heat of vap.
+      if (densityTot[mv::BOX1] >= densityTot[mv::BOX0]) {
+        vapBox = mv::BOX0;
+        liqBox = mv::BOX1;
+      } else {
+        vapBox = mv::BOX1;
+        liqBox = mv::BOX0;
+      }
+      // delta Hv = (Uv-Ul) + P(Vv-Vl)
+      if (numByBox[vapBox] != 0){
+        heatOfVap_energy_term_box[vapBox] = energyRef[vapBox].total / numByBox[vapBox];
+        heatOfVap_density_term_box[vapBox] = volumeRef[vapBox] / numByBox[vapBox];
+      } else {
+        heatOfVap_energy_term_box[vapBox] = 0.0;
+        heatOfVap_density_term_box[vapBox] = 0.0;
+      }
+
+      if (numByBox[liqBox] != 0){
+        heatOfVap_energy_term_box[liqBox] = energyRef[liqBox].total / numByBox[liqBox];
+        heatOfVap_density_term_box[liqBox] = volumeRef[liqBox] / numByBox[liqBox];
+      } else {
+        heatOfVap_energy_term_box[liqBox] = 0.0;
+        heatOfVap_density_term_box[liqBox] = 0.0;
+      }     
+
+      heatOfVap = heatOfVap_energy_term_box[vapBox] -
+                  heatOfVap_energy_term_box[liqBox];
+      heatOfVap += rawPressure[vapBox] *
+                    (heatOfVap_density_term_box[vapBox] -
+                    heatOfVap_density_term_box[liqBox]);
+      heatOfVap *= unit::K_TO_KJ_PER_MOL;
+    }
+  }
+#endif
 }
