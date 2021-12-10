@@ -14,12 +14,11 @@ def substring_after(s, delim):
 
 import os
 import glob
-import sys
 import pandas as pd
 import time
 import datetime
 import subprocess
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import PIPE, STDOUT
 from filecmp import cmp
 binaries_dict = {}
 GPU_binaries_dict = {}
@@ -72,17 +71,16 @@ for root, dirs, files in os.walk("."):
             elif "new_gpu" in path:
                 newOrRef = "_new"
                 cpuOrGpu = "GPU_"
-                
             elif "ref_gpu" in path:
                 newOrRef = "_ref"
                 cpuOrGpu = "GPU_"
 
-            if cpuOrGpu+"NVT"+newOrRef in binaries_dict and 'NVT' in path and 'NVT_GEMC' not in path:    
+            if cpuOrGpu+"NVT"+newOrRef in binaries_dict and 'NVT' in path and 'NVT_GEMC' not in path:
                 print("Call GOMC")
                 command = binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,cpuOrGpu,newOrRef,"NVT_"+os.path.basename(root)
                 print(binaries_dict[cpuOrGpu+"NVT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NVT"+newOrRef,cpuOrGpu,newOrRef,"NVT_"+os.path.basename(root))
                 listOfTests.append(command)
-            elif cpuOrGpu+"NPT"+newOrRef in binaries_dict and 'NPT' in path and 'NPT_GEMC' not in path:    
+            elif cpuOrGpu+"NPT"+newOrRef in binaries_dict and 'NPT' in path and 'NPT_GEMC' not in path:
                 print("Call GOMC")
                 print(binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,cpuOrGpu,newOrRef,"NPT_"+os.path.basename(root))
                 command = binaries_dict[cpuOrGpu+"NPT"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT"+newOrRef,cpuOrGpu,newOrRef,"NPT_"+os.path.basename(root)
@@ -130,11 +128,11 @@ for example in all_examples:
         write_log_data = "Issuing command: {}\n".format(command)
         Log_Template_file.write(str(write_log_data))
         start = time.time()
-        exec_GOMC_run_command = subprocess.Popen(command, shell=True, stderr=STDOUT)
+        exec_GOMC_run_command = subprocess.Popen(command, stderr=STDOUT)
         write_log_data = "Waiting for GOMC Example {} {} to finish.\n".format(row['Binary'],row['Example'])
         print(str(write_log_data))
         Log_Template_file.write(str(write_log_data))
-        GOMC_pid_status = os.waitpid(exec_GOMC_run_command.pid, os.WSTOPPED)  # pauses python until box 0 sim done    
+        GOMC_pid_status = os.waitpid(exec_GOMC_run_command.pid, os.WSTOPPED)  # pauses python until box 0 sim done
         end = time.time()
         write_log_data = "Elapsed time: {}.\n".format(datetime.timedelta(seconds=end-start))
         Log_Template_file.write(str(write_log_data))
@@ -148,8 +146,8 @@ for example in all_examples:
     full_path_pdb_files = sorted(glob.glob(os.path.join(row['PathToExample'],'*.pdb')), key=os.path.getmtime)
     just_file_names = []
     for path in full_path_pdb_files:
-        just_file_names.append(os.path.basename(path)) 
-    print(just_file_names) 
+        just_file_names.append(os.path.basename(path))
+    print(just_file_names)
     cross = ex_df.merge(ex_df, on=['Example'],how='outer')
     print('---', ex_df['Example'].iloc[0])
     CPU_v_GPU = True
@@ -174,14 +172,14 @@ for example in all_examples:
                 New_v_Ref_exists = True
                 New_v_Ref_exists_global = True
                 result = cmp(f1, f2, shallow=False)
-                New_v_Ref = New_v_Ref and result                                        
-                New_v_Ref_global = New_v_Ref_global and result                                        
+                New_v_Ref = New_v_Ref and result
+                New_v_Ref_global = New_v_Ref_global and result
             elif ((row['CPU_or_GPU_x'] != row['CPU_or_GPU_y']) and (row['New_or_Ref_x'] != row['New_or_Ref_y'])):
                 cross_exists = True
                 cross_exists_global = True
                 result = cmp(f1, f2, shallow=False)
-                cross_bool = cross_bool and result                                        
-                cross_bool_global = cross_bool_global and result                                        
+                cross_bool = cross_bool and result
+                cross_bool_global = cross_bool_global and result
     if(CPU_v_GPU_exists):
         if(CPU_v_GPU):
             print((3 * '---')+"CPU_v_GPU: "+ OKGREEN + "PASS" + ENDC)
