@@ -18,7 +18,7 @@ import pandas as pd
 import time
 import datetime
 import subprocess
-from subprocess import PIPE, STDOUT
+from subprocess import STDOUT
 from filecmp import cmp
 binaries_dict = {}
 GPU_binaries_dict = {}
@@ -141,7 +141,7 @@ for example in all_examples:
         print(str(write_log_data))
         Log_Template_file.write(str(write_log_data))
         Log_Template_file.flush()
-    
+
     # Create a list of the PDB files in this example
     full_path_pdb_files = sorted(glob.glob(os.path.join(row['PathToExample'],'*.pdb')), key=os.path.getmtime)
     just_file_names = []
