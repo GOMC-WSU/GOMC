@@ -229,7 +229,11 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 
   if(enablePressure) {
     printElement(var->pressure[box], elementWidth);
-    printElement((var->pressure[box]) * (var->volumeRef[box]) / (var->numByBox[box]) / (var->T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR), elementWidth);
+    printElement(var->compressibility[box], elementWidth); 
+    printElement(var->enthalpy[box], elementWidth); 
+    #if ENSEMBLE == GEMC
+    printElement(var->heatOfVap, elementWidth);
+    #endif
   }
   if(enableMol) {
     printElement(var->numByBox[box], elementWidth);
@@ -340,6 +344,10 @@ void ConsoleOutput::PrintStatisticTitle()
   if(enablePressure) {
     printElement("PRESSURE", elementWidth);
     printElement("COMPRESSIBILITY", elementWidth);
+    printElement("ENTHALPY", elementWidth);
+    #if ENSEMBLE == GEMC
+    printElement("HEAT_VAP", elementWidth);
+    #endif
   }
   
   if(enableMol) {
