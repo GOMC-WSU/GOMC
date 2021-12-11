@@ -89,16 +89,12 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
     setup.config.sys.chemPot.cp.begin(),
     lastOne = setup.config.sys.chemPot.cp.end();
 
-  mol_setup::MolMap::const_iterator end = setup.mol.kindMap.end();
   while(kindCPIt != lastOne) {
     std::string molName = kindCPIt->first;
     mol_setup::MolMap::const_iterator dataIterator = setup.mol.kindMap.begin();
-    while(dataIterator != end){
-      if(dataIterator->second.moleculeName == molName)
-        break; 
-      ++dataIterator;
+    for (; dataIterator->second.moleculeName == molName || dataIterator == setup.mol.kindMap.end(); ++dataIterator) {
     }
-    if(dataIterator == end) {
+    if(dataIterator == setup.mol.kindMap.end()) {
       std::cerr << "================================================"
                 << std::endl << "Error: Molecule " << molName
                 << " was not defined in the PDB file." << std::endl
