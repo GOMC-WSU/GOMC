@@ -362,7 +362,7 @@ inline void NEMTMC::Accept(const uint rejectState, const ulong step)
       backUpCOM.CopyRange(comCurrRef, 0, 0, comCurrRef.Count());
       cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-        calcEwald->BoxReciprocalSetup(b, coordCurrRef);
+        calcEwald->BoxReciprocalSums(b, coordCurrRef);
         calcEwald->UpdateRecip(b);
       }
       sysPotRef = backUpPotential;
@@ -510,9 +510,12 @@ inline void NEMTMC::RelaxingTransform(uint box)
           rejectState = propagationMove->PrepNEMTMC(box, m, mk);
         }
       }
+  if (r123wrapper.GetStep() == 1454 || r123wrapper.GetStep() == 1455) {
+	  std::cout << "Trial " << stepCounter+s << ": ";
+  }
     }
     
-    // Translate, calcEn, and accept/reject
+    // Transform, calcEn, and accept/reject
     if (rejectState == mv::fail_state::NO_FAIL) {
       rejectState = propagationMove->Transform();
     }
