@@ -1,6 +1,5 @@
 #pragma once
 
-#include <climits>
 #include "BasicTypes.h"
 #include "Random123/philox.h"
 typedef r123::Philox4x64 RNG;

@@ -510,9 +510,6 @@ inline void NEMTMC::RelaxingTransform(uint box)
           rejectState = propagationMove->PrepNEMTMC(box, m, mk);
         }
       }
-  if (r123wrapper.GetStep() == 1454 || r123wrapper.GetStep() == 1455) {
-	  std::cout << "Trial " << stepCounter+s << ": ";
-  }
     }
     
     // Transform, calcEn, and accept/reject

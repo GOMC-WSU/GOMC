@@ -397,11 +397,6 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
   }
 #endif
 
-  std::cout << "Molecule forces after BoxForce call " << std::endl;
-  for (auto i=0; i < molForce.Count(); ++i) {
-    std::cout << "Molecule forces for molecule " << i << " = " << molForce[i] << std::endl;
-  }
-
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction

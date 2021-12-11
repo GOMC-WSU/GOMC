@@ -294,12 +294,6 @@ inline uint MultiParticle::Transform()
     isMoleculeInvolved[mol] = 1;
   }
 
-  std::cout << "Start MP with " << newMolsPos.Count() << " atoms and " << newCOMs.Count() << " mols" << std::endl;
-  if (atomForceNew.Count() != newMolsPos.Count())
-	std::cout << "***Mismatch Old Atom Count = " << atomForceNew.Count() << " and New Atom Count = " << newMolsPos.Count() << std::endl;
-  if (molForceRecNew.Count() != newCOMs.Count())
-	std::cout << "***Mismatch Old Mol Count = " << atomForceNew.Count() << " and New Mol Count = " << newMolsPos.Count() << std::endl;
-
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
