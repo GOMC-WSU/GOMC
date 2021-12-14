@@ -92,7 +92,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   while(kindCPIt != lastOne) {
     std::string molName = kindCPIt->first;
     mol_setup::MolMap::const_iterator dataIterator = setup.mol.kindMap.begin();
-    for (; dataIterator->second.moleculeName == molName || dataIterator == setup.mol.kindMap.end(); ++dataIterator) {
+    for (; dataIterator->second.moleculeName != molName && dataIterator != setup.mol.kindMap.end(); ++dataIterator) {
     }
     if(dataIterator == setup.mol.kindMap.end()) {
       std::cerr << "================================================"
