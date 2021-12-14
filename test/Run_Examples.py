@@ -47,9 +47,7 @@ os.chdir("../integration")
 confFileName = "in.conf"
 
 Log_Template_file = open("IntegrationTest.log", 'w')
-Log_Template_file.write("Binaries Dict") 
-Log_Template_file.write(str(binaries_dict))
-Log_Template_file.write("opened Log")
+Log_Template_file.write("Opened Log\n")
 
 listOfTests = []
 
@@ -89,13 +87,10 @@ for root, dirs, files in os.walk("."):
             elif cpuOrGpu+"GEMC"+newOrRef in binaries_dict and 'NPT_GEMC' in path:
                 command = binaries_dict[cpuOrGpu+"GEMC"+newOrRef],os.path.abspath(root),cpuOrGpu+"NPT_GEMC"+newOrRef,cpuOrGpu,newOrRef,"NPT_GEMC_"+os.path.basename(root)
                 listOfTests.append(command)
-Log_Template_file.write("GOMC Call Commands:\n")
-Log_Template_file.write(str(listOfTests))
 # Create the pandas DataFrame
 colNames = ['PathToBinary', 'PathToExample', 'Binary', 'CPU_or_GPU','New_or_Ref','Example']
 df = pd.DataFrame(listOfTests, columns = colNames)
 df = df.sort_values(by=['Example'])
-Log_Template_file.write(str(df))
 grouped = df.groupby(['Example'])
 all_examples = df['Example'].unique()
 CPU_v_GPU_global = True
@@ -124,7 +119,7 @@ for example in all_examples:
         write_log_data = "The GOMC Example {} {} has finished.\n".format(row['Binary'],row['Example'])
         Log_Template_file.write(str(write_log_data))
         Log_Template_file.flush()
-
+    
     # Create a list of the PDB files in this example
     full_path_pdb_files = sorted(glob.glob(os.path.join(row['PathToExample'],'*.pdb')), key=os.path.getmtime)
     just_file_names = []
@@ -132,7 +127,7 @@ for example in all_examples:
         just_file_names.append(os.path.basename(path))
     Log_Template_file.write(str(just_file_names))
     cross = ex_df.merge(ex_df, on=['Example'],how='outer')
-    Log_Template_file.write(str('---', ex_df['Example'].iloc[0]))
+    Log_Template_file.write("---{}\n".format(ex_df['Example'].iloc[0]))
     CPU_v_GPU = True
     New_v_Ref = True
     cross_bool = True
@@ -140,7 +135,7 @@ for example in all_examples:
     New_v_Ref_exists = False
     cross_exists = False
     for pdb_file in just_file_names:
-        Log_Template_file.write(str(2 * '---', pdb_file))
+        Log_Template_file.write("------{}\n".format(pdb_file))
         my_tuples = []
         for index, row in cross.iterrows():
             f1 = os.path.join(row['PathToExample_x'],pdb_file)
@@ -165,19 +160,19 @@ for example in all_examples:
                 cross_bool_global = cross_bool_global and result
     if(CPU_v_GPU_exists):
         if(CPU_v_GPU):
-            Log_Template_file.write(str((3 * '---')+"CPU_v_GPU: "+ OKGREEN + "PASS" + ENDC))
+            Log_Template_file.write("---------{}\n".format("CPU_v_GPU: "+ OKGREEN + "PASS" + ENDC))
         else:
-            Log_Template_file.write(str((3 * '---')+"CPU_v_GPU: "+ FAIL + "FAIL" + ENDC))
+            Log_Template_file.write("---------{}\n".format("CPU_v_GPU: "+ FAIL + "FAIL" + ENDC))
     if(New_v_Ref_exists):
         if(New_v_Ref):
-            Log_Template_file.write(str((3 * '---')+"New vs Ref: "+ OKGREEN + "PASS" + ENDC))
+            Log_Template_file.write("---------{}\n".format("New_v_Ref: "+ OKGREEN + "PASS" + ENDC))
         else:
-            Log_Template_file.write(str((3 * '---')+"New vs Ref: "+ FAIL + "FAIL" + ENDC))
+            Log_Template_file.write("---------{}\n".format("New_v_Ref: "+ FAIL + "FAIL" + ENDC))
     if(cross_exists):
         if(cross_bool):
-            Log_Template_file.write(str((3 * '---')+"CPU vs GPU X New vs Ref: "+ OKGREEN + "PASS" + ENDC))
+            Log_Template_file.write("---------{}\n".format("CPU v GPU X New v Ref: "+ OKGREEN + "PASS" + ENDC))
         else:
-            Log_Template_file.write(str((3 * '---')+"CPU vs GPU X New vs Ref: "+ FAIL + "FAIL" + ENDC))
+            Log_Template_file.write("---------{}\n".format("CPU v GPU X New v Ref: "+ FAIL + "FAIL" + ENDC))
 
 
 if(CPU_v_GPU_exists_global):
