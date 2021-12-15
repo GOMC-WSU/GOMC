@@ -67,7 +67,8 @@ private:
   void RotateRandom(uint molIndex);
   void TranslateRandom(uint molIndex);
   void SetMolInBox(uint box);
-  XYZ CalcRandomTransform(bool &forceInRange, XYZ const &lb, double const max, uint molIndex);
+  XYZ CalcRandomTransform(bool &forceInRange, XYZ const &lb,
+                          double const max, uint molIndex);
   double CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old, XYZ const &k,
                          double max);
 };
@@ -187,9 +188,9 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   else if (moveType == mp::MPROTATE)
     std::cout << "   MultiParticle Rotation" << std::endl;
   else
-    std::cout << "   MultiParticle move not Recognized! Update MultiParticle.h" << std::endl;	  
+    std::cout << "   MultiParticle move not Recognized! Update MultiParticle.h" << std::endl;
 #endif
-  
+
   SetMolInBox(bPick);
   // reset all inForceRange vector to false.
   std::fill(inForceRange.begin(), inForceRange.end(), false);
@@ -432,7 +433,7 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
   double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
-  double pr = prng();
+  double pr = r123wrapper.GetRandomNumber(newCOMs.Count());
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -463,19 +464,25 @@ inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb,
                                               double const max, uint molIndex)
 {
   XYZ lbmax = lb * max;
-  XYZ randnums, val;
-  randnums = r123wrapper.GetRandomCoords(molIndex);
+  // XYZ default constructor initializes to (0.0, 0.0, 0.0)
+  XYZ val;
   forceInRange = std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE &&
                  std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE &&
                  std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE;
+
   if (forceInRange) {
+    XYZ randnums;
+#ifdef _OPENMP
+    //Even though we call different random123 functions, they all change c[0]
+    //so they all need to be in the same critical section (not different names).
+    #pragma omp critical
+#endif
+    {
+      randnums = r123wrapper.GetRandomCoords(molIndex);
+    }
     val.x = log(exp(-1.0 * lbmax.x) + 2.0 * randnums.x * sinh(lbmax.x)) / lb.x;
     val.y = log(exp(-1.0 * lbmax.y) + 2.0 * randnums.y * sinh(lbmax.y)) / lb.y;
     val.z = log(exp(-1.0 * lbmax.z) + 2.0 * randnums.z * sinh(lbmax.z)) / lb.z;
-  } else {
-    val.x = 0.0;
-    val.y = 0.0;
-    val.z = 0.0;
   }
 
   // We can possibly bound them
@@ -501,11 +508,9 @@ inline void MultiParticle::CalculateTrialDistRot()
     double *x = r_k.x;
     double *y = r_k.y;
     double *z = r_k.z;
-//Random123 has some race condition with OpenMP threads. Probably the code is
-//not re-entrant. So don't use OpenMP until this is resolved.
-// #ifdef _OPENMP
-    // #pragma omp parallel for default(none) shared(r_max, lambda, x, y, z)
-// #endif
+#ifdef _OPENMP
+    #pragma omp parallel for default(none) shared(lambda, r_max, x, y, z)
+#endif
     for(uint m = 0; m < moleculeIndex.size(); m++) {
       uint molIndex = moleculeIndex[m];
       XYZ lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
@@ -525,11 +530,9 @@ inline void MultiParticle::CalculateTrialDistRot()
     double *x = t_k.x;
     double *y = t_k.y;
     double *z = t_k.z;
-//Random123 has some race condition with OpenMP threads. Probably the code is
-//not re-entrant. So don't use OpenMP until this is resolved.
-// #ifdef _OPENMP
-    // #pragma omp parallel for default(none) shared(t_max, lambda, x, y, z)
-// #endif
+#ifdef _OPENMP
+    #pragma omp parallel for default(none) shared(lambda, t_max, x, y, z)
+#endif
     for(uint m = 0; m < moleculeIndex.size(); m++) {
       uint molIndex = moleculeIndex[m];
       XYZ lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
@@ -614,9 +617,18 @@ inline void MultiParticle::TranslateForceBiased(uint molIndex)
 inline void MultiParticle::RotateRandom(uint molIndex)
 {
   double r_max = moveSetRef.GetRMAX(bPick);
-  RotationMatrix matrix = RotationMatrix::FromAxisAngle(
-                          r123wrapper.GetSymRandom(molIndex, r_max),
-                          r123wrapper.GetRandomCoordsOnSphere(molIndex));
+  double symRand;
+  XYZ sphereCoords;
+#ifdef _OPENMP
+  //Even though we call different random123 functions, they all change c[0]
+  //so they all need to be in the same critical section (not different names).
+  #pragma omp critical
+#endif
+  {
+    symRand = r123wrapper.GetSymRandom(molIndex, r_max);
+    sphereCoords = r123wrapper.GetRandomCoordsOnSphere(molIndex);
+  }
+  RotationMatrix matrix = RotationMatrix::FromAxisAngle(symRand, sphereCoords);
 
   XYZ center = comCurrRef.Get(molIndex);
   uint start, stop, len;
@@ -641,7 +653,15 @@ inline void MultiParticle::RotateRandom(uint molIndex)
 inline void MultiParticle::TranslateRandom(uint molIndex)
 {
   double t_max = moveSetRef.GetTMAX(bPick);
-  XYZ shift = r123wrapper.GetSymRandomCoords(molIndex, t_max);
+  XYZ shift;
+#ifdef _OPENMP
+  //Even though we call different random123 functions, they all change c[0]
+  //so they all need to be in the same critical section (not different names).
+  #pragma omp critical
+#endif
+  {
+    shift = r123wrapper.GetSymRandomCoords(molIndex, t_max);
+  }
 
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
