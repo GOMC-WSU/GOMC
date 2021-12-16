@@ -44,6 +44,8 @@ public:
     mp_tries.resize(BOX_TOTAL);
     mp_interval_accepted.resize(BOX_TOTAL);
     mp_interval_tries.resize(BOX_TOTAL);
+    // Different since we only sample 2 Boxes in GEMC
+    isSingleMoveAccepted.resize(BOXES_WITH_U_NB);
     for(uint b = 0; b < BOX_TOTAL; b++) {
       acceptPercent[b].resize(mv::MOVE_KINDS_TOTAL);
       scale[b].resize(mv::MOVE_KINDS_TOTAL);
@@ -128,9 +130,7 @@ public:
     this->mp_interval_tries = rhs.mp_interval_tries;
     this->perAdjust = rhs.perAdjust;
     this->totKind = rhs.totKind;
-    for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-      this->isSingleMoveAccepted[b] = rhs.isSingleMoveAccepted[b];
-    }
+    this->isSingleMoveAccepted = rhs.isSingleMoveAccepted;
   }
   void SetScaleValues(const MoveSettings &rhs) {
     this->scale = rhs.scale;
@@ -158,10 +158,9 @@ private:
   std::vector< std::vector< uint32_t > > mp_accepted, mp_tries, mp_interval_accepted, mp_interval_tries;
   std::vector< double > mp_r_max;
   std::vector< double > mp_t_max;
-
+  std::vector< bool > isSingleMoveAccepted;
   uint perAdjust;
   uint totKind;
-  bool isSingleMoveAccepted[BOXES_WITH_U_NB];
 
   BoxDimensions & boxDimRef;
 
