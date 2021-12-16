@@ -27,7 +27,7 @@
 
 */
 
-TEST(ConsistentTrajectoryTest, CheckAR_KR) {
+TEST(ConsistentTrajectoryTest, Check_AR_KR) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
@@ -295,7 +295,7 @@ TEST(ConsistentTrajectoryTest, CheckAR_KR) {
     }
 }
 
-TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
+TEST(ConsistentTrajectoryTest, Check_PEN_HEX) {
 
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
@@ -434,7 +434,7 @@ TEST(ConsistentTrajectoryTest, CheckPEN_HEX) {
 }
 
 
-TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
+TEST(ConsistentTrajectoryTest, Check_Neo_Pen) {
 
     ulong base_runsteps, K_1_runsteps, K_N_runsteps;
     ulong K_1_true_step, K_N_true_step;
@@ -646,7 +646,7 @@ TEST(ConsistentTrajectoryTest, CheckNeo_Pen) {
 }
 
 
-TEST(ConsistentTrajectoryTest, CheckBPTI_TIP3) {
+TEST(ConsistentTrajectoryTest, Check_BPTI_TIP3) {
 
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
@@ -784,7 +784,7 @@ TEST(ConsistentTrajectoryTest, CheckBPTI_TIP3) {
     }
 }
 
-TEST(ConsistentTrajectoryTest, CheckK_CHANNEL_TIP3) {
+TEST(ConsistentTrajectoryTest, Check_K_CHANNEL_TIP3) {
 
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
