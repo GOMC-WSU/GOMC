@@ -116,27 +116,17 @@ TEST(CheckpointTest, Check_BPTI_TIP3) {
     Coordinates & SingleRun_coords = SingleRun.GetCoordinates();
     Velocity & Continued_velocs = Continued.GetVelocities();
     Velocity & SingleRun_velocs = SingleRun.GetVelocities();
-    ExtendedSystem & Continued_xsc = Continued.GetXSC();
-    ExtendedSystem & SingleRun_xsc = SingleRun.GetXSC();
+    BoxDimensions & Continued_boxDim = Continued.GetBoxDim();
+    BoxDimensions & SingleRun_boxDim = SingleRun.GetBoxDim();
+    PRNG & Continued_PRNG = Continued.GetPRNG();
+    PRNG & SingleRun_PRNG = SingleRun.GetPRNG();
 
     EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
     EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
     EXPECT_EQ(Continued_coords.operator==(SingleRun_coords), true);
     EXPECT_EQ(Continued_velocs.operator==(SingleRun_velocs), true);
-    EXPECT_EQ(Continued_xsc.operator==(SingleRun_xsc), true);
-
-    EXPECT_EQ(Continued_ms.acceptPercent == SingleRun_ms.acceptPercent, true);
-    EXPECT_EQ(Continued_ms.scale == SingleRun_ms.scale, true);
-    EXPECT_EQ(Continued_ms.accepted == SingleRun_ms.accepted, true);
-    EXPECT_EQ(Continued_ms.tries == SingleRun_ms.tries, true);
-    EXPECT_EQ(Continued_ms.tempAccepted == SingleRun_ms.tempAccepted, true);
-    EXPECT_EQ(Continued_ms.tempTries == SingleRun_ms.tempTries, true);
-    EXPECT_EQ(Continued_ms.mp_r_max == SingleRun_ms.mp_r_max, true);
-    EXPECT_EQ(Continued_ms.mp_t_max == SingleRun_ms.mp_t_max, true);
-    EXPECT_EQ(Continued_ms.mp_accepted == SingleRun_ms.mp_accepted, true);
-    EXPECT_EQ(Continued_ms.mp_tries == SingleRun_ms.mp_tries, true);
-    EXPECT_EQ(Continued_ms.mp_interval_accepted == SingleRun_ms.mp_interval_accepted, true);
-    EXPECT_EQ(Continued_ms.mp_interval_tries == SingleRun_ms.mp_interval_tries, true);
+    EXPECT_EQ(Continued_boxDim.operator==(SingleRun_boxDim), true);
+    EXPECT_EQ(Continued_PRNG.operator==(SingleRun_PRNG), true);
 
 
     result = chdir("../../../../..");
