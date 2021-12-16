@@ -34,6 +34,7 @@ public:
     BoxDimensions & GetBoxDim();
     SystemPotential & GetSystemEnergy(void);
     PRNG & GetPRNG();
+    Molecules & GetMolecules();
   #endif
 private:
   StaticVals * staticValues;

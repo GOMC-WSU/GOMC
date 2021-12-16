@@ -213,6 +213,10 @@ PRNG & Simulation::GetPRNG(){
   return system->prng;
 }
 
+Molecules & Simulation::GetMolecules(){
+  return staticValues->mol;
+}
+
 BoxDimensions & Simulation::GetBoxDim(){
   return system->boxDimRef;
 }

@@ -33,6 +33,7 @@ class Molecules
 public:
   Molecules();
   ~Molecules();
+  bool operator==(const Molecules & other);
 
   const MoleculeKind& GetKind(const uint molIndex) const
   {
@@ -114,6 +115,7 @@ public:
 
   /* only used for output */
   uint32_t count;
+  uint32_t atomCount;
   uint32_t* kIndex;
   uint32_t kIndexCount;
   uint* countByKind;
@@ -123,7 +125,9 @@ public:
 
   MoleculeKind * kinds;
   uint kindsCount;
-  uint fractionKind, lambdaSize;
+  // These are never initialized or used
+  //uint fractionKind;
+  // uint lambdaSize;
   double* pairEnCorrections;
   double* pairVirCorrections;
 

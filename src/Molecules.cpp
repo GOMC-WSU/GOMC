@@ -51,6 +51,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
 
   //Molecule instance arrays/data
   count = setup.mol.molVars.startIdxMolecules.size();
+  atomCount = atoms.beta.size();
   if (count == 0) {
     std::cerr << "Error: No Molecule was found in the PSF file(s)!" << std::endl;
     exit(EXIT_FAILURE);
@@ -161,6 +162,33 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
         pairVirCorrections[i * kindsCount + j];
     }
   }
+}
+
+bool Molecules::operator==(const Molecules & other){
+  bool result = true;
+  result &= (count == other.count);
+  result &= (atomCount == other.atomCount);
+  result &= (kindsCount == other.kindsCount);
+
+  for (int m = 0; m < count + 1; ++m){
+    result &= (start[m] == other.start[m]);
+  }
+  for (int m = 0; m < count; ++m){
+    result &= (kIndex[m] == other.kIndex[m]);
+  }
+  for (int a = 0; a < atomCount; ++a){
+    result &= (chain[a] == other.chain[a]);
+    result &= (beta[a] == other.beta[a]);
+  }
+  for (int k = 0; k < kindsCount; ++k){
+    result &= (countByKind[k] == other.countByKind[k]);
+    result &= (kinds[k] == other.kinds[k]);
+  }
+  for (int k = 0; k < kindsCount*kindsCount; ++k){
+    result &= (pairEnCorrections[k] == other.pairEnCorrections[k]);
+    result &= (pairVirCorrections[k] == other.pairVirCorrections[k]);
+  }
+  return result;
 }
 
 void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,

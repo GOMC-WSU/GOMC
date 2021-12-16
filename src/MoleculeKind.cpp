@@ -121,6 +121,29 @@ MoleculeKind::~MoleculeKind()
   delete builder;
 }
 
+bool MoleculeKind::operator==(const MoleculeKind & other){
+  bool result = true;
+  result &= (numAtoms == other.numAtoms);
+  for (int i = 0; i < numAtoms; ++i){
+    result &= (atomKind[i] == other.atomKind[i]);
+    result &= (atomMass[i] == other.atomMass[i]);
+    result &= (atomCharge[i] == other.atomCharge[i]);
+  }
+  result &= (atomNames == other.atomNames);
+  result &= (resNames == other.resNames);
+  result &= (atomTypeNames == other.atomTypeNames);
+  result &= (isMultiResidue == other.isMultiResidue);
+  result &= (intraMoleculeResIDs == other.intraMoleculeResIDs);
+  result &= (name == other.name);
+  result &= (kindIndex == other.kindIndex);
+  result &= (molMass == other.molMass);
+  #if ENSEMBLE == GCMC
+  result &= (chemPot == other.chemPot);
+  #endif
+  return result;
+}
+
+
 void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
 {
   numAtoms = molData.atoms.size();
