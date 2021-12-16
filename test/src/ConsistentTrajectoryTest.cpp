@@ -783,3 +783,141 @@ TEST(ConsistentTrajectoryTest, CheckBPTI_TIP3) {
         exit(1);
     }
 }
+
+TEST(ConsistentTrajectoryTest, CheckK_CHANNEL_TIP3) {
+
+    ulong base_runsteps, Continued_runsteps;
+    ulong Continued_true_step;
+    std::string inputFileString("in.conf");
+    int result = chdir("./test/input/Systems/K_CHANNEL_TIP3/Base/");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } else {
+        Simulation base(inputFileString.c_str());
+        base_runsteps = base.GetRunSteps();
+        base.RunSimulation();
+    }
+    result = chdir("../Continued");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } else {
+        Simulation Continued(inputFileString.c_str());
+        Continued_true_step = Continued.GetTrueStep();
+        // Steps index from 0, hence minus 1
+        EXPECT_EQ(base_runsteps == Continued_true_step, true);
+        Continued.RunSimulation();
+    }
+    result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } else {
+        Simulation SingleRun(inputFileString.c_str());
+        SingleRun.RunSimulation();
+    }
+    result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+
+    config_setup::RestartSettings rsStart;
+    config_setup::RestartSettings rsBase;
+    config_setup::RestartSettings rsContinued;
+     config_setup::RestartSettings rsSingleRun;
+
+
+    std::string pdbnamesBase[2], pdbnamesContinued[2], pdbnamesSingleRun[2];
+
+    pdbnamesBase[0] = "./test/input/Systems/K_CHANNEL_TIP3/Base/Base_BOX_0.pdb";
+    pdbnamesBase[1] = "./test/input/Systems/K_CHANNEL_TIP3/Base/Base_BOX_1.pdb";
+
+    pdbnamesContinued[0] = "./test/input/Systems/K_CHANNEL_TIP3/Continued/Continued_BOX_0.pdb";
+    pdbnamesContinued[1] = "./test/input/Systems/K_CHANNEL_TIP3/Continued/Continued_BOX_1.pdb";
+
+    pdbnamesSingleRun[0] = "./test/input/Systems/K_CHANNEL_TIP3/SingleRun/SingleRun_BOX_0.pdb";
+    pdbnamesSingleRun[1] = "./test/input/Systems/K_CHANNEL_TIP3/SingleRun/SingleRun_BOX_1.pdb";
+
+    PDBSetup pdbBase, pdbContinued;
+    PDBSetup pdbBaseRestart, pdbContinuedRestart;
+
+    rsStart.recalcTrajectory = false;
+    rsBase.recalcTrajectory = true;
+    rsContinued.recalcTrajectory = true;
+    rsSingleRun.recalcTrajectory = true;
+
+    // This is needed to get passed Remark 
+    uint frameNum = 1;
+    PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
+
+    // This is needed to get passed Remark 
+    // Not sure why.
+    frameNum = 1;
+    pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, frameNum);    
+    pdbContinued_Base_To_Continued.Init(rsContinued, pdbnamesContinued, frameNum);
+
+    int lastFrame = 11;
+    pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, lastFrame);    
+
+    // Checks if the last frame the base traj match the first frame of K_1 traj
+    for (uint i = 0; i < pdbBase_Base_To_Continued.atoms.count; ++i){
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.x[i] == pdbContinued_Base_To_Continued.atoms.x[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.y[i] == pdbContinued_Base_To_Continued.atoms.y[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.z[i] == pdbContinued_Base_To_Continued.atoms.z[i], true);
+
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.chainLetter[i] == pdbContinued_Base_To_Continued.atoms.chainLetter[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.box[i] == pdbContinued_Base_To_Continued.atoms.box[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.resNames[i] == pdbContinued_Base_To_Continued.atoms.resNames[i], true);
+        EXPECT_EQ(pdbBase_Base_To_Continued.atoms.beta[i] == pdbContinued_Base_To_Continued.atoms.beta[i], true);
+    }
+    
+    PDBSetup pdb_SingleRun;
+    frameNum = 1;
+    pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, frameNum); 
+    for(int frame = 0; frame < 10; ++frame){
+        lastFrame = 2 + frame; 
+        pdbContinued_Base_To_Continued.Init(rsContinued, pdbnamesContinued, lastFrame);
+        lastFrame = 12 + frame;
+        pdb_SingleRun.Init(rsSingleRun, pdbnamesSingleRun, lastFrame);  
+
+            // Checks if the last frame the SingleRun traj match the last frame of K_N traj
+        for (uint i = 0; i < pdbContinued_Base_To_Continued.atoms.count; ++i){
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.x[i] == pdb_SingleRun.atoms.x[i], true);
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.y[i] == pdb_SingleRun.atoms.y[i], true);
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.z[i] == pdb_SingleRun.atoms.z[i], true);
+
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.chainLetter[i] == pdb_SingleRun.atoms.chainLetter[i], true);
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.box[i] == pdb_SingleRun.atoms.box[i], true);
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.resNames[i] == pdb_SingleRun.atoms.resNames[i], true);
+            EXPECT_EQ(pdbContinued_Base_To_Continued.atoms.beta[i] == pdb_SingleRun.atoms.beta[i], true);
+        }
+    }
+
+    result = chdir("./test/input/Systems/K_CHANNEL_TIP3");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Base/Base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Continued/Continued_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+}
