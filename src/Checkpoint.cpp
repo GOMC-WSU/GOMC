@@ -82,7 +82,7 @@ void Checkpoint::GatherRandomNumbers(PRNG & prngRef){
 
     // let's save seedValue just in case
     // not sure if that is used or not, or how important it is
-    seedValue = prngRef.GetGenerator()->seedValue;
+    seedValue = (prngRef.GetGenerator()->seedValue);
 }
 
 /* After the first run, the molecules are sorted, so we need to use the same sorting process

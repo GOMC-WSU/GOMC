@@ -318,6 +318,7 @@ inline void MTRand::seed()
 
 inline MTRand::MTRand( const uint32 oneSeed )
 {
+  seedValue = oneSeed;
   seed(oneSeed);
 }
 
