@@ -31,7 +31,9 @@ public:
     Coordinates & GetCoordinates();
     Velocity & GetVelocities();
     ExtendedSystem & GetXSC();
+    BoxDimensions & GetBoxDim();
     SystemPotential & GetSystemEnergy(void);
+    PRNG & GetPRNG();
   #endif
 private:
   StaticVals * staticValues;

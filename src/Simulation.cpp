@@ -209,6 +209,14 @@ ExtendedSystem & Simulation::GetXSC(){
   return system->xsc;
 }
 
+PRNG & Simulation::GetPRNG(){
+  return system->prng;
+}
+
+BoxDimensions & Simulation::GetBoxDim(){
+  return system->boxDimRef;
+}
+
 ulong Simulation::GetTrueStep(){
   return system->trueStep;
 }
