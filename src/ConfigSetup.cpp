@@ -759,42 +759,27 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
              sys.moves.rotate);
     } else if(CheckString(line[0], "IntraMEMC-1Freq")) {
       if(stringtod(line[1]) > 0.0){
-        if(sys.intraMemcVal.enable){
-          std::cout << "Error: Only one type of IntraMEMC move is supported at a time." << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          sys.moves.intraMemc = stringtod(line[1]);
-          printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
-                sys.moves.intraMemc);
-          sys.intraMemcVal.enable = true;
-          sys.intraMemcVal.MEMC1 = true;
-        }
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+              sys.moves.intraMemc);
+        sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC1 = true;
       }
     } else if(CheckString(line[0], "IntraMEMC-2Freq")) {
       if(stringtod(line[1]) > 0.0){
-        if(sys.intraMemcVal.enable){
-          std::cout << "Error: Only one type of IntraMEMC move is supported at a time." << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          sys.moves.intraMemc = stringtod(line[1]);
-          printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
-                sys.moves.intraMemc);
-          sys.intraMemcVal.enable = true;
-          sys.intraMemcVal.MEMC2 = true;
-        }
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+              sys.moves.intraMemc);
+        sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC2 = true;
       }
     } else if(CheckString(line[0], "IntraMEMC-3Freq")) {
       if(stringtod(line[1]) > 0.0){
-        if(sys.intraMemcVal.enable){
-          std::cout << "Error: Only one type of IntraMEMC move is supported at a time." << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          sys.moves.intraMemc = stringtod(line[1]);
-          printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
-                sys.moves.intraMemc);
-          sys.intraMemcVal.enable = true;
-          sys.intraMemcVal.MEMC3 = true;
-        }
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
+              sys.moves.intraMemc);
+        sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC3 = true;
       }
     }
 #ifdef VARIABLE_VOLUME
@@ -821,42 +806,27 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
              sys.moves.transfer);
     } else if(CheckString(line[0], "MEMC-1Freq")) {
       if(stringtod(line[1]) > 0.0){
-        if(sys.memcVal.enable){
-          std::cout << "Error: Only one type of MEMC move is supported at a time." << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          sys.moves.memc = stringtod(line[1]);
-          printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
-             sys.moves.memc);
-          sys.memcVal.enable = true;
-          sys.memcVal.MEMC1 = true;
-        }
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
+            sys.moves.memc);
+        sys.memcVal.enable = true;
+        sys.memcVal.MEMC1 = true;
       }
     } else if(CheckString(line[0], "MEMC-2Freq")) {
       if(stringtod(line[1]) > 0.0){
-        if(sys.memcVal.enable){
-          std::cout << "Error: Only one type of MEMC move is supported at a time." << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          sys.moves.memc = stringtod(line[1]);
-          printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
-             sys.moves.memc);
-          sys.memcVal.enable = true;
-          sys.memcVal.MEMC2 = true;
-        }
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
+            sys.moves.memc);
+        sys.memcVal.enable = true;
+        sys.memcVal.MEMC2 = true;
       }
     } else if(CheckString(line[0], "MEMC-3Freq")) {
       if(stringtod(line[1]) > 0.0){
-        if(sys.memcVal.enable){
-          std::cout << "Error: Only one type of MEMC move is supported at a time." << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          sys.moves.memc = stringtod(line[1]);
-          printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
-             sys.moves.memc);
-          sys.memcVal.enable = true;
-          sys.memcVal.MEMC3 = true;
-        }
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
+            sys.moves.memc);
+        sys.memcVal.enable = true;
+        sys.memcVal.MEMC3 = true;
       }
     } else if(CheckString(line[0], "TargetedSwapFreq")) {
       sys.moves.targetedSwap = stringtod(line[1]);
