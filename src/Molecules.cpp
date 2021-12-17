@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm> //For count.
 #include <string>
 #include "System.h"
+#include <cassert>
 
 class System;
 
@@ -45,7 +46,12 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   kindsCount = setup.mol.kindMap.size();
   countByKind = new uint[kindsCount];
   kinds = new MoleculeKind[kindsCount];
-
+  assert(kindsCount == setup.mol.molVars.molKindIndex);
+  if(kindsCount != setup.mol.molVars.molKindIndex){
+    std::cout << "Error: Inconsistency between molecule map and number of molecule kinds"
+              << std::endl;
+    exit(EXIT_FAILURE);
+  }
   //Molecule instance arrays/data
   count = setup.mol.molVars.startIdxMolecules.size();
   if (count == 0) {
