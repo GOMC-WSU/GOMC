@@ -106,7 +106,7 @@ protected:
   }
 
   std::string fileName, fileAlias, nameWAlias;
-  bool critical, notify, isOpen = false, firstWrite;
+  bool critical, notify, isOpen, firstWrite;
 };
 
 #endif /*WRITER_H*/
