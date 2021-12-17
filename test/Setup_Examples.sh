@@ -24,7 +24,7 @@ mkdir -p test/new_binaries
 cp -frdp ./bin/* test/new_binaries
 
 echo "$startingBranch"
-if [ $startingBranch == "development" ]; then
+if [ "$startingBranch" == "development" ]; then
 	echo "I am on development; checking out main"
 	git checkout main
 else
@@ -39,4 +39,4 @@ echo "Building $refBranch binaries"
 mkdir -p test/ref_binaries
 cp -frd ./bin/* test/ref_binaries
 cd test
-git checkout $startingBranch
+git checkout "$startingBranch"
