@@ -83,16 +83,24 @@ void FFSetup::Init(const std::vector<config_setup::FileName> & fileName, const b
                 true, &commentStr, true, &commentChar);
     param.open();
     bool shouldImproperWarn = true;
+    bool shouldCMapWarn = true;
+    bool shouldHBondWarn = true;
     while (param.Read(varName)) {
       sect = sectKind.find(varName);
       if ( sect != sectKind.end() ) {
         param.SkipLine(); //Skip rest of line for sect. heading
         currSectName = varName;
         currSect = sect; //Save for later calls.
-        std::cout << "Reading " << currSectName << " parameters.\n";{
-        if (shouldImproperWarn && (currSectName == "IMPROPER" || currSectName == "IMPROPERS"))
+        std::cout << "Reading " << currSectName << " parameters.\n";
+        if (shouldImproperWarn && (currSectName == "IMPROPER" || currSectName == "IMPROPERS" )){
           std::cout << "Warning: GOMC does not support IMPROPER!\n";
           shouldImproperWarn = false;
+        } else if (shouldCMapWarn && currSectName == "CMAP"){
+          std::cout << "Warning: GOMC does not support CMAP!\n";
+          shouldCMapWarn = false;
+        } else if (shouldHBondWarn && currSectName == "HBOND"){
+          std::cout << "Warning: GOMC does not support HBond!\n";
+          shouldHBondWarn = false;
         }
         if (isCHARMM) {
           if (hasEnding(currSectName, "MIE")) {
@@ -112,7 +120,7 @@ void FFSetup::Init(const std::vector<config_setup::FileName> & fileName, const b
           }
         }
       } else {
-        if (currSectName != "CMAP")
+        if (currSectName != "CMAP" && currSectName != "HBOND")
           currSect->second->Read(param, varName);
       }
     }
