@@ -900,17 +900,17 @@ TEST(ConsistentTrajectoryTest, Check_K_CHANNEL_TIP3) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    result = system("exec rm -r ./Base/Base_*");
+    //result = system("exec rm -r ./Base/Base_*");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    result = system("exec rm -r ./Continued/Continued_*");
+    //result = system("exec rm -r ./Continued/Continued_*");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    //result = system("exec rm -r ./SingleRun/SingleRun_*");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
