@@ -97,7 +97,8 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
   for (uint box = 0; box < BOX_TOTAL; ++box) {
     if(inputFiles.files.binaryCoorInput.defined[box]) {
       //find the starting index
-      for (int mol = boxMoleculeOffset[box]; mol < boxMoleculeOffset[box+1]; ++mol){    dataI = mol;
+      for (int mol = boxMoleculeOffset[box]; mol < boxMoleculeOffset[box+1]; ++mol){    
+        dataI = mol;
         if (mols.restartFromCheckpoint){
           trajectoryI = molLookup.molLookup[mol];
           mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
@@ -195,7 +196,6 @@ void ExtendedSystem::UpdateVelocity(Velocity & vel,
 
 void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box)
 {
-  if (hasCellBasis[box]) {
     pdb.cryst.hasCellBasis[box] = true;
     // Important to set to false, so BoxDim reads the cellBasis vector
     // and not cell length and angle
@@ -206,7 +206,6 @@ void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box)
     for(int i = 0; i < 3; i++) {
       pdb.cryst.cellAngle[box][i] = cellAngle[box][i];
     }
-  }
 }
 
 void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box)
