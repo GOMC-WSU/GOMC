@@ -942,7 +942,7 @@ TEST(ConsistentTrajectoryTest, Check_FORCE_SWAP_BPTI_TIP3) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation Continued(inputFileString.c_str());
+        Simulation Continued(fs.c_str());
         Continued_true_step = Continued.GetTrueStep();
         // Steps index from 0, hence minus 1
         EXPECT_EQ(base_runsteps == Continued_true_step, true);
@@ -1081,7 +1081,7 @@ TEST(ConsistentTrajectoryTest, Check_FORCE_SWAP_K_CHANNEL_TIP3) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     } else {
-        Simulation Continued(inputFileString.c_str());
+        Simulation Continued(fs.c_str());
         Continued_true_step = Continued.GetTrueStep();
         // Steps index from 0, hence minus 1
         EXPECT_EQ(base_runsteps == Continued_true_step, true);

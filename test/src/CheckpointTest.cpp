@@ -274,7 +274,7 @@ TEST(CheckpointTest, Check_BPTI_TIP3_FORCE_SWAP) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    Simulation Continued("in.conf");
+    Simulation Continued("forceSwap100.conf");
     result = chdir("../SingleRun");
     if (result){
         std::cout << "System call failed!" << std::endl;
@@ -360,7 +360,7 @@ TEST(CheckpointTest, Check_K_CHANNEL_TIP3_FORCE_SWAP) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    Simulation Continued("in.conf");
+    Simulation Continued("forceSwap100.conf");
     result = chdir("../SingleRun");
     if (result){
         std::cout << "System call failed!" << std::endl;
