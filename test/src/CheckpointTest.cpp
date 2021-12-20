@@ -342,7 +342,7 @@ TEST(CheckpointTest, Check_BPTI_TIP3_FORCE_SWAP) {
 #endif
 }
 
-TEST(CheckpointTest, Check_K_CHANNEL_TIP3) {
+TEST(CheckpointTest, Check_K_CHANNEL_TIP3_FORCE_SWAP) {
 
     ulong base_runsteps, Continued_runsteps;
     ulong Continued_true_step;
