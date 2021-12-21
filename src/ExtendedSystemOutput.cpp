@@ -329,7 +329,7 @@ void ExtendedSystemOutput::Write_binary_file(char *fname, int n, XYZ *vec)
 
 void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
 {
-  uint p, d, placementStart, placementEnd, dataStart, dataEnd, trajectoryI, dataI;
+  uint d, dataStart, dataEnd, dataI;
   int numMolecules = molRef.count;
   XYZ ref, coor;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -337,22 +337,16 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
   //Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
-    while (m != end) {                             
-      if(molLookupRef.restartFromCheckpoint){
-        trajectoryI = molLookupRef.originalMoleculeIndices[*m];
-      } else {
-        trajectoryI = *m;
-      }       
+    while (m != end) {                              
       dataI = *m;    
-      molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
       molRef.GetRangeStartStop(dataStart, dataEnd, dataI);    
       ref = comCurrRef.Get(dataI);
-      for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      for (d = dataStart; d < dataEnd; ++d) {
         coor = coordCurrRef.Get(d);
         boxDimRef.UnwrapPBC(coor, box, ref);
-        x[p] = coor.x;
-        y[p] = coor.y;
-        z[p] = coor.z;
+        x[d] = coor.x;
+        y[d] = coor.y;
+        z[d] = coor.z;
       }
       ++m;
     }
@@ -363,26 +357,20 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);   
     while (m != end) {                             
-      if(molLookupRef.restartFromCheckpoint){
-        trajectoryI = molLookupRef.originalMoleculeIndices[*m];
-      } else {
-        trajectoryI = *m;
-      }       
       dataI = *m;    
-      molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
       molRef.GetRangeStartStop(dataStart, dataEnd, dataI);  
       ref = comCurrRef.Get(dataI);
       inThisBox = (molInBox[dataI] == box);
-      for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      for (d = dataStart; d < dataEnd; ++d) {
         if (inThisBox) {
           coor = coordCurrRef.Get(d);
           boxDimRef.UnwrapPBC(coor, box, ref);
         } else {
           coor.Reset();
         }
-        x[p] = coor.x;
-        y[p] = coor.y;
-        z[p] = coor.z;
+        x[d] = coor.x;
+        y[d] = coor.y;
+        z[d] = coor.z;
       }
       ++m;
     }

@@ -147,6 +147,29 @@ BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const
   return *this;
 }
 
+bool BoxDimensionsNonOrth::operator==(BoxDimensionsNonOrth const& other)
+{
+  bool result = true;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    result &= (cellBasis[b] == other.cellBasis[b]);
+    result &= (cellBasis_Inv[b] == other.cellBasis_Inv[b]);
+    result &= (volume[b] == other.volume[b]);
+    result &= (volInv[b] == other.volInv[b]);
+    result &= (rCut[b] == other.rCut[b]);
+    result &= (rCutSq[b] == other.rCutSq[b]);
+    result &= (cubic[b] == other.cubic[b]);
+    result &= (orthogonal[b] = other.orthogonal[b]);
+    for(uint i = 0; i < 3; i++) {
+      result &= (cosAngle[b][i] == other.cosAngle[b][i]);
+    }
+  }
+  result &= (axis == other.axis);
+  result &= (halfAx == other.halfAx);
+  result &= (cellLength == other.cellLength);
+  result &= (constArea == other.constArea);
+  return result;
+}
+
 
 uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
                                        XYZ & scale, const uint b,

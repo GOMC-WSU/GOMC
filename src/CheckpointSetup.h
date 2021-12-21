@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VectorLib.h" //for transfer.
 
 #include "Checkpoint.h"
+#include "FFSetup.h"
 
 
 class CheckpointSetup
@@ -30,7 +31,7 @@ public:
                   Molecules & mol,
                   PRNG & prng,
                   Random123Wrapper & r123,
-                  Setup const& set);  
+                  Setup & set);  
 #if GOMC_LIB_MPI
                           
   CheckpointSetup(ulong & startStep,
@@ -40,7 +41,7 @@ public:
                   Molecules & mol,
                   PRNG & prng,
                   Random123Wrapper & r123,
-                  Setup const& set,
+                  Setup & set,
                   bool & parallelTemperingEnabled,
                   PRNG & prngPT);
 #endif
@@ -48,7 +49,7 @@ public:
   ~CheckpointSetup();
 
   void loadCheckpointFile();
-  void InitOver(Molecules & molRef);
+  void InitOver();
 
 private:
   void SetCheckpointData();
@@ -62,17 +63,20 @@ private:
   void SetStepNumber();
   void SetTrueStepNumber();
   void SetMolecules(Molecules& mols);
-  void SetMoleculeKindDictionary(Molecules& mols);
   void SetMoveSettings();
   void SetPRNGVariables();
   void SetR123Variables();
   void SetMolecules();
-  void SetMoleculeKindDictionary();
-  void SetMoleculeIndices();
+  void SetMoleculeLookup();
+  void SetMoleculeSetup();
+  void SetPDBSetupAtoms();
 #if GOMC_LIB_MPI  
   void SetParallelTemperingWasEnabled();
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
+
+void GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const;
+void GetRestartRangeStartStop(uint & _start, uint & stop, const uint m) const;
 
 #if GOMC_GTEST
 
@@ -92,6 +96,12 @@ private:
   Random123Wrapper & r123Ref;
   Molecules & molRef;
   MoleculeLookup & molLookupRef;
+  MolSetup & molSetRef;        //5
+  FFSetup & ffSetupRef;
+  pdb_setup::Atoms & pdbAtomsRef;
+
+  std::vector<uint> startIdxMolecules;
+
 #if GOMC_LIB_MPI
   bool parallelTemperingWasEnabled;
   bool & parallelTemperingIsEnabled;

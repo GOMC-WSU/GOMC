@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolSetup.h"
 #include "GOMC_Config.h"    //For PT
 #include "ParallelTemperingPreprocessor.h"
+#include <cereal/archives/binary.hpp>
 class Setup
 {
 public:
@@ -44,12 +45,16 @@ public:
     if(multisim->parallelTemperingEnabled)
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
 #endif
-    //Read molecule data from psf
-    if(mol.Init(config.in.files.psf.name, config.in.files.psf.defined, pdb.atoms) != 0) {
-      exit(EXIT_FAILURE);
+    // Load the MolSetup from checkpoint
+    if (!config.in.restart.restartFromCheckpoint){
+      //Read molecule data from psf
+      if(mol.Init(config.in.files.psf.name, 
+                  config.in.files.psf.defined, 
+                  pdb.atoms) != 0) {
+        exit(EXIT_FAILURE);
+      }      
+      mol.AssignKinds(mol.molVars, ff);
     }
-    mol.AssignKinds(mol.molVars, ff);
-
   }
 };
 

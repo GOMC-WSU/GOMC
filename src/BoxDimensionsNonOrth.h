@@ -32,6 +32,7 @@ public:
   }
 
   virtual BoxDimensionsNonOrth& operator=(BoxDimensionsNonOrth const& other);
+  virtual bool operator==(BoxDimensionsNonOrth const& other);
 
   virtual void Init(config_setup::RestartSettings const& restart,
                     config_setup::Volume const& confVolume,
