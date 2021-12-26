@@ -27,7 +27,14 @@ public:
     ulong GetTrueStep();
     ulong GetRunSteps();
     MoleculeLookup & GetMolLookup();
+    MoveSettings & GetMoveSettings();
+    Coordinates & GetCoordinates();
+    Velocity & GetVelocities();
+    ExtendedSystem & GetXSC();
+    BoxDimensions & GetBoxDim();
     SystemPotential & GetSystemEnergy(void);
+    PRNG & GetPRNG();
+    Molecules & GetMolecules();
   #endif
 private:
   StaticVals * staticValues;

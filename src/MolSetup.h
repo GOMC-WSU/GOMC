@@ -16,6 +16,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BondAdjacencyList.h"
 #include "AlphaNum.h"
 
+#include <cereal/access.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/map.hpp>
+
 namespace config_setup
 {
 struct RestartSettings;
@@ -29,6 +34,9 @@ class FFSetup;
 namespace mol_setup
 {
 struct MoleculeVariables {
+
+  MoleculeVariables() = default;
+
   std::vector<uint> startIdxMolecules, moleculeKinds;
   // moleculeNames - length number of molecules
   // moleculeKindNames - length number of kinds
@@ -40,12 +48,32 @@ struct MoleculeVariables {
   uint stringSuffixMultiResidue = 0;
   uint stringSuffixNonMultiResidue = 0;
   uint moleculeIteration = 0;
+
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & startIdxMolecules;
+      ar & moleculeKinds;
+      ar & moleculeNames;
+      ar & moleculeKindNames;
+      ar & moleculeSegmentNames;
+      ar &  lastAtomIndexInBox0;
+      ar &  numberMolsInBox0;
+      ar &  molKindIndex;
+      ar &  stringSuffix;
+      ar &  moleculeIteration;
+    }
+
 };
 
 //!structure to contain an atom's data during initialization
 class Atom
 {
 public:
+  // Default constructor for serialization/deserialization
+  Atom(void) = default;
   Atom(std::string const& l_name, std::string const& l_residue, uint l_resID, std::string const& l_segment, std::string const& l_type,
        const double l_charge, const double l_mass) :
     name(l_name), type(l_type), residue(l_residue), segment(l_segment), charge(l_charge), mass(l_mass), residueID(l_resID) {}
@@ -70,11 +98,27 @@ public:
     else
       return false;
   }
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & name;
+      ar & type; 
+      ar & residue; 
+      ar & segment;
+      ar & charge; 
+      ar & mass;
+      ar & residueID;
+      ar & kind;
+    }
 };
 
 class Dihedral
 {
 public:
+  // Default constructor for serialization/deserialization
+  Dihedral(void) = default;
   Dihedral(uint atom0, uint atom1, uint atom2, uint atom3)
     : a0(atom0), a1(atom1), a2(atom2), a3(atom3) {}
   //some xplor PSF files have duplicate dihedrals, we need to ignore these
@@ -85,11 +129,24 @@ public:
   //atoms
   uint a0, a1, a2, a3;
   uint kind;
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & a0;
+      ar & a1;
+      ar & a2;
+      ar & a3;
+      ar & kind;
+    }
 };
 
 class Improper
 {
 public:
+  // Default constructor for serialization/deserialization
+  Improper(void) = default;
   Improper(uint atom0, uint atom1, uint atom2, uint atom3)
     : a0(atom0), a1(atom1), a2(atom2), a3(atom3) {}
   //Impropers are order specific, so these methods different from Dihedrals,
@@ -101,34 +158,69 @@ public:
   //atoms
   uint a0, a1, a2, a3;
   uint kind;
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & a0;
+      ar & a1;
+      ar & a2;
+      ar & a3;
+      ar & kind;
+    }
 };
 
 class Angle
 {
 public:
+  // Default constructor for serialization/deserialization
+  Angle(void) = default;
   Angle(uint atom0, uint atom1, uint atom2)
     : a0(atom0), a1(atom1), a2(atom2) {}
 
   //private:
   uint a0, a1, a2;
   uint kind;
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & a0;
+      ar & a1;
+      ar & a2;
+      ar & kind;
+    }
 };
 
 class Bond
 {
 public:
+  // Default constructor for serialization/deserialization
+  Bond(void) = default;
   Bond(uint atom0, uint atom1)
     : a0(atom0), a1(atom1) {}
 //   private:
   uint a0, a1;
   uint kind;
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & a0;
+      ar & a1;
+      ar & kind;
+    }
 };
 
 //!Structure to contain a molecule kind's data during initialization
 class MolKind
 {
 public:
-  MolKind() : incomplete(true) {}
+  // Default constructor for serialization/deserialization
+  MolKind() = default;
 
   //private:
   std::vector<Atom> atoms;
@@ -140,20 +232,42 @@ public:
   std::vector<Bond> donors;
   std::vector<Bond> acceptors;
 
-
-
   uint kindIndex;
 
   //Used to search PSF file for geometry, meaningless after that
   uint firstAtomID, firstMolID;
   //true while the molecule is still open for modification during PSF read
-  bool incomplete;
+  bool incomplete = true;
   bool isMultiResidue;
   std::vector<uint> intraMoleculeResIDs;
   // Used to map chemical potentials in config file to molecules
   // Note for proteins there is some guesswork.  As they are encountered
   // in the psf file they are named PROTA, PROTB, ..
   std::string moleculeName;
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & atoms;
+      ar & bonds;
+      ar & angles;
+      ar & dihedrals;
+      ar & impropers;
+      /*Technically H-Bonds, but no difference in class structure */
+      ar & donors;
+      ar & acceptors;
+
+      ar & kindIndex;
+
+      //Used to search PSF file for geometry, meaningless after that
+      ar & firstAtomID;
+      ar & firstMolID;
+      //true while the molecule is still open for modification during PSF read
+      ar & incomplete;
+      ar & isMultiResidue;
+      ar & intraMoleculeResIDs;
+    }
 };
 
 //List of dihedrals with atom at one end, atom first
@@ -197,6 +311,7 @@ void PrintMolMapBrief(const MolMap& kindMap);
 class MolSetup
 {
 public:
+  MolSetup() = default;
   class Atom;
   void createKindMap (mol_setup::MoleculeVariables & molVars,
                       const BondAdjacencyList & bondAdjList,
@@ -223,5 +338,13 @@ public:
   mol_setup::MolMap kindMap;
   mol_setup::SizeMap sizeMap;
   mol_setup::MoleculeVariables molVars;
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & kindMap;
+      ar & molVars;
+    }
 };
 #endif

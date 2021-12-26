@@ -19,16 +19,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class System;
 
 
-Molecules::Molecules() : start(NULL), originalStart(NULL), originalKIndex(NULL), kIndex(NULL), countByKind(NULL),
+Molecules::Molecules() : start(NULL), restartOrderedStart(NULL), 
+  kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
   pairVirCorrections(NULL), printFlag(true){}
 
 Molecules::~Molecules(void)
 {
   delete[] start;
-  delete[] originalStart;
-  delete[] originalKIndex;
-  delete[] originalKIndex2CurrentKIndex;
+  if (restartFromCheckpoint)
+    delete[] restartOrderedStart;
   delete[] kIndex;
   delete[] countByKind;
   delete[] chain;
@@ -52,28 +52,18 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
               << std::endl;
     exit(EXIT_FAILURE);
   }
+
+  // Whether we need to delete the restartOrderedStart array in the destructor
+  restartFromCheckpoint = setup.config.in.restart.restartFromCheckpoint;
   //Molecule instance arrays/data
   count = setup.mol.molVars.startIdxMolecules.size();
+  atomCount = atoms.beta.size();
   if (count == 0) {
     std::cerr << "Error: No Molecule was found in the PSF file(s)!" << std::endl;
     exit(EXIT_FAILURE);
   }
   //chain = new char [atoms.x.size()];
   start = new uint [count + 1];
-  originalStart = new uint [count + 1];
-  /* If new run, originalStart & originalKIndex and start & kIndex are identical */
-  if(!setup.config.in.restart.restartFromCheckpoint){
-    originalStart = vect::TransferInto<uint>(originalStart, setup.mol.molVars.startIdxMolecules);
-    originalStart[count] = atoms.x.size();
-    originalKIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
-    /* since this is a new run, the original kind indices are the current kind indices */
-    std::vector<uint32_t> kindsIndicesVec(kindsCount);
-    std::iota(kindsIndicesVec.begin(), kindsIndicesVec.end(), 0); // kindsIndicesVec will become: [0..kindsCount-1]
-    originalKIndex2CurrentKIndex = vect::transfer<uint32_t>(kindsIndicesVec);
-  } else {
-    originalKIndex = new uint [count];
-    originalKIndex2CurrentKIndex = new uint [kindsCount];
-  }
   start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
   kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
   chain = vect::transfer<char>(atoms.chainLetter);
@@ -179,6 +169,33 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
         pairVirCorrections[i * kindsCount + j];
     }
   }
+}
+
+bool Molecules::operator==(const Molecules & other){
+  bool result = true;
+  result &= (count == other.count);
+  result &= (atomCount == other.atomCount);
+  result &= (kindsCount == other.kindsCount);
+
+  for (int m = 0; m < count + 1; ++m){
+    result &= (start[m] == other.start[m]);
+  }
+  for (int m = 0; m < count; ++m){
+    result &= (kIndex[m] == other.kIndex[m]);
+  }
+  for (int a = 0; a < atomCount; ++a){
+    result &= (chain[a] == other.chain[a]);
+    result &= (beta[a] == other.beta[a]);
+  }
+  for (int k = 0; k < kindsCount; ++k){
+    result &= (countByKind[k] == other.countByKind[k]);
+    result &= (kinds[k] == other.kinds[k]);
+  }
+  for (int k = 0; k < kindsCount*kindsCount; ++k){
+    result &= (pairEnCorrections[k] == other.pairEnCorrections[k]);
+    result &= (pairVirCorrections[k] == other.pairVirCorrections[k]);
+  }
+  return result;
 }
 
 void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,

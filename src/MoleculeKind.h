@@ -170,8 +170,9 @@ public:
 
   bool MoleculeHasCharge();
 
-  SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
+  bool operator==(const MoleculeKind & other);
 
+  SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
 
   //these are used for total energy calculations, see Geometry.h/cpp
   Nonbond nonBonded;

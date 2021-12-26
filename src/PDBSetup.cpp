@@ -155,6 +155,42 @@ void Atoms::Clear()
   box.clear();
   resNames.clear();
   count = 0;
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    numAtomsInBox[b] = 0;
+  }
+  for (uint b = 0; b < BOX_TOTAL+1; b++) {
+    boxAtomOffset[0] = 0;
+  }
+}
+
+// This method of finding minimum assumes all the box 0 atoms 
+// will be contiguous in the coordinates array.  This isn't 
+// the case on checkpoint restarts.  Since we went out of the
+// way to ensure even when box transfers occur, the atoms
+// remain in the same original order in the original data structure.
+// We therefore can't rely on the molecule lookup to get the start 
+// and end of the box for the restarted data structures.
+// Hence the numberOfAtoms array.
+
+void Atoms::GetMinMaxAtoms(const uint b){
+  int stRange, endRange;
+
+  boxAtomOffset[b+1] = boxAtomOffset[b] + numAtomsInBox[b];
+
+  // To prevent segfault, but we still need to set atomOffset
+  if (numAtomsInBox[b] == 0)
+    return;
+
+  stRange = boxAtomOffset[b];
+  endRange = boxAtomOffset[b+1];
+
+  min[b].x = *std::min_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
+  min[b].y = *std::min_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));
+  min[b].z = *std::min_element(std::next(z.begin(), stRange), std::next(z.begin(), endRange));
+  max[b].x = *std::max_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
+  max[b].y = *std::max_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));
+  max[b].z = *std::max_element(std::next(z.begin(), stRange), std::next(z.begin(), endRange));
+
 }
 
 } //end namespace pdb_setup
@@ -221,6 +257,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     std::cout.width(40);
     std::cout << std::left << "Finished reading: ";
     std::cout << "\t" << name[b] << std::endl;
+    atoms.GetMinMaxAtoms(b);
   }
 }
 

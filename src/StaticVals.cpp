@@ -18,7 +18,8 @@ void StaticVals::Init(Setup & set, System& sys)
   forcefield.Init(set);
   mol.Init(set, forcefield, sys);
 #ifndef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(mol, set.pdb.atoms, forcefield, set.config.in.restart.restartFromCheckpoint);
+  molLookup.Init(mol, set.pdb.atoms, forcefield,
+                  set.config.in.restart.restartFromCheckpoint);
 #endif
   InitMovePercents(set.config.sys.moves);
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT

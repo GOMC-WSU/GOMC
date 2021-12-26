@@ -544,6 +544,12 @@ public:
     return gen;
   }
 
+  bool operator==(const PRNG & other){
+    bool result = true;
+    result &= (*gen == *other.gen);
+    return result;
+  }
+
 private:
   MTRand * gen;
   MoleculeLookup & molLookRef;

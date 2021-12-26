@@ -187,6 +187,27 @@ BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
   return *this;
 }
 
+bool BoxDimensions::operator==(BoxDimensions const& other)
+{
+  bool result = true;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    result &= (cellBasis[b] == other.cellBasis[b]);
+    result &= (volume[b] == other.volume[b]);
+    result &= (volInv[b] == other.volInv[b]);
+    result &= (rCut[b] == other.rCut[b]);
+    result &= (rCutSq[b] == other.rCutSq[b]);
+    result &= (cubic[b] == other.cubic[b]);
+    result &= (orthogonal[b] = other.orthogonal[b]);
+    for(uint i = 0; i < 3; i++) {
+      result &= (cosAngle[b][i] == other.cosAngle[b][i]);
+    }
+  }
+  result &= (axis == other.axis);
+  result &= (halfAx == other.halfAx);
+  result &= (constArea == other.constArea);
+  return result;
+}
+
 double BoxDimensions::GetTotVolume(const uint b1, const uint b2) const
 {
   return (volume[b1] + volume[b2]);
