@@ -46,9 +46,9 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   kindsCount = setup.mol.kindMap.size();
   countByKind = new uint[kindsCount];
   kinds = new MoleculeKind[kindsCount];
-  assert(kindsCount == setup.mol.molVars.molKindIndex);
   if(kindsCount != setup.mol.molVars.molKindIndex){
-    std::cout << "Error: Inconsistency between molecule map and number of molecule kinds"
+    std::cout << "Error: Inconsistency between molecule map and number of molecule kinds" << std::endl
+              << "Error: Please report your PDB/PSF files to https://github.com/GOMC-WSU/GOMC/issues"
               << std::endl;
     exit(EXIT_FAILURE);
   }
