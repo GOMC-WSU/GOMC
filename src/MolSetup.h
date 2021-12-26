@@ -267,6 +267,7 @@ public:
       ar & incomplete;
       ar & isMultiResidue;
       ar & intraMoleculeResIDs;
+      ar & moleculeName;
     }
 };
 
