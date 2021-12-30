@@ -188,7 +188,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   else if (moveType == mp::MPROTATE)
     std::cout << "   MultiParticle Rotation" << std::endl;
   else
-    std::cout << "   MultiParticle move not Recognized! Update MultiParticle.h" << std::endl;
+    std::cout << "   MultiParticle move type not Recognized! Update MultiParticle.h" << std::endl;
 #endif
 
   SetMolInBox(bPick);
