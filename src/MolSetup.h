@@ -59,11 +59,12 @@ struct MoleculeVariables {
       ar & moleculeNames;
       ar & moleculeKindNames;
       ar & moleculeSegmentNames;
-      ar &  lastAtomIndexInBox0;
-      ar &  numberMolsInBox0;
-      ar &  molKindIndex;
-      ar &  stringSuffix;
-      ar &  moleculeIteration;
+      ar & lastAtomIndexInBox0;
+      ar & numberMolsInBox0;
+      ar & molKindIndex;
+      ar & stringSuffixMultiResidue;
+      ar & stringSuffixNonMultiResidue;
+      ar & moleculeIteration;
     }
 
 };
