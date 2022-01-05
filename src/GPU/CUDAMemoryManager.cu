@@ -42,7 +42,7 @@ bool CUDAMemoryManager::isFreed()
   while(allocatedPointers.size() != 0) {
     auto it = allocatedPointers.begin();
     std::cout << "You forgot to free memory " << it->second.second
-              << " with " << it->second.first << " bytes allocated to it!\n";
+              << " with " << it->second.first << " bytes allocated!\n";
     std::cout << "I am going to free it for you!\n";
     freeMemory(it->first, it->second.second);
   }
