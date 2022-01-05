@@ -16,8 +16,12 @@ cudaError_t CUDAMemoryManager::mallocMemory(void **address, unsigned int size, s
   cudaError_t ret = cudaMalloc(address, size);
   allocatedPointers[*address] = make_pair(size, var_name);
   totalAllocatedBytes += size;
+  if (size == 0) {
+    std::cout << "Warning! You are trying to allocate " << var_name << " with a size of zero bytes!\n";
+  }
   return ret;
 }
+
 
 cudaError_t CUDAMemoryManager::freeMemory(void *address, std::string var_name)
 {
@@ -25,11 +29,12 @@ cudaError_t CUDAMemoryManager::freeMemory(void *address, std::string var_name)
     totalAllocatedBytes -= allocatedPointers[address].first;
     allocatedPointers.erase(address);
   } else {
-    std::cout << "Warning! You are trying to free " << var_name << " where it was freed\n" <<
-              "\tor never been allocated before!\n";
+    std::cout << "Warning! You are trying to free " << var_name << " but it has already been freed\n"
+              << "\tor was never allocated!\n";
   }
   return cudaFree(address);
 }
+
 
 bool CUDAMemoryManager::isFreed()
 {
