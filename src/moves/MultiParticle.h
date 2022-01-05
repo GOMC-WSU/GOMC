@@ -474,7 +474,8 @@ inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb,
     XYZ randnums;
 #ifdef _OPENMP
     //Even though we call different random123 functions, they all change c[0]
-    //so they all need to be in the same critical section (not different names).
+    //and use the same rng() function, so they all need to be in the same
+    //critical section (not different names).
     #pragma omp critical
 #endif
     {
@@ -621,7 +622,8 @@ inline void MultiParticle::RotateRandom(uint molIndex)
   XYZ sphereCoords;
 #ifdef _OPENMP
   //Even though we call different random123 functions, they all change c[0]
-  //so they all need to be in the same critical section (not different names).
+  //and use the same rng() function, so they all need to be in the same
+  //critical section (not different names).
   #pragma omp critical
 #endif
   {
@@ -656,7 +658,8 @@ inline void MultiParticle::TranslateRandom(uint molIndex)
   XYZ shift;
 #ifdef _OPENMP
   //Even though we call different random123 functions, they all change c[0]
-  //so they all need to be in the same critical section (not different names).
+  //and use the same rng() function, so they all need to be in the same
+  //critical section (not different names).
   #pragma omp critical
 #endif
   {
