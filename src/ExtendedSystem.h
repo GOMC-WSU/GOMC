@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Velocity.h"
 #include "GeomLib.h" // for PI and Dot product
 #include <vector>
+#include "XYZArray.h"
 
 namespace config_setup
 {
@@ -35,7 +36,9 @@ class ExtendedSystem  {
   public:
   ExtendedSystem();
   ~ExtendedSystem() {};
-  void Init(PDBSetup &pdb, Velocity &vel, config_setup::Input inputFiles,
+  //Equality operator for unit testing
+  bool operator==(const ExtendedSystem & other);
+  void Init(PDBSetup &pdb, Velocity &vel, config_setup::Input & inputFiles,
             MoleculeLookup & molLookup, Molecules & mols);
   private:
     // Reads the xsc file and store/calculate cellBasis data
@@ -43,11 +46,23 @@ class ExtendedSystem  {
     // Updates the cellBasis data in pdb data structure
     void UpdateCellBasis(PDBSetup &pdb, const int box);
     // Reads the binary coordinates and updates the X Y Z coordinates in pdb data structure
-    void UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box,
-                          MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
+    void UpdateCoordinate(PDBSetup &pdb, 
+                          config_setup::Input & inputFiles,
+                          MoleculeLookup & molLookup,
+                          Molecules & mols);
+    void ReadCoordinate(PDBSetup &pdb, config_setup::Input & inputFiles, MoleculeLookup & molLookup,
+                                     Molecules & mols);
+    void UpdateMinMaxAtoms(PDBSetup &pdb,
+                          config_setup::Input & inputFiles, 
+                          MoleculeLookup & molLookup,
+                          Molecules & mols);
     // Reads the binary velocities and updates the X Y Z velocity data structure
-    void UpdateVelocity(PDBSetup &pdb, Velocity &vel, const char *filename, const int box,
-                        MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
+    void UpdateVelocity(Velocity & vel, 
+                        config_setup::Input & inputFiles,
+                        MoleculeLookup & molLookup,
+                        Molecules & mols);
+    void ReadVelocity(PDBSetup &pdb, config_setup::Input & inputFiles, 
+                          MoleculeLookup & molLookup, Molecules & mols);
     // the time steps in xsc file
     ulong firstStep;
     // Center of cell, but GOMC always uses 0 center
@@ -62,6 +77,15 @@ class ExtendedSystem  {
     double cellAngle[BOX_TOTAL][3];
     // Check to see if xsc is defined
     bool hasCellBasis[BOX_TOTAL];
+
+    // Offset array of molecule lookup array
+    int boxMoleculeOffset[BOX_TOTAL+1];
+
+    // Stores the binary coordinates of both boxes
+    std::vector<XYZ> binaryCoor;
+
+    // Stores the binary velocities of both boxes
+    std::vector<XYZ> binaryVeloc;
 };
 
 

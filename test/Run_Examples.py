@@ -128,7 +128,7 @@ for example in all_examples:
         write_log_data = "Issuing command: {}\n".format(command)
         Log_Template_file.write(str(write_log_data))
         start = time.time()
-        exec_GOMC_run_command = subprocess.Popen(command, stderr=STDOUT)
+        exec_GOMC_run_command = subprocess.Popen(command, shell=True, stderr=STDOUT)
         write_log_data = "Waiting for GOMC Example {} {} to finish.\n".format(row['Binary'],row['Example'])
         print(str(write_log_data))
         Log_Template_file.write(str(write_log_data))

@@ -42,8 +42,6 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   funct["ANGLES"] = &angle;
   funct["DIHEDRAL"] = &dih;
   funct["DIHEDRALS"] = &dih;
-  funct["IMPROPER"] = &imp;
-  funct["IMPROPERS"] = &imp;
   //Unique to Charmm file
   funct["NONBONDED"] = &mie;
   funct["NBFIX"] = &nbfix;
@@ -53,6 +51,13 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   funct["NONBONDED_MIE"] = &mie;
   funct["NBFIX_MIE"] = &nbfix;
   // Error checking done to ensure isCharmm is false if these are found
+
+  // Not supported but shouldn't break GOMC
+  funct["IMPROPER"] = &imp;
+  funct["IMPROPERS"] = &imp;
+  funct["CMAP"] = &cmap;
+  funct["HBOND"] = &hbond;
+
 
   for (sect_it it = funct.begin(); it != funct.end(); ++it) {
     (dynamic_cast<ff_setup::FFBase *>(it->second))->setIsCHARMM(isCHARMM);
@@ -77,6 +82,9 @@ void FFSetup::Init(const std::vector<config_setup::FileName> & fileName, const b
                 paramFileAlias[isCHARMM ? CHARMM_ALIAS_IDX : EXOTIC_ALIAS_IDX],
                 true, &commentStr, true, &commentChar);
     param.open();
+    bool shouldImproperWarn = true;
+    bool shouldCMapWarn = true;
+    bool shouldHBondWarn = true;
     while (param.Read(varName)) {
       sect = sectKind.find(varName);
       if ( sect != sectKind.end() ) {
@@ -84,6 +92,16 @@ void FFSetup::Init(const std::vector<config_setup::FileName> & fileName, const b
         currSectName = varName;
         currSect = sect; //Save for later calls.
         std::cout << "Reading " << currSectName << " parameters.\n";
+        if (shouldImproperWarn && (currSectName == "IMPROPER" || currSectName == "IMPROPERS" )){
+          std::cout << "Warning: GOMC does not support IMPROPER!\n";
+          shouldImproperWarn = false;
+        } else if (shouldCMapWarn && currSectName == "CMAP"){
+          std::cout << "Warning: GOMC does not support CMAP!\n";
+          shouldCMapWarn = false;
+        } else if (shouldHBondWarn && currSectName == "HBOND"){
+          std::cout << "Warning: GOMC does not support HBond!\n";
+          shouldHBondWarn = false;
+        }
         if (isCHARMM) {
           if (hasEnding(currSectName, "MIE")) {
             std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style parameter header " << currSectName << " was found.\n"
@@ -101,8 +119,10 @@ void FFSetup::Init(const std::vector<config_setup::FileName> & fileName, const b
             exit(EXIT_FAILURE);
           }
         }
-      } else
-        currSect->second->Read(param, varName);
+      } else {
+        if (currSectName != "CMAP" && currSectName != "HBOND")
+          currSect->second->Read(param, varName);
+      }
     }
 
     param.close();
@@ -355,11 +375,11 @@ void Dihedral::Add(std::string const& merged,
 void Improper::Read(Reader & param, std::string const& firstVar)
 {
   double coeff, def;
+  uint index;
   std::string merged = ReadKind(param, firstVar);
   //If new value
   if (validname(merged) == true) {
-    std::cout << "Warning: GOMC does not support IMPROPER!\n";
-    param.file >> coeff >> def;
+    param.file >> coeff >> index >> def;
     if(!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in parameter file!\n";
       exit(EXIT_FAILURE);
@@ -368,6 +388,53 @@ void Improper::Read(Reader & param, std::string const& firstVar)
   }
 }
 void Improper::Add(const double coeff, const double def)
+{
+  Komega.push_back(EnConvIfCHARMM(coeff));
+  omega0.push_back(def);
+}
+
+// Currently dummy method, exact same as improper
+void CMap::Read(Reader & param, std::string const& firstVar)
+{
+  double coeff, def;
+  uint index;
+  std::string merged = ReadKind(param, firstVar);
+  //If new value
+  if (validname(merged) == true) {
+    param.file >> coeff >> index >> def;
+    if(!param.file.good()) {
+      std::cout << "Error: Incomplete Improper parameters was found in parameter file!\n";
+      exit(EXIT_FAILURE);
+    }
+    Add(coeff, def);
+  }
+}
+// Currently dummy method, exact same as improper
+void CMap::Add(const double coeff, const double def)
+{
+  Komega.push_back(EnConvIfCHARMM(coeff));
+  omega0.push_back(def);
+}
+
+// Currently dummy method, exact same as improper
+void HBond::Read(Reader & param, std::string const& firstVar)
+{
+  double coeff, def;
+  uint index;
+  std::string merged = ReadKind(param, firstVar);
+  //If new value
+  if (validname(merged) == true) {
+    param.file >> coeff >> index >> def;
+    if(!param.file.good()) {
+      std::cout << "Error: Incomplete Improper parameters was found in parameter file!\n";
+      exit(EXIT_FAILURE);
+    }
+    Add(coeff, def);
+  }
+}
+
+// Currently dummy method, exact same as improper
+void HBond::Add(const double coeff, const double def)
 {
   Komega.push_back(EnConvIfCHARMM(coeff));
   omega0.push_back(def);

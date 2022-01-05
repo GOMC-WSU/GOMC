@@ -1,88 +1,429 @@
 #include <gtest/gtest.h>
+#include "PDBSetup.h"
+#include "MolSetup.h"
+#include "BondAdjacencyList.h"
+#include "ConfigSetup.h"
+#include "FFSetup.h"        //For geometry kinds
+#include "FFConst.h"
+#include "Reader.h"
+#include "InputFileReader.h"
 #include "Simulation.h"
 #include<unistd.h> 
-/* There are 4 cases for restarting from checkpoint 
+#include "MoveSettings.h"
 
-1) Base Case:
-    The first run.  
-    Checkpoint Setup  - RestartFromCheckpoint = false
-    Checkpoint Output - RestartFromCheckpoint = false
 
-2) The first restart from checkpoint
-    Checkpoint Setup  - RestartFromCheckpoint = true
-    Checkpoint Output - RestartFromCheckpoint = true
+TEST(CheckpointTest, Check_PEN_HEX) {
 
-3) The Nth restart from checkpoint from a prev checkpoint
-    Checkpoint Setup  - RestartFromCheckpoint = true
-    Checkpoint Output - RestartFromCheckpoint = true
-
-*/
-TEST(CheckpointTest, CheckAR_KR) {
-    chdir("./test/input/Systems/AR_KR/Base/");
+    ulong base_runsteps, Continued_runsteps;
+    ulong Continued_true_step;
+#if !GOMC_CUDA
+    int result = chdir("./test/input/Systems/PEN_HEX/Base/");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
     Simulation base("in.conf");
     base.RunSimulation();
+    result = chdir("../Continued");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    Simulation Continued("in.conf");
+    result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    Simulation SingleRun("in100.conf");
+    SingleRun.RunSimulation();
 
-    chdir("../K_1");
-    Simulation K_1("in.conf");
-    K_1.RunSimulation();  
-    chdir("../K_N");
-    Simulation K_N("in.conf");
+    MoleculeLookup & Continued_ml = Continued.GetMolLookup();
+    MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
+    MoveSettings & Continued_ms = Continued.GetMoveSettings();
+    MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
+    Coordinates & Continued_coords = Continued.GetCoordinates();
+    Coordinates & SingleRun_coords = SingleRun.GetCoordinates();
 
-    //K_N.RunSimulation();
-    //chdir("../../../../..");
+    EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
+    EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
+    EXPECT_EQ(Continued_coords.operator==(SingleRun_coords), true);
+
+    result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } 
+    result = chdir("./test/input/Systems/PEN_HEX");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Base/Base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Continued/Continued_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+#endif
+}
+
+TEST(CheckpointTest, Check_BPTI_TIP3) {
+
+    ulong base_runsteps, Continued_runsteps;
+    ulong Continued_true_step;
+#if !GOMC_CUDA
+
+    int result = chdir("./test/input/Systems/BPTI_TIP3/Base/");
     
-    MoleculeLookup & base_ml = base.GetMolLookup();
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.originalMoleculeIndices[i] == base_ml.molLookup[i], true);
-        EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
     }
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.originalMoleculeIndices[i] == base_ml.molLookup[i], true);
-        EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
+    Simulation base("in.conf");
+    base.RunSimulation();
+    result = chdir("../Continued");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
     }
-        for (int i = 0; i < base_ml.molLookupCount; ++i){
-        EXPECT_EQ(base_ml.originalMoleculeIndices[i] == base_ml.molLookup[i], true);
-        EXPECT_EQ(base_ml.permutedMoleculeIndices[i] == base_ml.molLookup[i], true);
+    Simulation Continued("in.conf");
+    result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+
+    Simulation SingleRun("in100.conf");
+    SingleRun.RunSimulation();
+
+    MoleculeLookup & Continued_ml = Continued.GetMolLookup();
+    MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
+    MoveSettings & Continued_ms = Continued.GetMoveSettings();
+    MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
+    Coordinates & Continued_coords = Continued.GetCoordinates();
+    Coordinates & SingleRun_coords = SingleRun.GetCoordinates();
+    Velocity & Continued_velocs = Continued.GetVelocities();
+    Velocity & SingleRun_velocs = SingleRun.GetVelocities();
+    BoxDimensions & Continued_boxDim = Continued.GetBoxDim();
+    BoxDimensions & SingleRun_boxDim = SingleRun.GetBoxDim();
+    PRNG & Continued_PRNG = Continued.GetPRNG();
+    PRNG & SingleRun_PRNG = SingleRun.GetPRNG();
+    Molecules & Continued_mols = Continued.GetMolecules();
+    Molecules & SingleRun_mols = SingleRun.GetMolecules();
+
+    EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
+    EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
+    EXPECT_EQ(Continued_coords.operator==(SingleRun_coords), true);
+    EXPECT_EQ(Continued_velocs.operator==(SingleRun_velocs), true);
+    EXPECT_EQ(Continued_boxDim.operator==(SingleRun_boxDim), true);
+    EXPECT_EQ(Continued_PRNG.operator==(SingleRun_PRNG), true);
+    EXPECT_EQ(Continued_mols.operator==(SingleRun_mols), true);
+
+
+    result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } 
+    result = chdir("./test/input/Systems/BPTI_TIP3");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Base/Base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Continued/Continued_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
     }
     
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        std::cout << base_ml.molLookup[i] << " ";
-    }        
-    std::cout << std::endl;
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        std::cout << base_ml.permutedMoleculeIndices[i] << " ";
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
     }
-    std::cout << std::endl;
-    for (int i = 0; i < base_ml.molLookupCount; ++i){
-        std::cout << base_ml.originalMoleculeIndices[i] << " ";
+    result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
     }
-    std::cout << std::endl;
+#endif
+}
 
-    MoleculeLookup & K_1_ml = K_1.GetMolLookup();
-    for (int i = 0; i < K_1_ml.molLookupCount; ++i){
-        std::cout << K_1_ml.molLookup[i] << " ";
-    }        
-    std::cout << std::endl;
-    for (int i = 0; i < K_1_ml.molLookupCount; ++i){
-        std::cout << K_1_ml.permutedMoleculeIndices[i] << " ";
-    }
-    std::cout << std::endl;
-    for (int i = 0; i < K_1_ml.molLookupCount; ++i){
-        std::cout << K_1_ml.originalMoleculeIndices[i] << " ";
-    }
-    std::cout << std::endl;
+TEST(CheckpointTest, Check_K_CHANNEL_TIP3) {
 
-    MoleculeLookup & K_N_ml = K_N.GetMolLookup();
-    for (int i = 0; i < K_N_ml.molLookupCount; ++i){
-        std::cout << K_N_ml.molLookup[i] << " ";
-    }        
-    std::cout << std::endl;
-    for (int i = 0; i < K_N_ml.molLookupCount; ++i){
-        std::cout << K_N_ml.permutedMoleculeIndices[i] << " ";
+    ulong base_runsteps, Continued_runsteps;
+    ulong Continued_true_step;
+#if !GOMC_CUDA
+
+    int result = chdir("./test/input/Systems/K_CHANNEL_TIP3/Base/");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
     }
-    std::cout << std::endl;
-    for (int i = 0; i < K_N_ml.molLookupCount; ++i){
-        std::cout << K_N_ml.originalMoleculeIndices[i] << " ";
+    Simulation base("in.conf");
+    base.RunSimulation();
+    result = chdir("../Continued");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
     }
-    std::cout << std::endl;
+    Simulation Continued("in.conf");
+    result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+
+    Simulation SingleRun("in100.conf");
+    SingleRun.RunSimulation();
+
+    MoleculeLookup & Continued_ml = Continued.GetMolLookup();
+    MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
+    MoveSettings & Continued_ms = Continued.GetMoveSettings();
+    MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
+    Coordinates & Continued_coords = Continued.GetCoordinates();
+    Coordinates & SingleRun_coords = SingleRun.GetCoordinates();
+    Velocity & Continued_velocs = Continued.GetVelocities();
+    Velocity & SingleRun_velocs = SingleRun.GetVelocities();
+    BoxDimensions & Continued_boxDim = Continued.GetBoxDim();
+    BoxDimensions & SingleRun_boxDim = SingleRun.GetBoxDim();
+    PRNG & Continued_PRNG = Continued.GetPRNG();
+    PRNG & SingleRun_PRNG = SingleRun.GetPRNG();
+    Molecules & Continued_mols = Continued.GetMolecules();
+    Molecules & SingleRun_mols = SingleRun.GetMolecules();
+
+    EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
+    EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
+    EXPECT_EQ(Continued_coords.operator==(SingleRun_coords), true);
+    EXPECT_EQ(Continued_velocs.operator==(SingleRun_velocs), true);
+    EXPECT_EQ(Continued_boxDim.operator==(SingleRun_boxDim), true);
+    EXPECT_EQ(Continued_PRNG.operator==(SingleRun_PRNG), true);
+    EXPECT_EQ(Continued_mols.operator==(SingleRun_mols), true);
+
+
+    result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } 
+    result = chdir("./test/input/Systems/K_CHANNEL_TIP3");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Base/Base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Continued/Continued_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+#endif
+}
+
+TEST(CheckpointTest, Check_BPTI_TIP3_FORCE_SWAP) {
+
+    ulong base_runsteps, Continued_runsteps;
+    ulong Continued_true_step;
+#if !GOMC_CUDA
+
+    int result = chdir("./test/input/Systems/BPTI_TIP3/Base/");
+    
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    Simulation base("forceSwap100.conf");
+    base.RunSimulation();
+    result = chdir("../Continued");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    Simulation Continued("forceSwap100.conf");
+    result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+
+    Simulation SingleRun("forceSwap100.conf");
+    SingleRun.RunSimulation();
+
+    MoleculeLookup & Continued_ml = Continued.GetMolLookup();
+    MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
+    MoveSettings & Continued_ms = Continued.GetMoveSettings();
+    MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
+    Coordinates & Continued_coords = Continued.GetCoordinates();
+    Coordinates & SingleRun_coords = SingleRun.GetCoordinates();
+    Velocity & Continued_velocs = Continued.GetVelocities();
+    Velocity & SingleRun_velocs = SingleRun.GetVelocities();
+    BoxDimensions & Continued_boxDim = Continued.GetBoxDim();
+    BoxDimensions & SingleRun_boxDim = SingleRun.GetBoxDim();
+    PRNG & Continued_PRNG = Continued.GetPRNG();
+    PRNG & SingleRun_PRNG = SingleRun.GetPRNG();
+    Molecules & Continued_mols = Continued.GetMolecules();
+    Molecules & SingleRun_mols = SingleRun.GetMolecules();
+
+    EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
+    EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
+    EXPECT_EQ(Continued_coords.operator==(SingleRun_coords), true);
+    EXPECT_EQ(Continued_velocs.operator==(SingleRun_velocs), true);
+    EXPECT_EQ(Continued_boxDim.operator==(SingleRun_boxDim), true);
+    EXPECT_EQ(Continued_PRNG.operator==(SingleRun_PRNG), true);
+    EXPECT_EQ(Continued_mols.operator==(SingleRun_mols), true);
+
+
+    result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } 
+    result = chdir("./test/input/Systems/BPTI_TIP3");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Base/Base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Continued/Continued_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+#endif
+}
+
+TEST(CheckpointTest, Check_K_CHANNEL_TIP3_FORCE_SWAP) {
+
+    ulong base_runsteps, Continued_runsteps;
+    ulong Continued_true_step;
+#if !GOMC_CUDA
+
+    int result = chdir("./test/input/Systems/K_CHANNEL_TIP3/Base/");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    Simulation base("forceSwap100.conf");
+    base.RunSimulation();
+    result = chdir("../Continued");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    Simulation Continued("forceSwap100.conf");
+    result = chdir("../SingleRun");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+
+    Simulation SingleRun("forceSwap100.conf");
+    SingleRun.RunSimulation();
+
+    MoleculeLookup & Continued_ml = Continued.GetMolLookup();
+    MoleculeLookup & SingleRun_ml = SingleRun.GetMolLookup();
+    MoveSettings & Continued_ms = Continued.GetMoveSettings();
+    MoveSettings & SingleRun_ms = SingleRun.GetMoveSettings();
+    Coordinates & Continued_coords = Continued.GetCoordinates();
+    Coordinates & SingleRun_coords = SingleRun.GetCoordinates();
+    Velocity & Continued_velocs = Continued.GetVelocities();
+    Velocity & SingleRun_velocs = SingleRun.GetVelocities();
+    BoxDimensions & Continued_boxDim = Continued.GetBoxDim();
+    BoxDimensions & SingleRun_boxDim = SingleRun.GetBoxDim();
+    PRNG & Continued_PRNG = Continued.GetPRNG();
+    PRNG & SingleRun_PRNG = SingleRun.GetPRNG();
+    Molecules & Continued_mols = Continued.GetMolecules();
+    Molecules & SingleRun_mols = SingleRun.GetMolecules();
+
+    EXPECT_EQ(Continued_ml.operator==(SingleRun_ml), true);
+    EXPECT_EQ(Continued_ms.operator==(SingleRun_ms), true);
+    EXPECT_EQ(Continued_coords.operator==(SingleRun_coords), true);
+    EXPECT_EQ(Continued_velocs.operator==(SingleRun_velocs), true);
+    EXPECT_EQ(Continued_boxDim.operator==(SingleRun_boxDim), true);
+    EXPECT_EQ(Continued_PRNG.operator==(SingleRun_PRNG), true);
+    EXPECT_EQ(Continued_mols.operator==(SingleRun_mols), true);
+
+
+    result = chdir("../../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    } 
+    result = chdir("./test/input/Systems/K_CHANNEL_TIP3");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Base/Base_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = system("exec rm -r ./Continued/Continued_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    
+    result = system("exec rm -r ./SingleRun/SingleRun_*");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+    result = chdir("../../../..");
+    if (result){
+        std::cout << "System call failed!" << std::endl;
+        exit(1);
+    }
+#endif
 }

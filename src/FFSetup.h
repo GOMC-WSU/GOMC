@@ -286,6 +286,32 @@ public:
 private:
   std::vector<double> Komega, omega0;
 };
+
+class CMap : public ReadableBaseWithFirst, public FFBase
+{
+public:
+  CMap() : FFBase(4) {}
+  virtual void Read(Reader & param, std::string const& firstVar);
+  void Add(const double coeff, const double def);
+#ifndef NDEBUG
+  void PrintBrief();
+#endif
+private:
+  std::vector<double> Komega, omega0;
+};
+
+class HBond : public ReadableBaseWithFirst, public FFBase
+{
+public:
+  HBond() : FFBase(4) {}
+  virtual void Read(Reader & param, std::string const& firstVar);
+  void Add(const double coeff, const double def);
+#ifndef NDEBUG
+  void PrintBrief();
+#endif
+private:
+  std::vector<double> Komega, omega0;
+};
 }
 
 class FFSetup
@@ -300,6 +326,8 @@ public:
   ff_setup::Angle angle;
   ff_setup::Dihedral dih;
   ff_setup::Improper imp;
+  ff_setup::CMap cmap;
+  ff_setup::HBond hbond;
 
 private:
   //Map variable names to functions
