@@ -28,7 +28,7 @@ cudaError_t CUDAMemoryManager::freeMemory(void *address, std::string var_name)
   if(allocatedPointers.find(address) != allocatedPointers.end()) {
     totalAllocatedBytes -= allocatedPointers[address].first;
     allocatedPointers.erase(address);
-  } else if (address != NULL) {
+  } else if (address != nullptr) {
     std::cout << "Warning! You are trying to free " << var_name << " but it has already been freed\n"
               << "\tor was never allocated!\n";
   }
