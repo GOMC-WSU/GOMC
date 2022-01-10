@@ -39,8 +39,8 @@ void MoleculeKind::Init
     exit(EXIT_FAILURE);
   }
   const mol_setup::MolKind& molData = dataIterator->second;
-  name = l_name;
-
+  name = molData.moleculeName;
+  uniqueName = l_name;
 #if ENSEMBLE == GCMC
   std::map<std::string, double>::const_iterator kindCPIt =
     setup.config.sys.chemPot.cp.find(name),
@@ -51,7 +51,7 @@ void MoleculeKind::Init
   if (kindCPIt == lastOne) {
     std::cerr << "================================================"
               << std::endl << "Error: chemical potential is missing for "
-              << name << "." << std::endl << std::endl
+              << molData.moleculeName << "." << std::endl << std::endl
               << "Here are the listed chemical potentials:"
               << std::endl
               << "----------------------------------------"

@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm> //For count.
 #include <string>
 #include "System.h"
+#include <cassert>
 
 class System;
 
@@ -45,10 +46,15 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   kindsCount = setup.mol.kindMap.size();
   countByKind = new uint[kindsCount];
   kinds = new MoleculeKind[kindsCount];
+  if(kindsCount != setup.mol.molVars.molKindIndex){
+    std::cout << "Error: Inconsistency between molecule map and number of molecule kinds" << std::endl
+              << "Error: Please report your PDB/PSF files to https://github.com/GOMC-WSU/GOMC/issues"
+              << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   // Whether we need to delete the restartOrderedStart array in the destructor
   restartFromCheckpoint = setup.config.in.restart.restartFromCheckpoint;
-
   //Molecule instance arrays/data
   count = setup.mol.molVars.startIdxMolecules.size();
   atomCount = atoms.beta.size();
@@ -70,7 +76,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
     countByKind[mk] =
       std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
                  setup.mol.molVars.moleculeKindNames[mk]);
-    kinds[mk].Init(mk, setup.mol.molVars.moleculeKindNames[mk], setup, forcefield, sys);
+    kinds[mk].Init(mk, setup.mol.molVars.uniqueMapKeys[mk], setup, forcefield, sys);
   }
 
 #if ENSEMBLE == GCMC
@@ -81,8 +87,9 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
 
   while(kindCPIt != lastOne) {
     std::string molName = kindCPIt->first;
-    mol_setup::MolMap::const_iterator dataIterator =
-      setup.mol.kindMap.find(molName);
+    mol_setup::MolMap::const_iterator dataIterator = setup.mol.kindMap.begin();
+    for (; dataIterator->second.moleculeName != molName && dataIterator != setup.mol.kindMap.end(); ++dataIterator) {
+    }
     if(dataIterator == setup.mol.kindMap.end()) {
       std::cerr << "================================================"
                 << std::endl << "Error: Molecule " << molName
