@@ -38,11 +38,15 @@ struct MoleculeVariables {
   MoleculeVariables() = default;
 
   std::vector<uint> startIdxMolecules, moleculeKinds;
-  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames;
+  // moleculeNames - length number of molecules
+  // moleculeKindNames - length number of kinds
+  // uniqueMapKeys - length number of kinds
+  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames, uniqueMapKeys;
   uint lastAtomIndexInBox0 = 0;
   uint numberMolsInBox0 = 0;
   uint molKindIndex = 0;
-  uint stringSuffix = 0;
+  uint stringSuffixMultiResidue = 0;
+  uint stringSuffixNonMultiResidue = 0;
   uint moleculeIteration = 0;
 
   private:
@@ -55,11 +59,12 @@ struct MoleculeVariables {
       ar & moleculeNames;
       ar & moleculeKindNames;
       ar & moleculeSegmentNames;
-      ar &  lastAtomIndexInBox0;
-      ar &  numberMolsInBox0;
-      ar &  molKindIndex;
-      ar &  stringSuffix;
-      ar &  moleculeIteration;
+      ar & lastAtomIndexInBox0;
+      ar & numberMolsInBox0;
+      ar & molKindIndex;
+      ar & stringSuffixMultiResidue;
+      ar & stringSuffixNonMultiResidue;
+      ar & moleculeIteration;
     }
 
 };
@@ -236,6 +241,10 @@ public:
   bool incomplete = true;
   bool isMultiResidue;
   std::vector<uint> intraMoleculeResIDs;
+  // Used to map chemical potentials in config file to molecules
+  // Note for proteins there is some guesswork.  As they are encountered
+  // in the psf file they are named PROTA, PROTB, ..
+  std::string moleculeName;
   private:
     friend class cereal::access;
     template<class Archive>
@@ -259,6 +268,7 @@ public:
       ar & incomplete;
       ar & isMultiResidue;
       ar & intraMoleculeResIDs;
+      ar & moleculeName;
     }
 };
 

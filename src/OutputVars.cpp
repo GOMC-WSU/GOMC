@@ -48,7 +48,6 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
   movePercRef = statV.movePerc;
   pCalcFreq = statV.simEventFreq.pCalcFreq;
   pressureCalc = statV.simEventFreq.pressureCalc;
-
   virial = new Virial[BOXES_WITH_U_NB];
 }
 

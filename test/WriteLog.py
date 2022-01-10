@@ -46,8 +46,8 @@ os.chdir("../integration")
 
 confFileName = "in.conf"
 
-Log_Template_file = open("IntegrationTest.log", 'w')
-Log_Template_file.write("Opened Log\n")
+Log_Template_file = open("IntegrationTest2.log", 'w')
+Log_Template_file.write("opened Log")
 
 listOfTests = []
 
@@ -101,31 +101,10 @@ New_v_Ref_exists_global = False
 cross_exists_global = False
 for example in all_examples:
     ex_df = grouped.get_group(example)
-    for index, row in ex_df.iterrows():
-        os.chdir(row['PathToExample'])
-        write_log_data = "Changing directory to {}\n".format(row['PathToExample'])
-        Log_Template_file.write(str(write_log_data))
-        command = (row['PathToBinary'] + " in.conf > out.log")
-        write_log_data = "Issuing command: {}\n".format(command)
-        Log_Template_file.write(str(write_log_data))
-        start = time.time()
-        exec_GOMC_run_command = subprocess.Popen(command, shell=True, stderr=STDOUT)
-        write_log_data = "Waiting for GOMC Example {} {} to finish.\n".format(row['Binary'],row['Example'])
-        Log_Template_file.write(str(write_log_data))
-        GOMC_pid_status = os.waitpid(exec_GOMC_run_command.pid, os.WSTOPPED)  # pauses python until box 0 sim done
-        end = time.time()
-        write_log_data = "Elapsed time: {}.\n".format(datetime.timedelta(seconds=end-start))
-        Log_Template_file.write(str(write_log_data))
-        write_log_data = "The GOMC Example {} {} has finished.\n".format(row['Binary'],row['Example'])
-        Log_Template_file.write(str(write_log_data))
-        Log_Template_file.flush()
-    
-    # Create a list of the PDB files in this example
-    full_path_pdb_files = sorted(glob.glob(os.path.join(row['PathToExample'],'*.pdb')), key=os.path.getmtime)
+    full_path_pdb_files = sorted(glob.glob(os.path.join(ex_df['PathToExample'].iloc[0],'*.pdb')), key=os.path.getmtime)
     just_file_names = []
     for path in full_path_pdb_files:
         just_file_names.append(os.path.basename(path))
-    Log_Template_file.write(str(just_file_names))
     cross = ex_df.merge(ex_df, on=['Example'],how='outer')
     Log_Template_file.write("---{}\n".format(ex_df['Example'].iloc[0]))
     CPU_v_GPU = True

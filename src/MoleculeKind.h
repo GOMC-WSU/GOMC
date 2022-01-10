@@ -187,7 +187,12 @@ public:
   
   bool oneThree, oneFour;
 
-  std::string name;
+  // uniqueName - guarunteed to be unique, the map key
+  // name - not guarunteed to be unique
+  //  -if a protein, == PROT(A...Z)
+  //  -if non-protein, residue name
+  std::string name, uniqueName;
+;
   uint kindIndex;
   std::vector<std::string> atomNames, atomTypeNames, resNames;
   double molMass;
