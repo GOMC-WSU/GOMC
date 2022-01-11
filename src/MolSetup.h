@@ -59,6 +59,7 @@ struct MoleculeVariables {
       ar & moleculeNames;
       ar & moleculeKindNames;
       ar & moleculeSegmentNames;
+      ar & uniqueMapKeys;
       ar & lastAtomIndexInBox0;
       ar & numberMolsInBox0;
       ar & molKindIndex;
