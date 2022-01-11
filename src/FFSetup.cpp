@@ -188,7 +188,6 @@ void Particle::Read(Reader & param, std::string const& firstVar)
 #else
   double expN, expN_1_4;
 #endif
-  // uint expN, expN_1_4;
   std::stringstream values(LoadLine(param, firstVar));
   if (isCHARMM()) { //if lj
     values >> dummy1;
