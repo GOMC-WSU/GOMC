@@ -183,7 +183,12 @@ std::string FFBase::LoadLine(Reader & param, std::string const& firstVar)
 void Particle::Read(Reader & param, std::string const& firstVar)
 {
   double e, s, e_1_4, s_1_4, dummy1, dummy2;
+#ifdef MIE_INT_ONLY
   uint expN, expN_1_4;
+#else
+  double expN, expN_1_4;
+#endif
+  // uint expN, expN_1_4;
   std::stringstream values(LoadLine(param, firstVar));
   if (isCHARMM()) { //if lj
     values >> dummy1;
@@ -216,8 +221,13 @@ void Particle::Read(Reader & param, std::string const& firstVar)
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
 }
 
+#ifdef MIE_INT_ONLY
 void Particle::Add(double e, double s, const uint expN,
                    double e_1_4, double s_1_4, const uint expN_1_4)
+#else
+void Particle::Add(double e, double s, const double expN,
+                   double e_1_4, double s_1_4, const double expN_1_4)
+#endif
 {
   if (isCHARMM()) {
     e *= -1.0;
