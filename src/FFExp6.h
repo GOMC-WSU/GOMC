@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef FF_EXP6_H
 #define FF_EXP6_H
 
-#include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq

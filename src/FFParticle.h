@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef FF_PARTICLE_H
 #define FF_PARTICLE_H
 
-#include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
 #include "Forcefield.h"
 #include "BasicTypes.h" //for uint
@@ -135,11 +134,7 @@ protected:
   std::string *nameSec;
 
   //vars for LJ-LJ pairs
-#ifdef MIE_INT_ONLY
-  uint *n, *n_1_4;
-#else
   double *n, *n_1_4;
-#endif
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
   double *sigmaSq, *sigmaSq_1_4, *epsilon, *epsilon_1_4, *epsilon_cn,
          *epsilon_cn_1_4, *epsilon_cn_6, *epsilon_cn_6_1_4, *nOver6,

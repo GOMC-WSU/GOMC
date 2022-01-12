@@ -183,7 +183,7 @@ std::string FFBase::LoadLine(Reader & param, std::string const& firstVar)
 void Particle::Read(Reader & param, std::string const& firstVar)
 {
   double e, s, e_1_4, s_1_4, dummy1, dummy2;
-  uint expN, expN_1_4;
+  double expN, expN_1_4;
   std::stringstream values(LoadLine(param, firstVar));
   if (isCHARMM()) { //if lj
     values >> dummy1;
@@ -216,8 +216,8 @@ void Particle::Read(Reader & param, std::string const& firstVar)
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
 }
 
-void Particle::Add(double e, double s, const uint expN,
-                   double e_1_4, double s_1_4, const uint expN_1_4)
+void Particle::Add(double e, double s, const double expN,
+                   double e_1_4, double s_1_4, const double expN_1_4)
 {
   if (isCHARMM()) {
     e *= -1.0;
@@ -236,11 +236,7 @@ void Particle::Add(double e, double s, const uint expN,
 void NBfix::Read(Reader & param, std::string const& firstVar)
 {
   double e, s, e_1_4, s_1_4;
-#ifdef MIE_INT_ONLY
-  uint expN, expN_1_4;
-#else
   double expN, expN_1_4;
-#endif
 
   std::stringstream values(LoadLine(param, firstVar));
   values >> e >> s;
@@ -267,19 +263,8 @@ void NBfix::Read(Reader & param, std::string const& firstVar)
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
 }
 
-void NBfix::Add(double e, double s,
-#ifdef MIE_INT_ONLY
-                const uint expN,
-#else
-                const double expN,
-#endif
-                double e_1_4, double s_1_4,
-#ifdef MIE_INT_ONLY
-                const uint expN_1_4
-#else
-                const double expN_1_4
-#endif
-               )
+void NBfix::Add(double e, double s, const double expN, double e_1_4, double s_1_4,
+                const double expN_1_4)
 {
   if (isCHARMM()) {
     e *= -1.0;

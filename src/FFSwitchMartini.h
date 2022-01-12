@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef FF_SWITCH_MARTINI_H
 #define FF_SWITCH_MARTINI_H
 
-#include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
@@ -225,15 +224,8 @@ inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
 
   uint index = FlatIndex(kind1, kind2);
   double r_2 = 1.0 / distSq;
-  double r_4 = r_2 * r_2;
-  double r_6 = r_4 * r_2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n_1_4[index];
-  double r_n = num::POW(r_2, r_4, attract, n_ij);
-#else
-  double n_ij = n_1_4[index];
-  double r_n = pow(sqrt(r_2), n_ij);
-#endif
+  double r_6 = r_2 * r_2 * r_2;
+  double r_n = pow(sqrt(r_2), n_1_4[index]);
 
   double rij_ron = sqrt(distSq) - rOn;
   double rij_ron_2 = rij_ron * rij_ron;

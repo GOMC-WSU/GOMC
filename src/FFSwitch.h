@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef FF_SWITCH_H
 #define FF_SWITCH_H
 
-#include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
@@ -126,17 +125,10 @@ inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
   double rRat2 = sigmaSq_1_4[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n_1_4[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n_1_4[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  double attract = rRat2 * rRat2 * rRat2;
+  double repulse = pow(sqrt(rRat2), n_1_4[index]);
 
-  double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
+  double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2.0 * distSq);
 
   const double factE = ( distSq > rOnSq ? fE : 1.0);
 
@@ -184,12 +176,10 @@ inline double FF_SWITCH::CalcEn(const double distSq, const uint index) const
   double rCutSq_rijSq = forcefield.rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
   double rRat2 = sigmaSq[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-  double n_ij = n[index];
-  double repulse = pow(rRat2, (n_ij * 0.5));
+  double attract = rRat2 * rRat2 * rRat2;
+  double repulse = pow(rRat2, (n[index] * 0.5));
 
-  double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
+  double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2.0 * distSq);
   const double factE = ( distSq > rOnSq ? fE : 1.0);
 
   return (epsilon_cn[index] * (repulse - attract)) * factE;
@@ -225,12 +215,10 @@ inline double FF_SWITCH::CalcVir(const double distSq, const uint index) const
 
   double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-  double n_ij = n[index];
-  double repulse = pow(rRat2, (n_ij * 0.5));
+  double attract = rRat2 * rRat2 * rRat2;
+  double repulse = pow(rRat2, (n[index] * 0.5));
 
-  double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
+  double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2.0 * distSq);
   double fW = 12.0 * factor2 * rCutSq_rijSq * (rOnSq - distSq);
 
   const double factE = ( distSq > rOnSq ? fE : 1.0);

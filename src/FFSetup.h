@@ -94,15 +94,14 @@ public:
   Particle(void) : FFBase(1) {}
 
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(double e, double s, const uint expN,
-           double e_1_4, double s_1_4, const uint expN_1_4);
+  void Add(double e, double s, const double expN,
+           double e_1_4, double s_1_4, const double expN_1_4);
 #ifndef NDEBUG
   void PrintBrief();
 #endif
 //    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
-  std::vector<uint> n, n_1_4;
-
+  std::vector<double> n, n_1_4;
 };
 
 class NBfix : public ReadableBaseWithFirst, public FFBase
@@ -111,26 +110,11 @@ public:
   NBfix() : FFBase(2) {}
 
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(double e, double s,
-#ifdef MIE_INT_ONLY
-           const uint expN,
-#else
-           const double expN,
-#endif
-           double e_1_4, double s_1_4,
-#ifdef MIE_INT_ONLY
-           const uint expN_1_4
-#else
-           const double expN_1_4
-#endif
-          );
+  void Add(double e, double s, const double expN, double e_1_4, double s_1_4,
+           const double expN_1_4);
 //    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
-#ifdef MIE_INT_ONLY
-  std::vector<uint> n, n_1_4;
-#else
   std::vector<double> n, n_1_4;
-#endif
 };
 
 
