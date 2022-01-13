@@ -39,6 +39,7 @@ public:
   virtual ~BoxDimensions() {};
 
   virtual BoxDimensions& operator=(BoxDimensions const& other);
+  virtual bool operator==(BoxDimensions const& other);
 
   virtual void Init(config_setup::RestartSettings const& restart,
                     config_setup::Volume const& confVolume,

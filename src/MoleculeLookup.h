@@ -13,6 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Forcefield.h"
 #include <vector>
 #include <cstring>
+
+#include <cereal/access.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/cereal.hpp>
+
 class CheckpointOutput;
 
 namespace pdb_setup
@@ -29,22 +34,31 @@ class MoleculeLookup
 {
 public:
 
-  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL),
+  MoleculeLookup(): molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL),
    molIndex(NULL), atomIndex(NULL), molKind(NULL), atomKind(NULL), atomCharge(NULL) {}
 
   ~MoleculeLookup()
   {
-    delete[] molLookup;
-    delete[] boxAndKindStart;
-    delete[] molIndex;
-    delete[] atomIndex;
-    delete[] molKind;
-    delete[] atomKind;
-    delete[] atomCharge;
-    delete[] boxAndKindSwappableCounts;
-    delete[] originalMoleculeIndices;
-    delete[] permutedMoleculeIndices;
+    if (molLookup != NULL)
+      delete[] molLookup;
+    if (molIndex != NULL)
+      delete[] molIndex;
+    if (atomIndex != NULL)
+      delete[] atomIndex;
+    if (molKind != NULL)
+      delete[] molKind;
+    if (atomKind != NULL)
+      delete[] atomKind;
+    if (atomCharge != NULL)
+      delete[] atomCharge;
+    if (boxAndKindStart != NULL)
+      delete[] boxAndKindStart;
+    if (boxAndKindSwappableCounts != NULL)
+      delete[] boxAndKindSwappableCounts;
   }
+
+  MoleculeLookup& operator=(const MoleculeLookup & rhs);
+  bool operator==(const MoleculeLookup & rhs);
 
   //Initialize this object to be consistent with Molecules mols
   void Init(Molecules const& mols, const pdb_setup::Atoms& atomData,
@@ -123,13 +137,8 @@ public:
     return molLookup[boxAndKindStart[box * numKinds + kind] + subIndex];
   }
 
-  uint GetSortedMolNum(const uint subIndex, const uint kind, const uint box)
-  {
-    return originalMoleculeIndices[molLookup[boxAndKindStart[box * numKinds + kind] + subIndex]];
-  }
-
   // determine if molecule is in this box or not
-  bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box)
+  bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box) const
   {
     uint index = std::find(
                   molLookup + boxAndKindStart[box * numKinds + kindIdx],
@@ -178,34 +187,57 @@ static uint GetConsensusMolBeta( const uint pStart,
              const uint intoBox, const uint kind);
 #endif
 
+  // We keep the data stored in raw pointers for vectorization purposes.
+
+
+  uint32_t molLookupCount;
+  uint32_t atomCount;
+  uint32_t  boxAndKindStartLength;
+  uint32_t boxAndKindSwappableLength;
+  uint32_t numKinds;
 
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
-  uint* molLookup;
-  uint molLookupCount;
+  uint32_t* molLookup;
+
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
-  uint* boxAndKindStart;
-  uint* boxAndKindSwappableCounts;
-  uint boxAndKindStartCount;
-  uint numKinds;
-  /* For consistent trajectory ordering across checkpoints */
-  bool restartFromCheckpoint;
-  uint32_t * originalMoleculeIndices, * permutedMoleculeIndices;
+  uint32_t* boxAndKindStart;
+  uint32_t* boxAndKindSwappableCounts;
 
-  std::vector <uint> fixedMolecule;
-  std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
-  std::vector <uint> canMoveKind; //Kinds that can move intra box only
-  int *molIndex; // stores the molecule index for global atom index
-  int *atomIndex; // stores the local atom index for global atom index
-  int *molKind; // stores the molecule kind for global atom index
-  int *atomKind; // stores the atom kind for global atom index
-  double *atomCharge; // stores the atom's charge for global atom index
+  int32_t *molIndex; // stores the molecule index for global atom index
+  int32_t *atomIndex; // stores the local atom index for global atom index
+  int32_t *molKind; // stores the molecule kind for global atom index
+  int32_t *atomKind; // stores the atom kind for global atom index
+  double *atomCharge; // stores the atom's charge for global
+
+  std::vector <uint32_t> fixedMolecule;
+  std::vector <uint32_t> canSwapKind; //Kinds that can move intra and inter box
+  std::vector <uint32_t> canMoveKind; //Kinds that can move intra box only
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & molLookupCount;
+      ar & atomCount;
+      ar & boxAndKindStartLength;
+      ar & boxAndKindSwappableLength;
+      ar & numKinds;
+      ar & fixedMolecule;
+      ar & canSwapKind;
+      ar & canMoveKind;
+    }
+
+    void AllocateMemory(int molLookupCount,
+                        int atomCount,
+                        int boxAndKindStartLength,
+                        int boxAndKindSwappableLength);
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
@@ -265,8 +297,9 @@ public:
   }
   box_iterator() : pIt(NULL) {}
 private:
-  box_iterator(uint * _pLook, uint * _pSec);
-  uint* pIt;
+  box_iterator(const uint * _pLook, const uint * _pSec);
+  uint const* pIt;
 };
+
 
 #endif

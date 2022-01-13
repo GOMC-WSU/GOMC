@@ -25,6 +25,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
   system = new System(*staticValues, set, startStep, multisim);
+  //Reload from Checkpoint must occur before this line
   staticValues->Init(set, *system);
   system->Init(set);
   // This happens after checkpoint has possible changed startStep
@@ -201,6 +202,34 @@ SystemPotential &  Simulation::GetSystemEnergy(void){
 
 MoleculeLookup & Simulation::GetMolLookup(){
   return system->molLookup;
+}
+
+MoveSettings & Simulation::GetMoveSettings(){
+  return system->moveSettings;
+}
+
+Coordinates & Simulation::GetCoordinates(){
+  return system->coordinates;
+}
+
+Velocity & Simulation::GetVelocities(){
+  return system->vel;
+}
+
+ExtendedSystem & Simulation::GetXSC(){
+  return system->xsc;
+}
+
+PRNG & Simulation::GetPRNG(){
+  return system->prng;
+}
+
+Molecules & Simulation::GetMolecules(){
+  return staticValues->mol;
+}
+
+BoxDimensions & Simulation::GetBoxDim(){
+  return system->boxDimRef;
 }
 
 ulong Simulation::GetTrueStep(){

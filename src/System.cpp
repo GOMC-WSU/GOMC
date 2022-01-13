@@ -37,7 +37,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "TargetedSwap.h"
 #include "GOMCEventsProfile.h"
 
-System::System(StaticVals& statics, Setup const& set,
+System::System(StaticVals& statics, 
+               Setup & set,
                ulong & startStep,
                MultiSim const*const& multisim) :
   statV(statics),
@@ -58,14 +59,29 @@ System::System(StaticVals& statics, Setup const& set,
   checkpointSet(startStep, trueStep, molLookupRef, moveSettings, statics.mol, prng, r123wrapper, set),
   vel(statics.forcefield, molLookupRef, statics.mol, prng),
   restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
-  startStepRef(startStep)
-
+  startStepRef(startStep),
+  trueStep(0)
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     prngParallelTemp = new PRNG(molLookupRef);
 #endif
+  prng.Init(set.prng.prngMaker.prng);
+  r123wrapper.SetRandomSeed(set.config.in.prng.seed);
+#if GOMC_LIB_MPI
+  if(ms->parallelTemperingEnabled)
+    prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
+#endif
+  // At this point see if checkpoint is enabled. if so re-initialize
+  // step, movesettings, prng, original molecule start and kindex arrays, and original molecule trajectory indices
+  if(restartFromCheckpoint) {
+    checkpointSet.loadCheckpointFile();
+  }
+  // overwrite startStepRef with initStep
+  if(set.config.sys.step.initStepRead){
+    startStepRef = set.config.sys.step.initStep;
+  }
 }
 
 System::~System()
@@ -85,29 +101,14 @@ System::~System()
 
 void System::Init(Setup & set)
 {
-  prng.Init(set.prng.prngMaker.prng);
-  r123wrapper.SetRandomSeed(set.config.in.prng.seed);
-#if GOMC_LIB_MPI
-  if(ms->parallelTemperingEnabled)
-    prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
-#endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield,
+                    set.config.in.restart.restartFromCheckpoint);
 #endif
-  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
+  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind(),
+                    set.config.in.restart.restartFromCheckpoint);
   // allocate memory for atom's velocity if we read the binVelocities
   vel.Init(set.pdb.atoms, set.config.in);
-
-  // At this point see if checkpoint is enabled. if so re-initialize
-  // step, movesettings, prng, original molecule start and kindex arrays, and original molecule trajectory indices
-  if(restartFromCheckpoint) {
-    checkpointSet.loadCheckpointFile();
-  }
-  // overwrite startStepRef with initStep
-  if(set.config.sys.step.initStepRead){
-    startStepRef = set.config.sys.step.initStep;
-  }
-
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   // set coordinates and velocities for atoms in system
   xsc.Init(set.pdb, vel, set.config.in, molLookupRef, statV.mol);
@@ -157,7 +158,7 @@ void System::Init(Setup & set)
 void System::InitOver(Setup & set, Molecules & molRef)
 {
   if(restartFromCheckpoint)
-    checkpointSet.InitOver(molRef);
+    checkpointSet.InitOver();
 }
 
 void System::InitMoves(Setup const& set)
@@ -244,7 +245,8 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
   set.pdb.Init(set.config.in.restart, set.config.in.files.pdb.name, frameNum);
   statV.InitOver(set, *this);
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield,
+                  set.config.in.restart.restartFromCheckpoint);
 #endif
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();
@@ -256,10 +258,13 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 
 void System::ChooseAndRunMove(const ulong step)
 {
-  if(restartFromCheckpoint)
+  if(restartFromCheckpoint){
+    // step - startStepRef = Δstep
+    // true step + Δstep
     r123wrapper.SetStep(trueStep + step - startStepRef);
-  else
+  } else {
     r123wrapper.SetStep(step);
+  }
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);

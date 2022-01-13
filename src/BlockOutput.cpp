@@ -217,7 +217,7 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
     blocks[out::PRESSURE_IDX].SetRef(&var->pressure[b], b);
     blocks[out::MOL_NUM_IDX].SetRef(&var->numByBox[b], b);
     blocks[out::DENSITY_IDX].SetRef(&var->densityTot[b], b);
-    blocks[out::COMPRESSIBILITY_IDX].SetRef(&var->compressability[b], b);
+    blocks[out::COMPRESSIBILITY_IDX].SetRef(&var->compressibility[b], b);
     blocks[out::ENTHALPY_IDX].SetRef(&var->enthalpy[b], b);
     blocks[out::SURF_TENSION_IDX].SetRef(&var->surfaceTens[b], b);
 #if ENSEMBLE == GEMC

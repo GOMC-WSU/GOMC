@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h"             //Primary source of volume.
 #include "MoveConst.h"            //For array sizes
 #include <vector>
+#include "GOMC_Config.h"    //For PT
 
 namespace mp
 {
@@ -43,6 +44,8 @@ public:
     mp_tries.resize(BOX_TOTAL);
     mp_interval_accepted.resize(BOX_TOTAL);
     mp_interval_tries.resize(BOX_TOTAL);
+    // Different since we only sample 2 Boxes in GEMC
+    isSingleMoveAccepted.resize(BOXES_WITH_U_NB);
     for(uint b = 0; b < BOX_TOTAL; b++) {
       acceptPercent[b].resize(mv::MOVE_KINDS_TOTAL);
       scale[b].resize(mv::MOVE_KINDS_TOTAL);
@@ -58,7 +61,7 @@ public:
   }
 
   void Init(StaticVals const& statV, pdb_setup::Remarks const& remarks,
-            const uint tkind);
+            const uint tkind, bool restartFromCheckpoint);
 
   void Update(const uint move, const bool isAccepted,
               const uint box, const uint kind = 0);
@@ -127,9 +130,7 @@ public:
     this->mp_interval_tries = rhs.mp_interval_tries;
     this->perAdjust = rhs.perAdjust;
     this->totKind = rhs.totKind;
-    for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-      this->isSingleMoveAccepted[b] = rhs.isSingleMoveAccepted[b];
-    }
+    this->isSingleMoveAccepted = rhs.isSingleMoveAccepted;
   }
   void SetScaleValues(const MoveSettings &rhs) {
     this->scale = rhs.scale;
@@ -142,17 +143,24 @@ public:
     this->SetScaleValues(rhs);
   }
 
+#if GOMC_GTEST
+  bool operator==(const MoveSettings & rhs);
+#endif
+
+#if GOMC_GTEST
+
+#else
 private:
+#endif
 
   std::vector< std::vector< std::vector<double> > > scale, acceptPercent;
   std::vector< std::vector< std::vector<uint32_t> > > accepted, tries, tempAccepted, tempTries;
   std::vector< std::vector< uint32_t > > mp_accepted, mp_tries, mp_interval_accepted, mp_interval_tries;
   std::vector< double > mp_r_max;
   std::vector< double > mp_t_max;
-
+  std::vector< bool > isSingleMoveAccepted;
   uint perAdjust;
   uint totKind;
-  bool isSingleMoveAccepted[BOXES_WITH_U_NB];
 
   BoxDimensions & boxDimRef;
 

@@ -41,7 +41,7 @@ class Lambda;
 class System
 {
 public:
-  explicit System(StaticVals& statics, Setup const& set,
+  explicit System(StaticVals& statics, Setup & set,
                   ulong & startStep,
                   MultiSim const*const& multisim = NULL);
 

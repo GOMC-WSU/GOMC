@@ -15,6 +15,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h" //For BOX_TOTAL, etc.
 #include "PDBConst.h" //For fields positions, etc.
 #include "XYZArray.h" //For box dimensions.
+#include <cereal/access.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
 
 namespace config_setup
 {
@@ -108,6 +111,7 @@ public:
 
   void Read(FixedWidthReader & file);
   void Clear();
+  void GetMinMaxAtoms(const uint b);
 
   //private:
   //member data
@@ -123,6 +127,31 @@ public:
   //second box read (restart only)
   uint currBox, count;
   uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
+  // Atom start -inclusive | Atom end - exclusive
+  // [boxAtomOffset[BOX]   | boxAtomOffset[BOX+1])
+  uint boxAtomOffset[BOX_TOTAL + 1];
+  XYZ min[BOX_TOTAL];
+  XYZ max[BOX_TOTAL];
+  
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & chainLetter;
+      ar & x;
+      ar & y;
+      ar & z;
+      ar & beta;
+      ar & box;
+      ar & resNames;
+      ar & restart;
+      ar & firstResInFile;
+      ar & recalcTrajectory;
+      ar & currBox;
+      ar & count;
+      ar & numAtomsInBox;
+    }
 };
 
 }
@@ -149,6 +178,14 @@ private:
   }
   const std::map<std::string, FWReadableBase *> dataKinds;
   static const std::string pdbAlias[];
+
+  private:
+    friend class cereal::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & atoms;
+    }
 };
 
 #endif /*PDB_SETUP_H*/

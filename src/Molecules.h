@@ -33,6 +33,7 @@ class Molecules
 public:
   Molecules();
   ~Molecules();
+  bool operator==(const Molecules & other);
 
   const MoleculeKind& GetKind(const uint molIndex) const
   {
@@ -84,10 +85,10 @@ public:
     stop = start[m + 1];
   }
 
-  void GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const
+  void GetRestartOrderedRangeStartStop(uint & _start, uint & stop, const uint m) const
   {
-    _start = originalStart[m];
-    stop = originalStart[m + 1];
+    _start = restartOrderedStart[m];
+    stop = restartOrderedStart[m + 1];
   }
 
   void GetRangeStartLength(uint & _start, uint & len, const uint m) const
@@ -105,28 +106,16 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
-
-  uint GetOriginalKindIndexInCurrentKindArray(uint molIndex) const
-  {
-    return originalKIndex2CurrentKIndex[originalKIndex[molIndex]];
-  }
-
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
   uint32_t* start;
-  /* From checkpoint for consistent trajectories */
-  uint32_t* originalStart;
-  uint32_t* originalKIndex;
-  /* Kind index is dependent on order a kind is encountered when parsing a psf.
-     In open ensembles this can change, so we use the below array to make sure we
-     print the correct accessory molecule data in PDB Output */
-  uint32_t* originalKIndex2CurrentKIndex;
-
-
+  /* From checkpoint for loading binary coord/vel into the original PDBAtoms object */
+  uint32_t* restartOrderedStart;
 
   /* only used for output */
   uint32_t count;
+  uint32_t atomCount;
   uint32_t* kIndex;
   uint32_t kIndexCount;
   uint* countByKind;
@@ -136,11 +125,13 @@ public:
 
   MoleculeKind * kinds;
   uint kindsCount;
-  uint fractionKind, lambdaSize;
+  // These are never initialized or used
+  //uint fractionKind;
+  // uint lambdaSize;
   double* pairEnCorrections;
   double* pairVirCorrections;
 
-  bool printFlag;
+  bool printFlag, restartFromCheckpoint;
 };
 
 
