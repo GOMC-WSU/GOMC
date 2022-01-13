@@ -25,6 +25,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ExtendedSystem.h"
 #include "Clock.h"
 #include "../lib/Lambda.h"
+#include "../lib/StrLib.h"
 #include "Random123Wrapper.h"
 #include "Velocity.h"
 

@@ -90,24 +90,9 @@ System::~System()
     delete boxDimensions;
   if (calcEwald != NULL)
     delete calcEwald;
-  delete moves[mv::DISPLACE];
-  delete moves[mv::ROTATE];
-  delete moves[mv::MULTIPARTICLE];
-  delete moves[mv::MULTIPARTICLE_BM];
-  delete moves[mv::INTRA_SWAP];
-  delete moves[mv::REGROWTH];
-  delete moves[mv::INTRA_MEMC];
-  delete moves[mv::CRANKSHAFT];
-  delete moves[mv::INTRA_TARGETED_SWAP];
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  delete moves[mv::VOL_TRANSFER];
-#endif
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  delete moves[mv::MOL_TRANSFER];
-  delete moves[mv::MEMC];
-  delete moves[mv::NE_MTMC];
-  delete moves[mv::TARGETED_SWAP];
-#endif
+  for (int m=0; m < mv::MOVE_KINDS_TOTAL; ++m) {
+    delete moves[m];
+  }
 #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     delete prngParallelTemp;
@@ -283,6 +268,10 @@ void System::ChooseAndRunMove(const ulong step)
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
+#ifndef NDEBUG
+  std::cout << "Step " << step+1 << ": Picked move #" << majKind << ": "
+            << str::MoveTypetoStr(majKind) << " move" << std::endl;
+#endif
   time.SetStart();
   RunMove(majKind, draw, step);
   time.SetStop();
@@ -355,27 +344,11 @@ void System::PrintAcceptance()
 
 void System::PrintTime()
 {
+  std::string moveName;
   //std::cout << "MC moves Execution time:\n";
-  printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
-  printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
-  printf("%-36s %10.4f    sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
-  printf("%-36s %10.4f    sec.\n", "MultiParticle-Brownian:", moveTime[mv::MULTIPARTICLE_BM]);
-  printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
-  printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
-  printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
-  printf("%-36s %10.4f    sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
-  printf("%-36s %10.4f    sec.\n", "Intra-Targeted-Transfer:", moveTime[mv::INTRA_TARGETED_SWAP]);
-
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
-         moveTime[mv::MOL_TRANSFER]);
-  printf("%-36s %10.4f    sec.\n", "Targeted-Transfer:",
-         moveTime[mv::TARGETED_SWAP]);
-  printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
-  printf("%-36s %10.4f    sec.\n", "nonEq Mol-Transfer:", moveTime[mv::NE_MTMC]);
-#endif
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
-#endif
+  for (auto m=0; m < mv::MOVE_KINDS_TOTAL; ++m) {
+    moveName = str::MoveTypetoStr(m)+':';
+    printf("%-36s %10.4f    sec.\n", moveName.c_str(), moveTime[m]);
+  }
   std::cout << std::endl;
 }
