@@ -173,7 +173,7 @@ class Checkpoint
                 // PRNG PT Vars
                 ar & saveArrayPT;
                 ar & seedLocationPT;
-                ar & seedLeftP  T;
+                ar & seedLeftPT;
                 ar & seedValuePT;
             }
             #endif
