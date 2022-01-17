@@ -929,7 +929,7 @@ int ReadPSF(const char* psfFilename,
   do {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
@@ -951,7 +951,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NBOND") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read bonds from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read bonds from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return  errors::READ_ERROR;
@@ -1018,7 +1018,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NTHETA") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read angles from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read angles from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
@@ -1035,7 +1035,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NPHI") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read dihedrals from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read dihedrals from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
@@ -1053,7 +1053,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NIMPHI") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read impropers from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read impropers from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
@@ -1071,7 +1071,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NDON") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read donors from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read donors from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
@@ -1089,7 +1089,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NACC") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read acceptors from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read acceptors from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
@@ -1108,7 +1108,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NNB") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read explicit nonbond exclusions from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read explicit nonbond exclusions from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
@@ -1126,7 +1126,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NGRP") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read groups from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read groups from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
@@ -1144,7 +1144,7 @@ int ReadPSF(const char* psfFilename,
   while (strstr(input, "!NCRTERM") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read cross terms from PSF file %s",
+      fprintf(stderr, "ERROR: Unable to read cross terms from PSF file %s\n",
               psfFilename);
       fclose(psf);
       return errors::READ_ERROR;
