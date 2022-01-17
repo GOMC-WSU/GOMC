@@ -62,6 +62,7 @@ public:
         enableSurfTension) {
       enableStat = true;
     }
+    WriteConsoleHeaders = true;
     DoOutput(0);
   }
   virtual void DoOutput(const ulong step);
@@ -70,6 +71,7 @@ private:
   const static int elementWidth = 16;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
   bool enableSurfTension, enableStat;
+  bool WriteConsoleHeaders;
   void PrintMove(const uint box, const ulong step) const;
   void PrintMoveStat(const uint box, const ulong step) const;
   void PrintStatistic(const uint box, const ulong step) const;
@@ -78,9 +80,9 @@ private:
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();
-  void printElement (const double t, const int width, uint percision = 4) const;
-  void printElement (const uint t, const int width) const;
-  void printElement (const std::string t, const int width) const;
+  void printElement(const double t, const int width, uint precision = 4) const;
+  void printElement(const uint t, const int width) const;
+  void printElement(const std::string t, const int width) const;
 
   template <typename T> void printElementStep ( const T t, const ulong step,
       const int width) const;
