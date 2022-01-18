@@ -121,6 +121,7 @@ public:
   uint* countByKind;
   char* chain;
   double* beta;
+  double* occ;
 
 
   MoleculeKind * kinds;

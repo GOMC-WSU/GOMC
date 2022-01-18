@@ -107,7 +107,8 @@ public:
               const double l_x,
               const double l_y,
               const double l_z,
-              const double l_beta);
+              const double l_beta,
+              const double l_occ);
 
   void Read(FixedWidthReader & file);
   void Clear();
@@ -117,7 +118,8 @@ public:
   //member data
   std::vector<char> chainLetter; //chain ids of each atom respectively
   std::vector<double> x, y, z; //coordinates of each particle
-  std::vector<double> beta;  //beta value of each molecule
+  std::vector<double> beta;  //beta value of each atom
+  std::vector<double> occ;  //occ value of each atom
   std::vector<uint> box;
   std::vector<std::string> resNames;
   bool restart, firstResInFile, recalcTrajectory;
@@ -143,6 +145,7 @@ public:
       ar & y;
       ar & z;
       ar & beta;
+      ar & occ;
       ar & box;
       ar & resNames;
       ar & restart;

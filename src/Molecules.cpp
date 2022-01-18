@@ -33,6 +33,7 @@ Molecules::~Molecules(void)
   delete[] countByKind;
   delete[] chain;
   delete[] beta;
+  delete[] occ;
   delete[] kinds;
   delete[] pairEnCorrections;
   delete[] pairVirCorrections;
@@ -68,6 +69,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
   chain = vect::transfer<char>(atoms.chainLetter);
   beta =  vect::transfer<double>(atoms.beta);
+  occ =  vect::transfer<double>(atoms.occ);
 
   start[count] = atoms.x.size();
   kIndexCount = setup.mol.molVars.moleculeKinds.size();
@@ -186,6 +188,7 @@ bool Molecules::operator==(const Molecules & other){
   for (int a = 0; a < atomCount; ++a){
     result &= (chain[a] == other.chain[a]);
     result &= (beta[a] == other.beta[a]);
+    result &= (occ[a] == other.occ[a]);
   }
   for (int k = 0; k < kindsCount; ++k){
     result &= (countByKind[k] == other.countByKind[k]);

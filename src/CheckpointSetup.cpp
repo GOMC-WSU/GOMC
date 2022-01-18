@@ -169,6 +169,7 @@ void CheckpointSetup::SetPDBSetupAtoms(){
       chkObj.originalAtoms.y[p] = pdbAtomsRef.y[d];
       chkObj.originalAtoms.z[p] = pdbAtomsRef.z[d];
       chkObj.originalAtoms.beta[p] = pdbAtomsRef.beta[d];
+      chkObj.originalAtoms.occ[p] = pdbAtomsRef.occ[d];
       chkObj.originalAtoms.box[p] = pdbAtomsRef.box[d];
     }
   }
