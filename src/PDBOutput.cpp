@@ -291,30 +291,10 @@ void PDBOutput::PrintCrystRest(const uint b, const ulong step, Writer & out)
   out.file << outStr << std::endl;
 }
 
-// Restart PDB
-void PDBOutput::InsertAtomInLine(std::string & line, XYZ const& coor,
-                                 double const& occ,
-                                 double const& beta)
-{
-  using namespace pdb_entry::atom::field;
-  using namespace pdb_entry;
-  sstrm::Converter toStr;
-  //Fill in particle's stock string with new x, y, z, and occupancy
-  toStr.Fixed().Align(x::ALIGN).Precision(x::PRECISION);
-  toStr.Replace(line, coor.x, x::POS);
-  toStr.Fixed().Align(y::ALIGN).Precision(y::PRECISION);
-  toStr.Replace(line, coor.y, y::POS);
-  toStr.Fixed().Align(z::ALIGN).Precision(z::PRECISION);
-  toStr.Replace(line, coor.z, z::POS);
-  toStr.Align(occupancy::ALIGN);
-  toStr.Replace(line, occ, occupancy::POS);
-  toStr.Align(beta::ALIGN);
-  toStr.Replace(line, beta, beta::POS);
-}
-
 // PDB trajectory
+template <typename T>
 void PDBOutput::InsertAtomInLine(std::string & line, XYZ const& coor,
-                                 std::string const& occ,
+                                 const T &occ,
                                  double const& beta)
 {
   using namespace pdb_entry::atom::field;
