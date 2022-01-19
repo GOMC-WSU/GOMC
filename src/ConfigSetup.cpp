@@ -609,7 +609,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       sys.ff.cutoffLow = stringtod(line[1]);
       if (sys.ff.cutoffLow < 0.0) {
         printf("Warning: Short Range Cutoff cannot be set to less than zero. Initializing to zero.\n");
-        sys.ff.cutoffLow) = 0.0;
+        sys.ff.cutoffLow = 0.0;
       } else if (sys.ff.cutoffLow > 0.0 && sys.freeEn.enable) {
           printf("Warning: Free energy calculations are being used when RcutLow is not zero (0),\n");
           printf("         which would produce incorrect free energy results.\n");
