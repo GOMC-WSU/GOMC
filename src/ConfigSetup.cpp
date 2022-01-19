@@ -607,7 +607,16 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-4.4f A\n", "Info: Cutoff", sys.ff.cutoff);
     } else if(CheckString(line[0], "RcutLow")) {
       sys.ff.cutoffLow = stringtod(line[1]);
-      printf("%-40s %-4.4f A\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
+      if (sys.ff.cutoffLow < 0.0) {
+        printf("Warning: Short Range Cutoff cannot be set to less than zero. Initializing to zero.\n");
+        sys.ff.cutoffLow) = 0.0;
+      } else if (sys.ff.cutoffLow > 0.0 && sys.freeEn.enable) {
+          printf("Warning: Free energy calculations are being used when RcutLow is not zero (0),\n");
+          printf("         which would produce incorrect free energy results.\n");
+          printf("         Resetting RcutLow to zero (RcutLow=0) for free energy calculations!\n");
+          sys.ff.cutoffLow = 0.0;
+      }
+      printf("%-40s %-4.4lf A\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
     } else if(CheckString(line[0], "Exclude")) {
       if(line[1] == sys.exclude.EXC_ONETWO) {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETWO_KIND;
@@ -720,7 +729,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
              sys.moves.displace);
     } else if(CheckString(line[0], "MultiParticleFreq")) {
       sys.moves.multiParticle = stringtod(line[1]);
-      if(sys.moves.multiParticle > 0.00) {
+      if(sys.moves.multiParticle > 0.0) {
         sys.moves.multiParticleEnabled = true;
       }
       printf("%-40s %-4.4f \n",
@@ -728,7 +737,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
              sys.moves.multiParticle);
     } else if(CheckString(line[0], "MultiParticleBrownianFreq")) {
       sys.moves.multiParticleBrownian = stringtod(line[1]);
-      if(sys.moves.multiParticleBrownian > 0.00) {
+      if(sys.moves.multiParticleBrownian > 0.0) {
         sys.moves.multiParticleEnabled = true;
       }
       printf("%-40s %-4.4f \n",
@@ -1085,6 +1094,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
             sys.freeEn.freqRead = true;
             printf("%-40s %-4d \n", "Info: Free Energy Frequency",
                    sys.freeEn.frequency);
+          }
+          if (sys.ff.cutoffLow != 0.0 && sys.ff.cutoffLow != DBL_MAX) {
+            printf("Warning: Free energy calculations are being used when RcutLow is not zero,\n");
+            printf("         which would produce incorrect free energy results.\n");
+            printf("         Resetting RcutLow to zero (RcutLow=0.0) for free energy calculations!\n");
+            sys.ff.cutoffLow = 0.0;
           }
         } else {
           printf("%-40s %-s \n", "Info: Free Energy Calculation", "Inactive");
@@ -1569,8 +1584,8 @@ void ConfigSetup::fillDefaults(void)
   }
 
   if(sys.ff.cutoffLow == DBL_MAX) {
-    sys.ff.cutoffLow = 0.00;
-    printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
+    sys.ff.cutoffLow = 0.0;
+    printf("%-40s %-4.4lf \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
   }
 
   if(out.statistics.settings.block.enable && in.restart.recalcTrajectory) {
