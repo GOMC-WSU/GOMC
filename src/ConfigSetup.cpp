@@ -1746,7 +1746,14 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Cutoff is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-
+  if(sys.ff.cutoff < 0.0) {
+    std::cout << "Error: Cutoff cannot be negative!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  if(sys.ff.cutoffLow < 0.0) {
+    sys.ff.cutoffLow = 0.0;
+    printf("Warning: Short Range Cutoff cannot be negative. Initializing to zero.\n");
+  }
   if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX)) {
     std::cout << "Error: Tolerance is not specified!" << std::endl;
     exit(EXIT_FAILURE);
