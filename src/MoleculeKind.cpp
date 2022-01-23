@@ -39,8 +39,8 @@ void MoleculeKind::Init
     exit(EXIT_FAILURE);
   }
   const mol_setup::MolKind& molData = dataIterator->second;
-  name = l_name;
-
+  name = molData.moleculeName;
+  uniqueName = l_name;
 #if ENSEMBLE == GCMC
   std::map<std::string, double>::const_iterator kindCPIt =
     setup.config.sys.chemPot.cp.find(name),
@@ -51,7 +51,7 @@ void MoleculeKind::Init
   if (kindCPIt == lastOne) {
     std::cerr << "================================================"
               << std::endl << "Error: chemical potential is missing for "
-              << name << "." << std::endl << std::endl
+              << molData.moleculeName << "." << std::endl << std::endl
               << "Here are the listed chemical potentials:"
               << std::endl
               << "----------------------------------------"
@@ -120,6 +120,29 @@ MoleculeKind::~MoleculeKind()
   delete[] atomCharge;
   delete builder;
 }
+
+bool MoleculeKind::operator==(const MoleculeKind & other){
+  bool result = true;
+  result &= (numAtoms == other.numAtoms);
+  for (int i = 0; i < numAtoms; ++i){
+    result &= (atomKind[i] == other.atomKind[i]);
+    result &= (atomMass[i] == other.atomMass[i]);
+    result &= (atomCharge[i] == other.atomCharge[i]);
+  }
+  result &= (atomNames == other.atomNames);
+  result &= (resNames == other.resNames);
+  result &= (atomTypeNames == other.atomTypeNames);
+  result &= (isMultiResidue == other.isMultiResidue);
+  result &= (intraMoleculeResIDs == other.intraMoleculeResIDs);
+  result &= (name == other.name);
+  result &= (kindIndex == other.kindIndex);
+  result &= (molMass == other.molMass);
+  #if ENSEMBLE == GCMC
+  result &= (chemPot == other.chemPot);
+  #endif
+  return result;
+}
+
 
 void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
 {

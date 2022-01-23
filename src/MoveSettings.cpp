@@ -20,65 +20,69 @@ const double MoveSettings::mp_accept_tol = 0.1;
 
 void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
-                        const uint tkind)
+                        const uint tkind,
+                        bool restartFromCheckpoint)
 {
   //Set to true so that we calculate the forces for the current system, even if
   //a MultiParticle move is called before any other moves are accepted.
-  for (uint b; b < BOXES_WITH_U_NB; b++) {
-    SetSingleMoveAccepted(b);
-  }
+
   totKind = tkind;
   perAdjust = statV.simEventFreq.perAdjust;
-  for(uint b = 0; b < BOX_TOTAL; b++) {
-    for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
-      acceptPercent[b][m].resize(totKind, 0);
-      scale[b][m].resize(totKind, 0);
-      accepted[b][m].resize(totKind, 0);
-      tries[b][m].resize(totKind, 0);
-      tempAccepted[b][m].resize(totKind, 0);
-      tempTries[b][m].resize(totKind, 0);
-    }
-  }
-
-
-  for(uint b = 0; b < BOX_TOTAL; b++) {
-    for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
-      for(uint k = 0; k < totKind; k++) {
-        if(m == mv::DISPLACE) {
-          if(remarks.restart && remarks.disp[b] > 0.0) {
-            scale[b][m][k] = remarks.disp[b];
-          } else {
-            scale[b][m][k] = boxDimRef.axis.Min(b) * 0.25;
-          }
-        } else if (m == mv::ROTATE) {
-          if(remarks.restart && remarks.rotate[b] > 0.0) {
-            scale[b][m][k] = remarks.rotate[b];
-          } else {
-            scale[b][m][k] = M_PI_4;
-          }
-        }
-#if ENSEMBLE == NPT || ENSEMBLE == GEMC
-        else if (m == mv::VOL_TRANSFER) {
-          if(remarks.restart && remarks.vol[b] > 0.0) {
-            scale[b][m][k] = remarks.vol[b];
-          } else {
-            scale[b][m][k] = 500;
-          }
-        }
-#endif
+  if (!restartFromCheckpoint){
+    for (uint b; b < BOXES_WITH_U_NB; b++) {
+      SetSingleMoveAccepted(b);
+    }    
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
+        acceptPercent[b][m].resize(totKind, 0);
+        scale[b][m].resize(totKind, 0);
+        accepted[b][m].resize(totKind, 0);
+        tries[b][m].resize(totKind, 0);
+        tempAccepted[b][m].resize(totKind, 0);
+        tempTries[b][m].resize(totKind, 0);
       }
     }
-  }
 
-  // Initialize MultiParticle settings
-  for(int b = 0; b < BOX_TOTAL; b++) {
-    mp_r_max[b] = 0.01 * M_PI;
-    mp_t_max[b] = 0.02;
-    for(int m = 0; m < mp::MPTOTALTYPES; m++) {
-      mp_tries[b][m] = 0;
-      mp_accepted[b][m] = 0;
-      mp_interval_tries[b][m] = 0;
-      mp_interval_accepted[b][m] = 0;
+
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
+        for(uint k = 0; k < totKind; k++) {
+          if(m == mv::DISPLACE) {
+            if(remarks.restart && remarks.disp[b] > 0.0) {
+              scale[b][m][k] = remarks.disp[b];
+            } else {
+              scale[b][m][k] = boxDimRef.axis.Min(b) * 0.25;
+            }
+          } else if (m == mv::ROTATE) {
+            if(remarks.restart && remarks.rotate[b] > 0.0) {
+              scale[b][m][k] = remarks.rotate[b];
+            } else {
+              scale[b][m][k] = M_PI_4;
+            }
+          }
+  #if ENSEMBLE == NPT || ENSEMBLE == GEMC
+          else if (m == mv::VOL_TRANSFER) {
+            if(remarks.restart && remarks.vol[b] > 0.0) {
+              scale[b][m][k] = remarks.vol[b];
+            } else {
+              scale[b][m][k] = 500;
+            }
+          }
+  #endif
+        }
+      }
+    }
+
+    // Initialize MultiParticle settings
+    for(int b = 0; b < BOX_TOTAL; b++) {
+      mp_r_max[b] = 0.01 * M_PI;
+      mp_t_max[b] = 0.02;
+      for(int m = 0; m < mp::MPTOTALTYPES; m++) {
+        mp_tries[b][m] = 0;
+        mp_accepted[b][m] = 0;
+        mp_interval_tries[b][m] = 0;
+        mp_interval_accepted[b][m] = 0;
+      }
     }
   }
 }
@@ -297,3 +301,30 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const
 
   return sum;
 }
+
+#if GOMC_GTEST
+
+  bool MoveSettings::operator==(const MoveSettings & rhs){
+    bool result = true;
+
+    result &= (scale == rhs.scale);
+    result &= (acceptPercent == rhs.acceptPercent);
+    //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
+    //molLookup
+    //index [BOX_TOTAL * kind + box + 1] is the element after the end
+    //of that kind/box
+    result &= (accepted == rhs.accepted);
+    result &= (tries == rhs.tries);
+    result &= (tempAccepted == rhs.tempAccepted);
+    result &= (tempTries == rhs.tempTries);
+    result &= (mp_accepted == rhs.mp_accepted);
+    result &= (mp_tries == rhs.mp_tries); //Kinds that can move intra and inter box
+    result &= (mp_interval_accepted == rhs.mp_interval_accepted); //Kinds that can move intra box only
+    result &= (mp_interval_tries == rhs.mp_interval_tries); // stores the molecule index for global atom index
+    result &= (mp_r_max == rhs.mp_r_max); // stores the local atom index for global atom index
+    result &= (mp_t_max == rhs.mp_t_max); // stores the molecule kind for global atom index
+    result &= (isSingleMoveAccepted == rhs.isSingleMoveAccepted);
+
+    return result;
+  }
+#endif

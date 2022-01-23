@@ -21,7 +21,7 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   : data(sys, ff, set)
 {
   using namespace mol_setup;
-  MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
+  MolMap::const_iterator it = set.mol.kindMap.find(kind.uniqueName);
   assert(it != set.mol.kindMap.end());
   const MolKind setupKind = it->second;
 

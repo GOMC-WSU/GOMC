@@ -83,11 +83,7 @@ inline double MeanA(std::vector<uint> const& v1,
                     std::vector<uint> const& v2,
                     const uint ix1, const uint ix2)
 {
-#ifdef MIE_INT_ONLY
-  return (v1[ix1] + v2[ix2]) / 2;
-#else
-  return ((double)(v1[ix1] + v2[ix2])) / 2.0;
-#endif
+  return ((double)(v1[ix1] + v2[ix2])) * 0.5;
 }
 //Geometric mean.
 inline double MeanG(std::vector<double> const& v1,

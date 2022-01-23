@@ -20,7 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 void ConsoleOutput::DoOutput(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CONSOLE_OUTPUT);
-  if (step == 0) {
+  if (WriteConsoleHeaders) {
     std::cout << std::endl << "################################################################################" << std::endl;
     std::cout << "########################## INITIAL SIMULATION ENERGY ###########################" << std::endl << std::endl;
 
@@ -28,7 +28,7 @@ void ConsoleOutput::DoOutput(const ulong step)
     std::cout << std::endl;
 
     for (uint b = 0; b < BOX_TOTAL; b++) {
-      PrintEnergy(b, var->energyRef[b], -1);
+      PrintEnergy(b, var->energyRef[b], step-1);
       std::cout <<  std::endl;
     }
 
@@ -37,7 +37,7 @@ void ConsoleOutput::DoOutput(const ulong step)
       std::cout << std::endl;
 
       for (uint b = 0; b < BOX_TOTAL; b++) {
-        PrintStatistic(b, -1);
+        PrintStatistic(b, step-1);
         std::cout << std::endl;
       }
     }
@@ -60,7 +60,9 @@ void ConsoleOutput::DoOutput(const ulong step)
       PrintStatisticTitle();
       std::cout << std::endl;
     }
-  } else {
+    WriteConsoleHeaders = false;
+  }
+  else {
     for(uint b = 0; b < BOX_TOTAL; b++) {
       if(!forceOutput) {
         PrintMove(b, step);
@@ -83,7 +85,6 @@ void ConsoleOutput::DoOutput(const ulong step)
       }
 
     }
-
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CONSOLE_OUTPUT);
 }
@@ -229,7 +230,11 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 
   if(enablePressure) {
     printElement(var->pressure[box], elementWidth);
-    printElement((var->pressure[box]) * (var->volumeRef[box]) / (var->numByBox[box]) / (var->T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR), elementWidth);
+    printElement(var->compressibility[box], elementWidth); 
+    printElement(var->enthalpy[box], elementWidth); 
+    #if ENSEMBLE == GEMC
+    printElement(var->heatOfVap, elementWidth);
+    #endif
   }
   if(enableMol) {
     printElement(var->numByBox[box], elementWidth);
@@ -340,6 +345,10 @@ void ConsoleOutput::PrintStatisticTitle()
   if(enablePressure) {
     printElement("PRESSURE", elementWidth);
     printElement("COMPRESSIBILITY", elementWidth);
+    printElement("ENTHALPY", elementWidth);
+    #if ENSEMBLE == GEMC
+    printElement("HEAT_VAP", elementWidth);
+    #endif
   }
   
   if(enableMol) {
@@ -468,14 +477,14 @@ void ConsoleOutput::PrintMoveTitle()
 }
 
 void ConsoleOutput::printElement(const double t, const int width,
-                                 uint percision) const
+                                 uint precision) const
 {
   const char separator = ' ';
   if(std::abs(t) > 1e99) {
-    std::cout << std::right << std::scientific << std::setprecision(percision - 1) <<
+    std::cout << std::right << std::scientific << std::setprecision(precision - 1) <<
               std::setw(width) << std::setfill(separator) << t;
   } else {
-    std::cout << std::right << std::scientific << std::setprecision(percision) <<
+    std::cout << std::right << std::scientific << std::setprecision(precision) <<
               std::setw(width) << std::setfill(separator) << t;
   }
 

@@ -83,7 +83,21 @@ public:
   static const uint SAVE = N + 1;  // length of array for save()
   // enum { N = 624 };       // length of state vector
   // enum { SAVE = N + 1 };  // length of array for save()
+  bool operator==(const MTRand & other){
+    bool result = true;
+    for (int i = 0; i < N; ++i){
+      // Save array
+      result &= (state[i] == other.state[i]);
+    }
+    // Seed location
+    result &= ((pNext - state) == (other.pNext - other.state));
+    // Seed left
+    result &= (left == other.left);
+    // Seed value
+    result &= (seedValue == other.seedValue);
 
+    return result;
+  }
 protected:
   enum { M = 397 };  // period parameter
 
@@ -304,6 +318,7 @@ inline void MTRand::seed()
 
 inline MTRand::MTRand( const uint32 oneSeed )
 {
+  seedValue = oneSeed;
   seed(oneSeed);
 }
 

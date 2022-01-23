@@ -607,7 +607,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-4.4f A\n", "Info: Cutoff", sys.ff.cutoff);
     } else if(CheckString(line[0], "RcutLow")) {
       sys.ff.cutoffLow = stringtod(line[1]);
-      printf("%-40s %-4.4f A\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
+      printf("%-40s %-4.4lf A\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
     } else if(CheckString(line[0], "Exclude")) {
       if(line[1] == sys.exclude.EXC_ONETWO) {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETWO_KIND;
@@ -720,7 +720,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
              sys.moves.displace);
     } else if(CheckString(line[0], "MultiParticleFreq")) {
       sys.moves.multiParticle = stringtod(line[1]);
-      if(sys.moves.multiParticle > 0.00) {
+      if(sys.moves.multiParticle > 0.0) {
         sys.moves.multiParticleEnabled = true;
       }
       printf("%-40s %-4.4f \n",
@@ -728,7 +728,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
              sys.moves.multiParticle);
     } else if(CheckString(line[0], "MultiParticleBrownianFreq")) {
       sys.moves.multiParticleBrownian = stringtod(line[1]);
-      if(sys.moves.multiParticleBrownian > 0.00) {
+      if(sys.moves.multiParticleBrownian > 0.0) {
         sys.moves.multiParticleEnabled = true;
       }
       printf("%-40s %-4.4f \n",
@@ -758,26 +758,26 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
              sys.moves.rotate);
     } else if(CheckString(line[0], "IntraMEMC-1Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-1 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+              sys.moves.intraMemc);
         sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC1 = true;
       }
     } else if(CheckString(line[0], "IntraMEMC-2Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+              sys.moves.intraMemc);
         sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC2 = true;
       }
     } else if(CheckString(line[0], "IntraMEMC-3Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
+              sys.moves.intraMemc);
         sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC3 = true;
       }
@@ -805,26 +805,26 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-4.4f \n", "Info: Molecule swap move frequency",
              sys.moves.transfer);
     } else if(CheckString(line[0], "MEMC-1Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
+            sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC1 = true;
       }
     } else if(CheckString(line[0], "MEMC-2Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
+            sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC2 = true;
       }
     } else if(CheckString(line[0], "MEMC-3Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
+            sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC3 = true;
       }
@@ -1323,26 +1323,26 @@ void ConfigSetup::fillDefaults(void)
   }
 
   if(sys.moves.rotate == DBL_MAX) {
-    sys.moves.rotate = 0.000;
+    sys.moves.rotate = 0.0;
     printf("%-40s %-4.4f \n", "Default: Rotation move frequency",
            sys.moves.rotate);
   }
 
   if(sys.moves.intraSwap == DBL_MAX) {
-    sys.moves.intraSwap = 0.000;
+    sys.moves.intraSwap = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-Swap move frequency",
            sys.moves.intraSwap);
   }
 
   if(sys.moves.multiParticle == DBL_MAX) {
-    sys.moves.multiParticle = 0.000;
+    sys.moves.multiParticle = 0.0;
     printf("%-40s %-4.4f \n",
            "Default: Multi-Particle move frequency",
            sys.moves.multiParticle);
   }
 
   if(sys.moves.multiParticleBrownian == DBL_MAX) {
-    sys.moves.multiParticleBrownian = 0.000;
+    sys.moves.multiParticleBrownian = 0.0;
     printf("%-40s %-4.4f \n",
            "Default: Multi-Particle Brownian move frequency",
            sys.moves.multiParticleBrownian);
@@ -1355,13 +1355,13 @@ void ConfigSetup::fillDefaults(void)
   }
 
   if(sys.moves.regrowth == DBL_MAX) {
-    sys.moves.regrowth = 0.000;
+    sys.moves.regrowth = 0.0;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
            sys.moves.regrowth);
   }
 
   if(sys.moves.crankShaft == DBL_MAX) {
-    sys.moves.crankShaft = 0.000;
+    sys.moves.crankShaft = 0.0;
     printf("%-40s %-4.4f \n", "Default: Crank-Shaft move frequency",
            sys.moves.crankShaft);
   }
@@ -1569,10 +1569,10 @@ void ConfigSetup::fillDefaults(void)
   }
 
   if(sys.ff.cutoffLow == DBL_MAX) {
-    sys.ff.cutoffLow = 0.00;
-    printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
+    sys.ff.cutoffLow = 0.0;
+    printf("%-40s %-4.4lf \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
   }
-
+  
   if(out.statistics.settings.block.enable && in.restart.recalcTrajectory) {
     out.statistics.settings.block.enable = false;
     printf("%-40s \n", "Warning: Average output is activated but it will be ignored.");
@@ -1746,7 +1746,14 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Cutoff is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-
+  if(sys.ff.cutoff < 0.0) {
+    std::cout << "Error: Cutoff cannot be negative!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  if(sys.ff.cutoffLow < 0.0) {
+    sys.ff.cutoffLow = 0.0;
+    printf("Warning: Short Range Cutoff cannot be negative. Initializing to zero.\n");
+  }
   if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX)) {
     std::cout << "Error: Tolerance is not specified!" << std::endl;
     exit(EXIT_FAILURE);
@@ -2165,6 +2172,13 @@ void ConfigSetup::verifyInputs(void)
 #endif
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   if(sys.freeEn.enable) {
+    if(sys.ff.cutoffLow > 0.0) {
+        sys.ff.cutoffLow = 0.0;
+        printf("Warning: Free energy calculations are being used when RcutLow is not zero (0),\n");
+        printf("         which would produce incorrect free energy results.\n");
+        printf("         Resetting RcutLow to zero (RcutLow=0) for free energy calculations!\n");
+    }
+
     if(!sys.freeEn.readLambdaCoulomb) {
       std::cout << "Error: Lambda Coulomb states were not defined for " <<
                 "Free Energy Calculation! \n";

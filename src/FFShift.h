@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef FF_SHIFT_H
 #define FF_SHIFT_H
 
-#include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
@@ -132,15 +131,8 @@ inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
 
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq_1_4[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n_1_4[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n_1_4[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  double attract = rRat2 * rRat2 * rRat2;
+  double repulse = pow(sqrt(rRat2), n_1_4[index]);
 
   en += (epsilon_cn_1_4[index] * (repulse - attract) - shiftConst_1_4[index]);
 }

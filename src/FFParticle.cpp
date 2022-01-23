@@ -63,13 +63,8 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   nameFirst = new std::string [size];
   nameSec = new std::string [size];
 
-#ifdef MIE_INT_ONLY
-  n = new uint [size];
-  n_1_4 = new uint [size];
-#else
   n = new double [size];
   n_1_4 = new double [size];
-#endif
   epsilon = new double [size];
   epsilon_cn = new double [size];
   epsilon_cn_6 = new double [size];
@@ -270,15 +265,8 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
 
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq_1_4[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n_1_4[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n_1_4[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  double attract = rRat2 * rRat2 * rRat2;
+  double repulse = pow(sqrt(rRat2), n_1_4[index]);
 
   en += epsilon_cn_1_4[index] * (repulse - attract);
 }

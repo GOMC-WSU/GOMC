@@ -69,8 +69,9 @@ private:
                   const char chain, std::string const& atomAlias,
                   std::string const& resName);
 
+template <typename T>
   void InsertAtomInLine(std::string & line, XYZ const& coor,
-                        std::string const& occ, double const& beta);
+                        const T &occ, double const& beta);
 
   void PrintEnd(Writer & out)
   {

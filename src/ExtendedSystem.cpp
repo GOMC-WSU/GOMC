@@ -25,7 +25,31 @@ ExtendedSystem::ExtendedSystem()
   }
 }
 
-void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inputFiles,
+//Equality operator for unit testing
+bool ExtendedSystem::operator==(const ExtendedSystem & other){
+  bool result = true;
+  result &= (firstStep == other.firstStep);
+  result &= (axis == other.axis);
+  // These are cleared after use, so unneccessary
+  //result &= (binaryCoor == other.binaryCoor);
+  //result &= (binaryVeloc == other.binaryVeloc);
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    result &= (center[b] == other.center[b]);
+    result &= (cellBasis[b] == other.cellBasis[b]);
+    result &= (hasCellBasis[b] == other.hasCellBasis[b]);
+    for(uint a = 0; a < 3; a++) {
+      result &= (cosAngle[b][a] == other.cosAngle[b][a]);
+      result &= (cellAngle[b][a] == other.cellAngle[b][a]);
+    }
+  }
+  for(uint b = 0; b < BOX_TOTAL+1; b++) {
+    result &= (boxMoleculeOffset[b] == other.boxMoleculeOffset[b]);
+  }
+  return result;
+}
+
+void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input & inputFiles,
                           MoleculeLookup & molLookup, Molecules & mols)
 {
   // Read the extended system file and update the cellBasis data
@@ -38,91 +62,140 @@ void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inp
       }
     }
   }
+
+  boxMoleculeOffset[0] = 0;
+  for (int box = 0; box < BOX_TOTAL; ++box){
+    boxMoleculeOffset[box+1] = boxMoleculeOffset[box] + molLookup.NumInBox(box);
+  }
+
   // Read the binary coordinate and update the PDB coordinate
   if(inputFiles.restart.restartFromBinaryCoorFile) {
-    int cmIndex = 0;
-    for(int b = 0; b < BOX_TOTAL; b++) {
-      if(inputFiles.files.binaryCoorInput.defined[b]) {
-        std::string fName = inputFiles.files.binaryCoorInput.name[b];
-        UpdateCoordinate(pdb, fName.c_str(), b, molLookup, mols, cmIndex);
-      }
-    }
+    binaryCoor.clear();
+    binaryCoor.resize(pdb.atoms.beta.size());
+    ReadCoordinate(pdb, inputFiles, molLookup, mols);
+    UpdateCoordinate(pdb, inputFiles, molLookup, mols);    
+    UpdateMinMaxAtoms(pdb, inputFiles, molLookup, mols);
+    binaryCoor.clear();
   }
   // Read the binary velocity and update the buffer
   if(inputFiles.restart.restartFromBinaryVelFile) {
-    int cmIndex = 0;
-    for(int b = 0; b < BOX_TOTAL; b++) {
-      if(inputFiles.files.binaryVelInput.defined[b]) {
-        std::string fName = inputFiles.files.binaryVelInput.name[b];
-        UpdateVelocity(pdb, vel, fName.c_str(), b, molLookup, mols, cmIndex);
+    binaryVeloc.clear();
+    binaryVeloc.resize(pdb.atoms.beta.size());
+    ReadVelocity(pdb, inputFiles, molLookup, mols);
+    UpdateVelocity(vel, inputFiles, molLookup, mols);
+    binaryVeloc.clear();
+  }
+}
+
+void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, 
+                                      config_setup::Input & inputFiles,
+                                      MoleculeLookup & molLookup,
+                                      Molecules & mols)
+{
+  uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
+  //find the starting index
+  for (uint box = 0; box < BOX_TOTAL; ++box) {
+    if(inputFiles.files.binaryCoorInput.defined[box]) {
+      //find the starting index
+      for (int mol = boxMoleculeOffset[box]; mol < boxMoleculeOffset[box+1]; ++mol){    
+        dataI = mol;
+        if (mols.restartFromCheckpoint){
+          trajectoryI = molLookup.molLookup[mol];
+          mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
+        } else {
+          trajectoryI = mol;
+          mols.GetRangeStartStop(dataStart, dataEnd, dataI);
+        }
+        mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
+        //Loop through particles in mol.
+        for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+          pdb.atoms.x[p] = binaryCoor[d].x;
+          pdb.atoms.y[p] = binaryCoor[d].y;
+          pdb.atoms.z[p] = binaryCoor[d].z;
+        }
       }
     }
   }
 }
 
-void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box, MoleculeLookup & molLookup,
-                                      Molecules & mols, int & cmIndex)
-{
-  // We must read restart PDB, which hold correct
-  // number atom info in each Box
-  int numAtoms = pdb.atoms.numAtomsInBox[box];
-  int moleculeOffset = 0;
-  XYZ *binaryCoor;
-  binaryCoor = new XYZ[numAtoms];
-  read_binary_file(filename, binaryCoor, numAtoms);
-  //find the starting index
-
-  for(; cmIndex < (int) molLookup.molLookupCount; cmIndex++) {
-    if(moleculeOffset >= numAtoms) break;
-    int currentMolecule = molLookup.molLookup[cmIndex];
-    int numberOfAtoms = mols.start[currentMolecule + 1] - mols.start[currentMolecule];
-    int atomDestinationStart = mols.start[currentMolecule];
-
-    for(int atom = 0; atom < numberOfAtoms; atom++) {
-      pdb.atoms.x[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].x;
-      pdb.atoms.y[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].y;
-      pdb.atoms.z[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].z;
+void ExtendedSystem::ReadCoordinate(PDBSetup &pdb, config_setup::Input & inputFiles, MoleculeLookup & molLookup,
+                                     Molecules & mols){
+  for(int b = 0; b < BOX_TOTAL; b++) {
+    if(inputFiles.files.binaryCoorInput.defined[b]) {
+      std::string fName = inputFiles.files.binaryCoorInput.name[b];  
+      read_binary_file(fName.c_str(), &binaryCoor[pdb.atoms.boxAtomOffset[b]], pdb.atoms.numAtomsInBox[b]);
     }
-
-    moleculeOffset += numberOfAtoms;
   }
-
-  delete [] binaryCoor;
 }
 
-void ExtendedSystem::UpdateVelocity(PDBSetup &pdb, Velocity &vel, const char *filename, const int box,
-                                    MoleculeLookup & molLookup, Molecules & mols, int & cmIndex)
-{
-  // We must read restart PDB, which hold correct
-  // number atom info in each Box
-  int numAtoms = pdb.atoms.numAtomsInBox[box];
-  int moleculeOffset = 0;
-  XYZ *binaryVel;
-  binaryVel = new XYZ[numAtoms];
-  read_binary_file(filename, binaryVel, numAtoms);
-  //find the starting index
+void ExtendedSystem::UpdateMinMaxAtoms(PDBSetup &pdb,
+                                      config_setup::Input & inputFiles, 
+                                      MoleculeLookup & molLookup,
+                                      Molecules & mols){
+  XYZArray binaryCoorSOA(binaryCoor);
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    if(inputFiles.files.binaryCoorInput.defined[b]) {
+      // To prevent segfault
+      if (pdb.atoms.numAtomsInBox[b] == 0)
+        return;
+      int stRange, endRange;
+      stRange = pdb.atoms.boxAtomOffset[b];
+      endRange = pdb.atoms.boxAtomOffset[b+1];
 
-  for(; cmIndex < (int) molLookup.molLookupCount; cmIndex++) {
-    if(moleculeOffset >= numAtoms) break;
-    int currentMolecule = molLookup.molLookup[cmIndex];
-    int numberOfAtoms = mols.start[currentMolecule + 1] - mols.start[currentMolecule];
-    int atomDestinationStart = mols.start[currentMolecule];
-
-    for(int atom = 0; atom < numberOfAtoms; atom++) {
-      vel.x[atomDestinationStart + atom] = binaryVel[moleculeOffset + atom].x;
-      vel.y[atomDestinationStart + atom] = binaryVel[moleculeOffset + atom].y;
-      vel.z[atomDestinationStart + atom] = binaryVel[moleculeOffset + atom].z;
+      pdb.atoms.min[b].x = *std::min_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
+      pdb.atoms.min[b].y = *std::min_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
+      pdb.atoms.min[b].z = *std::min_element(binaryCoorSOA.z + stRange, binaryCoorSOA.z + endRange);
+      pdb.atoms.max[b].x = *std::max_element(binaryCoorSOA.x + stRange, binaryCoorSOA.x + endRange);
+      pdb.atoms.max[b].y = *std::max_element(binaryCoorSOA.y + stRange, binaryCoorSOA.y + endRange);
+      pdb.atoms.max[b].z = *std::max_element(binaryCoorSOA.z + stRange, binaryCoorSOA.z + endRange);
     }
-
-    moleculeOffset += numberOfAtoms;
   }
+}
 
-  delete [] binaryVel;
+
+
+void ExtendedSystem::ReadVelocity(PDBSetup &pdb, config_setup::Input & inputFiles, MoleculeLookup & molLookup,
+                                     Molecules & mols){
+  for(int b = 0; b < BOX_TOTAL; b++) {
+    if(inputFiles.files.binaryVelInput.defined[b]) {
+      std::string fName = inputFiles.files.binaryVelInput.name[b];  
+      read_binary_file(fName.c_str(), &binaryVeloc[pdb.atoms.boxAtomOffset[b]], pdb.atoms.numAtomsInBox[b]);
+    }
+  }
+}
+
+void ExtendedSystem::UpdateVelocity(Velocity & vel, 
+                                    config_setup::Input & inputFiles,
+                                    MoleculeLookup & molLookup,
+                                    Molecules & mols)
+{
+  uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
+  for (uint box = 0; box < BOX_TOTAL; ++box) {
+    if(inputFiles.files.binaryVelInput.defined[box]) {
+      //find the starting index
+      for (int mol = boxMoleculeOffset[box]; mol < boxMoleculeOffset[box+1]; ++mol){
+        dataI = mol;
+        if (mols.restartFromCheckpoint){
+          trajectoryI = molLookup.molLookup[mol];
+          mols.GetRestartOrderedRangeStartStop(dataStart, dataEnd, dataI);
+        } else {
+          trajectoryI = mol;
+          mols.GetRangeStartStop(dataStart, dataEnd, dataI);
+        }
+        mols.GetRangeStartStop(placementStart, placementEnd, trajectoryI);
+        //Loop through particles in mol.
+        for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+          vel.x[p] = binaryVeloc[d].x;
+          vel.y[p] = binaryVeloc[d].y;
+          vel.z[p] = binaryVeloc[d].z;
+        }
+      }
+    }
+  }
 }
 
 void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box)
 {
-  if (hasCellBasis[box]) {
     pdb.cryst.hasCellBasis[box] = true;
     // Important to set to false, so BoxDim reads the cellBasis vector
     // and not cell length and angle
@@ -133,7 +206,6 @@ void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box)
     for(int i = 0; i < 3; i++) {
       pdb.cryst.cellAngle[box][i] = cellAngle[box][i];
     }
-  }
 }
 
 void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box)

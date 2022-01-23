@@ -15,9 +15,11 @@ CheckpointSetup::CheckpointSetup(ulong & startStep,
                                 Molecules & mol,
                                 PRNG & prng,
                                 Random123Wrapper & r123,
-                                Setup const& set) :
+                                Setup & set) :
   molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol), prngRef(prng),
-  r123Ref(r123), startStepRef(startStep), trueStepRef(trueStep)
+  r123Ref(r123), startStepRef(startStep), trueStepRef(trueStep),
+  molSetRef(set.mol), ffSetupRef(set.ff), pdbAtomsRef(set.pdb.atoms),
+  startIdxMolecules(set.mol.molVars.startIdxMolecules)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
@@ -44,24 +46,38 @@ void CheckpointSetup::loadCheckpointFile(){
   }
   cereal::BinaryInputArchive ia(ifs);
   ia >> chkObj;
+  SetMoleculeLookup();
+  molLookupRef.AllocateMemory(molLookupRef.molLookupCount, 
+                              molLookupRef.atomCount,
+                              molLookupRef.boxAndKindStartLength,
+                              molLookupRef.boxAndKindSwappableLength);
+  // Dynamic deep copy is done directly from serialization into allocated memory
+
+  ia(cereal::binary_data( molLookupRef.molLookup, sizeof(std::uint32_t) * molLookupRef.molLookupCount ));
+  ia(cereal::binary_data( molLookupRef.boxAndKindStart, sizeof(std::uint32_t) * molLookupRef.boxAndKindStartLength ));
+  ia(cereal::binary_data( molLookupRef.boxAndKindSwappableCounts, sizeof(std::uint32_t) * molLookupRef.boxAndKindSwappableLength ));
+  ia(cereal::binary_data( molLookupRef.molIndex, sizeof(std::int32_t) * molLookupRef.atomCount ));
+  ia(cereal::binary_data( molLookupRef.atomIndex, sizeof(std::int32_t) * molLookupRef.atomCount ));
+  ia(cereal::binary_data( molLookupRef.molKind, sizeof(std::int32_t) * molLookupRef.atomCount ));
+  ia(cereal::binary_data( molLookupRef.atomKind, sizeof(std::int32_t) * molLookupRef.atomCount ));
+  ia(cereal::binary_data( molLookupRef.atomCharge, sizeof(double) * molLookupRef.atomCount ));
   SetCheckpointData();
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
-void CheckpointSetup::InitOver(Molecules & molRef){
-  SetMolecules(molRef);
-  SetMoleculeKindDictionary(molRef);
+void CheckpointSetup::InitOver(){
+  SetMolecules();
 }
 
-void CheckpointSetup::SetCheckpointData   (){
+void CheckpointSetup::SetCheckpointData(){
   SetStepNumber();
   SetTrueStepNumber();
   SetMoveSettings();
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  SetMoleculeKindDictionary();
-  SetMoleculeIndices();
+  SetMoleculeSetup();
+  SetPDBSetupAtoms();
 }
 
 #if GOMC_LIB_MPI
@@ -73,8 +89,8 @@ void CheckpointSetup::SetCheckpointData   (bool & parallelTemperingIsEnabled,
   SetPRNGVariables();
   SetR123Variables();
   SetMolecules();
-  SetMoleculeKindDictionary();
-  SetMoleculeIndices();
+  SetMoleculeSetup();
+  SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
   if(parallelTemperingIsEnabled && parallelTemperingWasEnabled)
     SetPRNGVariablesPT();
@@ -92,41 +108,10 @@ void CheckpointSetup::SetTrueStepNumber()
   trueStepRef = chkObj.trueStepNumber;
 }
 
-void CheckpointSetup::SetMolecules(Molecules& mols)
-{
-  /* Original Start Indices are for space demarcation in trajectory frame */
-  mols.originalStart = vect::transfer<uint32_t>(chkObj.originalStartVec);
-  /* Kinds store accessory molecule data such as residue, charge, etc */
-  mols.originalKIndex = vect::transfer<uint32_t>(chkObj.originalKIndexVec);
-}
-
-// Pass mol reference because the old reference might break after
-// the InitOver call..
-void CheckpointSetup::SetMoleculeKindDictionary(Molecules& mols){
-  // Kind indices and name map
-  std::map<std::string, uint32_t> nameIndexMap;
-  for (uint mk = 0 ; mk < mols.kindsCount; mk++)
-    nameIndexMap[mols.kinds[mk].name] = (uint32_t)mk;
-
-  for (uint mk = 0 ; mk < mols.kindsCount; mk++)
-    mols.originalKIndex2CurrentKIndex[chkObj.originalNameIndexMap[mols.kinds[mk].name]]
-         = nameIndexMap[mols.kinds[mk].name];
-}
-
-void CheckpointSetup::SetMoleculeKindDictionary(){
-  // Kind indices and name map
-  std::map<std::string, uint32_t> nameIndexMap;
-  for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
-    nameIndexMap[molRef.kinds[mk].name] = (uint32_t)mk;
-
-  for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
-    molRef.originalKIndex2CurrentKIndex[chkObj.originalNameIndexMap[molRef.kinds[mk].name]]
-         = nameIndexMap[molRef.kinds[mk].name];
-}
-
 void CheckpointSetup::SetMoveSettings()
 {
-  moveSetRef.scale = chkObj.scaleVec;
+  // Move Settings Vectors
+  moveSetRef.scale =  chkObj.scaleVec;
   moveSetRef.acceptPercent = chkObj.acceptPercentVec;
   moveSetRef.accepted = chkObj.acceptedVec;
   moveSetRef.tries = chkObj.triesVec;
@@ -134,8 +119,11 @@ void CheckpointSetup::SetMoveSettings()
   moveSetRef.tempTries = chkObj.tempTriesVec;
   moveSetRef.mp_tries = chkObj.mp_triesVec;
   moveSetRef.mp_accepted = chkObj.mp_acceptedVec;
-  moveSetRef.mp_t_max = chkObj.mp_t_maxVec;
+  moveSetRef.mp_interval_accepted = chkObj.mp_interval_acceptedVec;
+  moveSetRef.mp_interval_tries = chkObj.mp_interval_triesVec;
   moveSetRef.mp_r_max = chkObj.mp_r_maxVec;
+  moveSetRef.mp_t_max = chkObj.mp_t_maxVec;
+  moveSetRef.isSingleMoveAccepted = chkObj.isSingleMoveAcceptedVec;
 }
 
 void CheckpointSetup::SetPRNGVariables()
@@ -153,17 +141,48 @@ void CheckpointSetup::SetR123Variables()
 
 void CheckpointSetup::SetMolecules()
 {
-  /* Original Start Indices are for space demarcation in trajectory frame */
-  molRef.originalStart = vect::transfer<uint32_t>(chkObj.originalStartVec);
-  /* Kinds store accessory molecule data such as residue, charge, etc */
-  molRef.originalKIndex = vect::transfer<uint32_t>(chkObj.originalKIndexVec);
+  molRef.restartOrderedStart = new uint [chkObj.originalMolSetup.molVars.moleculeIteration + 1];
+  /* If new run, originalStart & originalKIndex and start & kIndex are identical */
+  molRef.restartOrderedStart = vect::TransferInto<uint>(molRef.restartOrderedStart, chkObj.restartedStartVec);
 }
 
-void CheckpointSetup::SetMoleculeIndices(){
+void CheckpointSetup::SetMoleculeLookup(){
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-  molLookupRef.originalMoleculeIndices = vect::transfer<uint32_t>(chkObj.originalMoleculeIndicesVec);
-  /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
-  molLookupRef.permutedMoleculeIndices = vect::transfer<uint32_t>(chkObj.permutedMoleculeIndicesVec);
+  molLookupRef = chkObj.originalMoleculeLookup;
+}
+
+void CheckpointSetup::SetMoleculeSetup(){
+  molSetRef = chkObj.originalMolSetup;
+  molSetRef.AssignKinds(molSetRef.molVars, ffSetupRef);
+}
+
+void CheckpointSetup::SetPDBSetupAtoms(){
+  uint p, d, trajectoryI, dataI, placementStart, placementEnd, dataStart, dataEnd;
+  for (int mol = 0; mol < molLookupRef.molLookupCount; ++mol){
+    trajectoryI = molLookupRef.molLookup[mol];
+    dataI = mol;
+    //Loop through particles in mol.
+    GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+    GetRestartRangeStartStop(dataStart, dataEnd, dataI);
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      chkObj.originalAtoms.x[p] = pdbAtomsRef.x[d];
+      chkObj.originalAtoms.y[p] = pdbAtomsRef.y[d];
+      chkObj.originalAtoms.z[p] = pdbAtomsRef.z[d];
+      chkObj.originalAtoms.beta[p] = pdbAtomsRef.beta[d];
+      chkObj.originalAtoms.occ[p] = pdbAtomsRef.occ[d];
+      chkObj.originalAtoms.box[p] = pdbAtomsRef.box[d];
+    }
+  }
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    chkObj.originalAtoms.numAtomsInBox[b] = pdbAtomsRef.numAtomsInBox[b];
+    chkObj.originalAtoms.min[b] = pdbAtomsRef.min[b];
+    chkObj.originalAtoms.max[b] = pdbAtomsRef.max[b];
+  }
+  for (int b = 0; b < BOX_TOTAL + 1; ++b){
+    chkObj.originalAtoms.boxAtomOffset[b] = pdbAtomsRef.boxAtomOffset[b];
+  }
+  // Should do a default assignment of the vectors and primitives.
+  pdbAtomsRef = chkObj.originalAtoms;
 }
 
 
@@ -181,3 +200,15 @@ void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
   prngPT.GetGenerator()->seedValue = chkObj.seedValuePT;
 }
 #endif
+
+void CheckpointSetup::GetRestartRangeStartStop(uint & _start, uint & stop, const uint m) const
+{
+  _start = chkObj.restartedStartVec[m];
+  stop = chkObj.restartedStartVec[m + 1];
+}
+
+void CheckpointSetup::GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const
+{
+  _start = chkObj.originalStartVec[m];
+  stop = chkObj.originalStartVec[m + 1];
+}

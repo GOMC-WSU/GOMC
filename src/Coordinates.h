@@ -38,7 +38,7 @@ public:
   void InitFromPDB(pdb_setup::Atoms const& atoms);
 
   // to see if they are within defined volume or not.
-  void CheckCoordinate();
+  void WrapCoordinate(const XYZ min[BOX_TOTAL], const XYZ max[BOX_TOTAL]);
 
   //Translate by a random amount
   void TranslateRand(XYZArray & dest, XYZ & newCOM, uint & pStart,

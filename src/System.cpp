@@ -37,7 +37,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "TargetedSwap.h"
 #include "GOMCEventsProfile.h"
 
-System::System(StaticVals& statics, Setup const& set,
+System::System(StaticVals& statics, 
+               Setup & set,
                ulong & startStep,
                MultiSim const*const& multisim) :
   statV(statics),
@@ -58,61 +59,20 @@ System::System(StaticVals& statics, Setup const& set,
   checkpointSet(startStep, trueStep, molLookupRef, moveSettings, statics.mol, prng, r123wrapper, set),
   vel(statics.forcefield, molLookupRef, statics.mol, prng),
   restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
-  startStepRef(startStep)
-
+  startStepRef(startStep),
+  trueStep(0)
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     prngParallelTemp = new PRNG(molLookupRef);
 #endif
-}
-
-System::~System()
-{
-  if (boxDimensions != NULL)
-    delete boxDimensions;
-  if (calcEwald != NULL)
-    delete calcEwald;
-  delete moves[mv::DISPLACE];
-  delete moves[mv::ROTATE];
-  delete moves[mv::MULTIPARTICLE];
-  delete moves[mv::MULTIPARTICLE_BM];
-  delete moves[mv::INTRA_SWAP];
-  delete moves[mv::REGROWTH];
-  delete moves[mv::INTRA_MEMC];
-  delete moves[mv::CRANKSHAFT];
-  delete moves[mv::INTRA_TARGETED_SWAP];
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  delete moves[mv::VOL_TRANSFER];
-#endif
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  delete moves[mv::MOL_TRANSFER];
-  delete moves[mv::MEMC];
-  delete moves[mv::NE_MTMC];
-  delete moves[mv::TARGETED_SWAP];
-#endif
-#if GOMC_LIB_MPI
-  if(ms->parallelTemperingEnabled)
-    delete prngParallelTemp;
-#endif
-}
-
-void System::Init(Setup & set)
-{
   prng.Init(set.prng.prngMaker.prng);
   r123wrapper.SetRandomSeed(set.config.in.prng.seed);
 #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
 #endif
-#ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
-#endif
-  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
-  // allocate memory for atom's velocity if we read the binVelocities
-  vel.Init(set.pdb.atoms, set.config.in);
-
   // At this point see if checkpoint is enabled. if so re-initialize
   // step, movesettings, prng, original molecule start and kindex arrays, and original molecule trajectory indices
   if(restartFromCheckpoint) {
@@ -122,7 +82,33 @@ void System::Init(Setup & set)
   if(set.config.sys.step.initStepRead){
     startStepRef = set.config.sys.step.initStep;
   }
+}
 
+System::~System()
+{
+  if (boxDimensions != NULL)
+    delete boxDimensions;
+  if (calcEwald != NULL)
+    delete calcEwald;
+  for (int m=0; m < mv::MOVE_KINDS_TOTAL; ++m) {
+    delete moves[m];
+  }
+#if GOMC_LIB_MPI
+  if(ms->parallelTemperingEnabled)
+    delete prngParallelTemp;
+#endif
+}
+
+void System::Init(Setup & set)
+{
+#ifdef VARIABLE_PARTICLE_NUMBER
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield,
+                    set.config.in.restart.restartFromCheckpoint);
+#endif
+  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind(),
+                    set.config.in.restart.restartFromCheckpoint);
+  // allocate memory for atom's velocity if we read the binVelocities
+  vel.Init(set.pdb.atoms, set.config.in);
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   // set coordinates and velocities for atoms in system
   xsc.Init(set.pdb, vel, set.config.in, molLookupRef, statV.mol);
@@ -172,7 +158,7 @@ void System::Init(Setup & set)
 void System::InitOver(Setup & set, Molecules & molRef)
 {
   if(restartFromCheckpoint)
-    checkpointSet.InitOver(molRef);
+    checkpointSet.InitOver();
 }
 
 void System::InitMoves(Setup const& set)
@@ -259,7 +245,8 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
   set.pdb.Init(set.config.in.restart, set.config.in.files.pdb.name, frameNum);
   statV.InitOver(set, *this);
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield,
+                  set.config.in.restart.restartFromCheckpoint);
 #endif
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();
@@ -271,13 +258,20 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 
 void System::ChooseAndRunMove(const ulong step)
 {
-  if(restartFromCheckpoint)
+  if(restartFromCheckpoint){
+    // step - startStepRef = Δstep
+    // true step + Δstep
     r123wrapper.SetStep(trueStep + step - startStepRef);
-  else
+  } else {
     r123wrapper.SetStep(step);
+  }
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
+#ifndef NDEBUG
+  std::cout << "Step " << step+1 << ": Picked move #" << majKind << ": "
+            << str::MoveTypetoStr(majKind) << " move" << std::endl;
+#endif
   time.SetStart();
   RunMove(majKind, draw, step);
   time.SetStop();
@@ -350,27 +344,11 @@ void System::PrintAcceptance()
 
 void System::PrintTime()
 {
+  std::string moveName;
   //std::cout << "MC moves Execution time:\n";
-  printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
-  printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
-  printf("%-36s %10.4f    sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
-  printf("%-36s %10.4f    sec.\n", "MultiParticle-Brownian:", moveTime[mv::MULTIPARTICLE_BM]);
-  printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
-  printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
-  printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
-  printf("%-36s %10.4f    sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
-  printf("%-36s %10.4f    sec.\n", "Intra-Targeted-Transfer:", moveTime[mv::INTRA_TARGETED_SWAP]);
-
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
-         moveTime[mv::MOL_TRANSFER]);
-  printf("%-36s %10.4f    sec.\n", "Targeted-Transfer:",
-         moveTime[mv::TARGETED_SWAP]);
-  printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
-  printf("%-36s %10.4f    sec.\n", "nonEq Mol-Transfer:", moveTime[mv::NE_MTMC]);
-#endif
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
-#endif
+  for (auto m=0; m < mv::MOVE_KINDS_TOTAL; ++m) {
+    moveName = str::MoveTypetoStr(m)+':';
+    printf("%-36s %10.4f    sec.\n", moveName.c_str(), moveTime[m]);
+  }
   std::cout << std::endl;
 }
