@@ -69,6 +69,11 @@ public:
   {
     return 0.0;
   }
+  //!Returns zero for impulse pressure correction term for a kind pair
+  virtual double ImpulsePressureCorrection(const uint kind1, const uint kind2) const
+  {
+    return 0.0;
+  }
 
   //Calculate the dE/dlambda for vdw energy
   virtual double CalcdEndL(const double distSq, const uint kind1,

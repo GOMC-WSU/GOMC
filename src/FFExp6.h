@@ -78,6 +78,9 @@ public:
   //!!Returns virial correction
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
 
+  //!Returns impulse pressure correction term for a kind pair
+  virtual double ImpulsePressureCorrection(const uint kind1, const uint kind2) const;
+
   //Calculate the dE/dlambda for vdw energy
   virtual double CalcdEndL(const double distSq, const uint kind1,
                            const uint kind2, const
@@ -411,6 +414,19 @@ inline double FF_EXP6::VirialLRC(const uint kind1, const uint kind2) const
                             (6.0 * B * B * B + 6.0 * B * B * rCut +
                              3.0 * rCut * rCut * B + rCut * rCut * rCut) -
                             2.0 * C / (rCut * rCut * rCut));
+  return tc;
+}
+
+inline double FF_EXP6::ImpulsePressureCorrection(const uint kind1, const uint kind2) const
+{
+  uint idx = FlatIndex(kind1, kind2);
+  double rCut = forcefield.rCut;
+  double rCut3 = rCut * forcefield.rCutSq;
+  double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
+  double B = -1.0 * (double)n[idx] / rMin[idx];
+  double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6.0) /
+             ((double)n[idx] - 6.0);
+  double tc = 2.0 * M_PI * (A * exp(rCut * B) * rCut3 - C / rCut3);
   return tc;
 }
 

@@ -134,6 +134,18 @@ double FFParticle::VirialLRC(const uint kind1, const uint kind2) const
   return tc;
 }
 
+double FFParticle::ImpulsePressureCorrection(const uint kind1, const uint kind2) const
+{
+  uint idx = FlatIndex(kind1, kind2);
+  double tc = 1.0;
+  double sigma = sqrt(sigmaSq[idx]);
+  double rRat = sigma / forcefield.rCut;
+  double N = (double)(n[idx]);
+  tc *= 2.0 * M_PI * epsilon_cn[idx] * forcefield.rCutSq * forcefield.rCut ;
+  tc *= (pow(rRat, N) - pow(rRat, 6.0));
+  return tc;
+}
+
 void FFParticle::Blend(ff_setup::Particle const& mie)
 {
   for(uint i = 0; i < count; ++i) {

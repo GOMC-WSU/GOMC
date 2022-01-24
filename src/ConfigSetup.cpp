@@ -73,6 +73,7 @@ ConfigSetup::ConfigSetup(void)
   sys.T.inKelvin = DBL_MAX;
   sys.ff.VDW_KIND = UINT_MAX;
   sys.ff.doTailCorr = true;
+  sys.ff.doImpulsePressureCorr = false;
   sys.ff.rswitch = DBL_MAX;
   sys.ff.cutoff = DBL_MAX;
   sys.ff.cutoffLow = DBL_MAX;
@@ -380,6 +381,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
       else
         printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
+    } else if(CheckString(line[0], "IPC")) {
+      sys.ff.doImpulsePressureCorr = checkBool(line[1]);
+      if(sys.ff.doImpulsePressureCorr)
+        printf("%-40s %-s \n", "Info: Impulse Pressure Correction", "Active");
+      else
+        printf("%-40s %-s \n", "Info: Impulse Pressure Correction", "Inactive");
     } else if(CheckString(line[0], "Rswitch")) {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
@@ -1740,7 +1747,24 @@ void ConfigSetup::verifyInputs(void)
   if(((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
       (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND)) && sys.ff.doTailCorr) {
     std::cout << "Warning: Long Range Correction is Active for " <<
-              "truncated potential." << std::endl;
+              "truncated potential. Ignoring this option!" << std::endl;
+    sys.ff.doTailCorr = false;
+  }
+  if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
+      (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && (sys.ff.doImpulsePressureCorr == false)) {
+    std::cout << "Warning: Impulse Pressure Correction is Inactive for " <<
+              "Non-truncated potential." << std::endl;
+  }
+  if(((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
+      (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND)) && sys.ff.doImpulsePressureCorr) {
+    std::cout << "Warning: Impulse Pressure Correction is Active for " <<
+              "truncated potential. Ignoring this option!" << std::endl;
+    sys.ff.doImpulsePressureCorr = false;
+  }
+  if(sys.ff.doImpulsePressureCorr && sys.ff.doTailCorr) {
+    std::cout << "Error: Both LRC (Long Range Correction) and " <<
+              "IPC (Impulse Pressure Correction) cannot be used together!" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if(sys.ff.cutoff == DBL_MAX) {
     std::cout << "Error: Cutoff is not specified!" << std::endl;

@@ -45,6 +45,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
                                config_setup::FFKind const& ffKind)
 {
   useLRC = val.ff.doTailCorr;
+  useIPC = val.ff.doImpulsePressureCorr;
   T_in_K = val.T.inKelvin;
   rCut = val.ff.cutoff;
   rCutSq = rCut * rCut;

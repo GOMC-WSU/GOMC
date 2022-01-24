@@ -42,6 +42,7 @@ public:
   FFAngles * angles;              //!<For 3-atom bending energy
   FFDihedrals dihedrals;          //!<For 4-atom torsional rotation energy
   bool useLRC;                    //!<Use long-range tail corrections if true
+  bool useIPC;                    //!<Use impulse pressure corrections if true
   double T_in_K;                  //!<System temp in Kelvin
   double beta;                    //!<Thermodynamic beta = 1/(T) K^-1)
   double rCut, rCutSq;            //!<Cutoff radius for LJ/Mie potential (angstroms)

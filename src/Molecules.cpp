@@ -150,25 +150,45 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   //Pair Correction matrices
   pairEnCorrections = new double[kindsCount * kindsCount];
   pairVirCorrections = new double[kindsCount * kindsCount];
-  for(uint i = 0; i < kindsCount; ++i) {
-    for(uint j = i; j < kindsCount; ++j) {
-      pairEnCorrections[i * kindsCount + j] = 0.0;
-      pairVirCorrections[i * kindsCount + j] = 0.0;
-      for(uint pI = 0; pI < kinds[i].NumAtoms(); ++pI) {
-        for(uint pJ = 0; pJ < kinds[j].NumAtoms(); ++pJ) {
-          pairEnCorrections[i * kindsCount + j] +=
-            forcefield.particles->EnergyLRC(kinds[i].AtomKind(pI),
-                                            kinds[j].AtomKind(pJ));
-          pairVirCorrections[i * kindsCount + j] +=
-            forcefield.particles->VirialLRC(kinds[i].AtomKind(pI),
-                                            kinds[j].AtomKind(pJ));
+  // Initial with zero
+  std::fill_n(pairEnCorrections, kindsCount * kindsCount, 0.0);
+  std::fill_n(pairVirCorrections, kindsCount * kindsCount, 0.0);
+
+  if (forcefield.useLRC) {
+    for(uint i = 0; i < kindsCount; ++i) {
+      for(uint j = i; j < kindsCount; ++j) {
+        for(uint pI = 0; pI < kinds[i].NumAtoms(); ++pI) {
+          for(uint pJ = 0; pJ < kinds[j].NumAtoms(); ++pJ) {
+            pairEnCorrections[i * kindsCount + j] +=
+              forcefield.particles->EnergyLRC(kinds[i].AtomKind(pI),
+                                              kinds[j].AtomKind(pJ));
+            pairVirCorrections[i * kindsCount + j] +=
+              forcefield.particles->VirialLRC(kinds[i].AtomKind(pI),
+                                              kinds[j].AtomKind(pJ));
+          }
         }
+        //set other side of the diagonal
+        pairEnCorrections[j * kindsCount + i] =
+          pairEnCorrections[i * kindsCount + j];
+        pairVirCorrections[j * kindsCount + i] =
+          pairVirCorrections[i * kindsCount + j];
       }
-      //set other side of the diagonal
-      pairEnCorrections[j * kindsCount + i] =
-        pairEnCorrections[i * kindsCount + j];
-      pairVirCorrections[j * kindsCount + i] =
-        pairVirCorrections[i * kindsCount + j];
+    }
+  } else if (forcefield.useIPC) {
+    for(uint i = 0; i < kindsCount; ++i) {
+      for(uint j = i; j < kindsCount; ++j) {
+        for(uint pI = 0; pI < kinds[i].NumAtoms(); ++pI) {
+          for(uint pJ = 0; pJ < kinds[j].NumAtoms(); ++pJ) {
+            // There is no Impulse energy term. Just Pressure
+            pairVirCorrections[i * kindsCount + j] +=
+              forcefield.particles->ImpulsePressureCorrection(kinds[i].AtomKind(pI),
+                                                              kinds[j].AtomKind(pJ));
+          }
+        }
+        //set other side of the diagonal
+        pairVirCorrections[j * kindsCount + i] =
+          pairVirCorrections[i * kindsCount + j];
+      }
     }
   }
 }
