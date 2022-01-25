@@ -157,9 +157,14 @@ double ConfigSetup::stringtod(const std::string& s)
 
 bool ConfigSetup::checkBool(std::string str)
 {
-  uint k;
+  //short circuit for long strings
+  if (str.length() > 5) {
+    std::cout << "Error: " << str << "couldn't be recognized!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   // capitalize string
-  for(k = 0; k < str.length(); k++) {
+  for(uint k = 0; k < str.length(); k++) {
     str[k] = toupper(str[k]);
   }
 
@@ -169,6 +174,22 @@ bool ConfigSetup::checkBool(std::string str)
     return false;
   std::cout << "Error: " << str << "couldn't be recognized!" << std::endl;
   exit(EXIT_FAILURE);
+}
+
+//Same as checkBool but doesn't exit with an error if the string doesn't
+//represent a boolean value. Use for cases where we aren't sure the argument
+//string should be a boolean.
+bool ConfigSetup::isBool(std::string str)
+{
+  //short circuit for long strings
+  if (str.length() > 5) return false;
+
+  // capitalize string
+  for(uint k = 0; k < str.length(); k++) {
+    str[k] = toupper(str[k]);
+  }
+
+  return (str == "ON" || str == "TRUE" || str == "YES" || str == "OFF" || str == "FALSE" || str == "NO");
 }
 
 bool ConfigSetup::CheckString(std::string str1, std::string str2)
@@ -313,21 +334,25 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.restart.restartFromXSCFile = true;
     } else if(CheckString(line[0], "Checkpoint")) {
       if (line.size() == 3){
-        in.files.checkpoint.defined[0] = checkBool(line[1]);
-        in.restart.restartFromCheckpoint = checkBool(line[1]);
+        in.files.checkpoint.defined[0] = in.restart.restartFromCheckpoint = checkBool(line[1]);
         if(multisim != NULL) {
           in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[2];
         } else {
           in.files.checkpoint.name[0] = line[2];
         }
       } else {
-        in.files.checkpoint.defined[0] = true;
-        in.restart.restartFromCheckpoint = true;
-        if(multisim != NULL) {
-          in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[1];
-        } else {
-          in.files.checkpoint.name[0] = line[1];
-        }
+          if (isBool(line[1])) {
+            in.files.checkpoint.defined[0] = in.restart.restartFromCheckpoint = checkBool(line[1]);
+            in.files.checkpoint.name[0] = "";
+          }
+          else {
+            in.files.checkpoint.defined[0] = in.restart.restartFromCheckpoint = true;
+            if(multisim != NULL) {
+              in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[1];
+            } else {
+              in.files.checkpoint.name[0] = line[1];
+            }
+          }
       }
     }
 #if ENSEMBLE == GEMC
@@ -2289,6 +2314,10 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Restart coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
+  if(in.files.checkpoint.defined[0] && in.files.checkpoint.name[0] == "") {
+    std::cout << "Error: Restart from checkpoint requested but checkpoint filename is not specified!\n";
+    exit(EXIT_FAILURE);
+  } 
   if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX) {
     std::cout << "Error: Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);

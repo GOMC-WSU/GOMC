@@ -905,6 +905,7 @@ private:
   int stringtoi(const std::string& s);
   double stringtod(const std::string& s);
   bool checkBool(std::string str);
+  bool isBool(std::string str);
   bool CheckString(std::string str1, std::string str2);
   void verifyInputs(void);
   InputFileReader reader;
