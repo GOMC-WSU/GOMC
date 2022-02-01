@@ -13,9 +13,9 @@ public:
   void SetRandomSeed(ulong seedValue);
   void SetKey(unsigned int key);
 
-  unsigned int GetStep();
-  unsigned int GetKeyValue();
-  unsigned int GetSeedValue();
+  unsigned int GetStep() const;
+  unsigned int GetKeyValue() const;
+  unsigned int GetSeedValue() const;
   double operator() (unsigned int counter);
 
   double GetRandomNumber(unsigned int counter);

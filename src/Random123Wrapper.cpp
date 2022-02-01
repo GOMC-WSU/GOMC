@@ -8,18 +8,13 @@ Random123Wrapper::Random123Wrapper()
   uk = {{}};
 }
 
-inline RNG::ctr_type getRNG(unsigned int counter)
+inline RNG::ctr_type Random123Wrapper::getRNG(unsigned int counter)
 {
-  // RNG::ctr_type localc = {{}};
-  // RNG::key_type localuk = {{}};
-  // localc[0] = counter;
-  // localc[1] = GetKeyValue();
-  // localuk[0] = GetStep();
-  // localuk[1] = GetSeedValue();
-  // return rng(localc, localuk);
-  c[0] = counter;
-  RNG::key_type k = uk;
-  return rng(c, k);
+  //Need the localc to avoid OpenMP race conditions
+  RNG::ctr_type localc = {{}};
+  localc[0] = counter;
+  localc[1] = GetKeyValue();
+  return rng(localc, uk);
 }
   
 void Random123Wrapper::SetStep(ulong step)
@@ -37,17 +32,17 @@ void Random123Wrapper::SetKey(unsigned int key)
   c[1] = key;
 }
 
-unsigned int Random123Wrapper::GetStep()
+unsigned int Random123Wrapper::GetStep() const
 {
   return uk[0];
 }
 
-unsigned int Random123Wrapper::GetKeyValue()
+unsigned int Random123Wrapper::GetKeyValue() const
 {
   return c[1];
 }
 
-unsigned int Random123Wrapper::GetSeedValue()
+unsigned int Random123Wrapper::GetSeedValue() const
 {
   return uk[1];
 }

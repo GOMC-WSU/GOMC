@@ -471,16 +471,7 @@ inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb,
                  std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE;
 
   if (forceInRange) {
-    XYZ randnums;
-#ifdef _OPENMP
-    //Even though we call different random123 functions, they all change c[0]
-    //and use the same rng() function, so they all need to be in the same
-    //critical section (not different names).
-    #pragma omp critical
-#endif
-    {
-      randnums = r123wrapper.GetRandomCoords(molIndex);
-    }
+    XYZ randnums = r123wrapper.GetRandomCoords(molIndex);
     val.x = log(exp(-1.0 * lbmax.x) + 2.0 * randnums.x * sinh(lbmax.x)) / lb.x;
     val.y = log(exp(-1.0 * lbmax.y) + 2.0 * randnums.y * sinh(lbmax.y)) / lb.y;
     val.z = log(exp(-1.0 * lbmax.z) + 2.0 * randnums.z * sinh(lbmax.z)) / lb.z;
@@ -618,18 +609,8 @@ inline void MultiParticle::TranslateForceBiased(uint molIndex)
 inline void MultiParticle::RotateRandom(uint molIndex)
 {
   double r_max = moveSetRef.GetRMAX(bPick);
-  double symRand;
-  XYZ sphereCoords;
-#ifdef _OPENMP
-  //Even though we call different random123 functions, they all change c[0]
-  //and use the same rng() function, so they all need to be in the same
-  //critical section (not different names).
-  #pragma omp critical
-#endif
-  {
-    symRand = r123wrapper.GetSymRandom(molIndex, r_max);
-    sphereCoords = r123wrapper.GetRandomCoordsOnSphere(molIndex);
-  }
+  double symRand = r123wrapper.GetSymRandom(molIndex, r_max);
+  XYZ sphereCoords = r123wrapper.GetRandomCoordsOnSphere(molIndex);
   RotationMatrix matrix = RotationMatrix::FromAxisAngle(symRand, sphereCoords);
 
   XYZ center = comCurrRef.Get(molIndex);
@@ -655,19 +636,10 @@ inline void MultiParticle::RotateRandom(uint molIndex)
 inline void MultiParticle::TranslateRandom(uint molIndex)
 {
   double t_max = moveSetRef.GetTMAX(bPick);
-  XYZ shift;
-#ifdef _OPENMP
-  //Even though we call different random123 functions, they all change c[0]
-  //and use the same rng() function, so they all need to be in the same
-  //critical section (not different names).
-  #pragma omp critical
-#endif
-  {
-    shift = r123wrapper.GetSymRandomCoords(molIndex, t_max);
-  }
-
+  XYZ shift = r123wrapper.GetSymRandomCoords(molIndex, t_max);
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
+
   molRef.GetRange(start, stop, len, molIndex);
   // Copy the range into temporary array
   XYZArray temp(len);
