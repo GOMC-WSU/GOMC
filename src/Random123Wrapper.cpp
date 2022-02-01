@@ -10,7 +10,7 @@ Random123Wrapper::Random123Wrapper()
 
 inline RNG::ctr_type Random123Wrapper::getRNG(unsigned int counter)
 {
-  //Need the localc to avoid OpenMP race conditions
+  //Need to use the localc variable to avoid OpenMP race conditions
   RNG::ctr_type localc = {{}};
   localc[0] = counter;
   localc[1] = GetKeyValue();
