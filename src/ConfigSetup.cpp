@@ -2314,7 +2314,7 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Restart coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(in.files.checkpoint.defined[0] && in.files.checkpoint.name[0] == "") {
+  if(in.restart.restartFromCheckpoint && in.files.checkpoint.name[0] == "") {
     std::cout << "Error: Restart from checkpoint requested but checkpoint filename is not specified!\n";
     exit(EXIT_FAILURE);
   } 
