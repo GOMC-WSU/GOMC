@@ -765,12 +765,83 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
 
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
-    uint lengthNew, lengthOld;
+    
+#ifdef GOMC_CUDA
+    // save all the atom charges of each new and old molecules
+    std::vector<double> chargeBoxNew;
+    MoleculeKind const& thisKindNew = newMol[0].GetKind();
+    uint lengthNew = thisKindNew.NumAtoms() * newMol.size();
+    XYZArray newMolCoords = XYZArray(lengthNew); 
+
+
+    int newChargedParticles =0; 
+    for (uint m = 0; m < newMol.size(); m++) {
+      uint newMoleculeIndex = molIndexNew[m];
+      double lambdaCoef = GetLambdaCoef(newMoleculeIndex, box);
+
+      XYZArray currNewMolCoords = newMol[m].GetCoords(); 
+      // lengthnew looping up to mol * atoms instead of just atoms like in cpu
+    //  std::cout << "\nbefore lengthNew: " << lengthNew << std::endl; 
+
+      for (uint p = 0; p < lengthNew; ++p) {
+        unsigned long currentAtom = mols.MolStart(newMoleculeIndex) + p;
+        if(particleHasNoCharge[currentAtom]) {
+          continue;
+        }
+         newMolCoords.Set(newChargedParticles, 
+                        currNewMolCoords.x[p],
+                        currNewMolCoords.y[p],
+                        currNewMolCoords.z[p]); 
+        newChargedParticles +=1;
+        chargeBoxNew.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
+      }      
+    }
+    lengthNew = newChargedParticles;
+    //  std::cout << "\nafter lengthNew: " << lengthNew << std::endl; 
+
+    // std::cout << "\nlengthNew: " << lengthNew << std::endl; 
+
+
+
+    std::vector<double> chargeBoxOld;
+    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
+    uint lengthOld = thisKindOld.NumAtoms() * oldMol.size();
+    XYZArray oldMolCoords = XYZArray(lengthOld); 
+
+    int oldChargedParticles =0; 
+    for (uint m = 0; m < oldMol.size(); m++) {
+      uint oldMoleculeIndex = molIndexOld[m];
+      double lambdaCoef = GetLambdaCoef(oldMoleculeIndex, box);
+      XYZArray currOldMolCoords = oldMol[m].GetCoords(); 
+      for (uint p = 0; p < lengthOld; ++p) {
+        unsigned long currentAtom = mols.MolStart(oldMoleculeIndex) + p;
+        if(particleHasNoCharge[currentAtom]) {
+                continue;
+        }
+        oldMolCoords.Set(oldChargedParticles, 
+                      currOldMolCoords.x[p],
+                      currOldMolCoords.y[p],
+                      currOldMolCoords.z[p]); 
+        oldChargedParticles+=1;
+        chargeBoxOld.push_back(thisKindOld.AtomCharge(p) * lambdaCoef);
+      }
+    }
+    lengthOld = oldChargedParticles; 
+    CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(), 
+                                 imageSizeRef[box],
+                                 sumRnew[box], sumInew[box], box, 
+                                 chargeBoxNew, chargeBoxOld,
+                                 lengthNew, lengthOld,
+                                 first_call, 
+                                 energyRecipNew,
+                                 newMolCoords,
+                                 oldMolCoords);
+#else 
+    // recalc length new & old
     MoleculeKind const& thisKindNew = newMol[0].GetKind();
     MoleculeKind const& thisKindOld = oldMol[0].GetKind();
-    lengthNew = thisKindNew.NumAtoms();
-    lengthOld = thisKindOld.NumAtoms();
-
+    uint lengthNew = thisKindNew.NumAtoms();
+    uint lengthOld = thisKindOld.NumAtoms();
 #ifdef _OPENMP
     #pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
     newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
@@ -791,7 +862,6 @@ reduction(+:energyRecipNew)
           }
           double dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],
                                      kzRef[box][i], newMol[m].GetCoords());
-
           // TODO: Using GNU extension we could improve this part of the code
           // by using sincos() function and merge sin() and cos() calculation
           // However, this will not work with Visual studio
@@ -803,6 +873,12 @@ reduction(+:energyRecipNew)
                               sin(dotProductNew));
         }
       }
+      uint gpulengthNew = thisKindNew.NumAtoms() * newMol.size();
+      // std::cout << "\ncpu lengthNew: " << gpulengthNew << std::endl; 
+      // std::cout << "\ncpu currNewMolCoords.Count(: " << newMol[0].GetCoords().Count() << std::endl; 
+      //  printf("cpu lengthNew: %u \n\n", gpulengthNew); 
+      //  printf("cpu currNewMolCoords.Count(: %u \n\n", newMol[0].GetCoords().Count()); 
+
 
       // Subtract the sum of the old molecule
       for (uint m = 0; m < oldMol.size(); m++) {
@@ -815,7 +891,6 @@ reduction(+:energyRecipNew)
           }
           double dotProductOld = Dot(p, kxRef[box][i], kyRef[box][i],
                                      kzRef[box][i], oldMol[m].GetCoords());
-
           // TODO: Using GNU extension we could improve this part of the code
           // by using sincos() function and merge sin() and cos() calculation
           // However, this will not work with Visual studio
@@ -844,21 +919,11 @@ reduction(+:energyRecipNew)
       energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
                          * sumInew[box][i]) * prefactRef[box][i];
     }
-
+#endif 
     // Keep hold of the old recip value
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
   }
-
-//Because MolExchangeReciprocal does not have a matching GPU function, this is
-//a stub function to copy the CPU sumRnew and sumInew vectors to the GPU in case
-//the move is accepted. If this function is ported to the GPU, this call should
-//be moved to the beginning of the MolExchangeReciprocal function and called
-//instead of running the CPU code.
-#ifdef GOMC_CUDA
-  CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(), imageSizeRef[box],
-                               sumRnew[box], sumInew[box], box);
-#endif
 
   // Return the difference between old and new reciprocal energies
   return energyRecipNew - energyRecipOld;
