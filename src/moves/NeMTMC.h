@@ -24,7 +24,7 @@ public:
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef), 
     backUpCoordinate(boxDimRef, backUpCOM, sys.molLookupRef, sys.prng, statV.mol),
     backUpCOM(sys.boxDimRef, backUpCoordinate, sys.molLookupRef, statV.mol),
-    backUpMoveSetting(sys.boxDimRef), propagationMove(NULL)
+    backUpMoveSetting(sys.boxDimRef), propagationMove(NULL), r123wrapper(sys.r123wrapper)
   {
     if(statV.neMTMCVal.enable) {
       conformationProb = statV.neMTMCVal.conformationProb;
@@ -72,6 +72,7 @@ private:
 
   Lambda & lambdaRef;
   System & systemRef;
+  Random123Wrapper &r123wrapper;
   uint sourceBox, destBox;
   uint pStartNEMT, pLenNEMT;
   uint molIndex, kindIndex;
@@ -207,7 +208,7 @@ inline uint NEMTMC::Transform()
     lambdaRef.Set(lambdaVDW[lambdaWindow - lambdaIdxNew],
                   lambdaCoulomb[lambdaWindow - lambdaIdxNew], molIndex,
                   kindIndex, destBox);
-    //Calculate the old and new energy in source and destBox
+    //Calculate the old and new energy in sourceBox and destBox
     CalcEnNEMT(lambdaIdxOld, lambdaIdxNew);
     // Calculate the nonEq work
     AddWork();
@@ -320,7 +321,7 @@ inline double NEMTMC::GetCoeff() const
   return (molInSourceBox) / (molInDestBox + 1.0) *
          boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
 #elif ENSEMBLE == GCMC
-  if (sourceBox == mv::BOX0) { //Delete case
+  if (sourceBox == mv::BOX0) { //Deletion case
     if(ffRef.isFugacity) {
       return (molInSourceBox) * boxDimRef.volInv[sourceBox] /
              (BETA * molRef.kinds[kindIndex].chemPot);
@@ -345,8 +346,6 @@ inline void NEMTMC::Accept(const uint rejectState, const ulong step)
   GOMC_EVENT_START(1, GomcProfileEvent::ACC_NEMTMC);
   double molTransCoeff = GetCoeff();
   bool result = prng() < (molTransCoeff * exp(-BETA * work));
-
-  //stepCounter = step;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
     if(result) {
@@ -361,7 +360,7 @@ inline void NEMTMC::Accept(const uint rejectState, const ulong step)
       backUpCOM.CopyRange(comCurrRef, 0, 0, comCurrRef.Count());
       cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-        calcEwald->BoxReciprocalSetup(b, coordCurrRef);
+        calcEwald->BoxReciprocalSums(b, coordCurrRef);
         calcEwald->UpdateRecip(b);
       }
       sysPotRef = backUpPotential;
@@ -372,6 +371,8 @@ inline void NEMTMC::Accept(const uint rejectState, const ulong step)
       //moveSetRef.SetValues(backUpMoveSetting);
     }
   }
+  //reset the key, because next move has different step number uk[0] = step!
+  r123wrapper.SetKey(0);
   // reset the trial/acceptance to original values if the move is rejected
   moveSetRef.SetValues(backUpMoveSetting);
   moveSetRef.Update(mv::NE_MTMC, result, destBox, kindIndex);
@@ -464,12 +465,12 @@ inline void NEMTMC::RelaxingTransform(uint box)
 
     if(sampleConf) {
       // sample conformation
-      // Check the lambda to decide to perform regrowth or intraSwap
+      // Check the lambda to decide to perform Regrowth or IntraSwap
       if(lambdaRef.GetLambdaVDW(molIndex, box) <= lambdaLimit) {
         //Perform IntraSwap move
         propagationMove = systemRef.GetMoveObject((prng.randInt(1) ? mv::INTRA_SWAP : mv::REGROWTH));
       } else {
-        //Perfrom Regrowth move
+        //Perform Regrowth move
         propagationMove = systemRef.GetMoveObject(mv::REGROWTH);
       }
       rejectState = propagationMove->PrepNEMTMC(box, molIndex, kindIndex);
@@ -477,6 +478,8 @@ inline void NEMTMC::RelaxingTransform(uint box)
     } else {
       //Relax the system using MP or random translation and rotation
       if(MPEnable) {
+        // Change the key number, otherwise we will perform the same move! stepCounter resets every time in Prep() 
+        r123wrapper.SetKey(s+stepCounter);
         // Use multiparticle/brownian dynamic to propagate
         if(BrownianDynamicEnable) {
           propagationMove = systemRef.GetMoveObject(mv::MULTIPARTICLE_BM);
@@ -488,7 +491,7 @@ inline void NEMTMC::RelaxingTransform(uint box)
 
       } else {
         // Use random translation and rotation to propagate
-        //Randomly pick a molecule in Box
+        // Randomly pick a molecule in Box
         uint pStart = 0; uint pLen = 0;
         uint m = 0; uint mk = 0;
         rejectState = prng.PickMol(m, mk, box);
@@ -507,7 +510,7 @@ inline void NEMTMC::RelaxingTransform(uint box)
       }
     }
     
-    // Translate, calcEn, and accept/reject
+    // Transform, calcEn, and accept/reject
     if (rejectState == mv::fail_state::NO_FAIL) {
       rejectState = propagationMove->Transform();
     }
@@ -519,9 +522,7 @@ inline void NEMTMC::RelaxingTransform(uint box)
   }
   // To advance the number of steps during intermediate states
   stepCounter += relaxSteps;
-
 }
 
 #endif
-
 #endif

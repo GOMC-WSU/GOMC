@@ -280,6 +280,7 @@ inline uint MultiParticleBrownian::Transform()
       BETA, 
       r_max,
       r123wrapper.GetStep(), 
+      r123wrapper.GetKeyValue(), 
       r123wrapper.GetSeedValue(),
       bPick,
       isOrthogonal,
@@ -298,6 +299,7 @@ inline uint MultiParticleBrownian::Transform()
       BETA, 
       t_max,
       r123wrapper.GetStep(), 
+      r123wrapper.GetKeyValue(), 
       r123wrapper.GetSeedValue(),
       bPick,
       isOrthogonal,
@@ -525,7 +527,7 @@ inline void MultiParticleBrownian::RotateForceBiased(uint molIndex)
 
   matrix = RotationMatrix::FromAxisAngle(rotLen, rot.Normalize());
 
-  XYZ center = newCOMs.Get(molIndex);
+  XYZ center = comCurrRef.Get(molIndex);
   uint start, stop, len;
   molRef.GetRange(start, stop, len, molIndex);
 
@@ -561,7 +563,7 @@ inline void MultiParticleBrownian::TranslateForceBiased(uint molIndex)
     exit(EXIT_FAILURE);
   } 
 
-  XYZ newcom = newCOMs.Get(molIndex);
+  XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
   molRef.GetRange(start, stop, len, molIndex);
   // Copy the range into temporary array
