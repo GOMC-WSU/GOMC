@@ -229,6 +229,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   molForceRef.CopyRange(molForceNew, 0, 0, molForceNew.Count());
   atomForceRecRef.CopyRange(atomForceRecNew, 0, 0, atomForceRecNew.Count());
   molForceRecRef.CopyRange(molForceRecNew, 0, 0, molForceRecNew.Count());
+  molTorqueRef.CopyRange(molTorqueNew, 0, 0, molTorqueNew.Count());
   #endif
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE);
@@ -284,6 +285,7 @@ inline uint MultiParticle::PrepNEMTMC(const uint box, const uint midx, const uin
   molForceRef.CopyRange(molForceNew, 0, 0, molForceNew.Count());
   atomForceRecRef.CopyRange(atomForceRecNew, 0, 0, atomForceRecNew.Count());
   molForceRecRef.CopyRange(molForceRecNew, 0, 0, molForceRecNew.Count());
+  molTorqueRef.CopyRange(molTorqueNew, 0, 0, molTorqueNew.Count());
   #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE);
   return state;

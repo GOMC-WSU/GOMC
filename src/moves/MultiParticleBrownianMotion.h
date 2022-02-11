@@ -207,6 +207,7 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
   molForceRef.CopyRange(molForceNew, 0, 0, molForceNew.Count());
   atomForceRecRef.CopyRange(atomForceRecNew, 0, 0, atomForceRecNew.Count());
   molForceRecRef.CopyRange(molForceRecNew, 0, 0, molForceRecNew.Count());
+  molTorqueRef.CopyRange(molTorqueNew, 0, 0, molTorqueNew.Count());
   #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE_BM);
   return state;
@@ -260,6 +261,7 @@ inline uint MultiParticleBrownian::PrepNEMTMC(const uint box, const uint midx, c
   molForceRef.CopyRange(molForceNew, 0, 0, molForceNew.Count());
   atomForceRecRef.CopyRange(atomForceRecNew, 0, 0, atomForceRecNew.Count());
   molForceRecRef.CopyRange(molForceRecNew, 0, 0, molForceRecNew.Count());
+  molTorqueRef.CopyRange(molTorqueNew, 0, 0, molTorqueNew.Count());
   #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE_BM);
   return state;
