@@ -1776,7 +1776,8 @@ void ConfigSetup::verifyInputs(void)
     sys.ff.doTailCorr = false;
   }
   if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
-      (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && (sys.ff.doImpulsePressureCorr == false)) {
+      (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && 
+      (!sys.ff.doImpulsePressureCorr && !sys.ff.doTailCorr)) {
     std::cout << "Warning: Impulse Pressure Correction is Inactive for " <<
               "Non-truncated potential." << std::endl;
   }

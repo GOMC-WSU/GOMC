@@ -215,17 +215,23 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
 
-    if(moveType == mp::MPROTATE) {
-      //Calculate Torque for old positions
-      calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
-                                atomForceRef, atomForceRecRef, molTorqueRef, bPick);
-    }
+    //Calculate Torque for old positions
+    calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
+                              atomForceRef, atomForceRecRef, molTorqueRef, bPick);
 
     sysPotRef.Total();
     GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
+  #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
+  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceNew.Count());
+  molForceRef.CopyRange(molForceNew, 0, 0, molForceNew.Count());
+  atomForceRecRef.CopyRange(atomForceRecNew, 0, 0, atomForceRecNew.Count());
+  molForceRecRef.CopyRange(molForceRecNew, 0, 0, molForceRecNew.Count());
+  molTorqueRef.CopyRange(molTorqueNew, 0, 0, molTorqueNew.Count());
+  #endif
+
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE);
   return state;
 }
@@ -266,16 +272,21 @@ inline uint MultiParticle::PrepNEMTMC(const uint box, const uint midx, const uin
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
 
-    if(moveType == mp::MPROTATE) {
-      //Calculate Torque for old positions
-      calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
-                                atomForceRef, atomForceRecRef, molTorqueRef, bPick);
-    }
+    //Calculate Torque for old positions
+    calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
+                              atomForceRef, atomForceRecRef, molTorqueRef, bPick);
 
     sysPotRef.Total();
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
+  #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
+  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceNew.Count());
+  molForceRef.CopyRange(molForceNew, 0, 0, molForceNew.Count());
+  atomForceRecRef.CopyRange(atomForceRecNew, 0, 0, atomForceRecNew.Count());
+  molForceRecRef.CopyRange(molForceRecNew, 0, 0, molForceRecNew.Count());
+  molTorqueRef.CopyRange(molTorqueNew, 0, 0, molTorqueNew.Count());
+  #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE);
   return state;
 }
@@ -349,11 +360,10 @@ inline void MultiParticle::CalcEn()
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
                                 bPick);
 
-  if(moveType == mp::MPROTATE) {
-    //Calculate Torque for new positions
-    calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
-                              atomForceRecNew, molTorqueNew, bPick);
-  }
+  //Calculate Torque for new positions
+  calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
+                            atomForceRecNew, molTorqueNew, bPick);
+  
   GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
 }
 
@@ -443,9 +453,7 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
     swap(atomForceRef, atomForceNew);
     swap(molForceRecRef, molForceRecNew);
     swap(atomForceRecRef, atomForceRecNew);
-    // molTorqueRef is computed only for rotate move
-    if (moveType == mp::MPROTATE)
-      swap(molTorqueRef, molTorqueNew);
+    swap(molTorqueRef, molTorqueNew);
     // Update reciprocal value
     calcEwald->UpdateRecip(bPick);
     // Update the velocity in box
