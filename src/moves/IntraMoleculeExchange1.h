@@ -46,8 +46,7 @@ public:
     numInCavB = 0;
     numSCavA = 0;
     numSCavB = 0;
-    recipDiffA = 0.0;
-    recipDiffB = 0.0;
+    recipDiff = 0.0;
     sourceBox = 0;
     volCav = 0.0;
 
@@ -127,7 +126,7 @@ protected:
 
   int exDiff, exchangeRatio;
   double volCav, lastAccept;
-  double W_recip, recipDiffA, recipDiffB, correctDiff;
+  double W_recip, recipDiff, correctDiff;
 
   XYZ centerA, centerB, cavity;
   XYZArray cavA, invCavA, cavB, invCavB;
@@ -492,16 +491,17 @@ inline void IntraMoleculeExchange1::CalcEn()
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
   W_recip = 1.0;
-  recipDiffA = 0.0, recipDiffB = 0.0;
+  recipDiff = 0.0;
   correctDiff = 0.0;
 
   if(!overlap) {
-    recipDiffA = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
-    recipDiffB = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
+    //recipDiff is the running total, so it accumulates with each call. Only need the last.
+    recipDiff = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
+    recipDiff = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
 
     //No need to contribute the self and correction energy since insertion
     //and deletion are rigid body
-    W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB));
+    W_recip = exp(-ffRef.beta * recipDiff);
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
 }
@@ -588,7 +588,7 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
       }
 
       // Add Reciprocal energy
-      sysPotRef.boxEnergy[sourceBox].recip += recipDiffB;
+      sysPotRef.boxEnergy[sourceBox].recip += recipDiff;
 
       // Add correction energy
       sysPotRef.boxEnergy[sourceBox].correction += correctDiff;
