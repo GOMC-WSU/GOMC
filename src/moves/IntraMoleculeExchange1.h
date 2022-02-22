@@ -495,7 +495,8 @@ inline void IntraMoleculeExchange1::CalcEn()
   correctDiff = 0.0;
 
   if(!overlap) {
-    //recipDiff is the running total, so it accumulates with each call. Only need the last.
+    //MolExchangeReciprocal returns the total change in recip energy. It accumulates with each
+    //call, so we should use only the last of the two.
     recipDiff = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
     recipDiff = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
 

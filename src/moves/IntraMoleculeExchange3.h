@@ -305,6 +305,8 @@ inline void IntraMoleculeExchange3::CalcEn()
       correctDiff += calcEwald->SwapCorrection(newMolB[n], molIndexB[n]);
       correctDiff -= calcEwald->SwapCorrection(oldMolB[n], molIndexB[n]);
     }
+    //MolExchangeReciprocal returns the total change in recip energy. It accumulates with each
+    //call, so we should use only the last of the two.
     recipDiff = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
     recipDiff = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
 
