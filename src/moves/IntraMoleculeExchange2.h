@@ -342,7 +342,7 @@ inline uint IntraMoleculeExchange2::Transform()
 
 inline void IntraMoleculeExchange2::CalcEn()
 {
-  // Updates recipDiffA and recipDiffB and updates sum new arrays at the same time
+  // Updates recipDiff and updates sum new arrays at the same time
   IntraMoleculeExchange1::CalcEn();
 }
 

@@ -296,7 +296,7 @@ inline void IntraMoleculeExchange3::CalcEn()
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
   W_recip = 1.0;
-  recipDiffA = 0.0, recipDiffB = 0.0;
+  recipDiff = 0.0;
   correctDiff = 0.0;
   //No need to calculate the correction term for kindS since it is
   // inserted rigid body. We just need it for kindL
@@ -305,11 +305,12 @@ inline void IntraMoleculeExchange3::CalcEn()
       correctDiff += calcEwald->SwapCorrection(newMolB[n], molIndexB[n]);
       correctDiff -= calcEwald->SwapCorrection(oldMolB[n], molIndexB[n]);
     }
-    recipDiffA = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
-    recipDiffB = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
+    //MolExchangeReciprocal returns the total change in recip energy. It accumulates with each
+    //call, so we should use only the last of the two.
+    recipDiff = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
+    recipDiff = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
 
-    W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB +
-                                       correctDiff));
+    W_recip = exp(-ffRef.beta * (recipDiff + correctDiff));
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
 }
