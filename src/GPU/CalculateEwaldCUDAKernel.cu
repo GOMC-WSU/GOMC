@@ -541,7 +541,7 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
   if(first_call){
     CopyRefToNewCUDA(vars, box, imageSize);
   }
-  uint atomsPerImage = lengthNew +lengthOld; // atoms per image
+  uint atomsPerImage = lengthNew +lengthOld;
   uint totalAtoms = atomsPerImage * imageSize;
   std::vector<double> sumReal(totalAtoms);
   std::vector<double> sumImaginary(totalAtoms);
@@ -1032,6 +1032,8 @@ __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
                                    gpu_sumInew[threadID]) *
                                   gpu_prefactRef[threadID]);
 }
+
+
 __global__ void MolExchangeReciprocalGPUOptimized(
                                   int imageSize, 
                                   double *gpu_kx, 
@@ -1058,71 +1060,64 @@ __global__ void MolExchangeReciprocalGPUOptimized(
                                   )
 {
   // calc. thread id
-  // num images * num atoms = num of threads 
-  // TODO: shared mem, profiling, delete firstcall
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  if(threadID >= imageSize * (lengthNew + lengthOld)) 
+
+  // create shared memory
+  __shared__ double shared_Mol[IMAGES_PER_BLOCK * 3];
+
+  if(threadIdx.x < lengthNew) { // multiply by 3 since storing each atom's x, y, and z coord
+    shared_Mol[threadIdx.x * 3] = gpu_newMolX[threadIdx.x];
+    shared_Mol[threadIdx.x * 3 + 1] = gpu_newMolY[threadIdx.x];
+    shared_Mol[threadIdx.x * 3 + 2] = gpu_newMolZ[threadIdx.x];
+  }
+  else if (threadIdx.x < lengthNew + lengthOld) {
+    int gpu_oldMolIndex = threadIdx.x - lengthNew;
+    shared_Mol[threadIdx.x * 3] = gpu_oldMolX[gpu_oldMolIndex];
+    shared_Mol[threadIdx.x * 3 + 1] = gpu_oldMolY[gpu_oldMolIndex];
+    shared_Mol[threadIdx.x * 3 + 2] = gpu_oldMolZ[gpu_oldMolIndex];
+  }
+  __syncthreads();
+
+  //wait until the shared array is loaded before deciding that we don't need these threads
+  if (threadID >= imageSize * (lengthNew + lengthOld))
     return;
+
+  // method 1 - for each image, loop thru each new & old atom
+  // int p = threadID % (lengthNew +lengthOld); // particle id
+  // int imageID = threadID / (lengthNew +lengthOld); 
+  // method 2 - for each new & old atom index, loop thru each image
+  int p = threadID / (imageSize);
+  int imageID = threadID % (imageSize);
 
   double sumRealNew = 0.0;
   double sumImaginaryNew = 0.0;
-  // TODO: functions w/ charged atoms arr, git new branch, compare time, profiler w/10moves
-  // method 1 - for each image, loop thru each new & old atom
-  int p = threadID % (lengthNew +lengthOld); // particle id
-  int imageID = threadID / (lengthNew +lengthOld); 
-  // printf("p = %d, threadID = %d \n", p, threadID);
-  
-  
-  // method 2 - for each new & old atom index, loop thru each image
-  // imagesize - number of images
-  // int p = threadID / (imageSize); 
-  // int imageID = threadID % (imageSize); 
+  double dotProduct = DotProductGPU(gpu_kx[imageID],
+                                    gpu_ky[imageID],
+                                    gpu_kz[imageID],
+                                    shared_Mol[p * 3],
+                                    shared_Mol[p * 3 + 1],
+                                    shared_Mol[p * 3 + 2]);
+  double dotsin, dotcos;
+  sincos(dotProduct, &dotsin, &dotcos);
 
   // new molecule
-  if( p < lengthNew ){
-    double dotProductNew = DotProductGPU(gpu_kx[imageID], 
-                              gpu_ky[imageID],
-                              gpu_kz[imageID], 
-                              gpu_newMolX[p],
-                              gpu_newMolY[p], 
-                              gpu_newMolZ[p]);
-    double dotsin, dotcos;
-    sincos(dotProductNew, &dotsin, &dotcos);
+  if (p < lengthNew) {
     sumRealNew = (gpu_chargeBoxNew[p] * dotcos);
     sumImaginaryNew = (gpu_chargeBoxNew[p] * dotsin);
   }
-
   // old molecule
   else {
-    p-= lengthNew;
-    double dotProductOld = DotProductGPU( gpu_kx[imageID], 
-                              gpu_ky[imageID],
-                              gpu_kz[imageID], 
-                              gpu_oldMolX[p],
-                              gpu_oldMolY[p],
-                              gpu_oldMolZ[p]);
-    double dotsin, dotcos;
-    sincos(dotProductOld, &dotsin, &dotcos);
+    p -= lengthNew;
     sumRealNew = -(gpu_chargeBoxOld[p] * dotcos);
     sumImaginaryNew = -(gpu_chargeBoxOld[p] * dotsin);
-
   }
+  __syncwarp();
 
-  // calc energyRecipNew and store in gpu_energyRecipNew array at index threadId
-  // replace with atomic add - for multiple threads
-  // atomicAdd(&gpu_sumRnew[imageID], sumRealNew);
-  // atomicAdd(&gpu_sumInew[imageID], sumImaginaryNew);
-
-  // gpu_sumRnew[threadID] += sumRealNew;
-  // gpu_sumInew[threadID] += sumImaginaryNew;
-
-  gpu_sumReal[threadID] = sumRealNew;
-  gpu_sumImaginary[threadID] = sumImaginaryNew; 
-
-
-  
- 
+  // calc sums and store in GPU sum arrays for this image
+  atomicAdd(&gpu_sumRnew[imageID], sumRealNew);
+  atomicAdd(&gpu_sumInew[imageID], sumImaginaryNew);
 }
+
 
 __global__ void CalculateEnergyRecipNewGPU(
                                   int imageSize, 
@@ -1139,25 +1134,14 @@ __global__ void CalculateEnergyRecipNewGPU(
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= imageSize) 
-    return; 
-  double totalSumReal = 0;
-  double totalSumImaginary = 0;
-  for ( int i = 0; i < totalAtoms; i++){
-      totalSumReal += gpu_sumReal[i];
-      totalSumImaginary += gpu_sumImaginary[i]; 
-  }
-                                    
+    return;                                
 
-  // gpu_energyRecipNew[threadID] = ((gpu_sumRnew[threadID] *
-  //                                   gpu_sumRnew[threadID] +
-  //                                   gpu_sumInew[threadID] *
-  //                                   gpu_sumInew[threadID]) *
-  //                                   gpu_prefactRef[threadID]);
-   gpu_energyRecipNew[threadID] = ((totalSumReal *
-                                    totalSumReal +
-                                   totalSumImaginary *
-                                    totalSumImaginary) *
+  gpu_energyRecipNew[threadID] = ((gpu_sumRnew[threadID] *
+                                    gpu_sumRnew[threadID] +
+                                    gpu_sumInew[threadID] *
+                                    gpu_sumInew[threadID]) *
                                     gpu_prefactRef[threadID]);
+  
 
 }
 
