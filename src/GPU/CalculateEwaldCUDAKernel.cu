@@ -663,7 +663,14 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
 
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(totalAtoms / threadsPerBlock) + 1;
+<<<<<<< Updated upstream
   MolExchangeReciprocalGPUOptimized <<< blocksPerGrid, threadsPerBlock>>>(
+=======
+  int chargeBoxLength= lengthNew +lengthOld;
+  int sharedMolLength= (lengthNew +lengthOld) * 3;
+  int dynamicSharedMemorySize = (chargeBoxLength + sharedMolLength) * sizeof(double) ;
+  MolExchangeReciprocalGPUOptimized <<< blocksPerGrid, threadsPerBlock,  dynamicSharedMemorySize>>>(
+>>>>>>> Stashed changes
         imageSize,
         vars->gpu_kxRef[box],
         vars->gpu_kyRef[box],
@@ -1061,6 +1068,7 @@ __global__ void MolExchangeReciprocalGPUOptimized(
 {
   // calc. thread id
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+<<<<<<< Updated upstream
 
   // create shared memory
   __shared__ double shared_Mol[IMAGES_PER_BLOCK * 3];
@@ -1069,12 +1077,42 @@ __global__ void MolExchangeReciprocalGPUOptimized(
     shared_Mol[threadIdx.x * 3] = gpu_newMolX[threadIdx.x];
     shared_Mol[threadIdx.x * 3 + 1] = gpu_newMolY[threadIdx.x];
     shared_Mol[threadIdx.x * 3 + 2] = gpu_newMolZ[threadIdx.x];
+=======
+  int chargeBoxLength= lengthNew +lengthOld;
+  int sharedMolLength= (lengthNew +lengthOld) * 3;
+
+  // create shared memory - static 
+  // __shared__ double shared_chargeBox[chargeBoxLength]; //len new & len old //IMAGES_PER_BLOCK
+  // __shared__ double shared_Mol[IMAGES_PER_BLOCK * 3]; //len new & len old * 3 //IMAGES_PER_BLOCK * 3
+
+  
+  // create shared memory - dynamic 
+  // this works but only when size is same for both arrays
+  // extern __shared__ double shared_chargeBox[];
+  // __shared__ double shared_Mol[IMAGES_PER_BLOCK * 3]; //len new & len old * 3 //IMAGES_PER_BLOCK * 3
+
+  
+  extern __shared__ double shared_arr[]; 
+  double* shared_chargeBox = (double*)shared_arr; // points to the beginning of the array
+  double* shared_Mol = (double*)&shared_chargeBox[chargeBoxLength]; // points to the array at the index of chargeBoxLength
+
+
+  if(threadIdx.x < lengthNew) { 
+    shared_Mol[threadIdx.x * 3] = gpu_newMolX[threadIdx.x];
+    shared_Mol[threadIdx.x * 3 + 1] = gpu_newMolY[threadIdx.x];
+    shared_Mol[threadIdx.x * 3 + 2] = gpu_newMolZ[threadIdx.x];
+    shared_chargeBox[threadIdx.x] = gpu_chargeBoxNew[threadIdx.x];
+>>>>>>> Stashed changes
   }
   else if (threadIdx.x < lengthNew + lengthOld) {
     int gpu_oldMolIndex = threadIdx.x - lengthNew;
     shared_Mol[threadIdx.x * 3] = gpu_oldMolX[gpu_oldMolIndex];
     shared_Mol[threadIdx.x * 3 + 1] = gpu_oldMolY[gpu_oldMolIndex];
     shared_Mol[threadIdx.x * 3 + 2] = gpu_oldMolZ[gpu_oldMolIndex];
+<<<<<<< Updated upstream
+=======
+    shared_chargeBox[threadIdx.x] = -gpu_chargeBoxOld[gpu_oldMolIndex];
+>>>>>>> Stashed changes
   }
   __syncthreads();
 
@@ -1085,7 +1123,11 @@ __global__ void MolExchangeReciprocalGPUOptimized(
   // method 1 - for each image, loop thru each new & old atom
   // int p = threadID % (lengthNew +lengthOld); // particle id
   // int imageID = threadID / (lengthNew +lengthOld); 
+<<<<<<< Updated upstream
   // method 2 - for each new & old atom index, loop thru each image
+=======
+  // method 2 - for each new & old atom index, loop thru each image - faster version
+>>>>>>> Stashed changes
   int p = threadID / (imageSize);
   int imageID = threadID % (imageSize);
 
@@ -1100,6 +1142,7 @@ __global__ void MolExchangeReciprocalGPUOptimized(
   double dotsin, dotcos;
   sincos(dotProduct, &dotsin, &dotcos);
 
+<<<<<<< Updated upstream
   // new molecule
   if (p < lengthNew) {
     sumRealNew = (gpu_chargeBoxNew[p] * dotcos);
@@ -1112,6 +1155,11 @@ __global__ void MolExchangeReciprocalGPUOptimized(
     sumImaginaryNew = -(gpu_chargeBoxOld[p] * dotsin);
   }
   __syncwarp();
+=======
+  
+  sumRealNew = shared_chargeBox[p] * dotcos;
+  sumImaginaryNew = shared_chargeBox[p] * dotsin;
+>>>>>>> Stashed changes
 
   // calc sums and store in GPU sum arrays for this image
   atomicAdd(&gpu_sumRnew[imageID], sumRealNew);
