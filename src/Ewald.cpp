@@ -767,7 +767,6 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
     
 #ifdef GOMC_CUDA
-    // save all the atom charges of each new and old molecules
     std::vector<double> chargeBoxNew;
     MoleculeKind const& thisKindNew = newMol[0].GetKind();
     uint lengthNew = thisKindNew.NumAtoms() * newMol.size();
@@ -780,9 +779,6 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
       double lambdaCoef = GetLambdaCoef(newMoleculeIndex, box);
 
       XYZArray currNewMolCoords = newMol[m].GetCoords(); 
-      // lengthnew looping up to mol * atoms instead of just atoms like in cpu
-    //  std::cout << "\nbefore lengthNew: " << lengthNew << std::endl; 
-
       for (uint p = 0; p < lengthNew; ++p) {
         unsigned long currentAtom = mols.MolStart(newMoleculeIndex) + p;
         if(particleHasNoCharge[currentAtom]) {
@@ -797,11 +793,6 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
       }      
     }
     lengthNew = newChargedParticles;
-    //  std::cout << "\nafter lengthNew: " << lengthNew << std::endl; 
-
-    // std::cout << "\nlengthNew: " << lengthNew << std::endl; 
-
-
 
     std::vector<double> chargeBoxOld;
     MoleculeKind const& thisKindOld = oldMol[0].GetKind();
@@ -837,7 +828,6 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                  newMolCoords,
                                  oldMolCoords);
 #else 
-    // recalc length new & old
     MoleculeKind const& thisKindNew = newMol[0].GetKind();
     MoleculeKind const& thisKindOld = oldMol[0].GetKind();
     uint lengthNew = thisKindNew.NumAtoms();
@@ -851,7 +841,6 @@ reduction(+:energyRecipNew)
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
 
-      // Add dot sum of the new molecule
       for (uint m = 0; m < newMol.size(); m++) {
         uint newMoleculeIndex = molIndexNew[m];
         double lambdaCoef = GetLambdaCoef(newMoleculeIndex, box);
@@ -874,13 +863,8 @@ reduction(+:energyRecipNew)
         }
       }
       uint gpulengthNew = thisKindNew.NumAtoms() * newMol.size();
-      // std::cout << "\ncpu lengthNew: " << gpulengthNew << std::endl; 
-      // std::cout << "\ncpu currNewMolCoords.Count(: " << newMol[0].GetCoords().Count() << std::endl; 
-      //  printf("cpu lengthNew: %u \n\n", gpulengthNew); 
-      //  printf("cpu currNewMolCoords.Count(: %u \n\n", newMol[0].GetCoords().Count()); 
 
 
-      // Subtract the sum of the old molecule
       for (uint m = 0; m < oldMol.size(); m++) {
         uint oldMoleculeIndex = molIndexOld[m];
         double lambdaCoef = GetLambdaCoef(oldMoleculeIndex, box);
@@ -924,8 +908,6 @@ reduction(+:energyRecipNew)
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
   }
-
-  // Return the difference between old and new reciprocal energies
   return energyRecipNew - energyRecipOld;
 }
 
