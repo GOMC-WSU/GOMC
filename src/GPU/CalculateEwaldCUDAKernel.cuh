@@ -130,10 +130,6 @@ __global__ void MolExchangeReciprocalGPUOptimized(
                                   double *gpu_kz,
                                   double *gpu_sumRnew,
                                   double *gpu_sumInew,
-                                  double *gpu_sumRref,
-                                  double *gpu_sumIref,
-                                  double *gpu_prefactRef,
-                                  double *gpu_energyRecipNew,
                                   double *gpu_chargeBoxNew,
                                   double *gpu_chargeBoxOld, 
                                   uint lengthNew, 
@@ -143,23 +139,14 @@ __global__ void MolExchangeReciprocalGPUOptimized(
                                   double *gpu_newMolZ,
                                   double *gpu_oldMolX,
                                   double *gpu_oldMolY,
-                                  double *gpu_oldMolZ,
-                                  double *gpu_sumReal,
-                                  double *gpu_sumImaginary
-                                  );
+                                  double *gpu_oldMolZ);
                                   
 __global__ void CalculateEnergyRecipNewGPU(
                                   int imageSize, 
                                   double *gpu_sumRnew,
                                   double *gpu_sumInew,
-                                  double *gpu_sumRref,
-                                  double *gpu_sumIref,
                                   double *gpu_prefactRef,
-                                  double *gpu_energyRecipNew,
-                                  double *gpu_sumReal,
-                                  double *gpu_sumImaginary,
-                                  uint totalAtoms
-                                  );
+                                  double *gpu_energyRecipNew);
                                   
 __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       double *gpu_aForceRecy,
