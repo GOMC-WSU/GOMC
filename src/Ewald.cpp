@@ -869,8 +869,7 @@ reduction(+:energyRecipNew)
                               sin(dotProductNew));
         }
       }
-      uint gpulengthNew = thisKindNew.NumAtoms() * newMol.size();
-
+      // uint gpulengthNew = thisKindNew.NumAtoms() * newMol.size();
 
       for (uint m = 0; m < oldMol.size(); m++) {
         uint oldMoleculeIndex = molIndexOld[m];

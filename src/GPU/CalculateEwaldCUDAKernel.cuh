@@ -98,13 +98,12 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
                                   bool first_call,
                                   double &energyRecipNew,
                                   XYZArray newMolCoords,
-                                  XYZArray oldMolCoords
-                                  );
+                                  XYZArray oldMolCoords);
 
 __global__ void MolExchangeReciprocalGPU(
-                                  int imageSize, 
-                                  double *gpu_kx, 
-                                  double *gpu_ky, 
+                                  int imageSize,
+                                  double *gpu_kx,
+                                  double *gpu_ky,
                                   double *gpu_kz,
                                   double *gpu_sumRnew,
                                   double *gpu_sumInew,
@@ -113,26 +112,8 @@ __global__ void MolExchangeReciprocalGPU(
                                   double *gpu_prefactRef,
                                   double *gpu_energyRecipNew,
                                   double *gpu_chargeBoxNew,
-                                  double *gpu_chargeBoxOld, 
-                                  uint lengthNew, 
-                                  uint lengthOld,
-                                  double *gpu_newMolX,
-                                  double *gpu_newMolY,
-                                  double *gpu_newMolZ,
-                                  double *gpu_oldMolX,
-                                  double *gpu_oldMolY,
-                                  double *gpu_oldMolZ
-                                  );
-__global__ void MolExchangeReciprocalGPUOptimized(
-                                  int imageSize, 
-                                  double *gpu_kx, 
-                                  double *gpu_ky, 
-                                  double *gpu_kz,
-                                  double *gpu_sumRnew,
-                                  double *gpu_sumInew,
-                                  double *gpu_chargeBoxNew,
-                                  double *gpu_chargeBoxOld, 
-                                  uint lengthNew, 
+                                  double *gpu_chargeBoxOld,
+                                  uint lengthNew,
                                   uint lengthOld,
                                   double *gpu_newMolX,
                                   double *gpu_newMolY,
@@ -140,14 +121,32 @@ __global__ void MolExchangeReciprocalGPUOptimized(
                                   double *gpu_oldMolX,
                                   double *gpu_oldMolY,
                                   double *gpu_oldMolZ);
-                                  
+
+__global__ void MolExchangeReciprocalGPUOptimized(
+                                  int imageSize,
+                                  double *gpu_kx,
+                                  double *gpu_ky,
+                                  double *gpu_kz,
+                                  double *gpu_sumRnew,
+                                  double *gpu_sumInew,
+                                  double *gpu_chargeBoxNew,
+                                  double *gpu_chargeBoxOld,
+                                  uint lengthNew,
+                                  uint lengthOld,
+                                  double *gpu_newMolX,
+                                  double *gpu_newMolY,
+                                  double *gpu_newMolZ,
+                                  double *gpu_oldMolX,
+                                  double *gpu_oldMolY,
+                                  double *gpu_oldMolZ);
+
 __global__ void CalculateEnergyRecipNewGPU(
-                                  int imageSize, 
+                                  int imageSize,
                                   double *gpu_sumRnew,
                                   double *gpu_sumInew,
                                   double *gpu_prefactRef,
                                   double *gpu_energyRecipNew);
-                                  
+
 __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       double *gpu_aForceRecy,
                                       double *gpu_aForceRecz,
