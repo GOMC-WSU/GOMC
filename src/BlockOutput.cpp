@@ -206,7 +206,9 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   //Note: The order of Init should be same as order of Init
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     blocks[out::ENERGY_TOTAL_IDX].SetRef(&var->energyRef[b].total, b);
-    blocks[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].intraBond, b);
+    blocks[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].bond, b);
+    blocks[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].angle, b);
+    blocks[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].dihedral, b);
     blocks[out::ENERGY_INTER_IDX].SetRef(&var->energyRef[b].inter, b);
     blocks[out::ENERGY_TC_IDX].SetRef(&var->energyRef[b].tc, b);
     blocks[out::ENERGY_INTRA_NB_IDX].SetRef(&var->energyRef[b].intraNonbond, b);
