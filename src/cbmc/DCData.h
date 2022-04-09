@@ -45,7 +45,13 @@ public:
   //used for both angles and dihedrals
   double* angles;
   double* angleWeights;
+  double* torsionEnergy;
+  //used for both angles and dihedrals
+
+  //used for separate energy output
   double* angleEnergy;
+  double* dihedralEnergy;
+  //used for separate energy output
 
   XYZArray& positions;     //candidate positions for inclusion (alias for multiPositions[0])
   double* inter;          //intermolecule energies, reused for new and old
@@ -102,7 +108,9 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   overlapT = new bool[totalTrials];
 
   uint trialMax = std::max(nAngleTrials, nDihTrials);
+  torsionEnergy = new double[trialMax];
   angleEnergy = new double[trialMax];
+  dihedralEnergy = new double[trialMax];
   angleWeights = new double[trialMax];
   angles = new double[trialMax];
   nonbonded_1_3 = new double[trialMax];
@@ -121,7 +129,9 @@ inline DCData::~DCData()
   delete[] ljWeights;
   delete[] angles;
   delete[] angleWeights;
+  delete[] torsionEnergy;
   delete[] angleEnergy;
+  delete[] dihedralEnergy;
   delete[] interT;
   delete[] realT;
   delete[] ljWeightsT;

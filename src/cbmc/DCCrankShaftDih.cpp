@@ -157,8 +157,10 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
   double* bondedEn = data->bonded;
+  double* angleEn = data->angleEnergy;
+  double* dihedralEn = data->dihedralEnergy;
   double* nonbonded = data->nonbonded;
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
@@ -236,8 +238,10 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
   double* bondedEn = data->bonded;
+  double* angleEn = data->angleEnergy;
+  double* dihedralEn = data->dihedralEnergy;
   double* nonbonded = data->nonbonded;
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
@@ -311,7 +315,9 @@ void DCCrankShaftDih::ChooseTorsion(TrialMol& mol, uint molIndex,
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
+  double* angleEnergy = data->angleEnergy;
+  double* dihedralEnergy = data->dihedralEnergy;
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
@@ -336,7 +342,9 @@ void DCCrankShaftDih::ChooseTorsionOld(TrialMol& mol, uint molIndex,
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
+  double* angleEnergy = data->angleEnergy;
+  double* dihedralEnergy = data->dihedralEnergy;
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
@@ -362,12 +370,14 @@ double DCCrankShaftDih::CalcIntraBonded(TrialMol& mol, uint molIndex)
   uint box = mol.GetBox();
   XYZ b1, b2, b3;
   const XYZArray &coords = mol.GetCoords();
+  // Angles
   for(uint i = 0; i < ang.size(); i++) {
     b1 = data->axes.MinImage(coords.Difference(ang[i].a0, ang[i].a1), box);
     b2 = data->axes.MinImage(coords.Difference(ang[i].a2, ang[i].a1), box);
     bondedEn += data->ff.angles->Calc(ang[i].kind, geom::Theta(b1, b2));
   }
 
+  // Dihedrals
   for(uint i = 0; i < dih.size(); i++) {
     //No need to calcminImage since we unwrap it
     b1 = data->axes.MinImage(coords.Difference(dih[i].a1, dih[i].a0), box);

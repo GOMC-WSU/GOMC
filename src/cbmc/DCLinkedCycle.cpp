@@ -176,7 +176,9 @@ void DCLinkedCycle::BuildNew(TrialMol& newMol, uint molIndex)
   // const Forcefield& ff = data->ff;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
+  double* angleEnergy = data->angleEnergy;
+  double* dihedralEnergy = data->dihedralEnergy;
   double* ljWeights = data->ljWeights;
   double* bondedEn = data->bonded;
   double* inter = data->inter;
@@ -284,7 +286,9 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   const Forcefield& ff = data->ff;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
+  double* angleEnergy = data->angleEnergy;
+  double* dihedralEnergy = data->dihedralEnergy;
   double* ljWeights = data->ljWeights;
   double* bondedEn = data->bonded;
   double* inter = data->inter;
@@ -472,7 +476,7 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
                                   RotationMatrix& tensor)
 {
   double* torsion = data->angles;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
   double* torWeights = data->angleWeights;
   double* nonbonded_1_4 = data->nonbonded_1_4;
   uint nDihTrials = data->nDihTrials;

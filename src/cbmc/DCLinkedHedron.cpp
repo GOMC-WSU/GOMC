@@ -135,7 +135,9 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
+  double* angleEnergy = data->angleEnergy;
+  double* dihedralEnergy = data->dihedralEnergy;
   double* ljWeights = data->ljWeights;
   double* bondedEn = data->bonded;
   double* inter = data->inter;
@@ -218,7 +220,9 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
+  double* angleEnergy = data->angleEnergy;
+  double* dihedralEnergy = data->dihedralEnergy;
   double* ljWeights = data->ljWeights;
   double* bondedEn = data->bonded;
   double* inter = data->inter;
@@ -363,7 +367,7 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
                                    RotationMatrix& tensor)
 {
   double* torsion = data->angles;
-  double* torEnergy = data->angleEnergy;
+  double* torEnergy = data->torsionEnergy;
   double* torWeights = data->angleWeights;
   double* nonbonded_1_4 = data->nonbonded_1_4;
   uint nDihTrials = data->nDihTrials;
