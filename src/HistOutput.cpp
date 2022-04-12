@@ -1,7 +1,7 @@
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
 Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in the COPYRIGHT.txt
+A copy of the MIT License can be found in License.txt
 along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "HistOutput.h"
