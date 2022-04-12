@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef MOLECULEEXCHANGE2_H
 #define MOLECULEEXCHANGE2_H
@@ -37,9 +37,13 @@ public:
   }
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) {
+    return mv::fail_state::NO_FAIL;
+  }
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
 
 protected:
 
@@ -50,7 +54,7 @@ protected:
   virtual uint ReplaceMolecule();
   virtual double GetCoeff() const;
 
-  uint smallBB[2];
+  int smallBB[2];
   //To store total sets of exchange pairs
   vector< vector<uint> > smallBBVec;
 };
@@ -92,8 +96,8 @@ inline void MoleculeExchange2::SetMEMC(StaticVals const& statV)
 inline void MoleculeExchange2::AdjustExRatio()
 {
   if(((counter + 1) % perAdjust) == 0) {
-    uint exMax = ceil((float)molInCavCount / (float)perAdjust);
-    uint exMin = 1;
+    int exMax = ceil((float)molInCavCount / (float)perAdjust);
+    int exMin = 1;
     uint index = kindS + kindL * molRef.GetKindsCount();
     double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
     if(std::abs(currAccept - lastAccept) >= 0.05 * currAccept) {
@@ -227,13 +231,14 @@ inline uint MoleculeExchange2::ReplaceMolecule()
 
 inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MEMC);
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    numTypeASource = (double)(molLookRef.NumKindInBox(kindIndexA[0], sourceBox));
-    numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
-    numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
-    numTypeBDest = (double)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
-    //transfering type A from source to dest
+    numTypeASource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], sourceBox));
+    numTypeADest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], destBox));
+    numTypeBSource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], sourceBox));
+    numTypeBDest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], destBox));
+    //transferring type A from source to dest
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
                                        destBox));
@@ -242,7 +247,7 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      //transfering type B from dest to source
+      //transferring type B from dest to source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
                                        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
@@ -322,12 +327,14 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MEMC);
   return state;
 }
 
 
 inline uint MoleculeExchange2::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_MEMC);
   CalcTc();
 
   //Calc Old energy and delete A from source
@@ -336,15 +343,15 @@ inline uint MoleculeExchange2::Transform()
     for(uint n = numInCavA; n > 0; n--) {
       cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
       molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1], molIndexA[n - 1]);
-      //Add bonded energy because we dont considered in DCRotate.cpp
-      oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1], molIndexA[n - 1]));
+      //Add bonded energy because we don't consider it in DCRotate.cpp
+      oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1]));
     }
   } else {
     for(uint n = 0; n < numInCavA; n++) {
       cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
       molRef.kinds[kindIndexA[n]].BuildIDOld(oldMolA[n], molIndexA[n]);
-      //Add bonded energy because we dont considered in DCRotate.cpp
-      oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n], molIndexA[n]));
+      //Add bonded energy because we don't consider it in DCRotate.cpp
+      oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n]));
     }
   }
 
@@ -352,8 +359,8 @@ inline uint MoleculeExchange2::Transform()
   for(uint n = 0; n < numInCavB; n++) {
     cellList.RemoveMol(molIndexB[n], destBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n]));
   }
 
   //Insert A to destBox
@@ -361,8 +368,8 @@ inline uint MoleculeExchange2::Transform()
     molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
     ShiftMol(true, n, sourceBox, destBox);
     cellList.AddMol(molIndexA[n], destBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
 
@@ -371,11 +378,12 @@ inline uint MoleculeExchange2::Transform()
     molRef.kinds[kindIndexB[n]].BuildIDNew(newMolB[n], molIndexB[n]);
     ShiftMol(false, n, destBox, sourceBox);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
     overlap |= newMolB[n].HasOverlap();
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MEMC);
   return mv::fail_state::NO_FAIL;
 }
 
@@ -387,9 +395,8 @@ inline void MoleculeExchange2::CalcEn()
 
 inline double MoleculeExchange2::GetCoeff() const
 {
-  double volSource = boxDimRef.volume[sourceBox];
-  double volDest = boxDimRef.volume[destBox];
 #if ENSEMBLE == GEMC
+  double volDest = boxDimRef.volume[destBox];
   if(insertL) {
     //kindA is the small molecule
     double ratioF = num::Factorial(totMolInCav - 1) /
@@ -445,7 +452,7 @@ inline double MoleculeExchange2::GetCoeff() const
 #endif
 }
 
-inline void MoleculeExchange2::Accept(const uint rejectState, const uint step)
+inline void MoleculeExchange2::Accept(const uint rejectState, const ulong step)
 {
   MoleculeExchange1::Accept(rejectState, step);
 }

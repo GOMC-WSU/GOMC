@@ -1,17 +1,15 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef TRANSFORMMATRIX_H
 #define TRANSFORMMATRIX_H
 
 #include "BasicTypes.h"
-#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
-#endif
-#include <math.h>           //cos and sin
+#include <cmath>           //cos and sin
 
 class TransformMatrix;
 typedef TransformMatrix RotationMatrix;
@@ -63,7 +61,7 @@ public:
   void AddRotationX(double angle);
   void AddRotationY(double angle);
   void AddRotationZ(double angle);
-  //z-x-z euler angles - beware ye gimbal lock
+  //z-x-z Euler angles - beware ye gimbal lock
   void AddRotation(const XYZ& rotateBy);
 
   //!Set the matrix to a change-of-basis rotation from unity
@@ -172,7 +170,6 @@ inline TransformMatrix TransformMatrix::operator*(const TransformMatrix& o) cons
   TransformMatrix result(0.0);
   for(uint i = 0; i < N; ++i) {
     for(uint j = 0; j < N; ++j) {
-      double entry = 0.0;
       for(uint k = 0; k < N; ++k) {
         result.matrix[i][j] += matrix[i][k] * o.matrix[k][j];
       }
@@ -186,7 +183,7 @@ inline TransformMatrix TransformMatrix::Inverse() const
   TransformMatrix inverse;
   //this method does not work in the general case, but it works when we only have
   //rotations and translations
-  //transpose orthagonal rotation section
+  //transpose orthogonal rotation section
   for(uint i = 0; i < 3; ++i) {
     for(uint j = 0; j < 3; ++j) {
       inverse.matrix[i][j] = matrix[j][i];
@@ -261,10 +258,10 @@ inline TransformMatrix TransformMatrix::UniformRandom(double u1, double u2, doub
   //method from Arvo (1992)
   //rotate around the pole (0,0,1), then move the pole to a random
   //point in S2 via an inverted Householder reflection
-  u1 *= 2 * M_PI;   //theta - magnitude of polar rotation
-  u1 -= M_PI;       //make restricted rotations symmetric for detailed balance
-  u2 *= 2 * M_PI;   //phi   - direction of pole shift
-  u3 *= 2.0;        //z     - magnitude of pole shift
+  u1 *= 2.0 * M_PI;   //theta - magnitude of polar rotation
+  u1 -= M_PI;         //make restricted rotations symmetric for detailed balance
+  u2 *= 2.0 * M_PI;   //phi   - direction of pole shift
+  u3 *= 2.0;          //z     - magnitude of pole shift
 
   double r = sqrt(u3);
   //Vector used for reflection

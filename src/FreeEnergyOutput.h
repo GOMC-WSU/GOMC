@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef FREEENERGY_OUTPUT_H
 #define FREEENERGY_OUTPUT_H
@@ -34,9 +34,9 @@ struct FreeEnergyOutput : OutputableBase {
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
-
+  virtual void DoOutputRestart(const ulong step);
 private:
-  void PrintData(const uint b, const uint step);
+  void PrintData(const uint b, const ulong step);
   void CalculateFreeEnergy(const uint b);
   void WriteHeader(void);
   std::string GetString(double a, uint p);

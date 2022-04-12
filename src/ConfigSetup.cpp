@@ -1,13 +1,12 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include <map> //for function handle storage.
 #include <string> //for var names, etc.
 #include <vector>
-#include <string>
 #include <iomanip>
 
 #include "ConfigSetup.h"
@@ -16,30 +15,17 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DBL_MAX 1.7976931348623158e+308
 #endif
 
-int stringtoi(const std::string& s)
-{
-  std::istringstream str(s);
-  uint i;
-  str >> i;
-  return i;
-}
-
-double stringtod(const std::string& s)
-{
-  std::istringstream str(s);
-  double i;
-  str >> i;
-  return i;
-}
-
-
 ConfigSetup::ConfigSetup(void)
 {
   int i;
+  exptMode = false;
   in.restart.enable = false;
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
   in.restart.restartFromCheckpoint = false;
+  in.restart.restartFromBinaryCoorFile = false;
+  in.restart.restartFromBinaryVelFile = false;
+  in.restart.restartFromXSCFile = false;
   in.prng.seed = UINT_MAX;
   in.prngParallelTempering.seed = UINT_MAX;
   sys.elect.readEwald = false;
@@ -52,11 +38,14 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
   sys.memcVal.enable = false;
-  sys.cfcmcVal.enable = false;
+  sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
+  sys.step.start = 0;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
+  sys.step.initStepRead = false;
+  sys.step.initStep = ULONG_MAX;
   sys.step.pressureCalcFreq = ULONG_MAX;
   sys.step.pressureCalc = true;
   sys.step.parallelTempFreq = ULONG_MAX;
@@ -65,10 +54,12 @@ ConfigSetup::ConfigSetup(void)
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
-  in.files.param.name = "";
   for(i = 0; i < BOX_TOTAL; i++) {
     in.files.pdb.name[i] = "";
     in.files.psf.name[i] = "";
+    in.files.binaryCoorInput.name[i] = "";
+    in.files.binaryVelInput.name[i] = "";
+    in.files.xscInput.name[i] = "";
   }
 #if ENSEMBLE == GEMC
   sys.gemc.kind = UINT_MAX;
@@ -82,6 +73,7 @@ ConfigSetup::ConfigSetup(void)
   sys.T.inKelvin = DBL_MAX;
   sys.ff.VDW_KIND = UINT_MAX;
   sys.ff.doTailCorr = true;
+  sys.ff.doImpulsePressureCorr = false;
   sys.ff.rswitch = DBL_MAX;
   sys.ff.cutoff = DBL_MAX;
   sys.ff.cutoffLow = DBL_MAX;
@@ -91,11 +83,15 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.intraSwap = DBL_MAX;
   sys.moves.multiParticleEnabled = false;
   sys.moves.multiParticle = DBL_MAX;
+  sys.moves.multiParticleBrownian = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
   sys.moves.crankShaft = DBL_MAX;
+  sys.moves.intraTargetedSwap = DBL_MAX;
   sys.moves.intraMemc = DBL_MAX;
-  out.state.settings.enable = true;
-  out.restart.settings.enable = true;
+  out.state.settings.enable = false;
+  out.restart.settings.enable = false;
+  out.state_dcd.settings.enable = false;
+  out.restart_vel.settings.enable = false;
   out.console.enable = true;
   out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
@@ -113,6 +109,7 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.settings.uniqueStr.val = "";
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
+  out.state_dcd.settings.frequency = ULONG_MAX;
   out.console.frequency = ULONG_MAX;
   out.statistics.settings.block.frequency = ULONG_MAX;
   out.statistics.vars.energy.block = false;
@@ -124,7 +121,8 @@ ConfigSetup::ConfigSetup(void)
 #ifdef VARIABLE_PARTICLE_NUMBER
   sys.moves.transfer = DBL_MAX;
   sys.moves.memc = DBL_MAX;
-  sys.moves.cfcmc = DBL_MAX;
+  sys.moves.neMolTransfer = DBL_MAX;
+  sys.moves.targetedSwap = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
   sys.cbmcTrials.bonded.dih = UINT_MAX;
   sys.cbmcTrials.nonbonded.first = UINT_MAX;
@@ -142,11 +140,32 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.density.fluct = false;
 }
 
+int ConfigSetup::stringtoi(const std::string& s)
+{
+  std::istringstream str(s);
+  uint i;
+  str >> i;
+  return i;
+}
+
+double ConfigSetup::stringtod(const std::string& s)
+{
+  std::istringstream str(s);
+  double i;
+  str >> i;
+  return i;
+}
+
 bool ConfigSetup::checkBool(std::string str)
 {
-  int k;
+  //short circuit for long strings
+  if (str.length() > 5) {
+    std::cout << "Error: " << str << "couldn't be recognized!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   // capitalize string
-  for(k = 0; k < str.length(); k++) {
+  for(uint k = 0; k < str.length(); k++) {
     str[k] = toupper(str[k]);
   }
 
@@ -158,13 +177,29 @@ bool ConfigSetup::checkBool(std::string str)
   exit(EXIT_FAILURE);
 }
 
+//Same as checkBool but doesn't exit with an error if the string doesn't
+//represent a boolean value. Use for cases where we aren't sure the argument
+//string should be a boolean.
+bool ConfigSetup::isBool(std::string str)
+{
+  //short circuit for long strings
+  if (str.length() > 5) return false;
+
+  // capitalize string
+  for(uint k = 0; k < str.length(); k++) {
+    str[k] = toupper(str[k]);
+  }
+
+  return (str == "ON" || str == "TRUE" || str == "YES" || str == "OFF" || str == "FALSE" || str == "NO");
+}
+
 bool ConfigSetup::CheckString(std::string str1, std::string str2)
 {
-  for(int k = 0; k < str1.length(); k++) {
+  for(uint k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
   }
 
-  for(int j = 0; j < str2.length(); j++) {
+  for(uint j = 0; j < str2.length(); j++) {
     str2[j] = toupper(str2[j]);
   }
 
@@ -185,11 +220,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.restart.enable = checkBool(line[1]);
       if(in.restart.enable) {
         printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
-      }
-    } else if(CheckString(line[0], "RestartCheckpoint")) {
-      in.restart.restartFromCheckpoint = checkBool(line[1]);
-      if(in.restart.restartFromCheckpoint) {
-        printf("%-40s %-s \n", "Info: Restart checkpoint", "Active");
       }
     } else if(CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
@@ -234,7 +264,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: PARAMETER file", "MARTINI using CHARMM format!");
       }
     } else if(CheckString(line[0], "Parameters")) {
-      in.files.param.name = line[1];
+      if(line.size() > 1){
+        in.files.param.push_back(config_setup::FileName(line[1], true));
+      }
     } else if(CheckString(line[0], "Coordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
@@ -246,6 +278,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       } else {
         in.files.pdb.name[boxnum] = line[2];
       }
+      in.files.pdb.defined[boxnum] = true;
     } else if(CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
@@ -256,6 +289,71 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         in.files.psf.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
       } else {
         in.files.psf.name[boxnum] = line[2];
+      }
+      in.files.psf.defined[boxnum] = true;
+    } else if(CheckString(line[0], "binCoordinates")) {
+      uint boxnum = stringtoi(line[1]);
+      if(boxnum >= BOX_TOTAL) {
+        std::cout << "Error: Simulation requires " << BOX_TOTAL << " binary coordinate file(s)!\n";
+        exit(EXIT_FAILURE);
+      }
+      if (multisim != NULL) {
+        in.files.binaryCoorInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.binaryCoorInput.name[boxnum] = line[2];
+      }
+      in.files.binaryCoorInput.defined[boxnum] = true;
+      in.restart.restartFromBinaryCoorFile = true;
+    } else if(CheckString(line[0], "binVelocities")) {
+      uint boxnum = stringtoi(line[1]);
+      if(boxnum >= BOX_TOTAL) {
+        std::cout << "Error: Simulation requires " << BOX_TOTAL << " binary velocity file(s)!\n";
+        exit(EXIT_FAILURE);
+      }
+      if (multisim != NULL) {
+        in.files.binaryVelInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.binaryVelInput.name[boxnum] = line[2];
+      }
+      in.files.binaryVelInput.defined[boxnum] = true;
+      in.restart.restartFromBinaryVelFile = true;
+      // If we read the binary vel, we also output the restart vel. Otherwise
+      // we dont have any output velocity
+      out.restart_vel.settings.enable = true;
+    } else if(CheckString(line[0], "extendedSystem")) {
+      uint boxnum = stringtoi(line[1]);
+      if(boxnum >= BOX_TOTAL) {
+        std::cout << "Error: Simulation requires " << BOX_TOTAL << " extended system file(s)!\n";
+        exit(EXIT_FAILURE);
+      }
+      if (multisim != NULL) {
+        in.files.xscInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.xscInput.name[boxnum] = line[2];
+      }
+      in.files.xscInput.defined[boxnum] = true;
+      in.restart.restartFromXSCFile = true;
+    } else if(CheckString(line[0], "Checkpoint")) {
+      if (line.size() == 3){
+        in.files.checkpoint.defined[0] = in.restart.restartFromCheckpoint = checkBool(line[1]);
+        if(multisim != NULL) {
+          in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[2];
+        } else {
+          in.files.checkpoint.name[0] = line[2];
+        }
+      } else {
+          if (isBool(line[1])) {
+            in.files.checkpoint.defined[0] = in.restart.restartFromCheckpoint = checkBool(line[1]);
+            in.files.checkpoint.name[0] = "";
+          }
+          else {
+            in.files.checkpoint.defined[0] = in.restart.restartFromCheckpoint = true;
+            if(multisim != NULL) {
+              in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[1];
+            } else {
+              in.files.checkpoint.name[0] = line[1];
+            }
+          }
       }
     }
 #if ENSEMBLE == GEMC
@@ -308,10 +406,133 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
       else
         printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
+    } else if(CheckString(line[0], "IPC")) {
+      sys.ff.doImpulsePressureCorr = checkBool(line[1]);
+      if(sys.ff.doImpulsePressureCorr)
+        printf("%-40s %-s \n", "Info: Impulse Pressure Correction", "Active");
+      else
+        printf("%-40s %-s \n", "Info: Impulse Pressure Correction", "Inactive");
     } else if(CheckString(line[0], "Rswitch")) {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
-    } else if(CheckString(line[0], "ExchangeVolumeDim")) {
+    } else if(CheckString(line[0], "SubVolumeBox")) {
+      if(line.size() == 3) {
+        int idx = stringtoi(line[1]); 
+        uint b = stringtoi(line[2]);
+        sys.targetedSwapCollection.AddsubVolumeBox(idx, b);
+        sys.intraTargetedSwapCollection.AddsubVolumeBox(idx, b);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumeBox, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeCenter")) {
+      if(line.size() >= 5) {
+        int idx = stringtoi(line[1]); 
+        XYZ temp;
+        temp.x = stringtod(line[2]);
+        temp.y = stringtod(line[3]);
+        temp.z = stringtod(line[4]);
+        sys.targetedSwapCollection.AddsubVolumeCenter(idx, temp);
+        sys.intraTargetedSwapCollection.AddsubVolumeCenter(idx, temp);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected 4 values for SubVolumeCenter, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumePBC")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        sys.targetedSwapCollection.AddsubVolumePBC(idx, line[2]);
+        sys.intraTargetedSwapCollection.AddsubVolumePBC(idx, line[2]);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumePBC, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeCenterList")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        std::vector<std::string> temp;
+        for(int k = 2; k < (int) line.size(); k++) {
+          temp.push_back(line[k]);
+        }
+        sys.targetedSwapCollection.AddsubVolumeAtomList(idx, temp);
+        sys.intraTargetedSwapCollection.AddsubVolumeAtomList(idx, temp);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected atleast 3 values for SubVolumeCenterList, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeDim")) {
+      if(line.size() >= 5) {
+        int idx = stringtoi(line[1]); 
+        XYZ temp;
+        temp.x = stringtod(line[2]);
+        temp.y = stringtod(line[3]);
+        temp.z = stringtod(line[4]);
+        sys.targetedSwapCollection.AddsubVolumeDimension(idx, temp);
+        sys.intraTargetedSwapCollection.AddsubVolumeDimension(idx, temp);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected 4 values for SubVolumeDim, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeResidueKind")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        std::vector<std::string> temp;
+        
+        for(int k = 2; k < (int) line.size(); k++) {
+          temp.push_back(line[k]);
+        }
+        sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
+        sys.intraTargetedSwapCollection.AddsubVolumeResKind(idx, temp);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected atleast 2 values for SubVolumeResidueKind, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeRigidSwap")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        bool isRigid = checkBool(line[2]);
+        sys.targetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
+        sys.intraTargetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumeRigidSwap, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    }
+#if ENSEMBLE == GCMC
+     else if(CheckString(line[0], "SubVolumeChemPot")) {
+      if(line.size() >= 4) {
+        int idx = stringtoi(line[1]); 
+        std::string resName = line[2];
+        double value = stringtod(line[3]);
+        bool isFugacity = false;
+        sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value, isFugacity);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected 3 values for SubVolumeChemPot, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeFugacity")) {
+      if(line.size() >= 4) {
+        int idx = stringtoi(line[1]); 
+        std::string resName = line[2];
+        double value = stringtod(line[3]);
+        bool isFugacity = true;
+        sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value, isFugacity);
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected 3 values for SubVolumeFugacity, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } 
+#endif
+    else if(CheckString(line[0], "ExchangeVolumeDim")) {
       if(line.size() == 4) {
         XYZ temp;
         temp.x = stringtod(line[1]);
@@ -418,7 +639,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-4.4f A\n", "Info: Cutoff", sys.ff.cutoff);
     } else if(CheckString(line[0], "RcutLow")) {
       sys.ff.cutoffLow = stringtod(line[1]);
-      printf("%-40s %-4.4f A\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
+      printf("%-40s %-4.4lf A\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
     } else if(CheckString(line[0], "Exclude")) {
       if(line[1] == sys.exclude.EXC_ONETWO) {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETWO_KIND;
@@ -475,6 +696,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(sys.step.total == 0) {
         in.restart.recalcTrajectory = true;
         printf("%-40s %-s \n", "Info: Recalculate Trajectory", "Active");
+        std::cout << "Error: Recalculate Trajectory is not currently supported!\n";
+        exit(EXIT_FAILURE);
       }
     } else if(CheckString(line[0], "EqSteps")) {
       sys.step.equil = stringtoi(line[1]);
@@ -484,6 +707,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       sys.step.adjustment = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Move adjustment frequency",
              sys.step.adjustment);
+    } else if(CheckString(line[0], "InitStep")) {
+      sys.step.initStep = stringtoi(line[1]);
+      sys.step.initStepRead = true;
+      printf("%-40s %-lu \n", "Info: InitStep",
+             sys.step.initStep);
     } else if(CheckString(line[0], "PressureCalc")) {
       sys.step.pressureCalc = checkBool(line[1]);
       if(line.size() == 3)
@@ -524,12 +752,20 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
              sys.moves.displace);
     } else if(CheckString(line[0], "MultiParticleFreq")) {
       sys.moves.multiParticle = stringtod(line[1]);
-      if(sys.moves.multiParticle > 0.00) {
+      if(sys.moves.multiParticle > 0.0) {
         sys.moves.multiParticleEnabled = true;
       }
       printf("%-40s %-4.4f \n",
              "Info: Multi-Particle move frequency",
              sys.moves.multiParticle);
+    } else if(CheckString(line[0], "MultiParticleBrownianFreq")) {
+      sys.moves.multiParticleBrownian = stringtod(line[1]);
+      if(sys.moves.multiParticleBrownian > 0.0) {
+        sys.moves.multiParticleEnabled = true;
+      }
+      printf("%-40s %-4.4f \n",
+             "Info: Multi-Particle Brownian move frequency",
+             sys.moves.multiParticleBrownian);
     } else if(CheckString(line[0], "IntraSwapFreq")) {
       sys.moves.intraSwap = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Intra-Swap move frequency",
@@ -542,31 +778,38 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       sys.moves.crankShaft = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Crank-Shaft move frequency",
              sys.moves.crankShaft);
+    } else if(CheckString(line[0], "IntraTargetedSwapFreq")) {
+      sys.moves.intraTargetedSwap = stringtod(line[1]);
+      if(sys.moves.intraTargetedSwap > 0.0) {
+        sys.intraTargetedSwapCollection.enable = true;
+      }
+      printf("%-40s %-4.4f \n", "Info: Intra-Targeted-Swap move frequency",
+             sys.moves.intraTargetedSwap);
     } else if(CheckString(line[0], "RotFreq")) {
       sys.moves.rotate = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
              sys.moves.rotate);
     } else if(CheckString(line[0], "IntraMEMC-1Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-1 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+              sys.moves.intraMemc);
         sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC1 = true;
       }
     } else if(CheckString(line[0], "IntraMEMC-2Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+              sys.moves.intraMemc);
         sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC2 = true;
       }
     } else if(CheckString(line[0], "IntraMEMC-3Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.intraMemc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
+              sys.moves.intraMemc);
         sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC3 = true;
       }
@@ -594,116 +837,147 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-4.4f \n", "Info: Molecule swap move frequency",
              sys.moves.transfer);
     } else if(CheckString(line[0], "MEMC-1Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
+            sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC1 = true;
       }
     } else if(CheckString(line[0], "MEMC-2Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
+            sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC2 = true;
       }
     } else if(CheckString(line[0], "MEMC-3Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
+      if(stringtod(line[1]) > 0.0){
+        sys.moves.memc = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
+            sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC3 = true;
       }
-    } else if(CheckString(line[0], "CFCMCFreq")) {
-      sys.moves.cfcmc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
-             sys.moves.cfcmc);
-      if(sys.moves.cfcmc > 0.0) {
-        sys.cfcmcVal.enable = true;
+    } else if(CheckString(line[0], "TargetedSwapFreq")) {
+      sys.moves.targetedSwap = stringtod(line[1]);
+      if(sys.moves.targetedSwap > 0.0) {
+        sys.targetedSwapCollection.enable = true;
+      }
+      printf("%-40s %-4.4f \n", "Info: Targeted-Swap move frequency",
+             sys.moves.targetedSwap);
+    } else if(CheckString(line[0], "NeMTMCFreq")) {
+      sys.moves.neMolTransfer = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: nonEq Mol-Transfer move frequency",
+             sys.moves.neMolTransfer);
+      if(sys.moves.neMolTransfer > 0.0) {
+        sys.neMTMCVal.enable = true;
       }
     } else if(CheckString(line[0], "LambdaCoulomb")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.readLambdaCoulomb = true;
+        sys.neMTMCVal.readLambdaCoulomb = true;
         printf("%-41s", "Info: Lambda Coulomb");
         for(uint i = 1; i < line.size(); i++) {
           double val = stringtod(line[i]);
-          sys.cfcmcVal.lambdaCoulomb.push_back(val);
+          sys.neMTMCVal.lambdaCoulomb.push_back(val);
           printf("%-6.3f", val);
         }
         std::cout << std::endl;
       }
     } else if(CheckString(line[0], "LambdaVDW")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.readLambdaVDW = true;
+        sys.neMTMCVal.readLambdaVDW = true;
         printf("%-41s", "Info: Lambda VDW");
         for(uint i = 1; i < line.size(); i++) {
           double val = stringtod(line[i]);
-          sys.cfcmcVal.lambdaVDW.push_back(val);
+          sys.neMTMCVal.lambdaVDW.push_back(val);
           printf("%-6.3f", val);
         }
         std::cout << std::endl;
       }
     } else if(CheckString(line[0], "RelaxingSteps")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.readRelaxSteps = true;
-        sys.cfcmcVal.relaxSteps = stringtoi(line[1]);
-        printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
-               sys.cfcmcVal.relaxSteps);
-      }
-    } else if(CheckString(line[0], "HistFlatness")) {
-      if(line.size() > 1) {
-        sys.cfcmcVal.readHistFlatness = true;
-        sys.cfcmcVal.histFlatness = stringtod(line[1]);
-        printf("%-40s %-4.4f \n", "Info: CFCMC Histogram Flatness",
-               sys.cfcmcVal.histFlatness);
+        sys.neMTMCVal.readRelaxSteps = true;
+        sys.neMTMCVal.relaxSteps = stringtoi(line[1]);
+        printf("%-40s %-4d \n", "Info: NeMTMC Relaxing Steps",
+               sys.neMTMCVal.relaxSteps);
       }
     } else if(CheckString(line[0], "MultiParticleRelaxing")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.MPEnable = checkBool(line[1]);
-        sys.cfcmcVal.readMPEnable = true;
-        if(sys.cfcmcVal.MPEnable) {
-          sys.moves.multiParticleEnabled = sys.cfcmcVal.MPEnable;
-          printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+        sys.neMTMCVal.MPEnable = checkBool(line[1]);
+        sys.neMTMCVal.readMPEnable = true;
+        if(sys.neMTMCVal.MPEnable) {
+          sys.moves.multiParticleEnabled = sys.neMTMCVal.MPEnable;
+          printf("%-40s %s \n", "Info: NeMTMC Relaxing Using MultiParticle",
                  "Active");
         } else {
-          printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+          printf("%-40s %s \n", "Info: NeMTMC Relaxing Using MultiParticle",
+                 "Inactive");
+        }
+      }
+    } else if(CheckString(line[0], "MultiParticleBrownianRelaxing")) {
+      if(line.size() > 1) {
+        sys.neMTMCVal.MPBEnable = checkBool(line[1]);
+        sys.neMTMCVal.readMPBEnable = true;
+        if(sys.neMTMCVal.MPBEnable) {
+          sys.moves.multiParticleEnabled = sys.neMTMCVal.MPBEnable;
+          printf("%-40s %s \n", "Info: NeMTMC Relaxing Using MultiParticleBrownian",
+                 "Active");
+        } else {
+          printf("%-40s %s \n", "Info: NeMTMC Relaxing Using MultiParticleBrownian",
                  "Inactive");
         }
       }
     } else if(CheckString(line[0], "ScalePower")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.scalePower = stringtoi(line[1]);
-        sys.cfcmcVal.scalePowerRead = true;
+        sys.neMTMCVal.scalePower = stringtoi(line[1]);
+        sys.neMTMCVal.scalePowerRead = true;
         printf("%-40s %-4d \n", "Info: Soft-core scaling power(p)",
-               sys.cfcmcVal.scalePower);
+               sys.neMTMCVal.scalePower);
       }
     } else if(CheckString(line[0], "ScaleAlpha")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.scaleAlpha = stringtod(line[1]);
-        sys.cfcmcVal.scaleAlphaRead = true;
+        sys.neMTMCVal.scaleAlpha = stringtod(line[1]);
+        sys.neMTMCVal.scaleAlphaRead = true;
         printf("%-40s %-4.4f \n", "Info: Soft-core softness(alpha)",
-               sys.cfcmcVal.scaleAlpha);
+               sys.neMTMCVal.scaleAlpha);
       }
     } else if(CheckString(line[0], "MinSigma")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.scaleSigma = stringtod(line[1]);
-        sys.cfcmcVal.scaleSigmaRead = true;
+        sys.neMTMCVal.scaleSigma = stringtod(line[1]);
+        sys.neMTMCVal.scaleSigmaRead = true;
         printf("%-40s %-4.4f A \n", "Info: Soft-core minimum sigma",
-               sys.cfcmcVal.scaleSigma);
+               sys.neMTMCVal.scaleSigma);
       }
     } else if(CheckString(line[0], "ScaleCoulomb")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.scaleCoulomb = checkBool(line[1]);
-        sys.cfcmcVal.scaleCoulombRead = true;
-        if(sys.cfcmcVal.scaleCoulomb) {
+        sys.neMTMCVal.scaleCoulomb = checkBool(line[1]);
+        sys.neMTMCVal.scaleCoulombRead = true;
+        if(sys.neMTMCVal.scaleCoulomb) {
           printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
                  "Active");
         } else {
           printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
                  "Inactive");
+        }
+      }
+    } else if(CheckString(line[0], "SampleConfFreq")) {
+      if(line.size() > 1) {
+        sys.neMTMCVal.conformationProb = stringtod(line[1]);
+        sys.neMTMCVal.readConformationProb = true;
+        if (sys.neMTMCVal.conformationProb <= 1.0f) {
+          printf("%-40s %-4.4f \n", "Info: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps",
+                sys.neMTMCVal.conformationProb);
+        }
+      }
+    } else if(CheckString(line[0], "LambdaVDWLimit")) {
+      if(line.size() > 1) {
+        sys.neMTMCVal.lambdaLimit = stringtod(line[1]);
+        sys.neMTMCVal.readLambdaLimit = true;
+        if (sys.neMTMCVal.lambdaLimit <= 1.0f) {
+          printf("%-40s %-4.4f \n", "Info: Lambda VDW limit for Intra-Swap move in NeMTMC Relaxing Steps",
+                sys.neMTMCVal.lambdaLimit);
         }
       }
     }
@@ -911,15 +1185,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         out.statistics.settings.uniqueStr.val = line[1];
         printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
       }
-    } else if(CheckString(line[0], "CheckpointFreq")) {
-      out.checkpoint.enable = checkBool(line[1]);
-      if(line.size() == 3)
-        out.checkpoint.frequency = stringtoi(line[2]);
-      if(out.checkpoint.enable)
-        printf("%-40s %-lu \n", "Info: Checkpoint frequency",
-               out.checkpoint.frequency);
-      else
-        printf("%-40s %-s \n", "Info: Saving checkpoint", "Inactive");
     } else if(CheckString(line[0], "CoordinatesFreq")) {
       out.state.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
@@ -946,6 +1211,19 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                out.restart.settings.frequency);
       } else
         printf("%-40s %-s \n", "Info: Printing restart coordinate", "Inactive");
+    } else if(CheckString(line[0], "DCDFreq")) {
+      out.state_dcd.settings.enable = checkBool(line[1]);
+      if(line.size() == 3)
+        out.state_dcd.settings.frequency = stringtoi(line[2]);
+
+      if(out.state_dcd.settings.enable && (line.size() == 2))
+        out.state_dcd.settings.frequency = (ulong)sys.step.total / 10;
+
+      if(out.state_dcd.settings.enable) {
+        printf("%-40s %-lu \n", "Info: DCD frequency",
+               out.state_dcd.settings.frequency);
+      } else
+        printf("%-40s %-s \n", "Info: Printing DCD ", "Inactive");
     } else if(CheckString(line[0], "ConsoleFreq")) {
       out.console.enable = checkBool(line[1]);
       if(line.size() == 3)
@@ -1052,6 +1330,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: Constant Parallel Tempering seed", "Active");
       else
         printf("Warning: Constant Parallel Tempering seed set, but will be ignored.\n");
+    } else if(CheckString(line[0], "ExpertMode")) {
+        exptMode = checkBool(line[1]);
+        printf("%-40s %-s \n", "Info: Expert Mode", exptMode ? "Active" : "Inactive");
     } else {
       std::cout << "Warning: Unknown input " << line[0] << "!" << std::endl;
     }
@@ -1074,22 +1355,29 @@ void ConfigSetup::fillDefaults(void)
   }
 
   if(sys.moves.rotate == DBL_MAX) {
-    sys.moves.rotate = 0.000;
+    sys.moves.rotate = 0.0;
     printf("%-40s %-4.4f \n", "Default: Rotation move frequency",
            sys.moves.rotate);
   }
 
   if(sys.moves.intraSwap == DBL_MAX) {
-    sys.moves.intraSwap = 0.000;
+    sys.moves.intraSwap = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-Swap move frequency",
            sys.moves.intraSwap);
   }
 
   if(sys.moves.multiParticle == DBL_MAX) {
-    sys.moves.multiParticle = 0.000;
+    sys.moves.multiParticle = 0.0;
     printf("%-40s %-4.4f \n",
            "Default: Multi-Particle move frequency",
            sys.moves.multiParticle);
+  }
+
+  if(sys.moves.multiParticleBrownian == DBL_MAX) {
+    sys.moves.multiParticleBrownian = 0.0;
+    printf("%-40s %-4.4f \n",
+           "Default: Multi-Particle Brownian move frequency",
+           sys.moves.multiParticleBrownian);
   }
 
   if(sys.moves.intraMemc == DBL_MAX) {
@@ -1099,15 +1387,21 @@ void ConfigSetup::fillDefaults(void)
   }
 
   if(sys.moves.regrowth == DBL_MAX) {
-    sys.moves.regrowth = 0.000;
+    sys.moves.regrowth = 0.0;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
            sys.moves.regrowth);
   }
 
   if(sys.moves.crankShaft == DBL_MAX) {
-    sys.moves.crankShaft = 0.000;
+    sys.moves.crankShaft = 0.0;
     printf("%-40s %-4.4f \n", "Default: Crank-Shaft move frequency",
            sys.moves.crankShaft);
+  }
+
+  if(sys.moves.intraTargetedSwap == DBL_MAX) {
+    sys.moves.intraTargetedSwap = 0.0;
+    printf("%-40s %-4.4f \n", "Default: Targeted-Swap move frequency",
+           sys.moves.intraTargetedSwap);
   }
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
@@ -1117,69 +1411,92 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.memc);
   }
 
-  if(sys.moves.cfcmc == DBL_MAX) {
-    sys.moves.cfcmc = 0.0;
-    printf("%-40s %-4.4f \n", "Default: CFCMC move frequency",
-           sys.moves.cfcmc);
+  if(sys.moves.neMolTransfer == DBL_MAX) {
+    sys.moves.neMolTransfer = 0.0;
+    printf("%-40s %-4.4f \n", "Default: nonEq Mol-Transfer move frequency",
+           sys.moves.neMolTransfer);
   }
 
-  if(sys.cfcmcVal.enable) {
-    if(!sys.cfcmcVal.readHistFlatness) {
-      sys.cfcmcVal.histFlatness = 0.3;
-      printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
-             sys.cfcmcVal.histFlatness);
-    }
+  if(sys.moves.targetedSwap == DBL_MAX) {
+    sys.moves.targetedSwap = 0.0;
+    printf("%-40s %-4.4f \n", "Default: Targeted-Swap move frequency",
+           sys.moves.targetedSwap);
+  }
 
-    if(!sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
-      sys.cfcmcVal.lambdaCoulomb.resize(sys.cfcmcVal.lambdaVDW.size(), 0.0);
-      sys.cfcmcVal.readLambdaCoulomb = true;
+  if(sys.neMTMCVal.enable) {
+    if(!sys.elect.enable && !sys.neMTMCVal.readLambdaCoulomb) {
+      sys.neMTMCVal.lambdaCoulomb.resize(sys.neMTMCVal.lambdaVDW.size(), 0.0);
+      sys.neMTMCVal.readLambdaCoulomb = true;
       printf("%-41s", "Default: Lambda Coulomb");
-      for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
-        double val = sys.cfcmcVal.lambdaCoulomb[i];
+      for(uint i = 0; i < sys.neMTMCVal.lambdaCoulomb.size(); i++) {
+        double val = sys.neMTMCVal.lambdaCoulomb[i];
         printf("%-6.3f", val);
       }
       std::cout << std::endl;
     }
 
-    if(sys.cfcmcVal.readLambdaVDW ) {
-      if(sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
-        sys.cfcmcVal.lambdaCoulomb = sys.cfcmcVal.lambdaVDW;
-        sys.cfcmcVal.readLambdaCoulomb = true;
+    if(sys.neMTMCVal.readLambdaVDW ) {
+      if(sys.elect.enable && !sys.neMTMCVal.readLambdaCoulomb) {
+        sys.neMTMCVal.lambdaCoulomb = sys.neMTMCVal.lambdaVDW;
+        sys.neMTMCVal.readLambdaCoulomb = true;
         printf("%-41s", "Default: Lambda Coulomb");
-        for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
-          double val = sys.cfcmcVal.lambdaCoulomb[i];
+        for(uint i = 0; i < sys.neMTMCVal.lambdaCoulomb.size(); i++) {
+          double val = sys.neMTMCVal.lambdaCoulomb[i];
           printf("%-6.3f", val);
         }
         std::cout << std::endl;
       }
     }
 
-    if(!sys.cfcmcVal.readMPEnable) {
-      sys.cfcmcVal.readMPEnable = true;
-      sys.cfcmcVal.MPEnable = false;
-      printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+    if(!sys.neMTMCVal.readMPEnable) {
+      sys.neMTMCVal.readMPEnable = true;
+      sys.neMTMCVal.MPEnable = false;
+      printf("%-40s %s \n", "Default: NeMTMC Relaxing using MultiParticle",
              "Inactive");
     }
 
-    if(!sys.cfcmcVal.scalePowerRead) {
-      sys.cfcmcVal.scalePower = 2;
+    if(!sys.neMTMCVal.readMPBEnable) {
+      sys.neMTMCVal.readMPBEnable = true;
+      sys.neMTMCVal.MPBEnable = false;
+      printf("%-40s %s \n", "Default: NeMTMC Relaxing using MultiParticleBrownian",
+             "Inactive");
+    }
+
+    if(!sys.neMTMCVal.scalePowerRead) {
+      sys.neMTMCVal.scalePowerRead = true;
+      sys.neMTMCVal.scalePower = 2;
       printf("%-40s %-4d \n", "Default: Soft-core scale power(p)",
-             sys.cfcmcVal.scalePower);
+             sys.neMTMCVal.scalePower);
     }
-    if(!sys.cfcmcVal.scaleAlphaRead) {
-      sys.cfcmcVal.scaleAlpha = 0.5;
+    if(!sys.neMTMCVal.scaleAlphaRead) {
+      sys.neMTMCVal.scaleAlphaRead = true;
+      sys.neMTMCVal.scaleAlpha = 0.5;
       printf("%-40s %-4.4f \n", "Default: Soft-core softness(alpha)",
-             sys.cfcmcVal.scaleAlpha);
+             sys.neMTMCVal.scaleAlpha);
     }
-    if(!sys.cfcmcVal.scaleSigmaRead) {
-      sys.cfcmcVal.scaleSigma = 3.0;
+    if(!sys.neMTMCVal.scaleSigmaRead) {
+      sys.neMTMCVal.scaleSigmaRead = true;
+      sys.neMTMCVal.scaleSigma = 3.0;
       printf("%-40s %-4.4f A \n", "Default: Soft-core minimum sigma",
-             sys.cfcmcVal.scaleSigma);
+             sys.neMTMCVal.scaleSigma);
     }
-    if(!sys.cfcmcVal.scaleCoulombRead) {
-      sys.cfcmcVal.scaleCoulomb = false;
+    if(!sys.neMTMCVal.scaleCoulombRead) {
+      sys.neMTMCVal.scaleCoulombRead = true;
+      sys.neMTMCVal.scaleCoulomb = false;
       printf("%-40s %s A \n", "Default: Soft-core for Coulombic interaction",
              "Inactive");
+    }
+    if(!sys.neMTMCVal.readConformationProb) {
+      sys.neMTMCVal.readConformationProb = true;
+      sys.neMTMCVal.conformationProb = 0.1;
+      printf("%-40s %-4.4f A \n", "Default: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps",
+             sys.neMTMCVal.conformationProb);
+    }
+    if(!sys.neMTMCVal.readLambdaLimit) {
+      sys.neMTMCVal.readLambdaLimit = true;
+      sys.neMTMCVal.lambdaLimit = 0.1;
+      printf("%-40s %-4.4f A \n", "Default: Lambda VDW limit for Intra-Swap move in NeMTMC Relaxing Steps",
+             sys.neMTMCVal.lambdaLimit);
     }
   }
 
@@ -1284,10 +1601,10 @@ void ConfigSetup::fillDefaults(void)
   }
 
   if(sys.ff.cutoffLow == DBL_MAX) {
-    sys.ff.cutoffLow = 0.00;
-    printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
+    sys.ff.cutoffLow = 0.0;
+    printf("%-40s %-4.4lf \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
   }
-
+  
   if(out.statistics.settings.block.enable && in.restart.recalcTrajectory) {
     out.statistics.settings.block.enable = false;
     printf("%-40s \n", "Warning: Average output is activated but it will be ignored.");
@@ -1303,6 +1620,11 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s \n", "Warning: Printing coordinate is activated but it will be ignored.");
   }
 
+  if(out.state_dcd.settings.enable && in.restart.recalcTrajectory) {
+    out.state_dcd.settings.enable = false;
+    printf("%-40s \n", "Warning: Printing DCD coordinate is activated but it will be ignored.");
+  }
+
   out.state.files.psf.name = out.statistics.settings.uniqueStr.val +
                              "_merged.psf";
   for(int i = 0; i < BOX_TOTAL; i++) {
@@ -1312,6 +1634,16 @@ void ConfigSetup::fillDefaults(void)
     toStr >> numStr;
     out.state.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +
                                   "_BOX_" + numStr + ".pdb";
+    out.restart.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + "_restart.pdb";
+    out.state_dcd.files.dcd.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + ".dcd";
+    out.restart_dcd.files.dcd.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + "_restart.coor";
+    out.restart_vel.files.dcd.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + "_restart.vel";
+    out.state.files.splitPSF.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + ".psf";                              
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }
@@ -1319,6 +1651,30 @@ void ConfigSetup::fillDefaults(void)
 void ConfigSetup::verifyInputs(void)
 {
   int i;
+
+  #ifdef VARIABLE_PARTICLE_NUMBER
+  if(sys.targetedSwapCollection.enable) {
+    for (i = 0; i < (int) sys.targetedSwapCollection.targetedSwap.size(); i++) {
+      // make sure all required parameter has been set
+      sys.targetedSwapCollection.targetedSwap[i].VerifyParm();
+    }
+  }
+  #endif
+
+  if(sys.intraTargetedSwapCollection.enable) {
+    for (i = 0; i < (int) sys.intraTargetedSwapCollection.targetedSwap.size(); i++) {
+      // make sure all required parameter has been set
+      sys.intraTargetedSwapCollection.targetedSwap[i].VerifyParm();
+    }
+  }
+
+  if(abs(sys.moves.multiParticle) > 0.0000001 && 
+    abs(sys.moves.multiParticleBrownian) > 0.0000001) {
+    std::cout << "Error: Both multi-Particle and multi-Particle Brownian! " <<
+    " cannot be used at the same time!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
     printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
     sys.elect.oneFourScale = 0.0;
@@ -1400,7 +1756,7 @@ void ConfigSetup::verifyInputs(void)
       (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETHREE_KIND)) {
     std::cout << "Warning: Exclude 1-3 is set for EXOTIC type parameter.\n";
   }
-  if(in.files.param.name == "") {
+  if(!in.files.param.size()) {
     std::cout << "Error: Parameter file name is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1416,13 +1772,38 @@ void ConfigSetup::verifyInputs(void)
   if(((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
       (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND)) && sys.ff.doTailCorr) {
     std::cout << "Warning: Long Range Correction is Active for " <<
-              "truncated potential." << std::endl;
+              "truncated potential. Ignoring this option!" << std::endl;
+    sys.ff.doTailCorr = false;
+  }
+  if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
+      (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && 
+      (!sys.ff.doImpulsePressureCorr && !sys.ff.doTailCorr)) {
+    std::cout << "Warning: Impulse Pressure Correction is Inactive for " <<
+              "Non-truncated potential." << std::endl;
+  }
+  if(((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
+      (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND)) && sys.ff.doImpulsePressureCorr) {
+    std::cout << "Warning: Impulse Pressure Correction is Active for " <<
+              "truncated potential. Ignoring this option!" << std::endl;
+    sys.ff.doImpulsePressureCorr = false;
+  }
+  if(sys.ff.doImpulsePressureCorr && sys.ff.doTailCorr) {
+    std::cout << "Error: Both LRC (Long Range Correction) and " <<
+              "IPC (Impulse Pressure Correction) cannot be used together!" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if(sys.ff.cutoff == DBL_MAX) {
     std::cout << "Error: Cutoff is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-
+  if(sys.ff.cutoff < 0.0) {
+    std::cout << "Error: Cutoff cannot be negative!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  if(sys.ff.cutoffLow < 0.0) {
+    sys.ff.cutoffLow = 0.0;
+    printf("Warning: Short Range Cutoff cannot be negative. Initializing to zero.\n");
+  }
   if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX)) {
     std::cout << "Error: Tolerance is not specified!" << std::endl;
     exit(EXIT_FAILURE);
@@ -1445,85 +1826,161 @@ void ConfigSetup::verifyInputs(void)
               "Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.equil > sys.step.total && !in.restart.recalcTrajectory) {
+  if(sys.step.equil > (sys.step.initStep + sys.step.total) && !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
     std::cout << "Error: Equilibration steps cannot exceed " <<
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
+
   if(sys.moves.displace == DBL_MAX) {
-    std::cout << "Error: Displacement move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    if(!exptMode){
+      std::cout << "Error: Displacement move frequency is not specified!\n";
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.displace = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Displacement move frequency",
+          sys.moves.displace);
+    }
   }
 #if ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
+    if(!exptMode){
+      std::cout << "Error: Volume move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.volume = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Volume move frequency",
+          sys.moves.volume);
+    }
   }
 #endif
 #if ENSEMBLE == GEMC
   if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
+    if(!exptMode){
+      std::cout << "Error: Volume move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.volume = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Volume move frequency",
+          sys.moves.volume);
+    }
   }
+  
+  if(sys.neMTMCVal.enable && sys.moves.transfer == DBL_MAX) {
+    sys.moves.transfer = 0.0;
+    printf("%-40s %-4.4f \n", "Default: Molecule swap move frequency",
+        sys.moves.transfer);
+  }
+
   if(sys.moves.transfer == DBL_MAX) {
-    std::cout << "Error: Molecule swap move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    if(!exptMode){
+      std::cout << "Error: Molecule swap move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.transfer = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Molecule swap move frequency",
+          sys.moves.transfer);
+    }
   }
+
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
-              sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
+              sys.moves.multiParticle + sys.moves.multiParticleBrownian + 
+              sys.moves.neMolTransfer + sys.moves.targetedSwap + 
+              sys.moves.intraTargetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
+    if(!exptMode){
+      std::cout << "Error: Volume move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.volume = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Volume move frequency",
+          sys.moves.volume);
+    }
   }
 
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
-              sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
+              sys.moves.crankShaft + sys.moves.multiParticle +
+              sys.moves.multiParticleBrownian + 
+              sys.moves.intraTargetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 
 #elif ENSEMBLE == GCMC
   if(sys.moves.transfer == DBL_MAX) {
-    std::cout << "Error: Molecule swap move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    if(!exptMode){
+      std::cout << "Error: Molecule swap move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.transfer = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Molecule swap move frequency",
+          sys.moves.transfer);
+    }
   }
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
               sys.moves.intraMemc + sys.moves.crankShaft +
-              sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
+              sys.moves.multiParticle + sys.moves.multiParticleBrownian + 
+              sys.moves.neMolTransfer + sys.moves.targetedSwap +
+              sys.moves.intraTargetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
-              sys.moves.multiParticle - 1.0) > 0.001) {
+              sys.moves.multiParticle + sys.moves.multiParticleBrownian +
+              sys.moves.intraTargetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #endif
 
   for(i = 0 ; i < BOX_TOTAL ; i++) {
-    if(in.files.pdb.name[i] == "") {
+    if(!in.files.pdb.defined[i]) {
       std::cout << "Error: PDB file is not been specified for box number "
                 << i << "!" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
   for(i = 0 ; i < BOX_TOTAL ; i++) {
-    if(in.files.psf.name[i] == "") {
+    if(!in.files.psf.defined[i]) {
       std::cout << "Error: PSF file is not specified for box number " <<
                 i << "!" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
+
+  if(in.restart.enable) {
+    // error checking to see if if we missed any binary coordinate file
+    if(in.restart.restartFromBinaryCoorFile) {
+      for(i = 0 ; i < BOX_TOTAL ; i++) {
+        if(!in.files.binaryCoorInput.defined[i]) {
+          std::cout << "Error: Binary coordinate file is not specified for box number " <<
+                    i << "!" << std::endl;  
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+    // error checking to see if if we missed any xsc file
+    if(in.restart.restartFromXSCFile) {
+      for(i = 0 ; i < BOX_TOTAL ; i++) {
+        if(!in.files.xscInput.defined[i]) {
+          std::cout << "Error: Extended system file is not specified for box number " <<
+                    i << "!" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+  }
+
   if(!sys.volume.hasVolume && !in.restart.enable) {
     std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
               " Cell Basis vectors!" << std::endl;
@@ -1647,87 +2104,131 @@ void ConfigSetup::verifyInputs(void)
     }
   }
 
-  if(sys.cfcmcVal.enable) {
+  if(sys.neMTMCVal.enable) {
 
-    if(!sys.cfcmcVal.readLambdaCoulomb) {
+    if(!sys.neMTMCVal.readLambdaCoulomb) {
       std::cout << "Error: Lambda Coulomb states were not defined for " <<
-                "CFCMC move! \n";
+                "NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
-    if (!sys.cfcmcVal.readLambdaVDW) {
+    if (!sys.neMTMCVal.readLambdaVDW) {
       std::cout << "Error: Lambda VDW states were not defined for " <<
-                "CFCMC move! \n";
+                "NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
-    if(sys.cfcmcVal.lambdaCoulomb.size() != sys.cfcmcVal.lambdaVDW.size()) {
+    if(sys.neMTMCVal.lambdaCoulomb.size() != sys.neMTMCVal.lambdaVDW.size()) {
       std::cout << "Error: Number of Lambda states for VDW and Coulomb " <<
-                "are not same in CFCMC move! \n";
+                "are not same in NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
-    for(uint i = 0; i < sys.cfcmcVal.lambdaVDW.size(); i++) {
+    for(uint i = 0; i < sys.neMTMCVal.lambdaVDW.size(); i++) {
       bool decreasing = false;
-      for(uint j = i; j < sys.cfcmcVal.lambdaVDW.size(); j++) {
-        if(sys.cfcmcVal.lambdaVDW[i] > sys.cfcmcVal.lambdaVDW[j]) {
+      for(uint j = i; j < sys.neMTMCVal.lambdaVDW.size(); j++) {
+        if(sys.neMTMCVal.lambdaVDW[i] > sys.neMTMCVal.lambdaVDW[j]) {
           decreasing = true;
         }
       }
       if(decreasing) {
         std::cout << "Error: Lambda VDW values are not in increasing order " <<
-                  "in CFCMC move! \n";
+                  "in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
 
-    for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+    for(uint i = 0; i < sys.neMTMCVal.lambdaCoulomb.size(); i++) {
       bool decreasing = false;
-      for(uint j = i; j < sys.cfcmcVal.lambdaCoulomb.size(); j++) {
-        if(sys.cfcmcVal.lambdaCoulomb[i] > sys.cfcmcVal.lambdaCoulomb[j]) {
+      for(uint j = i; j < sys.neMTMCVal.lambdaCoulomb.size(); j++) {
+        if(sys.neMTMCVal.lambdaCoulomb[i] > sys.neMTMCVal.lambdaCoulomb[j]) {
           decreasing = true;
         }
       }
       if(decreasing) {
         std::cout << "Error: Lambda Coulomb values are not in increasing " <<
-                  "order in CFCMC move! \n";
+                  "order in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
 
-    uint last = sys.cfcmcVal.lambdaVDW.size() - 1;
-    if(sys.cfcmcVal.lambdaVDW[last] < 0.9999) {
+    uint last = sys.neMTMCVal.lambdaVDW.size() - 1;
+    if(sys.neMTMCVal.lambdaVDW[last] < 0.9999) {
       std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
-                "in CFCMC move! \n";
+                "in NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
     if(sys.elect.enable) {
-      last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
-      if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
+      last = sys.neMTMCVal.lambdaCoulomb.size() - 1;
+      if(sys.neMTMCVal.lambdaCoulomb[last] < 0.9999) {
         std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
-                  "in CFCMC move! \n";
+                  "in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
 
-    if(!sys.cfcmcVal.readRelaxSteps) {
-      std::cout << "Error: Relaxing steps was not defined for CFCMC move! \n";
+    if(!sys.neMTMCVal.readRelaxSteps) {
+      std::cout << "Error: Relaxing steps was not defined for NeMTMC move! \n";
       exit(EXIT_FAILURE);
-    } else if (sys.cfcmcVal.relaxSteps == 0) {
+    } else if (sys.neMTMCVal.relaxSteps == 0) {
       std::cout << "Warning: No thermal relaxing move will be performed in " <<
-                "CFCMC move! \n";
+                  "NeMTMC move! \n";
     }
 
-    if(sys.cfcmcVal.histFlatness > 0.999 || sys.cfcmcVal.histFlatness < 0.001) {
-      std::cout << "Error: Unacceptable Value for Histogram Flatness in " <<
-                "CFCMC move! \n";
+    if(sys.neMTMCVal.conformationProb > 1.0f) {
+      std::cout << "Error: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps \n" <<
+                   "       must be less than 1.0! \n";
       exit(EXIT_FAILURE);
     }
+
+    if(sys.neMTMCVal.lambdaLimit > 1.0f) {
+      std::cout << "Error: Lambda VDW limit for Intra-Swap move in NeMTMC Relaxing Steps \n" <<
+                   "       must be less than 1.0! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(sys.moves.multiParticleEnabled) {
+      if(sys.neMTMCVal.MPEnable && sys.neMTMCVal.MPBEnable) {
+        std::cout << "Error: Multi-Particle and Multi-Particle Brownian moves cannot \n" <<
+                    "       be used simultaneously in NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+
+      }
+    }
+
+    if(!sys.moves.multiParticleEnabled) {
+      if(sys.moves.displace < 1e-7 || sys.moves.rotate < 1e-7) {
+        std::cout << "Error: Displacement and rotation move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    if(sys.moves.multiParticleEnabled) {
+      if(sys.moves.multiParticle < 1e-7 && sys.neMTMCVal.MPEnable) {
+        std::cout << "Error: Multi-Particle move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+      if(sys.moves.multiParticleBrownian < 1e-7 && sys.neMTMCVal.MPBEnable) {
+        std::cout << "Error: Multi-Particle Brownian move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
   }
 #endif
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   if(sys.freeEn.enable) {
+    if(sys.ff.cutoffLow > 0.0) {
+        sys.ff.cutoffLow = 0.0;
+        printf("Warning: Free energy calculations are being used when RcutLow is not zero (0),\n");
+        printf("         which would produce incorrect free energy results.\n");
+        printf("         Resetting RcutLow to zero (RcutLow=0) for free energy calculations!\n");
+    }
+
     if(!sys.freeEn.readLambdaCoulomb) {
       std::cout << "Error: Lambda Coulomb states were not defined for " <<
                 "Free Energy Calculation! \n";
@@ -1838,10 +2339,51 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Restart coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
+  if(in.restart.restartFromCheckpoint && in.files.checkpoint.name[0] == "") {
+    std::cout << "Error: Restart from checkpoint requested but checkpoint filename is not specified!\n";
+    exit(EXIT_FAILURE);
+  } 
   if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX) {
     std::cout << "Error: Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
+  if(out.state_dcd.settings.enable && out.state_dcd.settings.frequency == ULONG_MAX) {
+    std::cout << "Error: DCD Coordinate frequency is not specified!\n";
+    exit(EXIT_FAILURE);
+  }
+
+  if(out.state.settings.enable && out.restart.settings.enable) {
+    if(out.state.settings.frequency < out.restart.settings.frequency) {
+      if ((out.restart.settings.frequency % out.state.settings.frequency) != 0) {
+        std::cout << "Error: Coordinate frequency must be common multiple of \n";
+        std::cout << "       restart corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      if ((out.state.settings.frequency % out.restart.settings.frequency) != 0) {
+        std::cout << "Error: Restart coordinate frequency must be common multiple of \n";
+        std::cout << "       corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  if(out.state_dcd.settings.enable && out.restart.settings.enable) {
+    if(out.state_dcd.settings.frequency < out.restart.settings.frequency) {
+      if ((out.restart.settings.frequency % out.state_dcd.settings.frequency) != 0) {
+        std::cout << "Error: DCD frequency must be common multiple of \n";
+        std::cout << "       restart corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      if ((out.state_dcd.settings.frequency % out.restart.settings.frequency) != 0) {
+        std::cout << "Error: Restart coordinate frequency must be common multiple of \n";
+        std::cout << "       DCD frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
   if(out.statistics.settings.block.enable &&
       out.statistics.settings.block.frequency == ULONG_MAX) {
     std::cout << "Error: Average output frequency is not specified!\n";
@@ -1951,9 +2493,6 @@ const std::string config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH";
 const std::string config_setup::Exclude::EXC_ONETWO = "1-2";
 const std::string config_setup::Exclude::EXC_ONETHREE = "1-3";
 const std::string config_setup::Exclude::EXC_ONEFOUR = "1-4";
-
-const char ConfigSetup::defaultConfigFileName[] = "in.dat";
-const char ConfigSetup::configFileAlias[] = "GOMC Configuration File";
 
 const uint config_setup::FFValues::VDW_STD_KIND = 0;
 const uint config_setup::FFValues::VDW_SHIFT_KIND = 1;

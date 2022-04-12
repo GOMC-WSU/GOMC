@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef CLOCK_H
 #define CLOCK_H
@@ -19,7 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 struct Clock {
-  Clock(): stepsPerOut(0), prevStep(0), lastStep(0), lastTime(0.0) {}
+  Clock(): lastTime(0.0), stepsPerOut(0), prevStep(0), lastStep(0) {}
   void Init(const ulong steps, const ulong totSt, const ulong startStep)
   {
     stepsPerOut = steps;

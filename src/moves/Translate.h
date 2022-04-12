@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef TRANSLATE_H
 #define TRANSLATE_H
@@ -19,10 +19,12 @@ public:
   Translate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   uint ReplaceRot(Rotate const& other);
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint rejectState, const uint step);
+  virtual void Accept(const uint rejectState, const ulong step);
   virtual void PrintAcceptKind();
 private:
   Intermolecular inter_LJ, inter_Real, recip;
@@ -51,18 +53,39 @@ inline uint Translate::ReplaceRot(Rotate const& other)
 
 inline uint Translate::Prep(const double subDraw, const double movPerc)
 {
-  return GetBoxAndMol(prng, molRef, subDraw, movPerc);
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_DISPLACE);
+  uint state = GetBoxAndMol(prng, molRef, subDraw, movPerc);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_DISPLACE);
+  return state;
+}
+
+inline uint Translate::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_DISPLACE);
+  b = box;
+  m = midx;
+  mk = kidx;
+  pStart = pLen = 0;
+  molRef.GetRangeStartLength(pStart, pLen, m);
+  newMolPos.Uninit();
+  newMolPos.Init(pLen);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_DISPLACE);
+  return mv::fail_state::NO_FAIL;
 }
 
 inline uint Translate::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_DISPLACE);
   coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
                              m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
+  
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_DISPLACE);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void Translate::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_DISPLACE);
   cellList.RemoveMol(m, b, coordCurrRef);
   molRemoved = true;
   overlap = false;
@@ -73,10 +96,12 @@ inline void Translate::CalcEn()
     //calculate reciprocate term of electrostatic interaction
     recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_DISPLACE);
 }
 
-inline void Translate::Accept(const uint rejectState, const uint step)
+inline void Translate::Accept(const uint rejectState, const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_DISPLACE);
   bool res = false;
   if (rejectState == mv::fail_state::NO_FAIL) {
     double pr = prng();
@@ -100,6 +125,8 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     calcEwald->UpdateRecip(b);
 
     sysPotRef.Total();
+    // Update the velocity
+    velocity.UpdateMolVelocity(m, b);
   }
 
   if(molRemoved) {
@@ -111,7 +138,8 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     molRemoved = false;
   }
 
-  moveSetRef.Update(mv::DISPLACE, result, step, b, mk);
+  moveSetRef.Update(mv::DISPLACE, result, b, mk);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_DISPLACE);
 }
 
 #endif /*TRANSLATE_H*/

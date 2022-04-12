@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef ENSEMBLE_PREPROCESSOR_H
 #define ENSEMBLE_PREPROCESSOR_H
@@ -47,5 +47,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define GCC_VERSION (__GNUC__ * 10000 \
                      + __GNUC_MINOR__ * 100 \
                      + __GNUC_PATCHLEVEL__)
+
+// Error flags
+namespace errors {
+    const int READ_ERROR = -1;
+}
 
 #endif /*ENSEMBLE_PREPROCESSOR_H*/

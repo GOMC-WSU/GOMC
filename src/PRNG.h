@@ -1,9 +1,9 @@
 
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef PRNG_H
 #define PRNG_H
@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <cstdlib>
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 #include "MersenneTwister.h"
 #include "EnsemblePreprocessor.h"
@@ -31,7 +31,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class PRNG
 {
 public:
-  PRNG(MoleculeLookup & molLook) : molLookRef(molLook) {}
+  PRNG(MoleculeLookup & molLook) : molLookRef(molLook), hasSecondGaussian(false) {}
   ~PRNG(void)
   {
     delete gen;
@@ -107,8 +107,15 @@ public:
                       const uint b)
   {
     for (uint i = 0; i < len; ++i) {
-      loc.Set(i, randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-              randExc(dims.axis.z[b]));
+      // We trip over a gcc compiler optimization bug if we put all three of these
+      // calls to randExc() in a single function call. Verified for gcc 7.3 and
+      // gcc 8.6, so better to avoid even if fixed in newer releases.
+      // loc.Set(i, randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
+      //         randExc(dims.axis.z[b]));
+      double x = randExc(dims.axis.x[b]);
+      double y = randExc(dims.axis.y[b]);
+      double z = randExc(dims.axis.z[b]);
+      loc.Set(i, x, y, z);
       loc.Set(i, dims.TransformSlant(loc.Get(i), b));
     }
   }
@@ -116,8 +123,16 @@ public:
   void FillWithRandom(XYZ & loc, BoxDimensions const& dims,
                       const uint b)
   {
-    XYZ temp(randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-             randExc(dims.axis.z[b]));
+    // We trip over a gcc compiler optimization bug if we put all three of these
+    // calls to randExc() in a single function call. At least, we did in the
+    // version above where a loop is being used. Verified for gcc 7.3 and gcc 8.6,
+    // so better to avoid even if fixed in newer releases.
+    // XYZ temp(randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
+    //          randExc(dims.axis.z[b]));
+    double x = randExc(dims.axis.x[b]);
+    double y = randExc(dims.axis.y[b]);
+    double z = randExc(dims.axis.z[b]);
+    XYZ temp(x, y, z);
     loc = dims.TransformSlant(temp, b);
   }
 
@@ -125,6 +140,19 @@ public:
   {
     XYZ temp(SymExc(cavDim.x / 2.0), SymExc(cavDim.y / 2.0), SymExc(cavDim.z / 2.0));
     loc = temp;
+  }
+
+  // generate random coordinate in cavity with dimension of cavDim and center
+  // of cavCenter
+  void FillWithRandomInCavity(XYZArray &loc, const uint len, XYZ const& cavDim, 
+                              XYZ const& cavCenter)
+  {
+    // generate random trial in range of [-cavDim/2, +cavDim/2]
+    for (uint i = 0; i < len; ++i) {
+      loc.Set(i, SymExc(cavDim.x / 2.0), SymExc(cavDim.y / 2.0), SymExc(cavDim.z / 2.0));
+    }
+    // Shift by center
+    loc.AddRange(0, len, cavCenter);
   }
 
   //using UniformRandom algorithm in TransformMatrix.h
@@ -156,8 +184,8 @@ public:
     //pick u = cos(phi) uniformly instead
     double u = gen->rand(2.0);
     u -= 1.0;
-    double theta = gen->randExc(2 * M_PI);
-    double rootTerm = sqrt(1 - u * u);
+    double theta = gen->randExc(2.0 * M_PI);
+    double rootTerm = sqrt(1.0 - u * u);
     return XYZ(rootTerm * cos(theta), rootTerm * sin(theta), u);
   }
 
@@ -390,6 +418,27 @@ public:
     return rejectState;
   }
 
+  // Pick a random molecule of kind mk in box b
+  uint PickMolIndex(uint &m_idx, const uint mk, const uint b)
+  {
+    uint rejectState = mv::fail_state::NO_FAIL;
+    //Pick molecule with the help of molecule lookup table.
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else {
+      uint mOff, m;
+      //Among the ones of that kind in that box, pick one @ random.
+      //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
+      do {
+        mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+        //Lookup true index in table.
+        m = molLookRef.GetMolNum(mOff, mk, b);
+      } while(molLookRef.IsNoSwap(m));
+      m_idx = m;
+    }
+    return rejectState;
+  }
+
   // In MEMC move pick n molecules of kind mk
   uint PickMol(const uint mk, uint &mk2, uint &m2, const uint b)
   {
@@ -468,14 +517,44 @@ public:
     return PickMol(m, mk, b, subDraw, boxDiv);
   }
 
+  //draw a uniform distribution with average mean
+  // and standard deviation stdDev
+  double Gaussian(double mean, double stdDev)
+  {
+    if(hasSecondGaussian) {
+      hasSecondGaussian = false;
+      return (mean + secondGaussian * stdDev);
+    } else {
+      double r, v1, v2, factor;
+      do {
+        v1 = Sym(1.0);
+        v2 = Sym(1.0);
+        r = v1*v1 + v2*v2;
+      } while (r >= 1.0 || r < 1.523e-8);
+
+      factor = sqrt(-2.0 * log(r) / r);
+      hasSecondGaussian = true;
+      secondGaussian = v1 * factor;
+      return (mean + v2 * factor * stdDev);
+    }
+  }
+
   MTRand * GetGenerator()
   {
     return gen;
   }
 
+  bool operator==(const PRNG & other){
+    bool result = true;
+    result &= (*gen == *other.gen);
+    return result;
+  }
+
 private:
   MTRand * gen;
   MoleculeLookup & molLookRef;
+  bool hasSecondGaussian;
+  double secondGaussian;
 };
 
 //Saves the current state of the PRNG as ./filename

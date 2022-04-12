@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef CPU_SIDE_H
 #define CPU_SIDE_H
@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Clock.h"
 #include "ConsoleOutput.h"
 #include "PDBOutput.h"
+#include "ExtendedSystemOutput.h"
 #include "BlockOutput.h"
 #include "HistOutput.h"
 #include "ConfigSetup.h"
@@ -18,6 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CheckpointOutput.h"
 #include "EnPartCntSampleOutput.h"
 #include "FreeEnergyOutput.h"
+#include "PSFOutput.h"
 
 #include <vector>
 
@@ -26,17 +28,25 @@ class StaticVals;
 class OutputableBase;
 
 struct CPUSide {
-  CPUSide(System & sys, StaticVals & statV);
-  void Init(PDBSetup const& pdbSet, config_setup::Output const& out,
-            const ulong tillEquil, const ulong totSteps, ulong startStep);
+  CPUSide(System & sys, StaticVals & statV, Setup & set);
+  void Init(PDBSetup const& pdbSet, 
+            config_setup::Input const& in,
+            config_setup::Output const& out,
+            config_setup::SystemVals const& sys,
+            const ulong tillEquil, 
+            const ulong totSteps, 
+            ulong startStep);
   void Output(const ulong step);
 
   ulong equilSteps;
 private:
   Clock timer;
   std::vector<OutputableBase *> outObj;
-  ConsoleOutput console;
+  OutputVars varRef;
   PDBOutput pdb;
+  PSFOutput psf;
+  ExtendedSystemOutput xstBinary;
+  ConsoleOutput console;
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;
@@ -46,7 +56,6 @@ private:
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   FreeEnergyOutput freeEnergy;
 #endif
-  OutputVars varRef;
 };
 
 #endif /*CPU_SIDE_H*/

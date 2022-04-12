@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "Geometry.h"
 #include "MolSetup.h"
@@ -212,6 +212,17 @@ void BondList::Init(const std::vector<mol_setup::Bond>& bonds)
   }
 }
 
+bool BondList::IsBonded(const uint &ai, const uint &aj)
+{
+  for(uint i = 0; i < count; ++i) {
+    if(part1[i] == ai && part2[i] == aj)
+      return true;
+    else if (part1[i] == aj && part2[i] == ai)
+      return true;
+  }
+  return false;
+}
+
 BondList::BondList() : part1(NULL), part2(NULL), kinds(NULL), count(0) {}
 
 BondList::~BondList()
@@ -235,7 +246,6 @@ GeomFeature::~GeomFeature()
 
 void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondList& bList)
 {
-  uint atomsPer = bondsPer + 1;
   count = angles.size();
   if (count == 0)
     return;
@@ -257,7 +267,6 @@ void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondLi
 
 void GeomFeature::Init(const std::vector<mol_setup::Dihedral>& dihs, const BondList& bList)
 {
-  uint atomsPer = bondsPer + 1;
   count = dihs.size();
   if (count == 0)
     return;
@@ -280,6 +289,29 @@ void GeomFeature::Init(const std::vector<mol_setup::Dihedral>& dihs, const BondL
   }
 }
 
+void GeomFeature::Init(const std::vector<mol_setup::Improper>& imps, const BondList& bList)
+{
+  count = imps.size();
+  if (count == 0)
+    return;
+  //find corresponding bond indices
+  kinds = new uint[count];
+  bondIndices = new uint[count * bondsPer];
+
+  int bondCounter = 0;
+  for (uint i = 0; i < imps.size(); ++i) {
+    bondIndices[bondCounter] =
+      findPair(imps[i].a0, imps[i].a1, bList);
+    ++bondCounter;
+    bondIndices[bondCounter] =
+      findPair(imps[i].a1, imps[i].a2, bList);
+    ++bondCounter;
+    bondIndices[bondCounter] =
+      findPair(imps[i].a2, imps[i].a3, bList);
+    ++bondCounter;
+    kinds[i] = imps[i].kind;
+  }
+}
 
 
 void SortedNonbond::Init(const Nonbond& nb, const uint numAtoms)

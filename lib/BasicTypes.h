@@ -1,14 +1,14 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
 #include <cstddef>
-#include <math.h>
+#include <cmath>
 #include <fstream>
 #include <vector>
 #include <iomanip>
@@ -38,34 +38,34 @@ inline void record_debug(double x, std::string filename, int linenumber)
   out << std::setprecision(12) << "double," << filename << "," << linenumber << "," << x << "\n";
 }
 
-inline void record_debug(std::vector<double> x, std::string filename, int linenumber)
+inline void record_debug(const std::vector<double> &x, std::string filename, int linenumber)
 {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << x.size() << "," << filename << "," << linenumber;
-  for(int i = 0; i < x.size(); i++) {
+  for(size_t i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
 }
 
-inline void record_debug(std::vector<int> x, std::string filename, int linenumber)
+inline void record_debug(const std::vector<int> &x, std::string filename, int linenumber)
 {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
-  for(int i = 0; i < x.size(); i++) {
+  for(size_t i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
 }
 
-inline void record_debug(std::vector<uint> x, std::string filename, int linenumber)
+inline void record_debug(const std::vector<uint> &x, std::string filename, int linenumber)
 {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
-  for(int i = 0; i < x.size(); i++) {
+  for(size_t i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
@@ -76,8 +76,19 @@ inline void record_debug(double * x, uint len, std::string filename, int linenum
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << len << "," << filename << "," << linenumber;
-  for(int i = 0; i < len; i++) {
+  for(uint i = 0; i < len; i++) {
     out << "," << std::setprecision(12) << x[i];
+  }
+  out << "\n";
+}
+
+inline void record_debug(uint* x, uint len, std::string filename, int linenumber)
+{
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|uint," << len << "," << filename << "," << linenumber;
+  for (uint i = 0; i < len; i++) {
+    out << "," << x[i];
   }
   out << "\n";
 }
@@ -95,7 +106,10 @@ struct XYZ {
 
   XYZ() : x(0.0), y(0.0), z(0.0) {}
   XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
-
+  void Reset()
+  {
+    x = y = z = 0.0;
+  }
   XYZ& operator=(XYZ const& rhs)
   {
     x = rhs.x;
@@ -103,9 +117,27 @@ struct XYZ {
     z = rhs.z;
     return *this;
   }
+  bool operator==(XYZ const& rhs)
+  {
+    if(x == rhs.x && y == rhs.y && z == rhs.z)
+      return true;
+    return false;
+  }
   bool operator!=(XYZ const& rhs)
   {
     if(x != rhs.x || y != rhs.y || z != rhs.z)
+      return true;
+    return false;
+  }
+  bool operator<(XYZ const& rhs)
+  {
+    if(x < rhs.x && y < rhs.y && z < rhs.z)
+      return true;
+    return false;
+  }
+  bool operator>(XYZ const& rhs)
+  {
+    if(x > rhs.x || y > rhs.y || z > rhs.z)
       return true;
     return false;
   }

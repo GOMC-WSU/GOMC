@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef UNIT_CONST_H
 #define UNIT_CONST_H
@@ -10,6 +10,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //Constants for unit conversion
 namespace unit
 {
+// Boltzmann constant
+static const double BOLTZMANN = 0.001987191;
 
 // Molecules: molecules/A3 --> mol/cm3
 //

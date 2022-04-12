@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include <vector>
 #include <map> //for function lookup table.
@@ -29,6 +29,9 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
+  restartFromXSC = r.restartFromXSCFile;
+  restartFromBinary = r.restartFromBinaryCoorFile;
+
   for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)
       reached[b] = false;
@@ -50,6 +53,7 @@ void Remarks::Read(FixedWidthReader & pdb)
     .Get(vol[currBox], vol::POS);
 
     CheckGOMC(varName);
+    
   }
   if(recalcTrajectory) {
     std::string varName;
@@ -85,7 +89,7 @@ void Cryst1::Read(FixedWidthReader & pdb)
 {
   XYZ temp;
   using namespace pdb_entry::cryst1::field;
-  hasVolume = true;
+  hasVolume[currBox] = true;
   pdb.Get(temp.x, x::POS)
   .Get(temp.y, y::POS)
   .Get(temp.z, z::POS)
@@ -101,43 +105,26 @@ void Atoms::SetRestart(config_setup::RestartSettings const& r )
   recalcTrajectory = r.recalcTrajectory;
 }
 
-void Atoms::Assign(std::string const& atomName,
-                   std::string const& resName,
-                   const uint resNum,
+void Atoms::Assign(std::string const& resName,
                    const char l_chain, const double l_x,
                    const double l_y, const double l_z,
-                   const double l_occ,
-                   const double l_beta)
+                   const double l_beta,
+                   const double l_occ)
 {
   //box.push_back((bool)(restart?(uint)(l_occ):currBox));
   beta.push_back(l_beta);
+  occ.push_back(l_occ);
   box.push_back(currBox);
-  atomAliases.push_back(atomName);
-  resNamesFull.push_back(resName);
-  if (resNum != currRes || resName != currResname || firstResInFile) {
-    molBeta.push_back(l_beta);
-    startIdxRes.push_back(count);
-    currRes = resNum;
-    currResname = resName;
-    resNames.push_back(resName);
-    chainLetter.push_back(l_chain);
-    //Check if this kind of residue has been found
-    uint kIndex = std::find(resKindNames.begin(), resKindNames.end(),
-                            resName) - resKindNames.begin();
-    // if not push it to resKindNames -> new molecule found
-    if(kIndex == resKindNames.size()) {
-      resKindNames.push_back(resName);
-    }
-    // pushes the index of the residue to the resKinds
-    resKinds.push_back(kIndex);
-  }
+  ++numAtomsInBox[currBox];
+  resNames.push_back(resName);
+  chainLetter.push_back(l_chain);
+
   // push the coordinates of atoms to x, y, and z
   x.push_back(l_x);
   y.push_back(l_y);
   z.push_back(l_z);
 
   count++;
-  firstResInFile = false;
 }
 
 void Atoms::Read(FixedWidthReader & file)
@@ -157,8 +144,7 @@ void Atoms::Read(FixedWidthReader & file)
   if(recalcTrajectory && (uint)l_occ != currBox) {
     return;
   }
-  Assign(atomName, resName, resNum, l_chain, l_x, l_y, l_z,
-         l_occ, l_beta);
+  Assign(resName, l_chain, l_x, l_y, l_z, l_beta, l_occ);
 }
 
 void Atoms::Clear()
@@ -168,15 +154,46 @@ void Atoms::Clear()
   y.clear();
   z.clear();
   beta.clear();
+  occ.clear();
   box.clear();
-  atomAliases.clear();
-  resNamesFull.clear();
   resNames.clear();
-  resKindNames.clear();
-  startIdxRes.clear();
-  resKinds.clear();
-  molBeta.clear();
   count = 0;
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    numAtomsInBox[b] = 0;
+  }
+  for (uint b = 0; b < BOX_TOTAL+1; b++) {
+    boxAtomOffset[0] = 0;
+  }
+}
+
+// This method of finding minimum assumes all the box 0 atoms 
+// will be contiguous in the coordinates array.  This isn't 
+// the case on checkpoint restarts.  Since we went out of the
+// way to ensure even when box transfers occur, the atoms
+// remain in the same original order in the original data structure.
+// We therefore can't rely on the molecule lookup to get the start 
+// and end of the box for the restarted data structures.
+// Hence the numberOfAtoms array.
+
+void Atoms::GetMinMaxAtoms(const uint b){
+  int stRange, endRange;
+
+  boxAtomOffset[b+1] = boxAtomOffset[b] + numAtomsInBox[b];
+
+  // To prevent segfault, but we still need to set atomOffset
+  if (numAtomsInBox[b] == 0)
+    return;
+
+  stRange = boxAtomOffset[b];
+  endRange = boxAtomOffset[b+1];
+
+  min[b].x = *std::min_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
+  min[b].y = *std::min_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));
+  min[b].z = *std::min_element(std::next(z.begin(), stRange), std::next(z.begin(), endRange));
+  max[b].x = *std::max_element(std::next(x.begin(), stRange), std::next(x.begin(), endRange));
+  max[b].y = *std::max_element(std::next(y.begin(), stRange), std::next(y.begin(), endRange));
+  max[b].z = *std::max_element(std::next(z.begin(), stRange), std::next(z.begin(), endRange));
+
 }
 
 } //end namespace pdb_setup
@@ -243,6 +260,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     std::cout.width(40);
     std::cout << std::left << "Finished reading: ";
     std::cout << "\t" << name[b] << std::endl;
+    atoms.GetMinMaxAtoms(b);
   }
 }
 

@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef FF_MOLECULE_H
 #define FF_MOLECULE_H
@@ -64,6 +64,32 @@ public:
   {
     return dihedrals.Count();
   }
+  uint NumImps() const
+  {
+    return impropers.Count();
+  }
+  uint NumDons() const
+  {
+    return donorList.count;
+  }
+  uint NumAccs() const
+  {
+    return acceptorList.count;
+  }
+  /*
+  uint NumNNBs() const
+  {
+    return nnbs.Count();
+  }
+  uint NumGrps() const
+  {
+    return groups.Count();
+  }
+  uint NumCrtrms() const
+  {
+    return crossterms.Count();
+  }
+  */
   uint AtomKind(const uint a) const
   {
     return atomKind[a];
@@ -75,7 +101,8 @@ public:
 
   //Initialize this kind
   //Exits program if param and psf files don't match
-  void Init(std::string const& l_name,
+  void Init(uint & l_kindIndex, 
+            std::string const& l_name,
             Setup const& setup,
             Forcefield const& forcefield,
             System & sys);
@@ -99,6 +126,13 @@ public:
                   const uint molIndex)
   {
     builder->CrankShaft(oldMol, newMol, molIndex);
+  }
+
+  // Targeted Swap move
+  void BuildGrowInCav(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
+                      const uint molIndex)
+  {
+    builder->BuildGrowInCav(oldMol, newMol, molIndex);
   }
 
   //Used in MEMC move
@@ -136,8 +170,9 @@ public:
 
   bool MoleculeHasCharge();
 
-  SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
+  bool operator==(const MoleculeKind & other);
 
+  SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
 
   //these are used for total energy calculations, see Geometry.h/cpp
   Nonbond nonBonded;
@@ -145,17 +180,27 @@ public:
   Nonbond_1_3 nonBonded_1_3;
   EwaldNonbond nonEwaldBonded;
 
-  BondList bondList;
+  BondList bondList, donorList, acceptorList;
   GeomFeature angles;
   GeomFeature dihedrals;
+  GeomFeature impropers;
+  
   bool oneThree, oneFour;
 
-  std::string name;
-  std::vector<std::string> atomNames, atomTypeNames;
+  // uniqueName - guarunteed to be unique, the map key
+  // name - not guarunteed to be unique
+  //  -if a protein, == PROT(A...Z)
+  //  -if non-protein, residue name
+  std::string name, uniqueName;
+;
+  uint kindIndex;
+  std::vector<std::string> atomNames, atomTypeNames, resNames;
   double molMass;
 
   double * atomMass;
 
+  bool isMultiResidue;
+  std::vector<uint> intraMoleculeResIDs;
 
 #if ENSEMBLE == GCMC
   double chemPot;

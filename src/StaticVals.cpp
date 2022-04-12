@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "StaticVals.h"
 #include "ConfigSetup.h" //For types directly read from config. file
@@ -17,12 +17,9 @@ void StaticVals::Init(Setup & set, System& sys)
   simEventFreq.Init(set.config.sys.step);
   forcefield.Init(set);
   mol.Init(set, forcefield, sys);
-#ifndef VARIABLE_VOLUME
-  boxDimensions->Init(set.config.in.restart, set.config.sys.volume,
-                      set.pdb.cryst, forcefield);
-#endif
 #ifndef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(mol, set.pdb.atoms);
+  molLookup.Init(mol, set.pdb.atoms, forcefield,
+                  set.config.in.restart.restartFromCheckpoint);
 #endif
   InitMovePercents(set.config.sys.moves);
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -49,6 +46,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::MULTIPARTICLE:
       movePerc[m] = perc.multiParticle;
       break;
+    case mv::MULTIPARTICLE_BM:
+      movePerc[m] = perc.multiParticleBrownian;
+      break;
     case mv::ROTATE:
       movePerc[m] = perc.rotate;
       break;
@@ -64,6 +64,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::CRANKSHAFT:
       movePerc[m] = perc.crankShaft;
       break;
+    case mv::INTRA_TARGETED_SWAP:
+      movePerc[m] = perc.intraTargetedSwap;
+      break;
 #ifdef VARIABLE_VOLUME
     case mv::VOL_TRANSFER :
       movePerc[m] = perc.volume;
@@ -77,8 +80,11 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::MEMC :
       movePerc[m] = perc.memc;
       break;
-    case mv::CFCMC :
-      movePerc[m] = perc.cfcmc;
+    case mv::NE_MTMC :
+      movePerc[m] = perc.neMolTransfer;
+      break;
+    case mv::TARGETED_SWAP :
+      movePerc[m] = perc.targetedSwap;
       break;
 #endif
 #endif
@@ -128,10 +134,11 @@ void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
 }
 
 
-StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
-  intraMemcVal(set.config.sys.intraMemcVal),
-  cfcmcVal(set.config.sys.cfcmcVal),
-  freeEnVal(set.config.sys.freeEn)
+StaticVals::StaticVals(Setup & set) : intraMemcVal(set.config.sys.intraMemcVal),
+  freeEnVal(set.config.sys.freeEn), memcVal(set.config.sys.memcVal),
+  neMTMCVal(set.config.sys.neMTMCVal), targetedSwapVal(set.config.sys.targetedSwapCollection),
+  intraTargetedSwapVal(set.config.sys.intraTargetedSwapCollection)
+  
 {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   isOrthogonal = true;
@@ -140,20 +147,6 @@ StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
   } else {
     IsBoxOrthogonal(set.config.sys.volume);
   }
-#ifndef VARIABLE_VOLUME
-  boxDimensions = NULL;
-  if(isOrthogonal) {
-    boxDimensions = new BoxDimensions();
-  } else {
-    boxDimensions = new BoxDimensionsNonOrth();
-  }
-#endif
 }
 
-StaticVals::~StaticVals()
-{
-#ifndef VARIABLE_VOLUME
-  delete boxDimensions;
-#endif
-}
 

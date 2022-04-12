@@ -1,12 +1,11 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef SIMULATION_H
 #define SIMULATION_H
-
 //Member vars
 #include "CPUSide.h"
 #include "System.h"
@@ -24,16 +23,28 @@ public:
 
   void RunSimulation(void);
   bool RecalculateAndCheck(void);
-
+  #if GOMC_GTEST
+    ulong GetTrueStep();
+    ulong GetRunSteps();
+    MoleculeLookup & GetMolLookup();
+    MoveSettings & GetMoveSettings();
+    Coordinates & GetCoordinates();
+    Velocity & GetVelocities();
+    ExtendedSystem & GetXSC();
+    BoxDimensions & GetBoxDim();
+    SystemPotential & GetSystemEnergy(void);
+    PRNG & GetPRNG();
+    Molecules & GetMolecules();
+  #endif
 private:
   StaticVals * staticValues;
   System * system;
   CPUSide * cpu;
+  ulong startStep;
   ulong totalSteps;
   Setup set;
   std::vector<ulong> frameSteps;
   uint remarksCount;
-  ulong startStep;
   MultiSim const*const& ms;
 #if GOMC_LIB_MPI
   ParallelTemperingUtilities * PTUtils;

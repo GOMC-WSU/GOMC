@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "OutConst.h" //For namespace spec;
 
@@ -18,6 +18,8 @@ const std::string ENERGY_REAL = "EN_REAL";
 const std::string ENERGY_RECIP = "EN_RECIP";
 const std::string VIRIAL_TOTAL = "TOTAL_VIR";
 const std::string PRESSURE = "PRESSURE";
+const std::string COMPRESSIBILITY = "COMPRESSIBILITY";
+const std::string ENTHALPY = "ENTHALPY";
 #if ENSEMBLE == GEMC
 const std::string HEAT_OF_VAP = "HEAT_VAP";
 const std::string VOLUME = "VOLUME";

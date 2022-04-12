@@ -1,5 +1,6 @@
 set(sources 
    src/BlockOutput.cpp
+   src/BondAdjacencyList.cpp
    src/BoxDimensions.cpp
    src/BoxDimensionsNonOrth.cpp
    src/CBMC.cpp
@@ -9,9 +10,13 @@ set(sources
    src/Coordinates.cpp
    src/CPUSide.cpp
    src/CalculateEnergy.cpp
+   src/Checkpoint.cpp
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
+   src/DCDlib.cpp
    src/EnPartCntSampleOutput.cpp
+   src/ExtendedSystem.cpp
+   src/ExtendedSystemOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
    src/FFConst.cpp
@@ -38,6 +43,7 @@ set(sources
    src/PDBOutput.cpp
    src/PRNGSetup.cpp
    src/PSFOutput.cpp
+   src/Random123Wrapper.cpp
    src/Reader.cpp
    src/Simulation.cpp
    src/StaticVals.cpp
@@ -63,11 +69,13 @@ set(sources
 
 set(headers
    src/BlockOutput.h
+   src/BondAdjacencyList.h
    src/BoxDimensions.h
    src/BoxDimensionsNonOrth.h
    src/CalculateEnergy.h
    src/CBMC.h
    src/CellList.h
+   src/Checkpoint.h
    src/CheckpointOutput.h
    src/CheckpointSetup.h
    src/Clock.h
@@ -78,9 +86,12 @@ set(headers
    src/Coordinates.h
    src/CoordinateSetup.h
    src/CPUSide.h
+   src/DCDlib.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
+   src/ExtendedSystem.h
+   src/ExtendedSystemOutput.h
    src/Ewald.h
    src/EwaldCached.h  
    src/FFAngles.h
@@ -98,6 +109,8 @@ set(headers
    src/FreeEnergyOutput.h
    src/FxdWidthWrtr.h
    src/Geometry.h
+   src/GOMCEventsProfile.h
+   src/GOMCEventsProfileDef.h
    src/HistOutput.h
    src/InputAbstracts.h
    src/InputFileReader.h
@@ -121,6 +134,7 @@ set(headers
    src/PRNG.h
    src/PRNGSetup.h
    src/PSFOutput.h
+   src/Random123Wrapper.h
    src/Reader.h
    src/SeedReader.h
    src/Setup.h
@@ -130,6 +144,7 @@ set(headers
    src/SubdividedArray.h
    src/System.h
    src/TransformMatrix.h
+   src/Velocity.h
    src/Writer.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
@@ -152,35 +167,43 @@ set(headers
    src/cbmc/DCRotateOnAtom.h
    src/cbmc/DCSingle.h
    src/cbmc/TrialMol.h
-   src/moves/CFCMC.h
+   src/moves/NeMTMC.h
    src/moves/CrankShaft.h
    src/moves/IntraMoleculeExchange1.h
    src/moves/IntraMoleculeExchange2.h
    src/moves/IntraMoleculeExchange3.h
    src/moves/IntraSwap.h
+   src/moves/IntraTargetedSwap.h
    src/moves/MoleculeExchange1.h
    src/moves/MoleculeExchange2.h
    src/moves/MoleculeExchange3.h
    src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
    src/moves/MultiParticle.h
+   src/moves/MultiParticleBrownianMotion.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
+   src/moves/TargetedSwap.h
    src/moves/Translate.h
    src/moves/VolumeTransfer.h)
 
 set(libHeaders
+   lib/AlphaNum.h
    lib/BasicTypes.h
    lib/BitLib.h
+   lib/Endian.h
    lib/GeomLib.h
    lib/Lambda.h
    lib/NumLib.h
    lib/StrLib.h
    lib/StrStrmLib.h
    lib/VectorLib.h
+   lib/CircuitFinder.h
    lib/FloydWarshallCycle.h)
 
 set(libSources
+    lib/AlphaNum.cpp
+    lib/CircuitFinder.cpp
     lib/FloydWarshallCycle.cpp)
 
 set(cudaHeaders

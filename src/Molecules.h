@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef MOLECULES_H
 #define MOLECULES_H
@@ -11,6 +11,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolSetup.h"
 #include <map>
 #include <string>
+// For iota
+#include <numeric>
+// For custom sort 
+#include "AlphaNum.h"
+
 
 namespace pdb_setup
 {
@@ -28,6 +33,7 @@ class Molecules
 public:
   Molecules();
   ~Molecules();
+  bool operator==(const Molecules & other);
 
   const MoleculeKind& GetKind(const uint molIndex) const
   {
@@ -78,6 +84,13 @@ public:
     _start = start[m];
     stop = start[m + 1];
   }
+
+  void GetRestartOrderedRangeStartStop(uint & _start, uint & stop, const uint m) const
+  {
+    _start = restartOrderedStart[m];
+    stop = restartOrderedStart[m + 1];
+  }
+
   void GetRangeStartLength(uint & _start, uint & len, const uint m) const
   {
     _start = start[m];
@@ -96,19 +109,30 @@ public:
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
-  uint* start;
-  uint* kIndex;
-  uint count;
+  uint32_t* start;
+  /* From checkpoint for loading binary coord/vel into the original PDBAtoms object */
+  uint32_t* restartOrderedStart;
+
+  /* only used for output */
+  uint32_t count;
+  uint32_t atomCount;
+  uint32_t* kIndex;
+  uint32_t kIndexCount;
   uint* countByKind;
   char* chain;
+  double* beta;
+  double* occ;
+
 
   MoleculeKind * kinds;
   uint kindsCount;
-  uint fractionKind, lambdaSize;
+  // These are never initialized or used
+  //uint fractionKind;
+  // uint lambdaSize;
   double* pairEnCorrections;
   double* pairVirCorrections;
 
-  bool printFlag;
+  bool printFlag, restartFromCheckpoint;
 };
 
 

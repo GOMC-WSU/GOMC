@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef STR_LIB_H
 #define STR_LIB_H
@@ -71,6 +71,68 @@ inline std::string TrimCharArrNoNullTerm
 
   return str.substr(strBegin, strRange);
 }
+
+inline std::string MoveTypetoStr(uint moveType)
+{
+  std::string moveTypeStr;
+  switch (moveType) {
+    case 0:
+      moveTypeStr = "Displacement";
+      break;
+    case 1:
+      moveTypeStr = "Rotation";
+      break;
+    case 2:
+      moveTypeStr = "MultiParticle";
+      break;
+    case 3:
+      moveTypeStr = "Brownian-like MultiParticle";
+      break;
+    case 4:
+      moveTypeStr = "Intra Molecule Transfer";
+      break;
+    case 5:
+      moveTypeStr = "Regrowth";
+      break;
+    case 6:
+      moveTypeStr = "Intra Molecule Exchange";
+      break;
+    case 7:
+      moveTypeStr = "Crankshaft";
+      break;
+    case 8:
+      moveTypeStr = "Intra Targeted Transfer";
+      break;
+#if ENSEMBLE == NPT
+    case 9:
+      moveTypeStr = "Volume Transfer";
+      break;
+#elif ENSEMBLE == GCMC || ENSEMBLE == GEMC
+    case 9:
+      moveTypeStr = "Molecule Exchange";
+      break;
+    case 10:
+      moveTypeStr = "Molecule Transfer";
+      break;
+    case 11:
+      moveTypeStr = "Nonequilibrium Molecule Transfer";
+      break;
+    case 12:
+      moveTypeStr = "Targeted Transfer";
+      break;
+#if ENSEMBLE == GEMC
+    case 13:
+      moveTypeStr = "Volume Transfer";
+      break;
+#endif
+#endif
+    default:
+      moveTypeStr = "Update MoveTypetoStr() function in lib/StrLib.h!!! Undefined";
+  }
+
+  return moveTypeStr;
+}
+
 }
 
 #endif /*STR_LIB_H*/

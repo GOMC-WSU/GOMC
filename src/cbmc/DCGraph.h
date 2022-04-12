@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef DCGRAPH_H
 #define DCGRAPH_H
@@ -43,6 +43,8 @@ public:
   void BuildOld(TrialMol& oldMol, uint molIndex);
   void BuildGrowNew(TrialMol& newMol, uint molIndex);
   void BuildGrowOld(TrialMol& oldMol, uint molIndex);
+  // used in TargetedSwap
+  void BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   ~DCGraph();
 
 private:
@@ -51,7 +53,7 @@ private:
   //Store edge's atom that are connected to node and has more than 1 bond
   //Each edge is a node as well
   struct Edge {
-    uint destination; //destination is partner node index.
+    int destination; //destination is partner node index.
     DCComponent* component;
     Edge(uint d, DCComponent* c) : destination(d), component(c) {}
   };

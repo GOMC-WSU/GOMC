@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef CRANKSHAFT_H
 #define CRANKSHAFT_H
@@ -17,14 +17,18 @@ class CrankShaft : public MoveBase
 {
 public:
 
-  CrankShaft(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) {}
+  CrankShaft(System &sys, StaticVals const& statV) : MoveBase(sys, statV), 
+    molLookRef(sys.molLookupRef), ffRef(statV.forcefield)
+    {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) {
+    return mv::fail_state::NO_FAIL;
+  }
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
   virtual void PrintAcceptKind();
 private:
   uint GetBoxAndMol(const double subDraw, const double movPerc);
@@ -78,6 +82,7 @@ inline uint CrankShaft::GetBoxAndMol(const double subDraw, const double movPerc)
 
 inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_CRANKSHAFT);
   overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
@@ -85,26 +90,30 @@ inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_CRANKSHAFT);
   return state;
 }
 
 
 inline uint CrankShaft::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_CRANKSHAFT);
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].CrankShaft(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_CRANKSHAFT);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void CrankShaft::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_CRANKSHAFT);
   // since number of molecules would not change in the box,
   W_recip = 1.0;
   correct_old = 0.0;
   correct_new = 0.0;
 
-  if (newMol.GetWeight() != 0.0 && !overlap) {
+  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol, molIndex);
     correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
@@ -113,11 +122,13 @@ inline void CrankShaft::CalcEn()
     W_recip = exp(-1.0 * ffRef.beta * (recipDiff.energy + correct_new -
                                        correct_old));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_CRANKSHAFT);
 }
 
 
-inline void CrankShaft::Accept(const uint rejectState, const uint step)
+inline void CrankShaft::Accept(const uint rejectState, const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_CRANKSHAFT);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -126,7 +137,7 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
       result = prng() < Wrat;
     } else
       result = false;
@@ -161,20 +172,23 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
 
       //Retotal
       sysPotRef.Total();
+      // Update the velocity
+      velocity.UpdateMolVelocity(molIndex, sourceBox);
     } else {
       cellList.AddMol(molIndex, sourceBox, coordCurrRef);
 
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
       //molRef will not be changed. Also since no memcpy, doing restore
       //results in memory overwrite
-      if (newMol.GetWeight() != 0.0 && !overlap) {
+      if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
         calcEwald->RestoreMol(molIndex);
       }
     }
   } else //else we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::CRANKSHAFT, result, step, sourceBox, kindIndex);
+  moveSetRef.Update(mv::CRANKSHAFT, result, sourceBox, kindIndex);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_CRANKSHAFT);
 }
 
 #endif

@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef BLOCK_OUTPUT_H
 #define BLOCK_OUTPUT_H
@@ -27,7 +27,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class System;
 
 struct BlockAverage {
-  BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
+  BlockAverage(): uintSrc(NULL), dblSrc(NULL), block(NULL), enable(false) {}
   ~BlockAverage()
   {
     if (dblSrc != NULL) {
@@ -45,6 +45,8 @@ struct BlockAverage {
             std::ofstream *file1,
             const bool en,
             const double scl,
+            const double firstPrint_scl,
+            bool & firstPrint,
             std::string const& var,
             const uint bTot = BOX_TOTAL);
 
@@ -60,11 +62,10 @@ struct BlockAverage {
     dblSrc[b] = NULL;
   }
   void Sum(void);
-  void Write(const ulong step, const bool firstPrint, uint precision)
+  void Write(uint precision)
   {
-    first = firstPrint;
     if (enable)
-      DoWrite(step, precision);
+      DoWrite(precision);
   }
 
 private:
@@ -74,17 +75,17 @@ private:
       block[b] = 0.0;
     samples = 0;
   }
-  void DoWrite(const ulong step, uint precision);
-  void printTitle(std::string output, uint boxes);
+  void DoWrite(uint precision);
+  void printTitle(std::string output);
 
   std::ofstream* outBlock0;
   std::ofstream* outBlock1;
-  bool first;
+  bool * first;
   std::string name, varName;
   uint ** uintSrc, tot;
   double ** dblSrc;
-  double * block, scl;
-  uint samples;
+  double * block, scl, fp_scl;
+  uint samples = 0;
   bool enable;
 };
 /**********************************************************************/
@@ -115,18 +116,34 @@ struct BlockAverages : OutputableBase {
 
   virtual void Sample(const ulong step);
   virtual void DoOutput(const ulong step);
-
+  virtual void DoOutputRestart(const ulong step);
 private:
   void InitVals(config_setup::EventSettings const& event)
   {
     stepsPerOut = event.frequency;
     invSteps = 1.0 / stepsPerOut;
+    if (startStep != 0){
+      ulong diff;
+      if (stepsPerOut >= startStep){
+        diff = stepsPerOut - startStep;
+      } else {
+        diff = startStep - stepsPerOut;
+      }
+      firstInvSteps = 1.0 / diff;
+    } else {
+      firstInvSteps = invSteps;
+    }
+    // We only subtract the firstInvSteps on 
+    // the first print with startStep != 0
+    // invSteps - firstInvSteps = 1/(stepsPerOut-startStep)
+    // After the first print 
     enableOut = event.enable;
   }
   void AllocBlocks(void);
   void InitWatchSingle(config_setup::TrackedVars const& tracked);
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   void InitWatchMulti(config_setup::TrackedVars const& tracked);
-
+#endif
   std::ofstream outBlock0;
   std::ofstream outBlock1;
   //Block vars
@@ -136,6 +153,7 @@ private:
   uint samplesWrites;
   //Constants
   double invSteps;
+  double firstInvSteps;
 };
 
 #endif /*BLOCK_OUTPUT_H*/

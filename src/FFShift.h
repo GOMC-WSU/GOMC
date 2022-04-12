@@ -1,13 +1,12 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef FF_SHIFT_H
 #define FF_SHIFT_H
 
-#include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
@@ -70,6 +69,11 @@ public:
   {
     return 0.0;
   }
+  //!Returns zero for impulse pressure correction term for a kind pair
+  virtual double ImpulsePressureCorrection(const uint kind1, const uint kind2) const
+  {
+    return 0.0;
+  }
 
   //Calculate the dE/dlambda for vdw energy
   virtual double CalcdEndL(const double distSq, const uint kind1,
@@ -95,7 +99,7 @@ protected:
 inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
                            ff_setup::NBfix const& nbfix)
 {
-  //Initializ sigma and epsilon
+  //Initialize sigma and epsilon
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory
@@ -127,17 +131,13 @@ inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
 inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
                                   const uint kind1, const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq_1_4[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n_1_4[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n_1_4[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  double attract = rRat2 * rRat2 * rRat2;
+  double repulse = pow(sqrt(rRat2), n_1_4[index]);
 
   en += (epsilon_cn_1_4[index] * (repulse - attract) - shiftConst_1_4[index]);
 }
@@ -146,6 +146,9 @@ inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact,
     const bool NB) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   double dist = sqrt(distSq);
   if(NB)
     en += qi_qj_Fact / dist;
@@ -169,7 +172,7 @@ inline double FF_SHIFT::CalcEn(const double distSq, const uint kind1,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
+  double softRsq = cbrt(softDist6);
 
   double en = lambda * CalcEn(softRsq, index);
   return en;
@@ -202,7 +205,7 @@ inline double FF_SHIFT::CalcVir(const double distSq, const uint kind1,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
+  double softRsq = cbrt(softDist6);
   double correction = distSq / softRsq;
   //We need to fix the return value from calcVir
   double vir = lambda * correction * correction * CalcVir(softRsq, index);
@@ -244,7 +247,7 @@ inline double FF_SHIFT::CalcCoulomb(const double distSq,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
+    double softRsq = cbrt(softDist6);
     en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
   } else {
     en = lambda * CalcCoulomb(distSq, qi_qj_Fact, b);
@@ -284,7 +287,7 @@ inline double FF_SHIFT::CalcCoulombVir(const double distSq, const uint kind1,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
+    double softRsq = cbrt(softDist6);
     double correction = distSq / softRsq;
     //We need to fix the return value from calcVir
     vir = lambda * correction * correction * CalcCoulombVir(softRsq, qi_qj, b);
@@ -299,7 +302,8 @@ inline double FF_SHIFT::CalcCoulombVir(const double distSq, const double qi_qj,
 {
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    // M_2_SQRTPI is 2/sqrt(PI)
+    double constValue = forcefield.alpha[b] * M_2_SQRTPI;
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
@@ -321,9 +325,9 @@ inline double FF_SHIFT::CalcdEndL(const double distSq, const uint kind1,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
+  double softRsq = cbrt(softDist6);
   double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-  fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
+  fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1.0) * sigma6 / (softRsq * softRsq);
   double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
   return dhdl;
 }
@@ -345,9 +349,9 @@ inline double FF_SHIFT::CalcCoulombdEndL(const double distSq, const uint kind1,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
+    double softRsq = cbrt(softDist6);
     double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-    fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
+    fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1.0) * sigma6 / (softRsq * softRsq);
     dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) +
            fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
   } else {

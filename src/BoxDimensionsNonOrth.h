@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef BOX_DIMENSIONS_NONORTHO_H
 #define BOX_DIMENSIONS_NONORTHO_H
@@ -32,6 +32,7 @@ public:
   }
 
   virtual BoxDimensionsNonOrth& operator=(BoxDimensionsNonOrth const& other);
+  virtual bool operator==(BoxDimensionsNonOrth const& other);
 
   virtual void Init(config_setup::RestartSettings const& restart,
                     config_setup::Volume const& confVolume,
@@ -53,10 +54,21 @@ public:
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVecRef, const uint b) const;
 
-  //Unwrap one coordinate.
+  //Apply PBC, on X axis
+  virtual XYZ MinImage_X(XYZ rawVec, const uint b) const;
+  //Apply PBC, on Y axis
+  virtual XYZ MinImage_Y(XYZ rawVec, const uint b) const;
+  //Apply PBC, on Z axis
+  virtual XYZ MinImage_Z(XYZ rawVec, const uint b) const;
+  
+  //wrap one coordinate
   virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;
 
-  //Unwrap one coordinate.
+  //wrap one coordinate and check for PBC
+  virtual void WrapPBC(double &x, double &y, double &z, const uint b,
+                      const bool &pbcX, const bool &pbcY, const bool &pbcZ) const;
+
+  //Unwrap one coordinate
   virtual void UnwrapPBC(double & x, double & y, double & z,
                          const uint b, XYZ const& ref) const;
 

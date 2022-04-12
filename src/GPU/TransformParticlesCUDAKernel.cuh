@@ -1,29 +1,33 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #pragma once
 #ifdef GOMC_CUDA
 #include <vector>
 #include "Random123/philox.h"
-typedef r123::Philox4x32 RNG;
+typedef r123::Philox4x64 RNG;
 
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
+#include "math.h"
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
-                               std::vector<int> &isMoleculeInvolved,
+                               const std::vector<int8_t> &isMoleculeInvolved,
+                               int box,
                                double t_max,
                                double *mForcex,
                                double *mForcey,
                                double *mForcez,
-                               unsigned int step,
-                               unsigned int seed,
-                               std::vector<int> particleMol,
+                               std::vector<int> &inForceRange,
+                               ulong step,
+                               unsigned int key,
+                               ulong seed,
+                               const std::vector<int> &particleMol,
                                int atomCount,
                                int molCount,
                                double xAxes,
@@ -36,14 +40,17 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                XYZArray &molForceRecRef);
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
-                            std::vector<int> &isMoleculeInvolved,
+                            const std::vector<int8_t> &isMoleculeInvolved,
+                            int box,
                             double r_max,
                             double *mTorquex,
                             double *mTorquey,
                             double *mTorquez,
-                            unsigned int step,
-                            unsigned int seed,
-                            std::vector<int> particleMol,
+                            std::vector<int> &inForceRange,
+                            ulong step,
+                            unsigned int key,
+                            ulong seed,
+                            const std::vector<int> &particleMol,
                             int atomCount,
                             int molCount,
                             double xAxes,
@@ -59,8 +66,10 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *molForcex,
     double *molForcey,
     double *molForcez,
-    unsigned int step,
-    unsigned int seed,
+    int *inForceRange,
+    ulong step,
+    unsigned int key,
+    ulong seed,
     double *gpu_x,
     double *gpu_y,
     double *gpu_z,
@@ -72,11 +81,18 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *gpu_comx,
     double *gpu_comy,
     double *gpu_comz,
+    double *gpu_cell_x,
+    double *gpu_cell_y,
+    double *gpu_cell_z,
+    double *gpu_Invcell_x,
+    double *gpu_Invcell_y,
+    double *gpu_Invcell_z,
+    int *gpu_nonOrth,
     double lambdaBETA,
     double *gpu_t_k_x,
     double *gpu_t_k_y,
     double *gpu_t_k_z,
-    int *gpu_isMoleculeInvolved,
+    int8_t *gpu_isMoleculeInvolved,
     double *gpu_mForceRecx,
     double *gpu_mForceRecy,
     double *gpu_mForceRecz);
@@ -86,8 +102,10 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *molTorquex,
                                       double *molTorquey,
                                       double *molTorquez,
-                                      unsigned int step,
-                                      unsigned int seed,
+                                      int *inForceRange,
+                                      ulong step,
+                                      unsigned int key,
+                                      ulong seed,
                                       double *gpu_x,
                                       double *gpu_y,
                                       double *gpu_z,
@@ -99,9 +117,123 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *gpu_comx,
                                       double *gpu_comy,
                                       double *gpu_comz,
+                                      double *gpu_cell_x,
+                                      double *gpu_cell_y,
+                                      double *gpu_cell_z,
+                                      double *gpu_Invcell_x,
+                                      double *gpu_Invcell_y,
+                                      double *gpu_Invcell_z,
+                                      int *gpu_nonOrth,
                                       double lambdaBETA,
                                       double *gpu_r_k_x,
                                       double *gpu_r_k_y,
                                       double *gpu_r_k_z,
-                                      int *gpu_isMoleculeInvolved);
+                                      int8_t *gpu_isMoleculeInvolved);
+
+// Brownian Motion multiparticle
+void BrownianMotionRotateParticlesGPU(
+  VariablesCUDA *vars,
+  const std::vector<unsigned int> &moleculeInvolved,
+  XYZArray &mTorque,
+  XYZArray &newMolPos,
+  XYZArray &newCOMs,
+  XYZArray &r_k,
+  const XYZ &boxAxes,
+  const double BETA,
+  const double r_max,
+  ulong step,
+  unsigned int key,
+  ulong seed,
+  const int box,
+  const bool isOrthogonal,
+  int *kill);
+
+
+void BrownianMotionTranslateParticlesGPU(
+  VariablesCUDA *vars,
+  const std::vector<unsigned int> &moleculeInvolved,
+  XYZArray &mForce,
+  XYZArray &mForceRec,
+  XYZArray &newMolPos,
+  XYZArray &newCOMs,
+  XYZArray &t_k,
+  const XYZ &boxAxes,
+  const double BETA,
+  const double t_max,
+  ulong step,
+  unsigned int key,
+  ulong seed,
+  const int box,
+  const bool isOrthogonal,
+  int *kill);
+
+
+template<const bool isOrthogonal>
+__global__ void BrownianMotionRotateKernel(
+  int *startAtomIdx,
+  double *gpu_x,
+  double *gpu_y,
+  double *gpu_z,
+  double *molTorquex,
+  double *molTorquey,
+  double *molTorquez,
+  double *gpu_comx,
+  double *gpu_comy,
+  double *gpu_comz,
+  double *gpu_r_k_x,
+  double *gpu_r_k_y,
+  double *gpu_r_k_z,
+  int *moleculeInvolved,
+  double *gpu_cell_x,
+  double *gpu_cell_y,
+  double *gpu_cell_z,
+  double *gpu_Invcell_x,
+  double *gpu_Invcell_y,
+  double *gpu_Invcell_z,
+  double3 axis,
+  double3 halfAx,
+  int atomCount,
+  double r_max,
+  ulong step,
+  unsigned int key,
+  ulong seed,
+  double BETA,
+  int *kill);
+
+
+template<const bool isOrthogonal>
+__global__ void BrownianMotionTranslateKernel(
+  int *startAtomIdx,
+  double *gpu_x,
+  double *gpu_y,
+  double *gpu_z,
+  double *molForcex,
+  double *molForcey,
+  double *molForcez,
+  double *molForceRecx,
+  double *molForceRecy,
+  double *molForceRecz,
+  double *gpu_comx,
+  double *gpu_comy,
+  double *gpu_comz,
+  double *gpu_t_k_x,
+  double *gpu_t_k_y,
+  double *gpu_t_k_z,
+  int *moleculeInvolved,
+  double *gpu_cell_x,
+  double *gpu_cell_y,
+  double *gpu_cell_z,
+  double *gpu_Invcell_x,
+  double *gpu_Invcell_y,
+  double *gpu_Invcell_z,
+  double3 axis,
+  double3 halfAx,
+  int atomCount,
+  double t_max,
+  ulong step,
+  unsigned int key,
+  ulong seed,
+  double BETA,
+  int *kill);
+
 #endif

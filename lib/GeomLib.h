@@ -1,18 +1,18 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef GEOM_LIB_H
 #define GEOM_LIB_H
 
 //Standard way to get pi constant on most platforms
-//Needs to be defined _before_ including  math.h
-//so that the PI constants come from math.h
+//Needs to be defined _before_ including cmath
+//so that the PI constants come from cmath
 #define _USE_MATH_DEFINES
 
-#include <math.h> //For sqrt, fabs, M_PI
+#include <cmath> //For sqrt, fabs, M_PI
 #include <limits> //for double limits
 
 #include "BasicTypes.h" //For uint, XYZ
@@ -22,7 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //  DEFINES  //
 ///////////////
 
-//Just in case any of these weren't included from math.h
+//Just in case any of these weren't included from cmath
 #ifndef M_PI
 //From Mathematica:
 //N[Pi, 75]
@@ -41,7 +41,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 #define DEG_TO_RAD (M_PI/180.0)
-#define RAD_TO_DEG (180.0/M_PI)
+#define RAD_TO_DEG (180.0*M_1_PI) //Same as 180/PI
 
 /////////////////////////////////////////////////////////////
 //  FUNCTIONS  //

@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef INTRAMOLECULEEXCHANGE3_H
 #define INTRAMOLECULEEXCHANGE3_H
@@ -18,7 +18,7 @@ using namespace geom;
 // Intra Molecule Exchange Move:
 // KindA is small kind. KindB is large kind
 // Orientation center of cavA is on COM of kindS, random orientation.
-// Orientation center of cavB is on COM of kindL, aligned with kindL backbon.
+// Orientation center of cavB is on COM of kindL, aligned with kindL backbone.
 // Delete the exchangeRatio kindS from cavA, and 1 kindL from cavB.
 // Insert the exchangeRatio kindS to cavB and 1 kindL inside the cavA.
 //Use CD-CBMC to build kindL
@@ -36,9 +36,13 @@ public:
   }
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) {
+    return mv::fail_state::NO_FAIL;
+  }
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
 
 protected:
 
@@ -66,10 +70,10 @@ inline void IntraMoleculeExchange3::SetMEMC(StaticVals const& statV)
 inline void IntraMoleculeExchange3::AdjustExRatio()
 {
   if(((counter + 1) % perAdjust) == 0) {
-    uint exMax = ceil((float)molInCavCount / (float)perAdjust);
-    uint exMin = 1;
+    int exMax = ceil((float)molInCavCount / (float)perAdjust);
+    int exMin = 1;
 
-    uint index = kindS + kindL * molRef.GetKindsCount();
+    int index = kindS + kindL * molRef.GetKindsCount();
     double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
     if(std::abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept > lastAccept) {
@@ -174,10 +178,11 @@ inline uint IntraMoleculeExchange3::PickMolInCav()
 inline uint IntraMoleculeExchange3::Prep(const double subDraw,
     const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_MEMC);
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    //transfering type A from source
+    //transferring type A from source
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
                                        sourceBox));
@@ -186,7 +191,7 @@ inline uint IntraMoleculeExchange3::Prep(const double subDraw,
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      //transfering type B from source
+      //transferring type B from source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
                                        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
@@ -243,18 +248,20 @@ inline uint IntraMoleculeExchange3::Prep(const double subDraw,
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_MEMC);
   return state;
 }
 
 
 inline uint IntraMoleculeExchange3::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   ///Remove the fixed COM kindS at the end because we insert it at first
   for(uint n = numInCavA; n > 0; n--) {
     cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1], molIndexA[n - 1]);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1], molIndexA[n - 1]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1]));
   }
 
   //Calc old energy before deleting
@@ -276,18 +283,20 @@ inline uint IntraMoleculeExchange3::Transform()
     molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
     ShiftMol(n, true);
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void IntraMoleculeExchange3::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
   W_recip = 1.0;
-  recipDiffA = 0.0, recipDiffB = 0.0;
+  recipDiff = 0.0;
   correctDiff = 0.0;
   //No need to calculate the correction term for kindS since it is
   // inserted rigid body. We just need it for kindL
@@ -296,12 +305,14 @@ inline void IntraMoleculeExchange3::CalcEn()
       correctDiff += calcEwald->SwapCorrection(newMolB[n], molIndexB[n]);
       correctDiff -= calcEwald->SwapCorrection(oldMolB[n], molIndexB[n]);
     }
-    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA, molIndexA, molIndexA, true);
-    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB, molIndexB, molIndexB, false);
+    //MolExchangeReciprocal returns the total change in recip energy. It accumulates with each
+    //call, so we should use only the last of the two.
+    recipDiff = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
+    recipDiff = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
 
-    W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB +
-                                       correctDiff));
+    W_recip = exp(-ffRef.beta * (recipDiff + correctDiff));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
 }
 
 inline double IntraMoleculeExchange3::GetCoeff() const
@@ -314,7 +325,7 @@ inline double IntraMoleculeExchange3::GetCoeff() const
 }
 
 inline void IntraMoleculeExchange3::Accept(const uint rejectState,
-    const uint step)
+    const ulong step)
 {
   IntraMoleculeExchange1::Accept(rejectState, step);
 }

@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef FF_SETUP_H
 #define FF_SETUP_H
@@ -17,7 +17,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FFConst.h" //for forcefield constants
 #include "BasicTypes.h" //for uint
 #include "InputFileReader.h"
+#include "ConfigSetup.h" //for access to structure
 
+namespace config_setup
+{
+  struct FileName;
+}
 
 namespace ff_setup
 {
@@ -75,7 +80,7 @@ public:
 
   std::string LoadLine(Reader & param, std::string const& firstVar);
 
-//	private:
+//    private:
   std::vector<std::string> name;
   uint numTerms;
   bool multi;
@@ -89,15 +94,14 @@ public:
   Particle(void) : FFBase(1) {}
 
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(double e, double s, const uint expN,
-           double e_1_4, double s_1_4, const uint expN_1_4);
+  void Add(double e, double s, const double expN,
+           double e_1_4, double s_1_4, const double expN_1_4);
 #ifndef NDEBUG
   void PrintBrief();
 #endif
-//	private:
+//    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
-  std::vector<uint> n, n_1_4;
-
+  std::vector<double> n, n_1_4;
 };
 
 class NBfix : public ReadableBaseWithFirst, public FFBase
@@ -106,26 +110,11 @@ public:
   NBfix() : FFBase(2) {}
 
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(double e, double s,
-#ifdef MIE_INT_ONLY
-           const uint expN,
-#else
-           const double expN,
-#endif
-           double e_1_4, double s_1_4,
-#ifdef MIE_INT_ONLY
-           const uint expN_1_4
-#else
-           const double expN_1_4
-#endif
-          );
-//	private:
+  void Add(double e, double s, const double expN, double e_1_4, double s_1_4,
+           const double expN_1_4);
+//    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
-#ifdef MIE_INT_ONLY
-  std::vector<uint> n, n_1_4;
-#else
   std::vector<double> n, n_1_4;
-#endif
 };
 
 
@@ -281,13 +270,39 @@ public:
 private:
   std::vector<double> Komega, omega0;
 };
+
+class CMap : public ReadableBaseWithFirst, public FFBase
+{
+public:
+  CMap() : FFBase(4) {}
+  virtual void Read(Reader & param, std::string const& firstVar);
+  void Add(const double coeff, const double def);
+#ifndef NDEBUG
+  void PrintBrief();
+#endif
+private:
+  std::vector<double> Komega, omega0;
+};
+
+class HBond : public ReadableBaseWithFirst, public FFBase
+{
+public:
+  HBond() : FFBase(4) {}
+  virtual void Read(Reader & param, std::string const& firstVar);
+  void Add(const double coeff, const double def);
+#ifndef NDEBUG
+  void PrintBrief();
+#endif
+private:
+  std::vector<double> Komega, omega0;
+};
 }
 
 class FFSetup
 {
 public:
   FFSetup(void) {}
-  void Init(std::string const& fileName, const bool isCHARMM);
+  void Init(const std::vector<config_setup::FileName> &fileName, const bool isCHARMM);
 
   ff_setup::Particle mie;
   ff_setup::NBfix nbfix;
@@ -295,6 +310,8 @@ public:
   ff_setup::Angle angle;
   ff_setup::Dihedral dih;
   ff_setup::Improper imp;
+  ff_setup::CMap cmap;
+  ff_setup::HBond hbond;
 
 private:
   //Map variable names to functions

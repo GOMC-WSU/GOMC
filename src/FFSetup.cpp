@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "FFSetup.h"
 #include <algorithm>
@@ -42,8 +42,6 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   funct["ANGLES"] = &angle;
   funct["DIHEDRAL"] = &dih;
   funct["DIHEDRALS"] = &dih;
-  funct["IMPROPER"] = &imp;
-  funct["IMPROPERS"] = &imp;
   //Unique to Charmm file
   funct["NONBONDED"] = &mie;
   funct["NBFIX"] = &nbfix;
@@ -54,54 +52,81 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   funct["NBFIX_MIE"] = &nbfix;
   // Error checking done to ensure isCharmm is false if these are found
 
+  // Not supported but shouldn't break GOMC
+  funct["IMPROPER"] = &imp;
+  funct["IMPROPERS"] = &imp;
+  funct["CMAP"] = &cmap;
+  funct["HBOND"] = &hbond;
+
+
   for (sect_it it = funct.begin(); it != funct.end(); ++it) {
     (dynamic_cast<ff_setup::FFBase *>(it->second))->setIsCHARMM(isCHARMM);
   }
   return funct;
 }
 
-void FFSetup::Init(std::string const& name, const bool isCHARMM)
+void FFSetup::Init(const std::vector<config_setup::FileName> & fileName, const bool isCHARMM)
 {
   sectKind = SetReadFunctions(isCHARMM);
   std::string currSectName = "", varName = "";
   std::string commentChar = "*!";
   std::string commentStr = "REMARK ATOM ATOMS MASS set AEXP REXP HAEX AAEX NBOND "
                            "CUTNB END CTONN EPS VSWI NBXM INHI";
-  std::map<std::string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
 
-  Reader param(name,
-               paramFileAlias[isCHARMM ? CHARMM_ALIAS_IDX : EXOTIC_ALIAS_IDX],
-               true, &commentStr, true, &commentChar);
-  param.open();
-  while (param.Read(varName)) {
-    sect = sectKind.find(varName);
-    if ( sect != sectKind.end() ) {
-      param.SkipLine(); //Skip rest of line for sect. heading
-      currSectName = varName;
-      currSect = sect; //Save for later calls.
-      std::cout << "Reading " << currSectName << " parameters.\n";
-      if (isCHARMM) {
-        if (hasEnding(currSectName, "MIE")) {
-          std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style parameter header " << currSectName << " was found.\n"
-                    "       Either set EXOTIC-Style in config file or change the keyword\n"
-                    "       " << currSectName << " to " << currSectName.substr(0, currSectName.size() - 4) << " in the parameter files.\n";
-          exit(EXIT_FAILURE);
+  for(int p = 0; p < (int) fileName.size(); p++) {
+    std::string name = fileName[p].name;
+
+    std::map<std::string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
+
+    Reader param(name,
+                paramFileAlias[isCHARMM ? CHARMM_ALIAS_IDX : EXOTIC_ALIAS_IDX],
+                true, &commentStr, true, &commentChar);
+    param.open();
+    bool shouldImproperWarn = true;
+    bool shouldCMapWarn = true;
+    bool shouldHBondWarn = true;
+    while (param.Read(varName)) {
+      sect = sectKind.find(varName);
+      if ( sect != sectKind.end() ) {
+        param.SkipLine(); //Skip rest of line for sect. heading
+        currSectName = varName;
+        currSect = sect; //Save for later calls.
+        std::cout << "Reading " << currSectName << " parameters.\n";
+        if (shouldImproperWarn && (currSectName == "IMPROPER" || currSectName == "IMPROPERS" )){
+          std::cout << "Warning: GOMC does not support IMPROPER!\n";
+          shouldImproperWarn = false;
+        } else if (shouldCMapWarn && currSectName == "CMAP"){
+          std::cout << "Warning: GOMC does not support CMAP!\n";
+          shouldCMapWarn = false;
+        } else if (shouldHBondWarn && currSectName == "HBOND"){
+          std::cout << "Warning: GOMC does not support HBond!\n";
+          shouldHBondWarn = false;
+        }
+        if (isCHARMM) {
+          if (hasEnding(currSectName, "MIE")) {
+            std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style parameter header " << currSectName << " was found.\n"
+                      "       Either set EXOTIC-Style in config file or change the keyword\n"
+                      "       " << currSectName << " to " << currSectName.substr(0, currSectName.size() - 4) << " in the parameter files.\n";
+            exit(EXIT_FAILURE);
+          }
+        } else {
+          std::regex nbonded ("NONBONDED");
+          std::regex nbfix ("NBFIX");
+          if (std::regex_match(currSectName, nbonded) || std::regex_match(currSectName, nbfix)) {
+            std::cout << "Error: EXOTIC-Style parameter is set but CHARMM-Style parameter header " << currSectName << " was found.\n"
+                      "       Either set CHARMM-Style in config file or change the keyword\n"
+                      "       " << currSectName << " to " << currSectName.append("_MIE") << " in the parameter files.\n";
+            exit(EXIT_FAILURE);
+          }
         }
       } else {
-        std::regex nbonded ("NONBONDED");
-        std::regex nbfix ("NBFIX");
-        if (std::regex_match(currSectName, nbonded) || std::regex_match(currSectName, nbfix)) {
-          std::cout << "Error: EXOTIC-Style parameter is set but CHARMM-Style parameter header " << currSectName << " was found.\n"
-                    "       Either set CHARMM-Style in config file or change the keyword\n"
-                    "       " << currSectName << " to " << currSectName.append("_MIE") << " in the parameter files.\n";
-          exit(EXIT_FAILURE);
-        }
+        if (currSectName != "CMAP" && currSectName != "HBOND")
+          currSect->second->Read(param, varName);
       }
-    } else
-      currSect->second->Read(param, varName);
-  }
+    }
 
-  param.close();
+    param.close();
+  }
 
   //check if we read nonbonded parameter
   if(mie.sigma.size() == 0) {
@@ -158,7 +183,7 @@ std::string FFBase::LoadLine(Reader & param, std::string const& firstVar)
 void Particle::Read(Reader & param, std::string const& firstVar)
 {
   double e, s, e_1_4, s_1_4, dummy1, dummy2;
-  uint expN, expN_1_4;
+  double expN, expN_1_4;
   std::stringstream values(LoadLine(param, firstVar));
   if (isCHARMM()) { //if lj
     values >> dummy1;
@@ -191,8 +216,8 @@ void Particle::Read(Reader & param, std::string const& firstVar)
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
 }
 
-void Particle::Add(double e, double s, const uint expN,
-                   double e_1_4, double s_1_4, const uint expN_1_4)
+void Particle::Add(double e, double s, const double expN,
+                   double e_1_4, double s_1_4, const double expN_1_4)
 {
   if (isCHARMM()) {
     e *= -1.0;
@@ -211,11 +236,7 @@ void Particle::Add(double e, double s, const uint expN,
 void NBfix::Read(Reader & param, std::string const& firstVar)
 {
   double e, s, e_1_4, s_1_4;
-#ifdef MIE_INT_ONLY
-  uint expN, expN_1_4;
-#else
   double expN, expN_1_4;
-#endif
 
   std::stringstream values(LoadLine(param, firstVar));
   values >> e >> s;
@@ -242,19 +263,8 @@ void NBfix::Read(Reader & param, std::string const& firstVar)
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
 }
 
-void NBfix::Add(double e, double s,
-#ifdef MIE_INT_ONLY
-                const uint expN,
-#else
-                const double expN,
-#endif
-                double e_1_4, double s_1_4,
-#ifdef MIE_INT_ONLY
-                const uint expN_1_4
-#else
-                const double expN_1_4
-#endif
-               )
+void NBfix::Add(double e, double s, const double expN, double e_1_4, double s_1_4,
+                const double expN_1_4)
 {
   if (isCHARMM()) {
     e *= -1.0;
@@ -331,7 +341,7 @@ void Dihedral::Read(Reader & param, std::string const& firstVar)
     exit(EXIT_FAILURE);
   }
   if(index == 0) {
-    //set phase shif for n=0 to 90 degree
+    //set phase shift for n=0 to 90 degree
     // We will have C0 = Kchi (1 + cos(0 * phi + 90)) = Kchi
     def = 90.00;
   }
@@ -350,11 +360,11 @@ void Dihedral::Add(std::string const& merged,
 void Improper::Read(Reader & param, std::string const& firstVar)
 {
   double coeff, def;
+  uint index;
   std::string merged = ReadKind(param, firstVar);
   //If new value
   if (validname(merged) == true) {
-    std::cout << "Warning: GOMC does not support IMPROPER!\n";
-    param.file >> coeff >> def;
+    param.file >> coeff >> index >> def;
     if(!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in parameter file!\n";
       exit(EXIT_FAILURE);
@@ -363,6 +373,53 @@ void Improper::Read(Reader & param, std::string const& firstVar)
   }
 }
 void Improper::Add(const double coeff, const double def)
+{
+  Komega.push_back(EnConvIfCHARMM(coeff));
+  omega0.push_back(def);
+}
+
+// Currently dummy method, exact same as improper
+void CMap::Read(Reader & param, std::string const& firstVar)
+{
+  double coeff, def;
+  uint index;
+  std::string merged = ReadKind(param, firstVar);
+  //If new value
+  if (validname(merged) == true) {
+    param.file >> coeff >> index >> def;
+    if(!param.file.good()) {
+      std::cout << "Error: Incomplete Improper parameters was found in parameter file!\n";
+      exit(EXIT_FAILURE);
+    }
+    Add(coeff, def);
+  }
+}
+// Currently dummy method, exact same as improper
+void CMap::Add(const double coeff, const double def)
+{
+  Komega.push_back(EnConvIfCHARMM(coeff));
+  omega0.push_back(def);
+}
+
+// Currently dummy method, exact same as improper
+void HBond::Read(Reader & param, std::string const& firstVar)
+{
+  double coeff, def;
+  uint index;
+  std::string merged = ReadKind(param, firstVar);
+  //If new value
+  if (validname(merged) == true) {
+    param.file >> coeff >> index >> def;
+    if(!param.file.good()) {
+      std::cout << "Error: Incomplete Improper parameters was found in parameter file!\n";
+      exit(EXIT_FAILURE);
+    }
+    Add(coeff, def);
+  }
+}
+
+// Currently dummy method, exact same as improper
+void HBond::Add(const double coeff, const double def)
 {
   Komega.push_back(EnConvIfCHARMM(coeff));
   omega0.push_back(def);

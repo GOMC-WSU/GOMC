@@ -1,13 +1,12 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef FF_SWITCH_MARTINI_H
 #define FF_SWITCH_MARTINI_H
 
-#include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
@@ -104,6 +103,11 @@ public:
   {
     return 0.0;
   }
+  //!Returns zero for impulse pressure correction term for a kind pair
+  virtual double ImpulsePressureCorrection(const uint kind1, const uint kind2) const
+  {
+    return 0.0;
+  }
 
   //Calculate the dE/dlambda for vdw energy
   virtual double CalcdEndL(const double distSq, const uint kind1,
@@ -123,7 +127,7 @@ protected:
                                 uint b) const;
 
   double *An, *Bn, *Cn, *An_1_4, *Bn_1_4, *Cn_1_4;
-  double *sig6, *sig6_1_4, *sign, *sign_1_4;
+  double *sig6, *sign, *sig6_1_4, *sign_1_4;
 
   double diElectric_1, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6;
 
@@ -132,7 +136,7 @@ protected:
 inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
                                     ff_setup::NBfix const& nbfix)
 {
-  //Initializ sigma and epsilon
+  //Initialize sigma and epsilon
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory
@@ -153,45 +157,64 @@ inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
   //in Martini, Coulomb switching distance is zero
   rOnCoul = 0.0;
   double rCut = forcefield.rCut;
+  //Original Unoptimized computation
   // Set LJ constants
-  A6 = 6.0 * ((6.0 + 1) * rOn - (6.0 + 4) * rCut) / (pow(rCut, 6.0 + 2) *
-       pow(rCut - rOn, 2));
-  B6 = -6.0 * ((6.0 + 1) * rOn - (6.0 + 3) * rCut) / (pow(rCut, 6.0 + 2) *
-       pow(rCut - rOn, 3));
-  C6 = 1.0 / pow(rCut, 6.0) - A6 / 3.0 * pow(rCut - rOn, 3) - B6 / 4.0 *
-       pow(rCut - rOn, 4);
+  // A6 = 6.0 * ((6.0 + 1) * rOn - (6.0 + 4) * rCut) / (pow(rCut, 6.0 + 2) *
+       // pow(rCut - rOn, 2));
+  // B6 = -6.0 * ((6.0 + 1) * rOn - (6.0 + 3) * rCut) / (pow(rCut, 6.0 + 2) *
+       // pow(rCut - rOn, 3));
+  // C6 = 1.0 / pow(rCut, 6.0) - A6 / 3.0 * pow(rCut - rOn, 3) - B6 / 4.0 *
+       // pow(rCut - rOn, 4);
+  // // Set Coulomb constants
+  // A1 = 1.0 * ((1.0 + 1) * rOnCoul - (1.0 + 4) * rCut) / (pow(rCut, 1.0 + 2) *
+       // pow(rCut - rOnCoul, 2));
+  // B1 = -1.0 * ((1.0 + 1) * rOnCoul - (1.0 + 3) * rCut) / (pow(rCut, 1.0 + 2) *
+       // pow(rCut - rOnCoul, 3));
+  // C1 = 1.0 / pow(rCut, 1.0) - A1 / 3.0 * pow(rCut - rOnCoul, 3) - B1 / 4.0 *
+       // pow(rCut - rOnCoul, 4);
+
+  // Optimized computation
+  // Set LJ constants
+  A6 = 6.0 * (7.0 * rOn - 10.0 * rCut) / (pow(rCut, 8.0) *
+       (rCut - rOn) * (rCut - rOn));
+  B6 = -6.0 * (7.0 * rOn - 9.0 * rCut) / (pow(rCut, 8.0) *
+       (rCut - rOn) * (rCut - rOn) * (rCut - rOn));
+  C6 = pow(rCut, -6.0) - A6 / 3.0 * (rCut - rOn) * (rCut - rOn) * (rCut - rOn) - B6 / 4.0 *
+       (rCut - rOn) * (rCut - rOn) * (rCut - rOn) * (rCut - rOn);
   // Set Coulomb constants
-  A1 = 1.0 * ((1.0 + 1) * rOnCoul - (1.0 + 4) * rCut) / (pow(rCut, 1.0 + 2) *
-       pow(rCut - rOnCoul, 2));
-  B1 = -1.0 * ((1.0 + 1) * rOnCoul - (1.0 + 3) * rCut) / (pow(rCut, 1.0 + 2) *
-       pow(rCut - rOnCoul, 3));
-  C1 = 1.0 / pow(rCut, 1.0) - A1 / 3.0 * pow(rCut - rOnCoul, 3) - B1 / 4.0 *
-       pow(rCut - rOnCoul, 4);
+  A1 = (2.0 * rOnCoul - 5.0 * rCut) / (rCut * rCut * rCut * (rCut - rOnCoul) *
+       (rCut - rOnCoul));
+  B1 = -1.0 * (2.0 * rOnCoul - 4.0 * rCut) / (rCut * rCut * rCut * (rCut - rOnCoul) *
+       (rCut - rOnCoul) * (rCut - rOnCoul));
+  C1 = 1.0 / rCut - A1 / 3.0 * (rCut - rOnCoul) * (rCut - rOnCoul) * (rCut - rOnCoul) -
+       B1 / 4.0 * (rCut - rOnCoul) * (rCut - rOnCoul) * (rCut - rOnCoul) * (rCut - rOnCoul);
 
   for(uint i = 0; i < count; ++i) {
     for(uint j = 0; j < count; ++j) {
       uint idx = FlatIndex(i, j);
       double pn = n[idx];
-      An[idx] = pn * ((pn + 1) * rOn - (pn + 4) * rCut) / (pow(rCut, pn + 2) *
-                pow(rCut - rOn, 2));
-      Bn[idx] = -pn * ((pn + 1) * rOn - (pn + 3) * rCut) / (pow(rCut, pn + 2) *
-                pow(rCut - rOn, 3));
-      Cn[idx] = 1.0 / pow(rCut, pn) - An[idx] / 3.0 * pow(rCut - rOn, 3) -
-                Bn[idx] / 4.0 * pow(rCut - rOn, 4);
+      An[idx] = pn * ((pn + 1.0) * rOn - (pn + 4.0) * rCut) / (pow(rCut, pn + 2.0) *
+                (rCut - rOn) * (rCut - rOn));
+      Bn[idx] = -pn * ((pn + 1.0) * rOn - (pn + 3.0) * rCut) / (pow(rCut, pn + 2.0) *
+                (rCut - rOn) * (rCut - rOn) * (rCut - rOn));
+      Cn[idx] = 1.0 / pow(rCut, pn) - An[idx] / 3.0 * (rCut - rOn) * (rCut - rOn) *
+                (rCut - rOn) - Bn[idx] / 4.0 * (rCut - rOn) * (rCut - rOn) *
+                (rCut - rOn) * (rCut - rOn);
       double sigma = sqrt(sigmaSq[idx]);
-      sig6[idx] = pow(sigma, 6);
+      sig6[idx] = pow(sigma, 6.0);
       sign[idx] = pow(sigma, pn);
 
       // for 1-4 interaction
       double pn_1_4 = n_1_4[idx];
-      An_1_4[idx] = pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 4) * rCut) /
-                    (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 2));
-      Bn_1_4[idx] = -pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 3) * rCut) /
-                    (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 3));
+      An_1_4[idx] = pn_1_4 * ((pn_1_4 + 1.0) * rOn - (pn_1_4 + 4.0) * rCut) /
+                    (pow(rCut, pn_1_4 + 2.0) * (rCut - rOn) * (rCut - rOn));
+      Bn_1_4[idx] = -pn_1_4 * ((pn_1_4 + 1.0) * rOn - (pn_1_4 + 3.0) * rCut) /
+                    (pow(rCut, pn_1_4 + 2.0) * (rCut - rOn) * (rCut - rOn) * (rCut - rOn));
       Cn_1_4[idx] = 1.0 / pow(rCut, pn_1_4) - An_1_4[idx] / 3.0 *
-                    pow(rCut - rOn, 3) - Bn_1_4[idx] / 4.0 * pow(rCut - rOn, 4);
+                    (rCut - rOn) * (rCut - rOn) * (rCut - rOn) - Bn_1_4[idx] / 4.0 *
+                    (rCut - rOn) * (rCut - rOn) * (rCut - rOn) * (rCut - rOn);
       double sigma_1_4 = sqrt(sigmaSq_1_4[idx]);
-      sig6_1_4[idx] = pow(sigma_1_4, 6);
+      sig6_1_4[idx] = pow(sigma_1_4, 6.0);
       sign_1_4[idx] = pow(sigma_1_4, pn_1_4);
     }
   }
@@ -201,17 +224,13 @@ inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
     const uint kind1,
     const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   uint index = FlatIndex(kind1, kind2);
   double r_2 = 1.0 / distSq;
-  double r_4 = r_2 * r_2;
-  double r_6 = r_4 * r_2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n_1_4[index];
-  double r_n = num::POW(r_2, r_4, attract, n_ij);
-#else
-  double n_ij = n_1_4[index];
-  double r_n = pow(sqrt(r_2), n_ij);
-#endif
+  double r_6 = r_2 * r_2 * r_2;
+  double r_n = pow(sqrt(r_2), n_1_4[index]);
 
   double rij_ron = sqrt(distSq) - rOn;
   double rij_ron_2 = rij_ron * rij_ron;
@@ -234,6 +253,9 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
     const double qi_qj_Fact,
     const bool NB) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   double dist = sqrt(distSq);
   if(NB)
     en += qi_qj_Fact / dist;
@@ -260,7 +282,7 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
+  double softRsq = cbrt(softDist6);
 
   double en = lambda * CalcEn(softRsq, index);
   return en;
@@ -310,7 +332,7 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
+  double softRsq = cbrt(softDist6);
   double correction = distSq / softRsq;
   //We need to fix the return value from calcVir
   double vir = lambda * correction * correction * CalcVir(softRsq, index);
@@ -322,8 +344,8 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
 {
   double n_ij = n[index];
   double r_1 = 1.0 / sqrt(distSq);
-  double r_8 = pow(r_1, 8);
-  double r_n2 = pow(r_1, n_ij + 2);
+  double r_8 = distSq * distSq * distSq * distSq;
+  double r_n2 = pow(r_1, n_ij + 2.0);
 
   double rij_ron = sqrt(distSq) - rOn;
   double rij_ron_2 = rij_ron * rij_ron;
@@ -364,7 +386,7 @@ inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
+    double softRsq = cbrt(softDist6);
     en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
   } else {
     en = lambda * CalcCoulomb(distSq, qi_qj_Fact, b);
@@ -414,7 +436,7 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
+    double softRsq = cbrt(softDist6);
     double correction = distSq / softRsq;
     //We need to fix the return value from calcVir
     vir = lambda * correction * correction * CalcCoulombVir(softRsq, qi_qj, b);
@@ -430,7 +452,8 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
 {
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    // M_2_SQRTPI is 2/sqrt(PI)
+    double constValue = forcefield.alpha[b] * M_2_SQRTPI;
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
@@ -460,9 +483,9 @@ inline double FF_SWITCH_MARTINI::CalcdEndL(const double distSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
+  double softRsq = cbrt(softDist6);
   double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-  fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
+  fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1.0) * sigma6 / (softRsq * softRsq);
   double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
   return dhdl;
 }
@@ -486,9 +509,9 @@ inline double FF_SWITCH_MARTINI::CalcCoulombdEndL(const double distSq,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
+    double softRsq = cbrt(softDist6);
     double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-    fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
+    fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1.0) * sigma6 / (softRsq * softRsq);
     dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) +
            fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
   } else {

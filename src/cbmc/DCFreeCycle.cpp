@@ -1,11 +1,11 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include "DCFreeCycle.h"
 #include "DCData.h"
 #include "TrialMol.h"
@@ -27,7 +27,7 @@ struct FindA1 {
 };
 
 DCFreeCycle::DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
-                         std::vector<int> cycAtoms, uint focus, uint prev)
+                         const std::vector<int> &cycAtoms, uint focus, uint prev)
   : data(data), seed(data, focus), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;
@@ -116,7 +116,7 @@ void DCFreeCycle::BuildNew(TrialMol& newMol, uint molIndex)
   seed.BuildNew(newMol, molIndex);
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
-  const Ewald *calcEwald = data->calcEwald;
+  // const Ewald *calcEwald = data->calcEwald;
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   double* ljWeights = data->ljWeights;
@@ -191,7 +191,7 @@ void DCFreeCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   seed.BuildOld(oldMol, molIndex);
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
-  const Ewald * calcEwald = data->calcEwald;
+  // const Ewald * calcEwald = data->calcEwald;
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   double* ljWeights = data->ljWeights;
@@ -211,7 +211,6 @@ void DCFreeCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   hed.ConstrainedAnglesOld(data->nAngleTrials - 1, oldMol, molIndex);
   const XYZ center = oldMol.AtomPosition(hed.Focus());
   XYZArray* positions = data->multiPositions;
-  double prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
     positions[i].Set(0, oldMol.AtomPosition(hed.Bonded(i)));

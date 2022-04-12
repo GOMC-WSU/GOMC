@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef DCDATA_H
 #define DCDATA_H
@@ -53,9 +53,9 @@ public:
   double* ljWeights;
   double* bonded;
   double* oneFour;
-  double* nonbonded;      //calculated nonbonded 1_N LJ and coulomb energie
-  double* nonbonded_1_4;  //calculated nonbonded 1_4 LJ and coulomb energie
-  double* nonbonded_1_3;  //calculated nonbonded 1_3 LJ and coulomb energie
+  double* nonbonded;      //calculated nonbonded 1_N LJ and coulomb energies
+  double* nonbonded_1_4;  //calculated nonbonded 1_4 LJ and coulomb energies
+  double* nonbonded_1_3;  //calculated nonbonded 1_3 LJ and coulomb energies
 
   double* interT;     //For DCRotateCOM, we have combined first and Nth trial
   double* realT;      //For DCRotateCOM, we have combined first and Nth trial
@@ -69,7 +69,7 @@ public:
 inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& set):
 
   calc(sys.calcEnergy), ff(forcefield),
-  prng(sys.prng), axes(sys.boxDimRef),
+  axes(sys.boxDimRef), prng(sys.prng),
   nAngleTrials(set.config.sys.cbmcTrials.bonded.ang),
   nDihTrials(set.config.sys.cbmcTrials.bonded.dih),
   nLJTrialsFirst(set.config.sys.cbmcTrials.nonbonded.first),

@@ -1,5 +1,6 @@
 #EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
 #NPT (Isothermal-Isobaric) Ensemble
+
 set(NPT_flags "-DENSEMBLE=4")
 set(NPT_name "GOMC_CPU_NPT")
 

@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "HistOutput.h"
 #include "PDBConst.h"
@@ -110,6 +110,7 @@ void Histogram::DoOutput(const ulong step)
   if ((step) < stepsTillEquil) return;
   //Write to histogram file, if equilibrated.
   if ((step + 1) % stepsPerOut == 0) {
+    GOMC_EVENT_START(1, GomcProfileEvent::DIST_OUTPUT);
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       for (uint k = 0; k < var->numKinds; ++k) {
         outF[b][k].open(name[b][k].c_str(), std::ofstream::out);
@@ -121,8 +122,12 @@ void Histogram::DoOutput(const ulong step)
         outF[b][k].close();
       }
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::DIST_OUTPUT);
   }
 }
+
+void Histogram::DoOutputRestart(const ulong step){}
+
 void Histogram::PrintKindHist(const uint b, const uint k)
 {
   for (uint n = 0; n < total[k] + 1; ++n) {

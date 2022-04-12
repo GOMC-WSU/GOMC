@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef DCLINEAR_H
 #define DCLINEAR_H
@@ -34,6 +34,8 @@ public:
   void BuildOld(TrialMol& oldMol, uint molIndex);
   void BuildGrowNew(TrialMol& newMol, uint molIndex);
   void BuildGrowOld(TrialMol& oldMol, uint molIndex);
+  // used in TargetedSwap
+  void BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   ~DCLinear();
 
 private:

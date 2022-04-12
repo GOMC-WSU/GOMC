@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
@@ -19,6 +19,8 @@ class Atom;
 class Bond;
 class Angle;
 class Dihedral;
+class Improper;
+
 class MolKind;
 }
 namespace ff_setup
@@ -65,6 +67,7 @@ struct BondList {
   uint count;
 
   void Init(const std::vector<mol_setup::Bond>& bonds);
+  bool IsBonded(const uint &i, const uint &j);
 
   BondList();
   ~BondList();
@@ -83,6 +86,8 @@ public:
   //!Prepares topology data for a geometry feature
   void Init(const std::vector<mol_setup::Angle>& angles, const BondList& bList);
   void Init(const std::vector<mol_setup::Dihedral>& dihs, const BondList& bList);
+  void Init(const std::vector<mol_setup::Improper>& imps, const BondList& bList);
+
   explicit GeomFeature(uint atomsPer);
   ~GeomFeature();
 

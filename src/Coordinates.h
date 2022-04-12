@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef COORDINATES_H
 #define COORDINATES_H
@@ -38,7 +38,7 @@ public:
   void InitFromPDB(pdb_setup::Atoms const& atoms);
 
   // to see if they are within defined volume or not.
-  void CheckCoordinate();
+  void WrapCoordinate(const XYZ min[BOX_TOTAL], const XYZ max[BOX_TOTAL]);
 
   //Translate by a random amount
   void TranslateRand(XYZArray & dest, XYZ & newCOM, uint & pStart,

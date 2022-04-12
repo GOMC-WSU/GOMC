@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef CONSOLE_OUTPUT_H
 #define CONSOLE_OUTPUT_H
@@ -45,6 +45,7 @@ public:
     enableEnergy = output.statistics.vars.energy.fluct;
     enablePressure = output.statistics.vars.pressure.fluct;
     enableSurfTension = output.statistics.vars.surfaceTension.fluct;
+
 #ifdef VARIABLE_VOLUME
     enableVolume = output.statistics.vars.volume.fluct;
 #else
@@ -61,26 +62,27 @@ public:
         enableSurfTension) {
       enableStat = true;
     }
+    WriteConsoleHeaders = true;
     DoOutput(0);
   }
   virtual void DoOutput(const ulong step);
-
+  virtual void DoOutputRestart(const ulong step);
 private:
   const static int elementWidth = 16;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
   bool enableSurfTension, enableStat;
+  bool WriteConsoleHeaders;
   void PrintMove(const uint box, const ulong step) const;
   void PrintMoveStat(const uint box, const ulong step) const;
   void PrintStatistic(const uint box, const ulong step) const;
   void PrintPressureTensor(const uint box, const ulong step) const;
-  void PrintEnergy(const uint box, Energy const& en, Virial const& vir,
-                   const ulong step) const;
+  void PrintEnergy(const uint box, Energy const& en, const ulong step) const;
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();
-  void printElement (const double t, const int width, uint percision = 4) const;
-  void printElement (const uint t, const int width) const;
-  void printElement (const std::string t, const int width) const;
+  void printElement(const double t, const int width, uint precision = 4) const;
+  void printElement(const uint t, const int width) const;
+  void printElement(const std::string t, const int width) const;
 
   template <typename T> void printElementStep ( const T t, const ulong step,
       const int width) const;

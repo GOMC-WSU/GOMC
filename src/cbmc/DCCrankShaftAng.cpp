@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "DCCrankShaftAng.h"
 #include "TrialMol.h"
@@ -305,7 +305,7 @@ void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
-    torsion[tor] = data->prng.rand(M_PI * 2);
+    torsion[tor] = data->prng.rand(2.0 * M_PI);
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
                           cross, tensor);
@@ -331,7 +331,7 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
     //Use actual coordinate fir first torsion trial
-    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
+    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(2.0 * M_PI);
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
                           cross, tensor);
@@ -350,7 +350,6 @@ double DCCrankShaftAng::CalcIntraBonded(TrialMol& mol, uint molIndex)
 
   double bondedEn = 0.0;
   uint box = mol.GetBox();
-  const MoleculeKind& molKind = mol.GetKind();
   XYZ b1, b2, b3;
   const XYZArray &coords = mol.GetCoords();
   for(uint i = 0; i < ang.size(); i++) {
@@ -395,8 +394,7 @@ void DCCrankShaftAng::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box)) {
           nonbonded[t] += data->ff.particles->CalcEn(distSq,
                           kind.AtomKind(partIndex),
                           kind.AtomKind(*partner), 1.0);
@@ -432,8 +430,7 @@ void DCCrankShaftAng::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box)) {
           data->ff.particles->CalcAdd_1_4(nonbonded[t], distSq,
                                           kind.AtomKind(partIndex),
                                           kind.AtomKind(*partner));
@@ -469,8 +466,7 @@ void DCCrankShaftAng::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box)) {
           data->ff.particles->CalcAdd_1_4(nonbonded[t], distSq,
                                           kind.AtomKind(partIndex),
                                           kind.AtomKind(*partner));

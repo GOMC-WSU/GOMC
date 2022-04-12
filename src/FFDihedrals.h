@@ -1,13 +1,13 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef FF_DIHEDRALS_H
 #define FF_DIHEDRALS_H
 
-#include <math.h>       //cos, pow
+#include <cmath>       //cos, pow
 
 #include "FFConst.h"    //GetRot
 #include "SubdividedArray.h" //Subdivisions in master array for dih sets.

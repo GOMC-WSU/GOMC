@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef MOLCULETRANSFER_H
 #define MOLCULETRANSFER_H
@@ -19,13 +19,17 @@ class MoleculeTransfer : public MoveBase
 public:
 
   MoleculeTransfer(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) {}
+    MoveBase(sys, statV), molLookRef(sys.molLookupRef),
+    ffRef(statV.forcefield) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) {
+    return mv::fail_state::NO_FAIL;
+  }
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
   virtual void PrintAcceptKind();
 
 private:
@@ -82,6 +86,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol(const double subDraw, const doubl
 
 inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_SWAP);
   overlap = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
@@ -89,20 +94,24 @@ inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_SWAP);
   return state;
 }
 
 
 inline uint MoleculeTransfer::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_SWAP);
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_SWAP);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void MoleculeTransfer::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_SWAP);
   W_tc = 1.0;
   W_recip = 1.0;
   correct_old = 0.0;
@@ -116,7 +125,7 @@ inline void MoleculeTransfer::CalcEn()
     W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
   }
 
-  if (newMol.GetWeight() != 0.0 && !overlap) {
+  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol);
     correct_old = calcEwald->SwapCorrection(oldMol);
     self_new = calcEwald->SwapSelf(newMol);
@@ -131,42 +140,43 @@ inline void MoleculeTransfer::CalcEn()
                                        correct_new - correct_old +
                                        self_new - self_old));
   }
-
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_SWAP);
 }
 
 inline double MoleculeTransfer::GetCoeff() const
 {
 #if ENSEMBLE == GEMC
-  return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) /
-         (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+  return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) /
+         (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
          boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
 #elif ENSEMBLE == GCMC
   if (sourceBox == mv::BOX0) { //Delete case
     if(ffRef.isFugacity) {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+      return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) *
              boxDimRef.volInv[sourceBox] /
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+      return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) *
              boxDimRef.volInv[sourceBox] *
              exp(-BETA * molRef.kinds[kindIndex].chemPot);
     }
   } else { //Insertion case
     if(ffRef.isFugacity) {
       return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+             (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
       return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+             (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
              exp(BETA * molRef.kinds[kindIndex].chemPot);
     }
   }
 #endif
 }
 
-inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
+inline void MoleculeTransfer::Accept(const uint rejectState, const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_SWAP);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -176,7 +186,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;
@@ -222,12 +232,14 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 
       //Retotal
       sysPotRef.Total();
+      // Update the velocity
+      velocity.UpdateMolVelocity(molIndex, destBox);
     } else {
       cellList.AddMol(molIndex, sourceBox, coordCurrRef);
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
       //molRef will not be changed. Also since no memcpy, doing restore
       //results in memory overwrite
-      if (newMol.GetWeight() != 0.0 && !overlap) {
+      if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
         calcEwald->RestoreMol(molIndex);
       }
     }
@@ -235,7 +247,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
   } else //we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::MOL_TRANSFER, result, step, destBox, kindIndex);
+  moveSetRef.Update(mv::MOL_TRANSFER, result, destBox, kindIndex);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_SWAP);
 }
 
 #endif

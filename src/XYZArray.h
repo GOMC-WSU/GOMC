@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef XYZ_ARRAY_H
 #define XYZ_ARRAY_H
@@ -16,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include "EnsemblePreprocessor.h"
 
 //Forward declare to give access to internal arrays.
 class BoxDimensions;
@@ -39,8 +40,21 @@ public:
     Init(n);
   }
 
+  //Create a struct of arrays from an array of structs
+  XYZArray(const std::vector<XYZ> & AOS)
+  {
+    allocDone = false;
+    Init(AOS.size());
+    for(int i = 0; i < AOS.size(); ++i){
+      x[i] = AOS[i].x;
+      y[i] = AOS[i].y;
+      z[i] = AOS[i].z;
+    }
+  }
+
   XYZArray(const XYZArray& other);
   XYZArray& operator=(XYZArray other);
+  bool operator==(const XYZArray & other);
 
   friend void swap(XYZArray& a1, XYZArray& a2);
   ~XYZArray(void)
@@ -366,6 +380,18 @@ inline XYZArray& XYZArray::operator=(XYZArray other)
   return *this;
 }
 
+//Equality operator for unit testing
+inline bool XYZArray::operator==(const XYZArray & other){
+  bool result = true;
+  for(uint i = 0; i < count; i++) {
+    result &= (x[i] == other.x[i]);
+    result &= (y[i] == other.y[i]);
+    result &= (z[i] == other.z[i]);
+  }
+  return result;
+}
+
+
 inline void swap(XYZArray& a1, XYZArray& a2)
 {
   using std::swap;
@@ -442,7 +468,7 @@ inline void XYZArray::Init(const uint n)
   y = new double[n];
   z = new double[n];
 
-  for(int i = 0; i < n; i++) {
+  for(uint i = 0; i < n; i++) {
     x[i] = 0.0;
     y[i] = 0.0;
     z[i] = 0.0;

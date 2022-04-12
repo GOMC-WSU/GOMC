@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include <cassert>
 #include "DCLinear.h"
@@ -16,7 +16,7 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
                    const MoleculeKind& kind, const Setup& set) :
   data(sys, ff, set)
 {
-  mol_setup::MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
+  mol_setup::MolMap::const_iterator it = set.mol.kindMap.find(kind.uniqueName);
   assert(it != set.mol.kindMap.end());
   const mol_setup::MolKind setupKind = it->second;
   uint size = kind.NumAtoms();
@@ -65,7 +65,6 @@ void DCLinear::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   } else {
     //we only have two atoms in molecule: atom 0, 1
     uint fix = data.prng.randInt(1);
-    uint grow = 1 - fix;
     //If fix == 0, forward (build atom 1), else backward (build atom 0)
     std::vector<DCComponent*>& comps = fix ? backward : forward;
 
@@ -134,5 +133,29 @@ void DCLinear::BuildGrowNew(TrialMol& newMol, uint molIndex)
   for(uint i = 0; i < comps.size(); ++i) {
     comps[i]->PrepareNew(newMol, molIndex);
     comps[i]->BuildNew(newMol, molIndex);
+  }
+}
+
+void DCLinear::BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
+{
+  //Get the seedIndex
+  int sIndex;
+  if (newMol.HasCav()) {
+    sIndex = newMol.GetGrowingAtomIndex();
+  } else if (oldMol.HasCav()) {
+    sIndex = oldMol.GetGrowingAtomIndex();
+  } else {
+    std::cout << "Error: Calling BuildGrowInCav, but there is no cavity" <<
+    " defined for newMol and oldMol.\n";
+    exit(EXIT_FAILURE);
+  }
+
+  //If backbone is atom 0, we use forward, otherwise backward
+  std::vector<DCComponent*>& comps = sIndex ? backward : forward;
+  for(uint i = 0; i < comps.size(); ++i) {
+    comps[i]->PrepareNew(newMol, molIndex);
+    comps[i]->BuildNew(newMol, molIndex);
+    comps[i]->PrepareOld(oldMol, molIndex);
+    comps[i]->BuildOld(oldMol, molIndex);
   }
 }

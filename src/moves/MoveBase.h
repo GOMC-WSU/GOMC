@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef TRANSFORMABLE_BASE_H
 #define TRANSFORMABLE_BASE_H
@@ -25,22 +25,22 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "NoEwald.h"
 #include "MolPick.h"
 #include "Forcefield.h"
+#include "GOMCEventsProfile.h" // for NVTX profiling
+#include "Velocity.h"
 
 class MoveBase
 {
 public:
 
   MoveBase(System & sys, StaticVals const& statV) :
-    boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings),
-    sysPotRef(sys.potential),
-    calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
-    coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),
+    moveSetRef(sys.moveSettings), sysPotRef(sys.potential),
+    coordCurrRef(sys.coordinates), comCurrRef(sys.com),
+    calcEnRef(sys.calcEnergy), atomForceRef(sys.atomForceRef),
+    molForceRef(sys.molForceRef), atomForceRecRef(sys.atomForceRecRef),
+    molForceRecRef(sys.molForceRecRef), velocity(sys.vel), prng(sys.prng),
+    boxDimRef(sys.boxDimRef), molRef(statV.mol),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList), molRemoved(false),
-    atomForceRef(sys.atomForceRef),
-    molForceRef(sys.molForceRef),
-    atomForceRecRef(sys.atomForceRecRef),
-    molForceRecRef(sys.molForceRecRef)
+    cellList(sys.cellList)
   {
     atomForceNew.Init(sys.atomForceRef.Count());
     molForceNew.Init(sys.molForceRef.Count());
@@ -54,6 +54,9 @@ public:
   //(if necessary) molecule kind.
   virtual uint Prep(const double subDraw, const double movPerc) = 0;
 
+  // Setup the picked box and molecule to perform relaxation in NeMTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) = 0;
+
   //Note, in general this function is responsible for generating the new
   //configuration to test.
   virtual uint Transform() = 0;
@@ -63,7 +66,7 @@ public:
   virtual void CalcEn() = 0;
 
   //This function carries out actions based on the internal acceptance state.
-  virtual void Accept(const uint rejectState, const uint step) = 0;
+  virtual void Accept(const uint rejectState, const ulong step) = 0;
 
   //This function carries out actions based on the internal acceptance state and
   //molecule kind
@@ -88,6 +91,7 @@ protected:
   XYZArray molForceNew;
   XYZArray& atomForceRecRef;
   XYZArray& molForceRecRef;
+  Velocity& velocity;
 
   PRNG & prng;
   BoxDimensions & boxDimRef;
@@ -99,7 +103,7 @@ protected:
   bool multiParticleEnabled;
 };
 
-//Data needed for transforming a molecule's position via inter or intrabox
+//Data needed for transforming a molecule's position via inter or intra box
 //moves.
 class MolTransformBase
 {

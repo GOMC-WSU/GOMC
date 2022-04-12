@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef DCLINKEDCYCLE_H
 #define DCLINKEDCYCLE_H
@@ -50,8 +50,8 @@ private:
   uint prevBonded[MAX_BONDS];
   //kind[bonded][previous]
   uint dihKinds[MAX_BONDS][MAX_BONDS];
-  //Used in finding the atom bonded to prev and focus and bith are in the ring
-  uint prevBondedRing, focBondedRing;
+  //Used in finding the atom bonded to prev and focus and both are in the ring
+  int prevBondedRing, focBondedRing;
   //Calculate torsion difference to match ring dihedral
   double torDiff;
 

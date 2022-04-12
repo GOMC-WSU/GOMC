@@ -48,7 +48,7 @@
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
 Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+A copy of the GNU General Public License can be found in License.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef ParallelTemperingUtilities_H
@@ -71,7 +71,7 @@ public:
   explicit ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq, ulong parallelTemperingAttemptsPerExchange);
   void evaluateExchangeCriteria(ulong step);
   void prepareToDoExchange(const int replica_id, int* maxswap, bool* bThisReplicaExchanged);
-  void cyclicDecomposition(const std::vector<int> destinations, std::vector< std::vector<int> > & cyclic, std::vector<bool> & incycle, const int nrepl, int * nswap);
+  void cyclicDecomposition(const std::vector<int> &destinations, std::vector< std::vector<int> > & cyclic, std::vector<bool> & incycle, const int nrepl, int * nswap);
   void computeExchangeOrder(std::vector< std::vector<int> > & cyclic, std::vector< std::vector<int> > & order, const int nrepl, const int maxswap);
 
   void conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, MultiSim const*const& ms, const int & maxSwap, const bool & bThisReplicaExchanged);
@@ -83,12 +83,12 @@ public:
   void exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader);
   void exchangePotentials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
   void exchangeVirials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
-  void print_ind(FILE * fplog, const char* leg, int n, std::vector<int> ind, const std::vector<bool> bEx);
-  void print_prob(FILE * fplog, const char* leg, int n, std::vector<double> prob);
-  void print_count(FILE * fplog, const char* leg, int n, std::vector<int> count);
-  void print_transition_matrix(FILE * fplog, int n, std::vector< std::vector<int> > nmoves, const std::vector<int> nattempt);
+  void print_ind(FILE * fplog, const char* leg, int n, const std::vector<int> &ind, const std::vector<bool> &bEx);
+  void print_prob(FILE * fplog, const char* leg, int n, const std::vector<double> &prob);
+  void print_count(FILE * fplog, const char* leg, int n, const std::vector<int> &count);
+  void print_transition_matrix(FILE * fplog, int n, const std::vector< std::vector<int> > &nmoves, const std::vector<int> &nattempt);
   void print_replica_exchange_statistics(FILE * fplog);
-  void print_allswitchind(FILE* fplog, int n, std::vector<int> pind, std::vector<int> allswaps, std::vector<int> tmpswap);
+  void print_allswitchind(FILE* fplog, int n, const std::vector<int> &pind, const std::vector<int> &allswaps, const std::vector<int> &tmpswap);
 #endif
 
 private:

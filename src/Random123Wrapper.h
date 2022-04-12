@@ -1,48 +1,37 @@
 #pragma once
 
+#include "BasicTypes.h"
 #include "Random123/philox.h"
-typedef r123::Philox4x32 RNG;
+typedef r123::Philox4x64 RNG;
 
 class Random123Wrapper
 {
 public:
-  Random123Wrapper()
-  {
-    c = {{}};
-    uk = {{}};
-  }
+  Random123Wrapper();
 
-  void SetStep(unsigned int step)
-  {
-    uk[0] = step;
-  }
-  void SetRandomSeed(unsigned int seedValue)
-  {
-    uk[1] = seedValue;
-  }
-  double GetRandomNumber(unsigned int counter)
-  {
-    c[0] = counter;
-    RNG::key_type k = uk;
-    RNG::ctr_type r = rng(c, k);
-    double r01 = r[0];
-    r01 /= UINT_MAX;
-    return r01;
-  }
-  unsigned int GetStep()
-  {
-    return uk[0];
-  }
-  unsigned int GetSeedValue()
-  {
-    return uk[1];
-  }
-  double operator() (unsigned int counter)
-  {
-    return GetRandomNumber(counter);
-  }
+  void SetStep(ulong step);
+  void SetRandomSeed(ulong seedValue);
+  void SetKey(unsigned int key);
+
+  unsigned int GetStep() const;
+  unsigned int GetKeyValue() const;
+  unsigned int GetSeedValue() const;
+  double operator() (unsigned int counter);
+
+  double GetRandomNumber(unsigned int counter);
+  XYZ GetRandomCoords(unsigned int counter);
+
+  double GetSymRandom(unsigned int counter, double bound);
+  XYZ GetSymRandomCoords(unsigned int counter, double bound);
+  XYZ GetRandomCoordsOnSphere(unsigned int counter);
+
+  double GetGaussian(unsigned int counter);
+  double GetGaussianNumber(unsigned int counter, double mean, double stdDev);
+  XYZ GetGaussianCoords(unsigned int counter, double mean, double stdDev);
 
 private:
+  inline RNG::ctr_type getRNG(unsigned int counter);
+
   RNG::ctr_type c;
   RNG::key_type uk;
   RNG rng;

@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "PDBOutput.h"              //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
@@ -17,9 +17,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  coordCurrRef(sys.coordinates), comCurrRef(sys.com),
-  pStr(coordCurrRef.Count(), GetDefaultAtomStr()),
-  boxDimRef(sys.boxDimRef), molRef(statV.mol)
+  boxDimRef(sys.boxDimRef), molRef(statV.mol), coordCurrRef(sys.coordinates),
+  comCurrRef(sys.com), pStr(coordCurrRef.Count(), GetDefaultAtomStr())
 {
   for(int i = 0; i < BOX_TOTAL; i++)
     frameNumber[i] = 0;
@@ -40,17 +39,23 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
-  enableOutState = output.state.settings.enable;
+  /* My reasoning is if you pass a PDB trajectory in, you want a PDB traj out 
+  If we want to convert PDBTraj to DCDTraj use this version
+  enableOut = output.state.settings.enable || atoms.recalcTrajectory;
+  */
+   /* For testing purposes it is good to print PDB since it is readable.
+  enableOut = output.state.settings.enable || (atoms.recalcTrajectory && !atoms.recalcTrajectoryBinary);
+  */
+  enableOut = output.state.settings.enable || atoms.recalcTrajectory;
   enableRestOut = output.restart.settings.enable;
-  enableOut = enableOutState | enableRestOut;
-  stepsCoordPerOut = output.state.settings.frequency;
-  stepsRestPerOut = output.restart.settings.frequency;
-  if (stepsCoordPerOut < stepsRestPerOut)
-    stepsPerOut = output.state.settings.frequency;
-  else
-    stepsPerOut = output.restart.settings.frequency;
 
-  if (enableOutState) {
+  stepsPerOut = output.state.settings.frequency;
+  stepsRestPerOut = output.restart.settings.frequency;
+
+  if (stepsPerOut > stepsRestPerOut)
+    stepsPerOut = stepsRestPerOut;
+
+  if (enableOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.
       bStr = "Box ";
@@ -69,7 +74,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       outF[b].Init(output.state.files.pdb.name[b], aliasStr, true, notify);
       outF[b].open();
     }
-    InitPartVec(atoms);
+    InitPartVec();
     DoOutput(0);
   }
 
@@ -80,7 +85,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       numStr = "";
       toStr << b + 1;
       toStr >> numStr;
-      aliasStr = "Output PDB file for Box ";
+      aliasStr = "Output restart PDB file for Box ";
       aliasStr += numStr;
       bool notify;
 #ifndef NDEBUG
@@ -88,38 +93,50 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 #else
       notify = false;
 #endif
-      //NEW_RESTART_COD
-      outRebuildRestartFName[b] = output.state.files.pdb.name[b];
-      std::string newStrAddOn = "_restart.pdb";
-      outRebuildRestartFName[b].replace
-      (outRebuildRestartFName[b].end() - 4,
-       outRebuildRestartFName[b].end(),
-       newStrAddOn);
-      outRebuildRestart[b].Init(outRebuildRestartFName[b], aliasStr,
+      outRebuildRestart[b].Init(output.restart.files.pdb.name[b], aliasStr,
                                 true, notify);
     }
-
   }
 }
 
-void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
+void PDBOutput::InitPartVec()
 {
-  uint pStart = 0, pEnd = 0;
+  uint dataStart = 0, dataEnd = 0, molecule = 0, atomIndex = 0, mI;
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
+
     while (m != end) {
-      uint mI = *m;
+      mI = *m;
+      molRef.GetRangeStartStop(dataStart, dataEnd, mI);
 
-      std::string resName = atoms.resNames[mI];
-      molRef.GetRangeStartStop(pStart, pEnd, mI);
-
-      for (uint p = pStart; p < pEnd; ++p) {
-        FormatAtom(pStr[p], p, mI, molRef.chain[mI],
-                   atoms.atomAliases[p], resName);
+      for (uint d = dataStart; d < dataEnd; ++d) {
+        // If you don't want to preserve resID's comment this out -> mol = mI
+        molecule = mI;
+        if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
+          FormatAtom(pStr[d], d, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[d - dataStart], 
+                    molRef.chain[d],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[d - dataStart], 
+                    molRef.kinds[molRef.kIndex[mI]].resNames[d - dataStart]);
+        } else {
+          FormatAtom(pStr[d], d, molecule, 
+                    molRef.chain[d],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[d - dataStart], 
+                    molRef.kinds[molRef.kIndex[mI]].resNames[d - dataStart]);
+        }
+        ++atomIndex;
       }
       ++m;
+      ++molecule;
+      /* If you want to keep orig resID's comment these out */
+      if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
+        molecule += molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs.back();
+      }
+      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+      if(molecule == 9999)
+        molecule = 0;
+      /* If you want to keep orig resID's comment these out */
     }
   }
 }
@@ -158,35 +175,46 @@ void PDBOutput::FormatAtom
 
 void PDBOutput::DoOutput(const ulong step)
 {
-  if(enableOutState) {
-    std::vector<uint> mBox(molRef.count);
-    SetMolBoxVec(mBox);
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      PrintRemark(b, step, outF[b]);
-      PrintCryst1(b, outF[b]);
-      PrintAtoms(b, mBox);
-      PrintEnd(b, outF[b]);
-    }
+  GOMC_EVENT_START(1, GomcProfileEvent::PDB_OUTPUT);
+  std::vector<uint> mBox(molRef.count);
+  SetMolBoxVec(mBox);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    PrintRemark(b, step, outF[b]);
+    PrintCryst1(b, outF[b]);
+    PrintAtoms(b, mBox);
+    PrintEnd(outF[b]);
   }
-  //NEW_RESTART_CODE
-
-  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
-    DoOutputRebuildRestart(step + 1);
-  }
-  //NEW_RESTART_CODE
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_OUTPUT);
 }
 
 //NEW_RESTART_CODE
-void PDBOutput::DoOutputRebuildRestart(const uint step)
+void PDBOutput::DoOutputRestart(const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     outRebuildRestart[b].openOverwrite();
     PrintCrystRest(b, step, outRebuildRestart[b]);
     PrintCryst1(b, outRebuildRestart[b]);
     PrintAtomsRebuildRestart(b);
-    PrintEnd(b, outRebuildRestart[b]);
+    PrintEnd(outRebuildRestart[b]);
     outRebuildRestart[b].close();
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
+}
+
+//NEW_RESTART_CODE
+void PDBOutput::DoOutputRebuildRestart(const ulong step)
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    outRebuildRestart[b].openOverwrite();
+    PrintCrystRest(b, step, outRebuildRestart[b]);
+    PrintCryst1(b, outRebuildRestart[b]);
+    PrintAtomsRebuildRestart(b);
+    PrintEnd(outRebuildRestart[b]);
+    outRebuildRestart[b].close();
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
 }
 //NEW_RESTART_CODE
 
@@ -232,7 +260,7 @@ void PDBOutput::PrintCryst1(const uint b, Writer & out)
   out.file << outStr << std::endl;
 }
 
-void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
+void PDBOutput::PrintCrystRest(const uint b, const ulong step, Writer & out)
 {
   using namespace pdb_entry::cryst1::field;
   using namespace pdb_entry;
@@ -245,7 +273,6 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
 #endif
   sstrm::Converter toStr;
   std::string outStr(pdb_entry::LINE_WIDTH, ' ');
-  XYZ axis = boxDimRef.axis.Get(b);
   //Tag for remark
   outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK);
   //Tag GOMC
@@ -264,10 +291,11 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
   out.file << outStr << std::endl;
 }
 
-
+// PDB trajectory
+template <typename T>
 void PDBOutput::InsertAtomInLine(std::string & line, XYZ const& coor,
-                                 std::string const& occ,
-                                 std::string const& beta)
+                                 const T &occ,
+                                 double const& beta)
 {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
@@ -290,24 +318,32 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
   bool inThisBox = false;
-  uint pStart = 0, pEnd = 0;
-  //Loop through all molecules
-  for (uint m = 0; m < molRef.count; ++m) {
-    //Loop through particles in mol.
-    uint beta = molLookupRef.GetBeta(m);
-    molRef.GetRangeStartStop(pStart, pEnd, m);
-    XYZ ref = comCurrRef.Get(m);
-    inThisBox = (mBox[m] == b);
-    for (uint p = pStart; p < pEnd; ++p) {
-      XYZ coor;
-      if (inThisBox) {
-        coor = coordCurrRef.Get(p);
-        boxDimRef.UnwrapPBC(coor, b, ref);
-      }
-      InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
-      //Write finished string out.
-      outF[b].file << pStr[p] << std::endl;
+
+  uint d, dataStart, dataEnd, dataI;
+  //Start particle numbering @ 1
+  for (uint box = 0; box < BOX_TOTAL; ++box) {
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
+                                  end = molLookupRef.BoxEnd(box);
+    while (m != end) { 
+      dataI = *m;
+      //Loop through particles in mol.
+      molRef.GetRangeStartStop(dataStart, dataEnd, dataI);
+      XYZ ref = comCurrRef.Get(dataI);
+      inThisBox = (mBox[dataI] == b);
+      for (d = dataStart; d < dataEnd; ++d) {
+        XYZ coor;
+        if (inThisBox) {
+          coor = coordCurrRef.Get(d);
+          boxDimRef.UnwrapPBC(coor, b, ref);
+        }
+        InsertAtomInLine(pStr[d], coor, occupancy::BOX[mBox[dataI]], molRef.beta[d]);
+        //Write finished string out.
+      }  
+      ++m;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     }
+  }
+  for (uint d = 0; d < coordCurrRef.Count(); ++d){
+    outF[b].file << pStr[d] << std::endl;
   }
 }
 
@@ -315,40 +351,46 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
-  char segname = 'A';
-  uint molecule = 0, atom = 0, pStart = 0, pEnd = 0;
+  uint molecule = 0, atom = 0, dataStart = 0, dataEnd = 0;
   for (uint k = 0; k < molRef.kindsCount; ++k) {
     uint countByKind = molLookupRef.NumKindInBox(k, b);
-    std::string resName = molRef.kinds[k].name;
     for (uint kI = 0; kI < countByKind; ++kI) {
       uint molI = molLookupRef.GetMolNum(kI, k, b);
-      uint beta = molLookupRef.GetBeta(molI);
-      molRef.GetRangeStartStop(pStart, pEnd, molI);
+      molRef.GetRangeStartStop(dataStart, dataEnd, molI);
       XYZ ref = comCurrRef.Get(molI);
-      for (uint p = pStart; p < pEnd; ++p) {
+      for (uint d = dataStart; d < dataEnd; ++d) {
         std::string line = GetDefaultAtomStr();
-        XYZ coor = coordCurrRef.Get(p);
+        XYZ coor = coordCurrRef.Get(d);
         boxDimRef.UnwrapPBC(coor, b, ref);
-        FormatAtom(line, atom, molecule, segname,
-                   molRef.kinds[k].atomNames[p - pStart], resName);
-
+        if (molRef.kinds[k].isMultiResidue){
+          FormatAtom(line, atom, molecule + molRef.kinds[k].intraMoleculeResIDs[d - dataStart], molRef.chain[d],
+                    molRef.kinds[k].atomNames[d - dataStart], molRef.kinds[k].resNames[d - dataStart]);
+        } else {
+          FormatAtom(line, atom, molecule, molRef.chain[d],
+                    molRef.kinds[k].atomNames[d - dataStart], molRef.kinds[k].resNames[d - dataStart]);
+        }
         //Fill in particle's stock string with new x, y, z, and occupancy
-        InsertAtomInLine(line, coor, occupancy::BOX[0], beta::FIX[beta]);
+        InsertAtomInLine(line, coor, molRef.occ[d], molRef.beta[d]);
         //Write finished string out.
         outRebuildRestart[b].file << line << std::endl;
         ++atom;
       }
       ++molecule;
+      /* To add additional intramolecular residues */
+      if (molRef.kinds[k].isMultiResidue){
+        molecule += molRef.kinds[k].intraMoleculeResIDs.back();
+      }
+      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+      if(molecule == 9999)
+        molecule = 0;
     }
-    ++segname;
-    molecule = 0;
   }
 }
 
 // This function should print a remark for recalculating trajectory
 // The format is the following:
 // REMARK GOMC <frame number> <step number>
-void PDBOutput::PrintRemark(const uint b, const uint step, Writer & out)
+void PDBOutput::PrintRemark(const uint b, const ulong step, Writer & out)
 {
   using namespace pdb_entry::cryst1::field;
   using namespace pdb_entry;

@@ -47,7 +47,7 @@
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
 Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+A copy of the GNU General Public License can be found in License.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 
@@ -275,7 +275,7 @@ void ParallelTemperingUtilities::prepareToDoExchange(const int replica_id, int* 
 
 }
 
-void ParallelTemperingUtilities::cyclicDecomposition(const std::vector<int> destinations, std::vector< std::vector<int> > & cyclic, std::vector<bool> & incycle, const int nrepl, int * nswap)
+void ParallelTemperingUtilities::cyclicDecomposition(const std::vector<int> &destinations, std::vector< std::vector<int> > &cyclic, std::vector<bool> &incycle, const int nrepl, int * nswap)
 {
 
   int i, j, c, p;
@@ -1161,7 +1161,7 @@ void ParallelTemperingUtilities::exchangeVirials(SystemPotential & mySystemPoten
   }
 }
 
-void ParallelTemperingUtilities::print_ind(FILE* fplog, const char* leg, int n, std::vector<int> ind, const std::vector<bool> bEx)
+void ParallelTemperingUtilities::print_ind(FILE* fplog, const char* leg, int n, const std::vector<int> &ind, const std::vector<bool> &bEx)
 {
   int i;
 
@@ -1172,7 +1172,7 @@ void ParallelTemperingUtilities::print_ind(FILE* fplog, const char* leg, int n, 
   fprintf(fplog, "\n");
 }
 
-void ParallelTemperingUtilities::print_prob(FILE* fplog, const char* leg, int n, std::vector<double> prob)
+void ParallelTemperingUtilities::print_prob(FILE* fplog, const char* leg, int n, const std::vector<double> &prob)
 {
   int  i;
   char buf[8];
@@ -1189,7 +1189,7 @@ void ParallelTemperingUtilities::print_prob(FILE* fplog, const char* leg, int n,
   fprintf(fplog, "\n");
 }
 
-void ParallelTemperingUtilities::print_count(FILE* fplog, const char* leg, int n, std::vector<int> count)
+void ParallelTemperingUtilities::print_count(FILE* fplog, const char* leg, int n, const std::vector<int> &count)
 {
   int i;
 
@@ -1200,7 +1200,7 @@ void ParallelTemperingUtilities::print_count(FILE* fplog, const char* leg, int n
   fprintf(fplog, "\n");
 }
 
-void ParallelTemperingUtilities::print_transition_matrix(FILE* fplog, int n, std::vector< std::vector<int> > nmoves, const std::vector<int> nattempt)
+void ParallelTemperingUtilities::print_transition_matrix(FILE* fplog, int n, const std::vector< std::vector<int> > &nmoves, const std::vector<int> &nattempt)
 {
   int   i, j, ntot;
   float Tprint;
@@ -1276,7 +1276,7 @@ void ParallelTemperingUtilities::print_replica_exchange_statistics(FILE* fplog)
   print_transition_matrix(fplog, ms->worldSize, nmoves, nattempt);
 }
 
-void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, std::vector<int> pind, std::vector<int> allswaps, std::vector<int> tmpswap)
+void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const std::vector<int> &pind, const std::vector<int> &allswaps, const std::vector<int> &tmpswap)
 {
   int i;
 

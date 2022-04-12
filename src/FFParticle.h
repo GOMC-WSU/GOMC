@@ -1,13 +1,12 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef FF_PARTICLE_H
 #define FF_PARTICLE_H
 
-#include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
 #include "Forcefield.h"
 #include "BasicTypes.h" //for uint
@@ -86,6 +85,8 @@ public:
   virtual double EnergyLRC(const uint kind1, const uint kind2) const;
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
+  //!Returns impulse pressure correction term for a kind pair
+  virtual double ImpulsePressureCorrection(const uint kind1, const uint kind2) const;
 
   //Calculate the dE/dlambda for vdw energy
   virtual double CalcdEndL(const double distSq, const uint kind1,
@@ -126,7 +127,7 @@ protected:
   //Combining sigma, epsilon, and n value for different kind
   void Blend(ff_setup::Particle const& mie);
   //Use NBFIX to adjust sigma, epsilon, and n value for different kind
-  void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix);
+  void AdjNBfix(ff_setup::NBfix const& nbfix);
   //To access rcut and other forcefield data
   const Forcefield& forcefield;
 
@@ -135,21 +136,16 @@ protected:
   std::string *nameSec;
 
   //vars for LJ-LJ pairs
-#ifdef MIE_INT_ONLY
-  uint* n, *n_1_4;
-#else
   double *n, *n_1_4;
-#endif
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
-  double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
-         * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4,
-         * nOver6_1_4;
-
-  uint count;
-  bool exp6;
+  double *sigmaSq, *sigmaSq_1_4, *epsilon, *epsilon_1_4, *epsilon_cn,
+         *epsilon_cn_1_4, *epsilon_cn_6, *epsilon_cn_6_1_4, *nOver6,
+         *nOver6_1_4;
 #ifdef GOMC_CUDA
   VariablesCUDA *varCUDA;
 #endif
+  uint count;
+  bool exp6;
 };
 
 

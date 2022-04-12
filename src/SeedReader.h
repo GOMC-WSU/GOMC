@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef SEED_READER_H
 #define SEED_READER_H
@@ -18,7 +18,7 @@ struct SeedReader : Reader {
   }
 
   //Keep going until desired var hit.
-  inline Reader & GotoStep(const unsigned int step)
+  inline Reader & GotoStep(const ulong step)
   {
     while (!file.eof() && !RdLn().StrtComp()("STEP")(step).FinComp()) {}
     if (file.eof()) {

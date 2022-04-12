@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef TRIALMOL_H
 #define TRIALMOL_H
@@ -262,7 +262,12 @@ public:
   void SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
                const bool fixCOM, const bool rotBB);
   void SetSeed(const bool inCav, const bool fixCOM, const bool rotBB);
-  void SetBackBone(const uint bb[2]);
+  void SetBackBone(const int bb[2]);
+  // sets atom index where molecule start growing
+  void SetGrowingAtomIndex(const int & idx)
+  {
+    growingAtomIndex = idx;
+  }
   XYZ Transform(const XYZ& a)
   {
     return geom::Transform(cavMatrix, a);
@@ -294,10 +299,19 @@ public:
   }
   //return unwrap com of tcoords so tcoords must be set
   XYZ GetCOM();
+
+  // returns the backbone index
   uint GetAtomBB(const uint i) const
   {
     return backbone[i];
   }
+
+  // returns the growing atom index
+  int GetGrowingAtomIndex() const
+  {
+    return growingAtomIndex;
+  }
+
   //set built bond to true
   void AddBonds(const uint p0, const uint p1)
   {
@@ -325,7 +339,8 @@ private:
   RotationMatrix worldToGrowth;
   XYZ basisPoint;
   XYZ cavityCenter, cavity; //The center and cavity dimensions
-  uint backbone[2];
+  int backbone[2];
+  int growingAtomIndex; // use to start growing atom using CD-CBMC
   bool comInCav, comFix, rotateBB;
   bool overlap;
   bool* atomBuilt;

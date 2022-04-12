@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "Molecules.h"
 #include "Setup.h"
@@ -14,20 +14,26 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm> //For count.
 #include <string>
 #include "System.h"
+#include <cassert>
 
 class System;
 
 
-Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
+Molecules::Molecules() : start(NULL), restartOrderedStart(NULL), 
+  kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
-  pairVirCorrections(NULL), printFlag(true) {}
+  pairVirCorrections(NULL), printFlag(true){}
 
 Molecules::~Molecules(void)
 {
   delete[] start;
+  if (restartFromCheckpoint)
+    delete[] restartOrderedStart;
   delete[] kIndex;
   delete[] countByKind;
   delete[] chain;
+  delete[] beta;
+  delete[] occ;
   delete[] kinds;
   delete[] pairEnCorrections;
   delete[] pairVirCorrections;
@@ -41,24 +47,38 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   kindsCount = setup.mol.kindMap.size();
   countByKind = new uint[kindsCount];
   kinds = new MoleculeKind[kindsCount];
-
-  //Molecule instance arrays/data
-  count = atoms.startIdxRes.size();
-  if (count == 0) {
-    std::cerr << "Error: No Molecule was found in the PDB file(s)!" << std::endl;
+  if(kindsCount != setup.mol.molVars.molKindIndex){
+    std::cout << "Error: Inconsistency between molecule map and number of molecule kinds" << std::endl
+              << "Error: Please report your PDB/PSF files to https://github.com/GOMC-WSU/GOMC/issues"
+              << std::endl;
     exit(EXIT_FAILURE);
   }
 
+  // Whether we need to delete the restartOrderedStart array in the destructor
+  restartFromCheckpoint = setup.config.in.restart.restartFromCheckpoint;
+  //Molecule instance arrays/data
+  count = setup.mol.molVars.startIdxMolecules.size();
+  atomCount = atoms.beta.size();
+  if (count == 0) {
+    std::cerr << "Error: No Molecule was found in the PSF file(s)!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  //chain = new char [atoms.x.size()];
   start = new uint [count + 1];
-  start = vect::TransferInto<uint>(start, atoms.startIdxRes);
-  start[count] = atoms.x.size();
-  kIndex = vect::transfer<uint>(atoms.resKinds);
+  start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
+  kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
   chain = vect::transfer<char>(atoms.chainLetter);
+  beta =  vect::transfer<double>(atoms.beta);
+  occ =  vect::transfer<double>(atoms.occ);
+
+  start[count] = atoms.x.size();
+  kIndexCount = setup.mol.molVars.moleculeKinds.size();
+
   for (uint mk = 0 ; mk < kindsCount; mk++) {
     countByKind[mk] =
-      std::count(atoms.resNames.begin(), atoms.resNames.end(),
-                 atoms.resKindNames[mk]);
-    kinds[mk].Init(atoms.resKindNames[mk], setup, forcefield, sys);
+      std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
+                 setup.mol.molVars.moleculeKindNames[mk]);
+    kinds[mk].Init(mk, setup.mol.molVars.uniqueMapKeys[mk], setup, forcefield, sys);
   }
 
 #if ENSEMBLE == GCMC
@@ -69,8 +89,9 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
 
   while(kindCPIt != lastOne) {
     std::string molName = kindCPIt->first;
-    mol_setup::MolMap::const_iterator dataIterator =
-      setup.mol.kindMap.find(molName);
+    mol_setup::MolMap::const_iterator dataIterator = setup.mol.kindMap.begin();
+    for (; dataIterator->second.moleculeName != molName && dataIterator != setup.mol.kindMap.end(); ++dataIterator) {
+    }
     if(dataIterator == setup.mol.kindMap.end()) {
       std::cerr << "================================================"
                 << std::endl << "Error: Molecule " << molName
@@ -86,13 +107,12 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   if(printFlag) {
     //calculating netcharge of all molecule kind
     double netCharge = 0.0;
-    bool hasCharge;
     for (uint mk = 0 ; mk < kindsCount; mk++) {
       netCharge += (countByKind[mk] * kinds[mk].GetMoleculeCharge());
       if(kinds[mk].MoleculeHasCharge()) {
         if(!forcefield.ewald && !forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-                    << " but Ewald Summaion method is disabled!\n\n";
+                    << " but Ewald Summation method is disabled!\n\n";
         } else if(!forcefield.electrostatic && forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
                     << " but Electrostatic energy calculation is disabled!\n\n";
@@ -127,30 +147,78 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   PrintLJInfo(totAtomKind, atomNames, forcefield);
   printFlag = false;
 
-  //Pair Correction matrixes
+  //Pair Correction matrices
   pairEnCorrections = new double[kindsCount * kindsCount];
   pairVirCorrections = new double[kindsCount * kindsCount];
-  for(uint i = 0; i < kindsCount; ++i) {
-    for(uint j = i; j < kindsCount; ++j) {
-      pairEnCorrections[i * kindsCount + j] = 0.0;
-      pairVirCorrections[i * kindsCount + j] = 0.0;
-      for(uint pI = 0; pI < kinds[i].NumAtoms(); ++pI) {
-        for(uint pJ = 0; pJ < kinds[j].NumAtoms(); ++pJ) {
-          pairEnCorrections[i * kindsCount + j] +=
-            forcefield.particles->EnergyLRC(kinds[i].AtomKind(pI),
-                                            kinds[j].AtomKind(pJ));
-          pairVirCorrections[i * kindsCount + j] +=
-            forcefield.particles->VirialLRC(kinds[i].AtomKind(pI),
-                                            kinds[j].AtomKind(pJ));
+  // Initial with zero
+  std::fill_n(pairEnCorrections, kindsCount * kindsCount, 0.0);
+  std::fill_n(pairVirCorrections, kindsCount * kindsCount, 0.0);
+
+  if (forcefield.useLRC) {
+    for(uint i = 0; i < kindsCount; ++i) {
+      for(uint j = i; j < kindsCount; ++j) {
+        for(uint pI = 0; pI < kinds[i].NumAtoms(); ++pI) {
+          for(uint pJ = 0; pJ < kinds[j].NumAtoms(); ++pJ) {
+            pairEnCorrections[i * kindsCount + j] +=
+              forcefield.particles->EnergyLRC(kinds[i].AtomKind(pI),
+                                              kinds[j].AtomKind(pJ));
+            pairVirCorrections[i * kindsCount + j] +=
+              forcefield.particles->VirialLRC(kinds[i].AtomKind(pI),
+                                              kinds[j].AtomKind(pJ));
+          }
         }
+        //set other side of the diagonal
+        pairEnCorrections[j * kindsCount + i] =
+          pairEnCorrections[i * kindsCount + j];
+        pairVirCorrections[j * kindsCount + i] =
+          pairVirCorrections[i * kindsCount + j];
       }
-      //set other side of the diagonal
-      pairEnCorrections[j * kindsCount + i] =
-        pairEnCorrections[i * kindsCount + j];
-      pairVirCorrections[j * kindsCount + i] =
-        pairVirCorrections[i * kindsCount + j];
+    }
+  } else if (forcefield.useIPC) {
+    for(uint i = 0; i < kindsCount; ++i) {
+      for(uint j = i; j < kindsCount; ++j) {
+        for(uint pI = 0; pI < kinds[i].NumAtoms(); ++pI) {
+          for(uint pJ = 0; pJ < kinds[j].NumAtoms(); ++pJ) {
+            // There is no Impulse energy term. Just Pressure
+            pairVirCorrections[i * kindsCount + j] +=
+              forcefield.particles->ImpulsePressureCorrection(kinds[i].AtomKind(pI),
+                                                              kinds[j].AtomKind(pJ));
+          }
+        }
+        //set other side of the diagonal
+        pairVirCorrections[j * kindsCount + i] =
+          pairVirCorrections[i * kindsCount + j];
+      }
     }
   }
+}
+
+bool Molecules::operator==(const Molecules & other){
+  bool result = true;
+  result &= (count == other.count);
+  result &= (atomCount == other.atomCount);
+  result &= (kindsCount == other.kindsCount);
+
+  for (int m = 0; m < count + 1; ++m){
+    result &= (start[m] == other.start[m]);
+  }
+  for (int m = 0; m < count; ++m){
+    result &= (kIndex[m] == other.kIndex[m]);
+  }
+  for (int a = 0; a < atomCount; ++a){
+    result &= (chain[a] == other.chain[a]);
+    result &= (beta[a] == other.beta[a]);
+    result &= (occ[a] == other.occ[a]);
+  }
+  for (int k = 0; k < kindsCount; ++k){
+    result &= (countByKind[k] == other.countByKind[k]);
+    result &= (kinds[k] == other.kinds[k]);
+  }
+  for (int k = 0; k < kindsCount*kindsCount; ++k){
+    result &= (pairEnCorrections[k] == other.pairEnCorrections[k]);
+    result &= (pairVirCorrections[k] == other.pairVirCorrections[k]);
+  }
+  return result;
 }
 
 void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
@@ -231,3 +299,4 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
     std::cout << std::endl;
   }
 }
+

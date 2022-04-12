@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef STATIC_VALS_H
 #define STATIC_VALS_H
@@ -17,8 +17,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //Member variables
 #include "Forcefield.h"
 #include "SimEventFrequency.h"
-#include "BoxDimensions.h"
-#include "BoxDimensionsNonOrth.h"
 #include "MoleculeLookup.h"
 #include "Molecules.h"
 
@@ -29,17 +27,11 @@ class StaticVals
 {
 public:
   StaticVals(Setup & set);
-  ~StaticVals();
+  ~StaticVals() {};
   void Init(Setup & set, System& sys);
   void InitOver(Setup & set, System& sys);
   void IsBoxOrthogonal(config_setup::Volume const& vol);
   void IsBoxOrthogonal(const double cellAngle[][3]);
-#ifndef VARIABLE_VOLUME
-  BoxDimensions * GetBoxDim()
-  {
-    return boxDimensions;
-  }
-#endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   double pressure;
@@ -60,18 +52,16 @@ public:
   config_setup::FreeEnergy  freeEnVal;
 
   //Only include these variables if they're static for this ensemble...
-#ifndef VARIABLE_VOLUME
-  BoxDimensions *boxDimensions;
-#endif
 #ifndef  VARIABLE_PARTICLE_NUMBER
   MoleculeLookup molLookup;
 #endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
   config_setup::MEMCVal   memcVal;
-  config_setup::CFCMCVal  cfcmcVal;
+  config_setup::NEMTMCVal  neMTMCVal;
+  config_setup::TargetSwapCollection targetedSwapVal, intraTargetedSwapVal;
 #endif
 
-  bool IsEquil(const uint step)
+  bool IsEquil(const ulong step)
   {
     return step >= simEventFreq.tillEquil;
   }

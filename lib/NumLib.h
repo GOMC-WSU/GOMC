@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef NUMERIC_LIB_H
 #define NUMERIC_LIB_H
@@ -17,10 +17,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DBL_MAX 1.7976931348623158e+308
 #endif
 
+#ifndef SMALL_WEIGHT
+#define SMALL_WEIGHT 1.0e-38
+#endif
 namespace num
 {
 static const double dbl_margin = 0.00001;
-static const double qqFact = 167000.00;
+static const double qqFact = 167103.208067979;
 static const double BIGNUM = DBL_MAX;
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
@@ -80,11 +83,7 @@ inline double MeanA(std::vector<uint> const& v1,
                     std::vector<uint> const& v2,
                     const uint ix1, const uint ix2)
 {
-#ifdef MIE_INT_ONLY
-  return (v1[ix1] + v2[ix2]) / 2;
-#else
-  return ((double)(v1[ix1] + v2[ix2])) / 2.0;
-#endif
+  return ((double)(v1[ix1] + v2[ix2])) * 0.5;
 }
 //Geometric mean.
 inline double MeanG(std::vector<double> const& v1,
@@ -230,7 +229,7 @@ inline double POW(const double d2, const double d4, const double d6,
 class Exp6Fun
 {
 public:
-  Exp6Fun(const double a, const double s) : alpha(a), sigma(s) {}
+  Exp6Fun(const double a, const double s) : sigma(s), alpha(a) {}
   virtual ~Exp6Fun() {};
   virtual float operator() (float x) = 0;
 
@@ -244,8 +243,8 @@ public:
   virtual ~RminFun() {};
   virtual float operator() (float x)
   {
-    double rep = (6.0 / alpha) * exp(alpha * (1 - sigma / x));
-    double at = pow(x / sigma, 6);
+    double rep = (6.0 / alpha) * exp(alpha * (1.0 - sigma / x));
+    double at = pow(x / sigma, 6.0);
     return (float)(rep - at);
   }
 };
@@ -260,15 +259,15 @@ public:
   virtual ~RmaxFun() {};
   virtual float operator() (float x)
   {
-    double rep = (-1.0 / rmin) * exp(alpha * (1 - x / rmin));
-    double at = pow(rmin / x, 6) / x;
+    double rep = (-1.0 / rmin) * exp(alpha * (1.0 - x / rmin));
+    double at = pow(rmin / x, 6.0) / x;
     return (float)(rep + at);
   }
 };
 
 //Using Brent’s method, find the root of a function func known to lie between x1 and x2.
 //The root, returned as zbrent, will be refined until its accuracy is tol.
-//Brent, R.P. 1973, Algorithms for Minimization without Derivatives (Englewood Cliffs, NJ: PrenticeHall)
+//Brent, R.P. 1973, Algorithms for Minimization without Derivatives (Englewood Cliffs, NJ: Prentice-Hall)
 //Forsythe, G.E., Malcolm, M.A., and Moler, C.B. 1977, Computer Methods for Mathematical Computations (Englewood Cliffs, NJ: Prentice-Hall)
 inline double Zbrent(Exp6Fun* func, float x1, float x2, float tol)
 {

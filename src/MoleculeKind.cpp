@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "MoleculeKind.h"
 #include "MolSetup.h"
@@ -26,9 +26,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 
 void MoleculeKind::Init
-(std::string const& l_name, Setup const& setup,
+(uint & l_kindIndex, std::string const& l_name, Setup const& setup,
  Forcefield const& forcefield, System& sys)
 {
+  kindIndex = l_kindIndex;
   mol_setup::MolMap::const_iterator dataIterator =
     setup.mol.kindMap.find(l_name);
   if(dataIterator == setup.mol.kindMap.end()) {
@@ -38,8 +39,8 @@ void MoleculeKind::Init
     exit(EXIT_FAILURE);
   }
   const mol_setup::MolKind& molData = dataIterator->second;
-  name = l_name;
-
+  name = molData.moleculeName;
+  uniqueName = l_name;
 #if ENSEMBLE == GCMC
   std::map<std::string, double>::const_iterator kindCPIt =
     setup.config.sys.chemPot.cp.find(name),
@@ -50,7 +51,7 @@ void MoleculeKind::Init
   if (kindCPIt == lastOne) {
     std::cerr << "================================================"
               << std::endl << "Error: chemical potential is missing for "
-              << name << "." << std::endl << std::endl
+              << molData.moleculeName << "." << std::endl << std::endl
               << "Here are the listed chemical potentials:"
               << std::endl
               << "----------------------------------------"
@@ -96,16 +97,20 @@ void MoleculeKind::Init
   bondList.Init(molData.bonds);
   angles.Init(molData.angles, bondList);
   dihedrals.Init(molData.dihedrals, bondList);
+  impropers.Init(molData.impropers, bondList);
+  donorList.Init(molData.donors);
+  acceptorList.Init(molData.acceptors);
 
+  
 #ifdef VARIABLE_PARTICLE_NUMBER
   builder = cbmc::MakeCBMC(sys, forcefield, *this, setup);
   //builder = new cbmc::LinearVlugt(sys, forcefield, *this, setup);
 #endif
 }
 
-MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
-  atomMass(NULL), atomCharge(NULL), builder(NULL),
-  atomKind(NULL) {}
+MoleculeKind::MoleculeKind() : angles(3), dihedrals(4), impropers(4),
+  atomMass(NULL), builder(NULL), atomKind(NULL),
+  atomCharge(NULL) {}
 
 
 MoleculeKind::~MoleculeKind()
@@ -116,7 +121,27 @@ MoleculeKind::~MoleculeKind()
   delete builder;
 }
 
-
+bool MoleculeKind::operator==(const MoleculeKind & other){
+  bool result = true;
+  result &= (numAtoms == other.numAtoms);
+  for (int i = 0; i < numAtoms; ++i){
+    result &= (atomKind[i] == other.atomKind[i]);
+    result &= (atomMass[i] == other.atomMass[i]);
+    result &= (atomCharge[i] == other.atomCharge[i]);
+  }
+  result &= (atomNames == other.atomNames);
+  result &= (resNames == other.resNames);
+  result &= (atomTypeNames == other.atomTypeNames);
+  result &= (isMultiResidue == other.isMultiResidue);
+  result &= (intraMoleculeResIDs == other.intraMoleculeResIDs);
+  result &= (name == other.name);
+  result &= (kindIndex == other.kindIndex);
+  result &= (molMass == other.molMass);
+  #if ENSEMBLE == GCMC
+  result &= (chemPot == other.chemPot);
+  #endif
+  return result;
+}
 
 
 void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
@@ -127,11 +152,19 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   atomCharge = new double[numAtoms];
   molMass = 0;
   atomNames.clear();
+  resNames.clear();
+
+  /* These two entries all PSFOutput to 
+    correctly assign residueIDs to a map containing
+    multi-residue and standard entries.  */
+  isMultiResidue = molData.isMultiResidue;
+  intraMoleculeResIDs = molData.intraMoleculeResIDs;
 
   //convert array of structures to structure of arrays
   for(uint i = 0; i < numAtoms; ++i) {
     const mol_setup::Atom& atom = molData.atoms[i];
     atomNames.push_back(atom.name);
+    resNames.push_back(atom.residue);
     atomTypeNames.push_back(atom.type);
     atomMass[i] = atom.mass;
     molMass += atom.mass;

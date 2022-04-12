@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef OUT_CONST_H
 #define OUT_CONST_H
@@ -38,20 +38,24 @@ extern const std::string MOL_NUM;
 static const uint MOL_NUM_IDX = 10;
 extern const std::string DENSITY;
 static const uint DENSITY_IDX = 11;
+extern const std::string COMPRESSIBILITY;
+static const uint COMPRESSIBILITY_IDX = 12;
 extern const std::string SURF_TENSION;
-static const uint SURF_TENSION_IDX = 12;
+static const uint SURF_TENSION_IDX = 13;
+static const uint ENTHALPY_IDX = 14;
+extern const std::string ENTHALPY;
 #if ENSEMBLE == NVT || ENSEMBLE == GCMC
-static const uint TOTAL_SINGLE = 13;
+static const uint TOTAL_SINGLE = 18;
 #elif ENSEMBLE == NPT
 extern const std::string VOLUME;
-static const uint VOLUME_IDX = 13;
-static const uint TOTAL_SINGLE = 14;
+static const uint VOLUME_IDX = 15;
+static const uint TOTAL_SINGLE = 16;
 #else
 extern const std::string VOLUME;
 extern const std::string HEAT_OF_VAP;
-static const uint VOLUME_IDX = 13;
-static const uint HEAT_OF_VAP_IDX = 14;
-static const uint TOTAL_SINGLE = 15;
+static const uint VOLUME_IDX = 15;
+static const uint HEAT_OF_VAP_IDX = 16;
+static const uint TOTAL_SINGLE = 17;
 #endif
 
 //MULTI

@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "ConsoleOutput.h"          //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
@@ -19,7 +19,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 void ConsoleOutput::DoOutput(const ulong step)
 {
-  if (step == 0) {
+  GOMC_EVENT_START(1, GomcProfileEvent::CONSOLE_OUTPUT);
+  if (WriteConsoleHeaders) {
     std::cout << std::endl << "################################################################################" << std::endl;
     std::cout << "########################## INITIAL SIMULATION ENERGY ###########################" << std::endl << std::endl;
 
@@ -27,7 +28,7 @@ void ConsoleOutput::DoOutput(const ulong step)
     std::cout << std::endl;
 
     for (uint b = 0; b < BOX_TOTAL; b++) {
-      PrintEnergy(b, var->energyRef[b], var->virialRef[b], -1);
+      PrintEnergy(b, var->energyRef[b], step-1);
       std::cout <<  std::endl;
     }
 
@@ -36,7 +37,7 @@ void ConsoleOutput::DoOutput(const ulong step)
       std::cout << std::endl;
 
       for (uint b = 0; b < BOX_TOTAL; b++) {
-        PrintStatistic(b, -1);
+        PrintStatistic(b, step-1);
         std::cout << std::endl;
       }
     }
@@ -59,7 +60,9 @@ void ConsoleOutput::DoOutput(const ulong step)
       PrintStatisticTitle();
       std::cout << std::endl;
     }
-  } else {
+    WriteConsoleHeaders = false;
+  }
+  else {
     for(uint b = 0; b < BOX_TOTAL; b++) {
       if(!forceOutput) {
         PrintMove(b, step);
@@ -67,7 +70,7 @@ void ConsoleOutput::DoOutput(const ulong step)
       }
 
       if(enableEnergy) {
-        PrintEnergy(b, var->energyRef[b], var->virialRef[b], step);
+        PrintEnergy(b, var->energyRef[b], step);
         std::cout << std::endl;
       }
 
@@ -82,9 +85,11 @@ void ConsoleOutput::DoOutput(const ulong step)
       }
 
     }
-
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CONSOLE_OUTPUT);
 }
+
+void ConsoleOutput::DoOutputRestart(const ulong step){}
 
 void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 {
@@ -119,6 +124,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
+    if(var->Performed(mv::MULTIPARTICLE_BM)) {
+      sub = mv::MULTIPARTICLE_BM;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
+    }
+
     if(var->Performed(mv::INTRA_SWAP)) {
       sub = mv::INTRA_SWAP;
       printElement(var->GetTries(box, sub), elementWidth);
@@ -147,6 +159,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
+    if(var->Performed(mv::INTRA_TARGETED_SWAP)) {
+      sub = mv::INTRA_TARGETED_SWAP;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
+    }
+
 #if ENSEMBLE == GCMC
   }
 #endif
@@ -166,8 +185,15 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
   }
 
-  if(var->Performed(mv::CFCMC)) {
-    sub = mv::CFCMC;
+  if(var->Performed(mv::NE_MTMC)) {
+    sub = mv::NE_MTMC;
+    printElement(var->GetTries(box, sub), elementWidth);
+    printElement(var->GetAccepted(box, sub), elementWidth);
+    printElement(var->GetAcceptPercent(box, sub), elementWidth);
+  }
+
+  if(var->Performed(mv::TARGETED_SWAP)) {
+    sub = mv::TARGETED_SWAP;
     printElement(var->GetTries(box, sub), elementWidth);
     printElement(var->GetAccepted(box, sub), elementWidth);
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
@@ -189,7 +215,6 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 
 void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 {
-  double density = 0.0;
   uint offset = box * var->numKinds;
 
   std::string title = "STAT_";
@@ -203,9 +228,14 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
   if(enableVolume)
     printElement(var->volumeRef[box], elementWidth);
 
-  if(enablePressure)
+  if(enablePressure) {
     printElement(var->pressure[box], elementWidth);
-
+    printElement(var->compressibility[box], elementWidth); 
+    printElement(var->enthalpy[box], elementWidth); 
+    #if ENSEMBLE == GEMC
+    printElement(var->heatOfVap, elementWidth);
+    #endif
+  }
   if(enableMol) {
     printElement(var->numByBox[box], elementWidth);
 
@@ -253,9 +283,8 @@ void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
   std::cout << std::endl;
 }
 
-
 void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
-                                Virial const& vir, const ulong step) const
+                                const ulong step) const
 {
   std::string title = "ENER_";
   sstrm::Converter toStr;
@@ -275,6 +304,8 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
   printElement(en.recip, elementWidth);
   printElement(en.self, elementWidth);
   printElement(en.correction, elementWidth);
+  if (enablePressure)
+    printElement((en.total / var->numByBox[box] + var->pressure[box] * var->volumeRef[box] / var->numByBox[box]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL, elementWidth);
   std::cout << std::endl;
 }
 
@@ -294,6 +325,8 @@ void ConsoleOutput::PrintEnergyTitle()
   printElement("RECIP", elementWidth);
   printElement("SELF", elementWidth);
   printElement("CORR", elementWidth);
+  if (enablePressure)
+    printElement("ENTHALPY", elementWidth);
   std::cout << std::endl;
 }
 
@@ -309,21 +342,27 @@ void ConsoleOutput::PrintStatisticTitle()
   if(enableVolume)
     printElement("VOLUME", elementWidth);
 
-  if(enablePressure)
+  if(enablePressure) {
     printElement("PRESSURE", elementWidth);
-
+    printElement("COMPRESSIBILITY", elementWidth);
+    printElement("ENTHALPY", elementWidth);
+    #if ENSEMBLE == GEMC
+    printElement("HEAT_VAP", elementWidth);
+    #endif
+  }
+  
   if(enableMol) {
     printElement("TOTALMOL", elementWidth);
 
     for(uint k = 0; k < var->numKinds; k++) {
       if(var->numKinds > 1) {
-        std::string molName = "MOLFRAC_" + var->resKindNames[k];
+        std::string molName = "MOLFRAC_" + var->molKindNames[k];
         printElement(molName, elementWidth);
       }
     }
     for(uint k = 0; k < var->numKinds; k++) {
       if(var->numKinds > 1) {
-        std::string molName = "MOLDENS_" + var->resKindNames[k];
+        std::string molName = "MOLDENS_" + var->molKindNames[k];
         printElement(molName, elementWidth);
       }
     }
@@ -363,6 +402,12 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("MPACCEPT%", elementWidth);
   }
 
+  if(var->Performed(mv::MULTIPARTICLE_BM)) {
+    printElement("MULTIPARTICLEBM", elementWidth);
+    printElement("MPBMACCEPT", elementWidth);
+    printElement("MPBMACCEPT%", elementWidth);
+  }
+
   if(var->Performed(mv::INTRA_SWAP)) {
     printElement("INTRASWAP", elementWidth);
     printElement("INTACCEPT", elementWidth);
@@ -387,6 +432,12 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("CRKSHAFTACCEPT%", elementWidth);
   }
 
+  if(var->Performed(mv::INTRA_TARGETED_SWAP)) {
+    printElement("INTRATARGET", elementWidth);
+    printElement("INTARGACCEPT", elementWidth);
+    printElement("INTARGACCEPT%", elementWidth);
+  }
+
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   if(var->Performed(mv::MOL_TRANSFER)) {
     printElement("TRANSFER", elementWidth);
@@ -400,10 +451,16 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("MOLEXACCEPT%", elementWidth);
   }
 
-  if(var->Performed(mv::CFCMC)) {
-    printElement("CFCMCTRANSF", elementWidth);
-    printElement("CFCMCACCEPT", elementWidth);
-    printElement("CFCMCACCEPT%", elementWidth);
+  if(var->Performed(mv::NE_MTMC)) {
+    printElement("NEMTMCTRANSF", elementWidth);
+    printElement("NEMTMCACCEPT", elementWidth);
+    printElement("NEMTMCACCEPT%", elementWidth);
+  }
+
+  if(var->Performed(mv::TARGETED_SWAP)) {
+    printElement("TARGETTRANSFER", elementWidth);
+    printElement("TARGETTACCEPT", elementWidth);
+    printElement("TARGETTACCEPT%", elementWidth);
   }
 #endif
 
@@ -420,14 +477,14 @@ void ConsoleOutput::PrintMoveTitle()
 }
 
 void ConsoleOutput::printElement(const double t, const int width,
-                                 uint percision) const
+                                 uint precision) const
 {
   const char separator = ' ';
   if(std::abs(t) > 1e99) {
-    std::cout << std::right << std::scientific << std::setprecision(percision - 1) <<
+    std::cout << std::right << std::scientific << std::setprecision(precision - 1) <<
               std::setw(width) << std::setfill(separator) << t;
   } else {
-    std::cout << std::right << std::scientific << std::setprecision(percision) <<
+    std::cout << std::right << std::scientific << std::setprecision(precision) <<
               std::setw(width) << std::setfill(separator) << t;
   }
 

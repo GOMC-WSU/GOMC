@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "Coordinates.h"
 #include "TransformMatrix.h"
@@ -19,14 +19,14 @@ void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
   std::copy(atoms.y.begin(), atoms.y.end(), y);
   std::copy(atoms.z.begin(), atoms.z.end(), z);
 
-  CheckCoordinate();
+  WrapCoordinate(atoms.min, atoms.max);
   comRef.CalcCOM();
 }
 
-void Coordinates::CheckCoordinate()
+void Coordinates::WrapCoordinate(const XYZ min[BOX_TOTAL], const XYZ max[BOX_TOTAL])
 {
-  int p, start, atom, length, stRange, endRange;
-  XYZ min, max;
+  int p, start, atom;
+  
   bool sawZeroCoordinate;
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
@@ -34,29 +34,23 @@ void Coordinates::CheckCoordinate()
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
                                  end = molLookRef.BoxEnd(b),
                                  endc = molLookRef.BoxEnd(b);
-    //find the min and max coordinate
-    stRange = molRef.MolStart(*thisMol);
-    --endc;
-    endRange = molRef.MolStart(*endc) + molRef.GetKind(*endc).NumAtoms();
-
-    min.x = *std::min_element(x + stRange, x + endRange);
-    max.x = *std::max_element(x + stRange, x + endRange);
-    min.y = *std::min_element(y + stRange, y + endRange);
-    max.y = *std::max_element(y + stRange, y + endRange);
-    min.z = *std::min_element(z + stRange, z + endRange);
-    max.z = *std::max_element(z + stRange, z + endRange);
+    /* Prevent segfault on empty boxes */
+    if (thisMol == end){
+      printf("No molecules to wrap inside the simulation box %d:\n", b);
+      continue;
+    }
 
     printf("Minimum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-           b, min.x, min.y, min.z);
+           b, min[b].x, min[b].y, min[b].z);
     printf("Maximum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-           b, max.x, max.y, max.z);
+           b, max[b].x, max[b].y, max[b].z);
 
     printf("Wrapping molecules inside the simulation box %d:\n", b);
     while (thisMol != end) {
       start = molRef.MolStart(*thisMol);
       MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
 
-      for (p = 0; p < thisKind.NumAtoms(); p++) {
+      for (p = 0; p < (int) thisKind.NumAtoms(); p++) {
         atom = start + p;
         if(!x[atom] && !y[atom] && !z[atom]) {
           if(sawZeroCoordinate) {

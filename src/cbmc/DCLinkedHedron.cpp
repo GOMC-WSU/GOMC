@@ -1,11 +1,11 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include "DCLinkedHedron.h"
 #include "DCData.h"
 #include "TrialMol.h"
@@ -129,8 +129,8 @@ void DCLinkedHedron::SetBondLengthOld(TrialMol& oldMol)
 void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
 {
   PRNG& prng = data->prng;
-  const CalculateEnergy& calc = data->calc;
-  const Forcefield& ff = data->ff;
+  // const CalculateEnergy& calc = data->calc;
+  // const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
@@ -212,7 +212,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
 void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;
-  const CalculateEnergy& calc = data->calc;
+  // const CalculateEnergy& calc = data->calc;
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   uint nDihTrials = data->nDihTrials;
@@ -279,11 +279,10 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   }
   ljWeights[0] = 0.0;
   for (uint tor = 0; tor < nDihTrials; ++tor) {
-    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
+    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(2.0 * M_PI);
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
       double trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(oldMol.OneFour()) {
@@ -380,11 +379,10 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
   const XYZ center = mol.AtomPosition(hed.Focus());
   //select torsion based on all dihedral angles
   for (uint tor = 0; tor < nDihTrials; ++tor) {
-    torsion[tor] = data->prng.rand(M_PI * 2);
+    torsion[tor] = data->prng.rand(2.0 * M_PI);
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
       double trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(mol.OneFour()) {
