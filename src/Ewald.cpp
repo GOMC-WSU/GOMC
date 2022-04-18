@@ -417,14 +417,34 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
     uint startAtom = mols.MolStart(molIndex);
     double lambdaCoef = GetLambdaCoef(molIndex, box);
 #ifdef GOMC_CUDA
-    XYZArray cCoords(length);
-    std::vector<double> MolCharge;
+    uint chargedParticlesCount = 0;
+    // calc length of array loop
     for(uint p = 0; p < length; p++) {
-      cCoords.Set(p, currentCoords[startAtom + p]);
+        unsigned long currentAtom = startAtom + p;
+        if(particleHasNoCharge[currentAtom]) {
+                continue;
+        }
+        chargedParticlesCount +=1;
+    }
+    // allocate cCoord array 
+    XYZArray cCoords(chargedParticlesCount);
+    XYZArray nCoords(chargedParticlesCount);
+    std::vector<double> MolCharge;
+    
+    // if has charge, add particle and set cCoords & molCharge
+    uint chargedParticlesIndex = 0;
+    for(uint p = 0; p < length; p++) {
+        unsigned long currentAtom = startAtom + p;
+        if(particleHasNoCharge[currentAtom]) {
+                continue;
+        }
+      cCoords.Set(chargedParticlesIndex, currentCoords[currentAtom]);
+      nCoords.Set(chargedParticlesIndex, molCoords[p]);
       MolCharge.push_back(thisKind.AtomCharge(p) * lambdaCoef);
+      chargedParticlesIndex +=1;
     }
     CallMolReciprocalGPU(ff.particles->getCUDAVars(),
-                         cCoords, molCoords, MolCharge, imageSizeRef[box],
+                         cCoords, nCoords, MolCharge, imageSizeRef[box],
                          sumRnew[box], sumInew[box], energyRecipNew, box);
 #else
 #ifdef _OPENMP

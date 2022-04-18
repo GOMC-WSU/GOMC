@@ -86,7 +86,6 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                            double &energyRecipNew,
                            uint box);
 
-// edited functions
 void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
                                   uint imageSize,
                                   double *sumRnew,
@@ -99,28 +98,6 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
                                   double &energyRecipNew,
                                   XYZArray newMolCoords,
                                   XYZArray oldMolCoords);
-
-__global__ void MolExchangeReciprocalGPU(
-                                  int imageSize,
-                                  double *gpu_kx,
-                                  double *gpu_ky,
-                                  double *gpu_kz,
-                                  double *gpu_sumRnew,
-                                  double *gpu_sumInew,
-                                  double *gpu_sumRref,
-                                  double *gpu_sumIref,
-                                  double *gpu_prefactRef,
-                                  double *gpu_energyRecipNew,
-                                  double *gpu_chargeBoxNew,
-                                  double *gpu_chargeBoxOld,
-                                  uint lengthNew,
-                                  uint lengthOld,
-                                  double *gpu_newMolX,
-                                  double *gpu_newMolY,
-                                  double *gpu_newMolZ,
-                                  double *gpu_oldMolX,
-                                  double *gpu_oldMolY,
-                                  double *gpu_oldMolZ);
 
 __global__ void MolExchangeReciprocalGPUOptimized(
                                   int imageSize,
