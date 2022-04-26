@@ -295,6 +295,7 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
   printElementStep(title, step + 1, elementWidth);
 
   printElement(en.total, elementWidth);
+  printElement(en.intraBond, elementWidth);
   printElement(en.bond, elementWidth);
   printElement(en.angle, elementWidth);
   printElement(en.dihedral, elementWidth);
@@ -318,6 +319,7 @@ void ConsoleOutput::PrintEnergyTitle()
   printElement(title, elementWidth);
 
   printElement("TOTAL", elementWidth);
+  printElement("INTRA(B)", elementWidth);
   printElement("BOND(B)", elementWidth);
   printElement("ANGLE(B)", elementWidth);
   printElement("DIHEDRAL(B)", elementWidth);

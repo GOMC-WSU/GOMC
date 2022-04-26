@@ -156,6 +156,7 @@ bool Simulation::RecalculateAndCheck(void)
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   bool compare = true;
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraBond, pot.totalEnergy.intraBond, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.bond, pot.totalEnergy.bond, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.angle, pot.totalEnergy.angle, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.dihedral, pot.totalEnergy.dihedral, EPSILON);
@@ -170,9 +171,10 @@ bool Simulation::RecalculateAndCheck(void)
   if(!compare) {
     std::cout
         << "=================================================================\n"
-        << "Energy       BOND |     ANGLE |     DIHEDRAL |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+        << "Energy       INTRA B |       BOND |     ANGLE |     DIHEDRAL |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
         << std::endl
         << "System: "
+        << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
         << std::setw(12) << system->potential.totalEnergy.bond << " | "
         << std::setw(12) << system->potential.totalEnergy.angle << " | "
         << std::setw(12) << system->potential.totalEnergy.dihedral << " | "
@@ -184,6 +186,7 @@ bool Simulation::RecalculateAndCheck(void)
         << std::setw(12) << system->potential.totalEnergy.correction << " | "
         << std::setw(12) << system->potential.totalEnergy.recip << std::endl
         << "Recalc: "
+        << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
         << std::setw(12) << pot.totalEnergy.bond << " | "
         << std::setw(12) << pot.totalEnergy.angle << " | "
         << std::setw(12) << pot.totalEnergy.dihedral << " | "

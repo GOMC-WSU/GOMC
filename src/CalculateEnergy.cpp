@@ -119,6 +119,7 @@ SystemPotential CalculateEnergy::SystemTotal()
       correction += calcEwald->MolCorrection(molID[i], b);
     }
 
+    pot.boxEnergy[b].intraBond = bondEn+anglEn+diheEn;
     pot.boxEnergy[b].bond = bondEn;
     pot.boxEnergy[b].angle = anglEn;
     pot.boxEnergy[b].dihedral = diheEn;

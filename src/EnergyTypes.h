@@ -89,17 +89,24 @@ public:
   Energy() : bond(0.0), angle(0.0), dihedral(0.0), intraNonbond(0.0), inter(0.0),
     tc(0.0), total(0.0), real(0.0), recip(0.0), self(0.0),
     correction(0.0), totalElect(0.0) {}
+
+  // For CBMC
+  Energy(double bond, double nonbond, double inter, double real,
+          double recip, double self, double correc) :  
+          intraBond(bond), intraNonbond(nonbond), inter(inter),
+          tc(0.0), total(0.0), real(real), recip(recip), self(self),
+          correction(correc), totalElect(0.0) {}
+
   Energy(double bond, double angle, double dihedral, double nonbond, double inter, double real,
          double recip, double self, double correc) :
-    bond(bond), angle(angle), dihedral(dihedral), intraNonbond(nonbond), inter(inter),
+    bond(bond), angle(angle), dihedral(dihedral), intraBond(bond + angle + dihedral), intraNonbond(nonbond), inter(inter),
     tc(0.0), total(0.0), real(real), recip(recip), self(self),
     correction(correc), totalElect(0.0) {}
 
   //VALUE SETTERS
   double Total()
   {
-    total = bond + angle + dihedral + intraNonbond + inter + tc + real + recip + self +
-            correction;
+    total = intraBond + intraNonbond + inter + tc + real + recip + self + correction;
     return total;
   }
 
@@ -109,11 +116,17 @@ public:
     return totalElect;
   }
 
+  double TotalBonded(){
+    intraBond = bond + angle + dihedral;
+    return intraBond;
+  }
+
   void Zero()
   {
     bond  = 0.0;
     angle = 0.0;
     dihedral = 0.0;
+    intraBond = 0.0;
     intraNonbond = 0.0;
     inter = 0.0;
     tc = 0.0;
@@ -142,7 +155,7 @@ public:
 
 //private:
   //MEMBERS
-  double bond, angle, dihedral, intraNonbond, inter, tc, total, real, recip, self,
+  double bond, angle, dihedral, intraBond, intraNonbond, inter, tc, total, real, recip, self,
          correction, totalElect;
 };
 
@@ -152,6 +165,7 @@ inline Energy& Energy::operator-=(Energy const& rhs)
   bond -= rhs.bond;
   angle -= rhs.angle;
   dihedral -= rhs.dihedral;
+  intraBond -= rhs.intraBond;
   intraNonbond -= rhs.intraNonbond;
   tc -= rhs.tc;
   real -= rhs.real;
@@ -170,6 +184,7 @@ inline Energy& Energy::operator+=(Energy const& rhs)
   bond += rhs.bond;
   angle += rhs.angle;
   dihedral += rhs.dihedral;
+  intraBond += rhs.intraBond;
   intraNonbond += rhs.intraNonbond;
   tc += rhs.tc;
   real += rhs.real;
@@ -188,6 +203,7 @@ inline Energy& Energy::operator*=(double const& rhs)
   bond *= rhs;
   angle *= rhs;
   dihedral *= rhs;
+  intraBond *= rhs;
   intraNonbond *= rhs;
   tc *= rhs;
   real *= rhs;
@@ -455,6 +471,11 @@ inline bool SystemPotential::ComparePotentials(SystemPotential & other)
     returnVal = false;
   }
 
+  if(totalEnergy.intraBond != other.totalEnergy.intraBond) {
+    std::cout << "my intraBond: " << totalEnergy.intraBond << "  other intraBond: " << other.totalEnergy.intraBond << std::endl;
+    std::cout << "difference: " << totalEnergy.intraBond - other.totalEnergy.intraBond << std::endl;
+  }
+
   if(totalEnergy.bond != other.totalEnergy.bond) {
     std::cout << "my bond: " << totalEnergy.bond << "  other bond: " << other.totalEnergy.bond << std::endl;
     std::cout << "difference: " << totalEnergy.bond - other.totalEnergy.bond << std::endl;
@@ -525,7 +546,11 @@ inline std::ostream& operator<<(std::ostream& out, Energy& en)
   en.TotalElect();
 
   out << std::setprecision(6) << std::fixed;
+  out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond << "  IntraNB: "
+      << en.intraNonbond << "  Inter: " << en.inter << "  Tc: " << en.tc;
+
   out << "\tTotal: " << en.total << 
+  "  IntraB: " << en.intraBond <<
   "  Bond: " << en.bond  <<
   "  Angle: " << en.angle  <<
   "  Dihedral: " << en.dihedral <<
