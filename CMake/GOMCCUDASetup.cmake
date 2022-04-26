@@ -46,7 +46,7 @@ if(ENSEMBLE_GPU_NVT)
         OUTPUT_NAME ${GPU_NVT_name}
         CUDA_ARCHITECTURES "60;70;80"
         COMPILE_FLAGS "${GPU_NVT_flags}")
-    set_property(GPU_NVT PROPERTY CUDA_ARCHITECTURES all-major)
+    set_property(TARGET GPU_NVT PROPERTY CUDA_ARCHITECTURES all-major)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_NVT setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_NVT PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -88,7 +88,7 @@ if(ENSEMBLE_GPU_GCMC)
         OUTPUT_NAME ${GPU_GC_name}
         CUDA_ARCHITECTURES "60;70;80"
         COMPILE_FLAGS "${GPU_GC_flags}")
-    set_property(GPU_GCMC PROPERTY CUDA_ARCHITECTURES all-major)
+    set_property(TARGET GPU_GCMC PROPERTY CUDA_ARCHITECTURES all-major)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_GCMC setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_GCMC PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
