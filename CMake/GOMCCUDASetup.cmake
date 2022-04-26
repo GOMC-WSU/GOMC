@@ -109,7 +109,7 @@ if(ENSEMBLE_GPU_NPT)
         OUTPUT_NAME ${GPU_NPT_name}
         CUDA_ARCHITECTURES "60;70;80"
         COMPILE_FLAGS "${GPU_NPT_flags}")
-    set_property(GPU_NPT PROPERTY CUDA_ARCHITECTURES all-major)
+    set_property(TARGET GPU_NPT PROPERTY CUDA_ARCHITECTURES all-major)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_NPT setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_NPT PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
