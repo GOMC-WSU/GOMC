@@ -63,7 +63,7 @@ if(ENSEMBLE_GPU_GEMC)
     set_target_properties(GPU_GEMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GE_name}
-        CUDA_ARCHITECTURES "35;60;70;80"
+        CUDA_ARCHITECTURES "60;70;80"
         COMPILE_FLAGS "${GPU_GE_flags}")
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_GEMC setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
