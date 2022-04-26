@@ -1,6 +1,6 @@
 # Find CUDA is enabled, set it up
 
-set(CMAKE_CUDA_ARCHITECTURES 60 70 80 CACHE STRING "CUDA architectures" FORCE)
+set(CMAKE_CUDA_ARCHITECTURES 80 CACHE STRING "CUDA architectures" FORCE)
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
