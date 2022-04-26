@@ -46,7 +46,7 @@ if(ENSEMBLE_GPU_NVT)
         OUTPUT_NAME ${GPU_NVT_name}
         CUDA_ARCHITECTURES "60;70;80"
         COMPILE_FLAGS "${GPU_NVT_flags}")
-    set_property(TARGET GPU_NVT PROPERTY CUDA_ARCHITECTURES 80)
+    set_property(GPU_NVT PROPERTY CUDA_ARCHITECTURES all-major)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_NVT setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_NVT PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -65,9 +65,9 @@ if(ENSEMBLE_GPU_GEMC)
     set_target_properties(GPU_GEMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GE_name}
-        CUDA_ARCHITECTURES "6.0;7.0;8.0"
+        CUDA_ARCHITECTURES "60;70;80"
         COMPILE_FLAGS "${GPU_GE_flags}")
-    set_property(TARGET GPU_GEMC PROPERTY CUDA_ARCHITECTURES 8.0)
+    set_property(GPU_GEMC PROPERTY CUDA_ARCHITECTURES all-major)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_GEMC setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_GEMC PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -88,6 +88,7 @@ if(ENSEMBLE_GPU_GCMC)
         OUTPUT_NAME ${GPU_GC_name}
         CUDA_ARCHITECTURES "60;70;80"
         COMPILE_FLAGS "${GPU_GC_flags}")
+    set_property(GPU_GCMC PROPERTY CUDA_ARCHITECTURES all-major)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_GCMC setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_GCMC PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -108,6 +109,7 @@ if(ENSEMBLE_GPU_NPT)
         OUTPUT_NAME ${GPU_NPT_name}
         CUDA_ARCHITECTURES "60;70;80"
         COMPILE_FLAGS "${GPU_NPT_flags}")
+    set_property(GPU_NPT PROPERTY CUDA_ARCHITECTURES all-major)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_NPT setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_NPT PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
