@@ -269,7 +269,7 @@ void DCHedron::IncorporateOld(TrialMol& oldMol, uint molIndex)
 void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
 {
   double* angles = data->angles;
-  double* energies = data->torsionEnergy;
+  double* energies = data->angleEnergy;
   double* weights = data->angleWeights;
   double* nonbonded_1_3 =  data->nonbonded_1_3;
   phi[0] = 0.0;

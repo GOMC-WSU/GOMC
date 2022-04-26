@@ -147,10 +147,8 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->torsionEnergy;
+  double* torEnergy = data->angleEnergy;
   double* bondedEn = data->bonded;
-  double* angleEn = data->angleEnergy;
-  double* dihedralEn = data->dihedralEnergy;
   double* nonbonded = data->nonbonded;
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
@@ -228,10 +226,8 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->torsionEnergy;
+  double* torEnergy = data->angleEnergy;
   double* bondedEn = data->bonded;
-  double* angleEn = data->angleEnergy;
-  double* dihedralEn = data->dihedralEnergy;
   double* nonbonded = data->nonbonded;
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
@@ -305,9 +301,7 @@ void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->torsionEnergy;
-  double* angleEnergy = data->angleEnergy;
-  double* dihedralEnergy = data->dihedralEnergy;
+  double* torEnergy = data->angleEnergy;
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
@@ -332,9 +326,7 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
-  double* torEnergy = data->torsionEnergy;
-  double* angleEnergy = data->angleEnergy;
-  double* dihedralEnergy = data->dihedralEnergy;
+  double* torEnergy = data->angleEnergy;
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
