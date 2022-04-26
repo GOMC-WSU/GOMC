@@ -7,6 +7,8 @@ set(CUDA_ARCH
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	message("-- Debug build type detected, passing : '-g -G --keep' to nvcc")
 	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -G --keep")
+else()
+    set(CUDA_NVCC_FLAGS "${CUDA_ARCH}")
 endif()
 
 
@@ -66,7 +68,7 @@ if(ENSEMBLE_GPU_GEMC)
     set_target_properties(GPU_GEMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GE_name}
-        COMPILE_FLAGS "${GPU_GE_flags} ${CUDA_ARCH}")
+        COMPILE_FLAGS "${GPU_GE_flags}")
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_GEMC setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_GEMC PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
