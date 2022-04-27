@@ -12,7 +12,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "TransformMatrix.h"
 #include "BasicTypes.h"
 #include "MoleculeKind.h"
-
 #include "GeomLib.h"
 
 class MoleculeKind;
@@ -88,7 +87,7 @@ class TrialMol
 {
 public:
   //!Construct TrialMol of kind k to be evaluated in box with axes ax.
-  TrialMol(CalculateEnergy& calcEnRef, const MoleculeKind& k, const BoxDimensions& ax,
+  TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
            uint box);
   //!Construct invalid default TrialMol
   TrialMol();
@@ -105,7 +104,6 @@ public:
 
   void AddAtom(uint index, const XYZ& position);
   void SetAtomCoords(uint index, const XYZ& loc);
-  Energy GetEnergy() const;
 
   void AddEnergy(const Energy& energy)
   {
@@ -186,7 +184,10 @@ public:
   //calculate min image distance between a and b
   double DistSq(const XYZ& a, const XYZ& b);
 
-
+  const Energy& GetEnergy() const
+  {
+    return en;
+  }
   double GetWeight() const
   {
     return totalWeight;
@@ -325,8 +326,8 @@ public:
   ~TrialMol();
 
 private:
-  CalculateEnergy* calcEn;
   friend class CalculateEnergy;
+
   const MoleculeKind* kind;
   const BoxDimensions* axes;
   uint box;

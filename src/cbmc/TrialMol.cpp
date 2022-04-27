@@ -12,7 +12,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeKind.h"
 #include "XYZArray.h"
 #include "BoxDimensions.h"
-#include "CalculateEnergy.h"
 
 #include <cmath>              //for sin, cos, atan2
 #include <utility>            //swap
@@ -24,9 +23,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 namespace cbmc
 {
 
-TrialMol::TrialMol(CalculateEnergy & calcEnRef, const MoleculeKind& k, const BoxDimensions& ax,
+TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
                    uint box)
-  : kind(&k), axes(&ax), box(box), calcEn(&calcEnRef), tCoords(k.NumAtoms()), cavMatrix(3),
+  : kind(&k), axes(&ax), box(box), tCoords(k.NumAtoms()), cavMatrix(3),
     bCoords(k.NumAtoms()), totalWeight(1.0), bonds(k.bondList)
 {
   cavMatrix.Set(0, 1.0, 0.0, 0.0);
@@ -116,12 +115,6 @@ void swap(TrialMol& a, TrialMol& b)
 TrialMol::~TrialMol()
 {
   delete[] atomBuilt;
-}
-
-Energy TrialMol::GetEnergy() const
-{
-  //return en;
-  return calcEn->MoleculeIntra(*this);
 }
 
 void TrialMol::AddAtom(const uint index, const XYZ& loc)
