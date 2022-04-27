@@ -906,6 +906,28 @@ Energy CalculateEnergy::MoleculeIntra(cbmc::TrialMol const &mol) const
   return Energy(bondEn, anglEn, diheEn, bondEn+anglEn+diheEn, intraNonbondEn, 0.0, 0.0, 0.0, 0.0, 0.0);
 }
 
+//used in molecule exchange for calculating bonded and intraNonbonded energy
+Energy CalculateEnergy::UpdateBondAngleDihe(cbmc::TrialMol const &mol) const
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTRA);
+  double bondEn = 0.0, anglEn = 0.0, diheEn = 0.0, intraNonbondEn = 0.0;
+  // *2 because we'll be storing inverse bond vectors
+  const MoleculeKind& molKind = mol.GetKind();
+  uint count = molKind.bondList.count;
+  XYZArray bondVec(count * 2);
+  std::vector<bool> bondExist(count * 2, false);
+
+  BondVectors(bondVec, mol, bondExist, molKind);
+  MolBond(bondEn, mol, bondVec, bondExist, molKind);
+  MolAngle(anglEn, mol, bondVec, bondExist, molKind);
+  MolDihedral(diheEn, mol, bondVec, bondExist, molKind);
+  MolNonbond(intraNonbondEn, mol, molKind);
+  MolNonbond_1_4(intraNonbondEn, mol, molKind);
+  MolNonbond_1_3(intraNonbondEn, mol, molKind);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTRA);
+  return Energy(bondEn, anglEn, diheEn, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+}
+
 void CalculateEnergy::BondVectors(XYZArray & vecs,
                                   MoleculeKind const& molKind,
                                   const uint molIndex,
