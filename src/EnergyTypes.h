@@ -86,7 +86,7 @@ struct Intermolecular {
 class Energy
 {
 public:
-  Energy() : bond(0.0), angle(0.0), dihedral(0.0), intraNonbond(0.0), inter(0.0),
+  Energy() : bond(0.0), angle(0.0), dihedral(0.0), intraBond(0.0), intraNonbond(0.0), inter(0.0),
     tc(0.0), total(0.0), real(0.0), recip(0.0), self(0.0),
     correction(0.0), totalElect(0.0) {}
 
