@@ -91,9 +91,9 @@ public:
     correction(0.0), totalElect(0.0) {}
 
   // For CBMC
-  Energy(double bond, double nonbond, double inter, double real,
+  Energy(double intraBond, double nonbond, double inter, double real,
           double recip, double self, double correc) :  
-          bond(0.0), angle(0.0), dihedral(0.0), intraBond(bond), intraNonbond(nonbond), inter(inter),
+          bond(0.0), angle(0.0), dihedral(0.0), intraBond(intraBond), intraNonbond(nonbond), inter(inter),
           tc(0.0), total(0.0), real(real), recip(recip), self(self),
           correction(correc), totalElect(0.0) {}
 
