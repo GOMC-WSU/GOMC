@@ -159,6 +159,9 @@ inline void Regrowth::Accept(const uint rejectState, const ulong step)
       //Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
+      //sysPotRef.boxEnergy[sourceBox] -= calcEnRef.MoleculeIntra(oldMol);
+      //sysPotRef.boxEnergy[destBox] +=  calcEnRef.MoleculeIntra(newMol);
+
       //Add Reciprocal energy difference
       sysPotRef.boxEnergy[destBox].recip += recipDiff.energy;
       //Add correction energy
