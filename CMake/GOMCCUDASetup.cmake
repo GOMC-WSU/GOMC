@@ -17,13 +17,13 @@ endif()
 
 include_directories(src/GPU)
 
-set(GPU_NPT_flags "-DENSEMBLE=4 ${GEN_COMP_flag} -Ofast -mavx -axAVX,CORE-AVX2 -lineinfo")
+set(GPU_NPT_flags "-DENSEMBLE=4 ${GEN_COMP_flag}  -lineinfo")
 set(GPU_NPT_name "GOMC_GPU_NPT")
-set(GPU_GC_flags "-DENSEMBLE=3 ${GEN_COMP_flag} -Ofast -mavx -axAVX,CORE-AVX2 -lineinfo")
+set(GPU_GC_flags "-DENSEMBLE=3 ${GEN_COMP_flag}  -lineinfo")
 set(GPU_GC_name "GOMC_GPU_GCMC")
-set(GPU_GE_flags "-DENSEMBLE=2 ${GEN_COMP_flag} -Ofast -mavx -axAVX,CORE-AVX2 -lineinfo")
+set(GPU_GE_flags "-DENSEMBLE=2 ${GEN_COMP_flag}  -lineinfo")
 set(GPU_GE_name "GOMC_GPU_GEMC")
-set(GPU_NVT_flags "-DENSEMBLE=1 ${GEN_COMP_flag} -Ofast -mavx -axAVX,CORE-AVX2 -lineinfo")
+set(GPU_NVT_flags "-DENSEMBLE=1 ${GEN_COMP_flag}  -lineinfo")
 set(GPU_NVT_name "GOMC_GPU_NVT")
 
 set(CMAKE_CUDA_STANDARD 14)
