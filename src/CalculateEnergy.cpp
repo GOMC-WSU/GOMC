@@ -595,6 +595,21 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 
+
+
+#ifdef GOMC_CUDA
+    XYZArray cCoords(length);
+    std::vector<double> MolCharge;
+    for(uint p = 0; p < length; p++) {
+      cCoords.Set(p, currentCoords[startAtom + p]);
+      MolCharge.push_back(thisKind.AtomCharge(p) * lambdaCoef);
+    }
+    CallMolInterGPU(ff.particles->getCUDAVars(),
+                        length,
+                        startAtom,
+                         cCoords, molCoords, MolCharge, imageSizeRef[box],
+                         sumRnew[box], sumInew[box], energyRecipNew, box);
+#else
     for (uint p = 0; p < length; ++p) {
       uint atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom],
@@ -691,6 +706,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     }
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
+  #endif
 
   inter_LJ.energy = tempLJEn;
   inter_coulomb.energy = tempREn;

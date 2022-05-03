@@ -19,6 +19,8 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 using namespace cub;
 
 void CallMolInterGPU(VariablesCUDA *vars,
+                    int moleculeStart,
+                    int moleculeLength,
                      const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,
                      const std::vector<std::vector<int> > &neighborList,
@@ -97,7 +99,9 @@ void CallMolInterGPU(VariablesCUDA *vars,
                                 boxAxes.GetAxis(box).y * 0.5,
                                 boxAxes.GetAxis(box).z * 0.5);
 
-  MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(atomNumber,
+  MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(
+    moleculeStart,
+    moleculeLength,
       gpu_cellStartIndex,
       vars->gpu_cellVector,
       gpu_neighborList,
@@ -466,10 +470,8 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   gpu_LJEn[threadID] = LJEn;
 }
 
-__global__ void MolInterGPU(int atomCount,
-                            int gpu_moleculeStart,
-                            int gpu_moleculeEnd,
-                            int atomCount,
+__global__ void MolInterGPU(int gpu_moleculeStart,
+                            int gpu_moleculeLength,
                             int *gpu_cellStartIndex,
                             int *gpu_cellVector,
                             int *gpu_neighborList,
@@ -477,6 +479,9 @@ __global__ void MolInterGPU(int atomCount,
                             double *gpu_x,
                             double *gpu_y,
                             double *gpu_z,
+                            double *gpu_nx,
+                            double *gpu_ny,
+                            double *gpu_nz,
                             double3 axis,
                             double3 halfAx,
                             bool electrostatic,
@@ -532,8 +537,7 @@ __global__ void MolInterGPU(int atomCount,
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Calculate number of particles inside current Cell
-  endIndex = gpu_cellStartIndex[currentCell + 1];
-  particlesInsideCurrentCell = gpu_moleculeEnd - gpu_moleculeStart;
+  particlesInsideCurrentCell = gpu_moleculeLength;
 
   // total number of pairs
   int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
