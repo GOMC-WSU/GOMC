@@ -610,7 +610,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     // Should be different in production
     XYZArray molCoords = cCoords;
 
-    CallMolInterGPU(ff.particles->getCUDAVars(), 
+    CallMolInterGPU(forcefield.particles->getCUDAVars(), 
                   length, start, cellVector, cellStartIndex,
                   neighborList, cCoords, molCoords, currentAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
