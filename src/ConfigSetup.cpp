@@ -1821,12 +1821,12 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.step.adjustment > sys.step.equil && !in.restart.enable &&
-      !in.restart.recalcTrajectory) {
+      !in.restart.recalcTrajectory && !exptMode) {
     std::cout << "Error: Move adjustment frequency cannot exceed " <<
               "Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.equil > (sys.step.initStep + sys.step.total) && !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
+  if(sys.step.equil > (sys.step.initStep + sys.step.total) && !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint && !exptMode) {
     std::cout << "Error: Equilibration steps cannot exceed " <<
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
