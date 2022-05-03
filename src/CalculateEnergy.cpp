@@ -605,14 +605,14 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     std::vector<double> MolCharge;
     for(uint p = 0; p < length; p++) {
       cCoords.Set(p, currentCoords[start + p]);
-      MolCharge.push_back(particleCharge[start + p] * GetLambdaCoef(molIndex, box););
+      //MolCharge.push_back(particleCharge[start + p] * GetLambdaCoef(molIndex, box););
     }
     // Should be different in production
     XYZArray molCoords = cCoords;
 
     CallMolInterGPU(ff.particles->getCUDAVars(), 
                   length, start, cellVector, cellStartIndex,
-                  neighborList, cCoords, molCoords, boxAxes, electrostatic, particleCharge,
+                  neighborList, cCoords, molCoords, currentAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
