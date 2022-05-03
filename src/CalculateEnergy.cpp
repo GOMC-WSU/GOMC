@@ -594,9 +594,6 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTER);
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
-
-
-
 #ifdef GOMC_CUDA
     XYZArray cCoords(length);
     std::vector<double> MolCharge;
@@ -704,9 +701,9 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         }
       }
     }
+    #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
-  #endif
 
   inter_LJ.energy = tempLJEn;
   inter_coulomb.energy = tempREn;
