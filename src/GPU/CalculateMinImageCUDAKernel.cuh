@@ -17,6 +17,13 @@ __device__ inline double3 Difference(const double *x, const double *y, const dou
   return make_double3(x[i] - x[j], y[i] - y[j], z[i] - z[j]);
 }
 
+__device__ inline double3 Difference(const double *x, const double *y, const double *z,
+                                    const double *nx, const double *ny, const double *nz,
+                                     uint i, uint j)
+{
+  return make_double3(x[i] - nx[j], y[i] - ny[j], z[i] - nz[j]);
+}
+
 __device__ inline void TransformSlantGPU(double3 &dist, const double3 &slant,
                                          const double *gpu_cell_x, const double *gpu_cell_y,
                                          const double *gpu_cell_z)
@@ -154,6 +161,31 @@ __device__ inline void DeviceInRcut(double &distSq, double3 &dist, const double 
   }
 
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
+}
+
+
+// Call by calculate energy whether it is in rCut
+__device__ inline bool InRcutGPU(double &distSq, const double *x, const double *y, const double *z,
+                                 const double *nx, const double *ny, const double *nz,
+                                 uint i, uint j, const double3 &axis, const double3 &halfAx,
+                                 double gpu_rCut, int gpu_nonOrth,
+                                 const double *gpu_cell_x, const double *gpu_cell_y,
+                                 const double *gpu_cell_z, const double *gpu_Invcell_x,
+                                 const double *gpu_Invcell_y, const double *gpu_Invcell_z)
+{
+  double3 dist;
+  dist = Difference(x, y, z, nx, ny, nz, i, j);
+  // Do a binary print here of dist
+  if(gpu_nonOrth) {
+    dist = MinImageNonOrthGPU(dist, axis, halfAx, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                              gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+  } else {
+    dist = MinImageGPU(dist, axis, halfAx);
+  }
+
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
+
+  return ((gpu_rCut * gpu_rCut) > distSq);
 }
 
 // Call by calculate energy whether it is in rCut

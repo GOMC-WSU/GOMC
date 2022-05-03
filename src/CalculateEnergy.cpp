@@ -594,7 +594,30 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTER);
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
+#ifdef GOMC_CUDA
+    std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
+    std::vector< std::vector<int> > neighborList;
+    cellList.GetCellListNeighbor(box, currentCoords.Count(),
+                                cellVector, cellStartIndex, mapParticleToCell);
+    neighborList = cellList.GetNeighborList(box);
+    
+    XYZArray cCoords(length);
+    std::vector<double> MolCharge;
+    for(uint p = 0; p < length; p++) {
+      cCoords.Set(p, currentCoords[start + p]);
+      //MolCharge.push_back(particleCharge[start + p] * GetLambdaCoef(molIndex, box););
+    }
+    // Should be different in production
+    XYZArray molCoords = cCoords;
 
+    CallMolInterGPU(forcefield.particles->getCUDAVars(), 
+                  length, start, cellVector, cellStartIndex,
+                  neighborList, cCoords, molCoords, currentAxes, electrostatic, particleCharge,
+                  particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
+                  forcefield.sc_power, box);
+
+#else
     for (uint p = 0; p < length; ++p) {
       uint atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom],
@@ -689,6 +712,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         }
       }
     }
+    #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
 

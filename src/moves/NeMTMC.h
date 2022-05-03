@@ -32,7 +32,7 @@ public:
       backUpCoordinate.Init(sys.coordinates.Count());
       backUpCOM.Init(statV.mol.count);
 
-      MPEnable = statV.neMTMCVal.MPEnable;
+      MPEnable = statV.neMTMCVal.MPEnable || statV.neMTMCVal.MPBEnable;
       BrownianDynamicEnable = statV.neMTMCVal.MPBEnable;
       stepCounter = 0;
       relaxSteps = statV.neMTMCVal.relaxSteps;
@@ -89,7 +89,7 @@ private:
   vector< double > lambdaCoulomb, lambdaVDW;
 
   //variable needs for relaxing
-  bool MPEnable, BrownianDynamicEnable;
+  bool MPEnable, MPBEnable, BrownianDynamicEnable;
   ulong stepCounter;
   MoveBase * propagationMove;
 
