@@ -595,17 +595,28 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 #ifdef GOMC_CUDA
+    std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
+    std::vector< std::vector<int> > neighborList;
+    cellList.GetCellListNeighbor(box, currentCoords.Count(),
+                                cellVector, cellStartIndex, mapParticleToCell);
+    neighborList = cellList.GetNeighborList(box);
+    
     XYZArray cCoords(length);
     std::vector<double> MolCharge;
     for(uint p = 0; p < length; p++) {
-      cCoords.Set(p, currentCoords[startAtom + p]);
-      MolCharge.push_back(thisKind.AtomCharge(p) * lambdaCoef);
+      cCoords.Set(p, currentCoords[start + p]);
+      MolCharge.push_back(particleCharge[start + p] * GetLambdaCoef(molIndex, box););
     }
-    CallMolInterGPU(ff.particles->getCUDAVars(),
-                        length,
-                        startAtom,
-                         cCoords, molCoords, MolCharge, imageSizeRef[box],
-                         sumRnew[box], sumInew[box], energyRecipNew, box);
+    // Should be different in production
+    XYZArray molCoords = cCoords;
+
+    CallMolInterGPU(ff.particles->getCUDAVars(), 
+                  length, start, cellVector, cellStartIndex,
+                  neighborList, cCoords, molCoords, boxAxes, electrostatic, particleCharge,
+                  particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
+                  forcefield.sc_power, box);
+
 #else
     for (uint p = 0; p < length; ++p) {
       uint atom = start + p;
