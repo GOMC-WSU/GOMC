@@ -1,0 +1,6 @@
+REMARK original generated coordinate pdb file
+ATOM      1  AR  AR  o   1      16.323  61.619  62.256  1.00  0.00      AR  AR
+ATOM      2  KR  KR  p   2      26.139  44.297  52.883  1.00  0.00      KR  KR
+ATOM      3  AR  AR  q   3      30.844   0.499   9.084  1.00  0.00      AR  AR
+
+END
