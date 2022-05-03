@@ -467,6 +467,9 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
 }
 
 __global__ void MolInterGPU(int atomCount,
+                            int gpu_moleculeStart,
+                            int gpu_moleculeEnd,
+                            int atomCount,
                             int *gpu_cellStartIndex,
                             int *gpu_cellVector,
                             int *gpu_neighborList,
@@ -530,7 +533,7 @@ __global__ void MolInterGPU(int atomCount,
 
   // Calculate number of particles inside current Cell
   endIndex = gpu_cellStartIndex[currentCell + 1];
-  particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
+  particlesInsideCurrentCell = gpu_moleculeEnd - gpu_moleculeStart;
 
   // total number of pairs
   int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
@@ -539,10 +542,11 @@ __global__ void MolInterGPU(int atomCount,
     int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
     int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
 
-    int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
+    // global atom index
+    int currentParticle = gpu_moleculeStart + currentParticleIndex;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
-    if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
+    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       double distSq = 0.0;
 

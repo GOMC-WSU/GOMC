@@ -98,6 +98,8 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             int box);
 
 __global__ void MolInterGPU(int atomCount,
+                            int gpu_moleculeStart,
+                            int gpu_moleculeEnd,
                             int *gpu_cellStartIndex,
                             int *gpu_cellVector,
                             int *gpu_neighborList,
