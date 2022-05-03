@@ -36,7 +36,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
                      double sc_alpha,
                      uint sc_power,
                      uint const box){
-  int atomNumber = 2*coords.Count();
+  int atomNumber = 2*currentCoords.Count();
   int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
   int *gpu_particleKind, *gpu_particleMol;
@@ -93,7 +93,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
                                 boxAxes.GetAxis(box).y * 0.5,
                                 boxAxes.GetAxis(box).z * 0.5);
 
-  MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(atomCount,
+  MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(atomNumber,
       gpu_cellStartIndex,
       vars->gpu_cellVector,
       gpu_neighborList,
