@@ -477,7 +477,7 @@ inline void NEMTMC::RelaxingTransform(uint box)
 
     } else {
       //Relax the system using MP or random translation and rotation
-      if(MPEnable) {
+      if(MPEnable || BrownianDynamicEnable) {
         // Change the key number, otherwise we will perform the same move! stepCounter resets every time in Prep() 
         r123wrapper.SetKey(s+stepCounter);
         // Use multiparticle/brownian dynamic to propagate
