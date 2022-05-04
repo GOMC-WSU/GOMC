@@ -475,38 +475,36 @@ inline void NEMTMC::RelaxingTransform(uint box)
       }
       rejectState = propagationMove->PrepNEMTMC(box, molIndex, kindIndex);
 
-    } else {
+    } else if(MPEnable || BrownianDynamicEnable) {
       //Relax the system using MP or random translation and rotation
-      if(MPEnable) {
-        // Change the key number, otherwise we will perform the same move! stepCounter resets every time in Prep() 
-        r123wrapper.SetKey(s+stepCounter);
-        // Use multiparticle/brownian dynamic to propagate
-        if(BrownianDynamicEnable) {
-          propagationMove = systemRef.GetMoveObject(mv::MULTIPARTICLE_BM);
-        } else {
-          propagationMove = systemRef.GetMoveObject(mv::MULTIPARTICLE);
-        }
-        // prepare the move with box
-        rejectState = propagationMove->PrepNEMTMC(box);
-
+      // Change the key number, otherwise we will perform the same move! stepCounter resets every time in Prep() 
+      r123wrapper.SetKey(s+stepCounter);
+      // Use multiparticle/brownian dynamic to propagate
+      if(BrownianDynamicEnable) {
+        propagationMove = systemRef.GetMoveObject(mv::MULTIPARTICLE_BM);
       } else {
-        // Use random translation and rotation to propagate
-        // Randomly pick a molecule in Box
-        uint pStart = 0; uint pLen = 0;
-        uint m = 0; uint mk = 0;
-        rejectState = prng.PickMol(m, mk, box);
-        if(rejectState == mv::fail_state::NO_FAIL) {
-          molRef.GetRangeStartLength(pStart, pLen, m);
-          if(pLen == 1) {
-            // We do displacement if we have single site atom
-            propagationMove = systemRef.GetMoveObject(mv::DISPLACE);
-          } else {
-            // get the displace/rotate move to propagate with 50% probability
-            propagationMove = systemRef.GetMoveObject((prng.randInt(1) ? mv::ROTATE : mv::DISPLACE));
-          }
-          // prepare the move with box, picked molkind and index
-          rejectState = propagationMove->PrepNEMTMC(box, m, mk);
+        propagationMove = systemRef.GetMoveObject(mv::MULTIPARTICLE);
+      }
+      // prepare the move with box
+      rejectState = propagationMove->PrepNEMTMC(box);
+
+    } else {
+      // Use random translation and rotation to propagate
+      // Randomly pick a molecule in Box
+      uint pStart = 0; uint pLen = 0;
+      uint m = 0; uint mk = 0;
+      rejectState = prng.PickMol(m, mk, box);
+      if(rejectState == mv::fail_state::NO_FAIL) {
+        molRef.GetRangeStartLength(pStart, pLen, m);
+        if(pLen == 1) {
+          // We do displacement if we have single site atom
+          propagationMove = systemRef.GetMoveObject(mv::DISPLACE);
+        } else {
+          // get the displace/rotate move to propagate with 50% probability
+          propagationMove = systemRef.GetMoveObject((prng.randInt(1) ? mv::ROTATE : mv::DISPLACE));
         }
+        // prepare the move with box, picked molkind and index
+        rejectState = propagationMove->PrepNEMTMC(box, m, mk);
       }
     }
     
