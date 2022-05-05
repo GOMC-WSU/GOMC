@@ -595,15 +595,19 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 #ifdef GOMC_CUDA
-    std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
+    std::vector<int> cellVector, cellStartIndex, mapParticleToCell, molCoordsToCell;
     std::vector< std::vector<int> > neighborList;
+    for (uint p = 0; p < length; ++p) {
+      uint atom = start + p;
+      molCoordsToCell.push_back( PositionToCell(molCoords[atom], box ));
+    }
     cellList.GetCellListNeighbor(box, currentCoords.Count(),
                                 cellVector, cellStartIndex, mapParticleToCell);
     neighborList = cellList.GetNeighborList(box);
 
     CallMolInterGPU(forcefield.particles->getCUDAVars(), 
                   start, length, cellVector, cellStartIndex,
-                  neighborList, currentCoords, molCoords, currentAxes, electrostatic, particleCharge,
+                  neighborList, currentCoords, molCoords, mapParticleToCell, molCoordsToCell, currentAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
