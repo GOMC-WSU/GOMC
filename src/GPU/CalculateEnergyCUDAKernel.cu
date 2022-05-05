@@ -52,7 +52,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
 
   // Run the kernel
   threadsPerBlock = 256;
-  blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELL;
+  blocksPerGrid = newCoordsNumber * NUMBER_OF_NEIGHBOR_CELL;
   energyVectorLen = blocksPerGrid * threadsPerBlock;
 
   // Convert neighbor list to 1D array
@@ -530,11 +530,12 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   double REn = 0.0, LJEn = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
-  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
+  int currentParticleIndex = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
+  int currentCell = ;
 
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  int nCellIndex = blockIdx.x;
-  int neighborCell = gpu_neighborList[nCellIndex];
+  //int nCellIndex = blockIdx.x;
+  int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL;];
 
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
@@ -546,10 +547,9 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
 
   // total number of pairs
   // Energy of molecule at current coordinates
-  int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
+  int numberOfPairs = particlesInsideNeighboringCells;
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
-    int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
-    int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
+    int neighborParticleIndex = pairIndex ;
 
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
