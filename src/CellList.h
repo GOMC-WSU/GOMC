@@ -37,6 +37,7 @@ public:
 
   // Index of cell containing position
   int PositionToCell(const XYZ& posRef, int box) const;
+
   // Iterates over all particles in a cell
   class Cell;
   Cell EnumerateCell(int cell, int box) const;
@@ -44,8 +45,6 @@ public:
   // Iterates over all particles in the neighborhood of a cell
   class Neighbors;
   Neighbors EnumerateLocal(const XYZ& pos, int box) const;
-  int CallPos2Cell(const XYZ& pos, int box) const;
-
   Neighbors EnumerateLocal(int cell, int box) const;
 
   // Iterates over all distinct, colocal pairs in a box
@@ -87,6 +86,7 @@ private:
 };
 
 
+
 inline int CellList::PositionToCell(const XYZ& posRef, int box) const
 {
   //Transfer to unslant coordinate to find the neighbor
@@ -100,17 +100,7 @@ inline int CellList::PositionToCell(const XYZ& posRef, int box) const
   x -= (x == edgeCells[box][0] ?  1 : 0);
   y -= (y == edgeCells[box][1] ?  1 : 0);
   z -= (z == edgeCells[box][2] ?  1 : 0);
-  int cell = x * edgeCells[box][1] * edgeCells[box][2] + y * edgeCells[box][2] + z;
-  if (cell < 0){
-            std::cout << cell << std::endl;
-
-        std::cout << posRef << std::endl;
-        exit(1);
-
-
-  }
-
-  return cell;
+  return x * edgeCells[box][1] * edgeCells[box][2] + y * edgeCells[box][2] + z;
 }
 
 class CellList::Cell
@@ -203,19 +193,6 @@ inline CellList::Neighbors CellList::EnumerateLocal(const XYZ& pos, int box) con
   }
 #endif
   return EnumerateLocal(cell, box);
-}
-
-inline int CellList::CallPos2Cell(const XYZ& pos, int box) const
-{
-  int cell = PositionToCell(pos, box);
-#ifndef NDEBUG
-  if(cell >= static_cast<int>(head[box].size())) {
-    std::cout << "CellList.h:172: box " << box << ", pos: " << pos
-              << std::endl;
-    std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
-  }
-#endif
-  return cell;
 }
 
 inline CellList::Neighbors::Neighbors(const std::vector<int>& partList,

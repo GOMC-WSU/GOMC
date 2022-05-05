@@ -60,6 +60,7 @@ CellList::CellList(const CellList & other) : mols(other.mols)
   //head(other.head);
 }
 
+
 void CellList::SetCutoff()
 {
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -124,7 +125,7 @@ void CellList::AddMol(const int molIndex, const int box, const XYZArray& pos)
   while(p != end) {
     int cell = PositionToCell(pos[p], box); 
 #ifndef NDEBUG
-    if(cell >= static_cast<int>(head[box].size()) || cell < 0) {
+    if(cell >= static_cast<int>(head[box].size())) {
       std::cout << "CellList.cpp:129: box " << box << ", pos out of cell: " << pos[p]
                 << std::endl;
       std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
