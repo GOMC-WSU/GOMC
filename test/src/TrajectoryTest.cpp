@@ -95,7 +95,7 @@ TEST(TrajectoryTest, Check_AR_KR) {
         std::cout << "System call failed!" << std::endl;
         exit(1);
     }
-    result = system("exec rm -r ./Base/base_*");
+   //result = system("exec rm -r ./Base/base_*");
     if (result){
         std::cout << "System call failed!" << std::endl;
         exit(1);
