@@ -105,7 +105,7 @@ inline int CellList::PositionToCell(const XYZ& posRef, int box) const
             std::cout << cell << std::endl;
 
         std::cout << posRef << std::endl;
-
+        exit(1);
 
 
   }
