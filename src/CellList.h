@@ -37,8 +37,6 @@ public:
 
   // Index of cell containing position
   int PositionToCell(const XYZ& posRef, int box) const;
-  // Index of cell containing position
-  int PositionToCellNonInline(const XYZ& posRef, int box) const;
   // Iterates over all particles in a cell
   class Cell;
   Cell EnumerateCell(int cell, int box) const;
@@ -102,7 +100,17 @@ inline int CellList::PositionToCell(const XYZ& posRef, int box) const
   x -= (x == edgeCells[box][0] ?  1 : 0);
   y -= (y == edgeCells[box][1] ?  1 : 0);
   z -= (z == edgeCells[box][2] ?  1 : 0);
-  return x * edgeCells[box][1] * edgeCells[box][2] + y * edgeCells[box][2] + z;
+  int cell = x * edgeCells[box][1] * edgeCells[box][2] + y * edgeCells[box][2] + z;
+  if (cell < 0){
+            std::cout << cell << std::endl;
+
+        std::cout << posRef << std::endl;
+
+
+
+  }
+
+  return cell;
 }
 
 class CellList::Cell
