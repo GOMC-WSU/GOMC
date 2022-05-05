@@ -609,11 +609,21 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
       }
     }
   }
-  /*
+  
+  currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
+
+  //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
+  //int nCellIndex = blockIdx.x;
+  neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
+
+  // calculate number of particles inside neighbor Cell
+  endIndex = gpu_cellStartIndex[neighborCell + 1];
+  particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
+
   // Energy of molecule at new coordinates
+  numberOfPairs = particlesInsideNeighboringCells;
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
-    int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
-    int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
+    int neighborParticleIndex = pairIndex ;
 
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
@@ -660,7 +670,6 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
       }
     }
   }
-  */
   if(electrostatic) {
     gpu_REn[threadID] = REn;
   }

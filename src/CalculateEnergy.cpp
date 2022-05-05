@@ -663,7 +663,6 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                       particleKind[nIndex[i]], lambdaVDW);
         }
       }
-      /*
       //add new energy
       n = cellList.EnumerateLocal(molCoords[p], box);
       //store atom index in neighboring cell
@@ -711,8 +710,6 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                       particleKind[nIndex[i]], lambdaVDW);
         }
       }
-          */
-
     }
     #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
