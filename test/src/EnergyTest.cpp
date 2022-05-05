@@ -28,10 +28,10 @@ TEST(EnergyTest, CheckAR_KR) {
 }
 */
 TEST(EnergyTest, CheckMETHANOL) {
-    chdir("./test/input/Systems/METHANOL_OPLSAA/Standard");
+    int result = chdir("./test/input/Systems/METHANOL_OPLSAA/Standard");
     Simulation base("in_GCMC.conf");
     base.RunSimulation();
-    double total = base.GetSystemEnergy().total;
+    double total = base.GetSystemEnergy().Total();
     // Run the main branch once
     double x2 = 6.5846e+06;
     double tol = 0.0001e+06;
