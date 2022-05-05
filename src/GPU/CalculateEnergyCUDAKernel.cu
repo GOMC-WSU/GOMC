@@ -593,6 +593,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
       }
     }
   }
+  /*
   // Energy of molecule at new coordinates
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
     int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
@@ -643,6 +644,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
       }
     }
   }
+  */
   if(electrostatic) {
     gpu_REn[threadID] = REn;
   }
