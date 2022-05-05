@@ -79,6 +79,9 @@ void CallMolInterGPU(VariablesCUDA *vars,
   }
   CUMALLOC((void**) &gpu_mapMoleculeToCell, newCoordsNumber*sizeof(int));
 
+  CUMALLOC((void**) &vars->gpu_nx, newCoordsNumber*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_ny, newCoordsNumber*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_nz, newCoordsNumber*sizeof(double));
 
   // Copy necessary data to GPU
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
@@ -195,6 +198,9 @@ void CallMolInterGPU(VariablesCUDA *vars,
   CUFREE(gpu_LJEn);
   CUFREE(gpu_final_LJEn);
   CUFREE(gpu_mapMoleculeToCell);
+  CUMALLOC(vars->gpu_nx);
+  CUMALLOC(vars->gpu_ny);
+  CUMALLOC(vars->gpu_nz);
   if (electrostatic) {
     CUFREE(gpu_REn);
     CUFREE(gpu_final_REn);
@@ -610,7 +616,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
     }
   }
   
-  currentCell = gpu_mapParticleToCell[currentParticleIndex];
+  currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
 
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
