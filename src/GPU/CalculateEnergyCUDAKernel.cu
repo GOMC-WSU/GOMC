@@ -610,7 +610,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
     }
   }
   
-  currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
+  currentCell = gpu_mapParticleToCell[currentParticleIndex];
 
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
