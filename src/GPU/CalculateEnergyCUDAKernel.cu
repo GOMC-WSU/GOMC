@@ -544,7 +544,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
   int currentParticleIndex = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  int currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
+  int currentCell = gpu_mapParticleToCell[gpu_moleculeStart + currentParticleIndex];
 
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
@@ -555,9 +555,6 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   int endIndex = gpu_cellStartIndex[neighborCell + 1];
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
-  // Calculate number of particles inside current Cell
-  particlesInsideCurrentCell = gpu_moleculeLength;
-
   // total number of pairs
   // Energy of molecule at current coordinates
   int numberOfPairs = particlesInsideNeighboringCells;
@@ -566,7 +563,6 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
 
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
-    int cellAtomIsIn = 1;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
