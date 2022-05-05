@@ -198,9 +198,9 @@ void CallMolInterGPU(VariablesCUDA *vars,
   CUFREE(gpu_LJEn);
   CUFREE(gpu_final_LJEn);
   CUFREE(gpu_mapMoleculeToCell);
-  CUMALLOC(vars->gpu_nx);
-  CUMALLOC(vars->gpu_ny);
-  CUMALLOC(vars->gpu_nz);
+  CUFREE(vars->gpu_nx);
+  CUFREE(vars->gpu_ny);
+  CUFREE(vars->gpu_nz);
   if (electrostatic) {
     CUFREE(gpu_REn);
     CUFREE(gpu_final_REn);
