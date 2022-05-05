@@ -531,7 +531,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
   int currentParticleIndex = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  int currentCell = ;
+  int currentCell = 0;
 
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
