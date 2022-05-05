@@ -31,7 +31,7 @@ TEST(EnergyTest, CheckMETHANOL) {
     chdir("./test/input/Systems/METHANOL_OPLSAA/Standard");
     Simulation base("in_GCMC.conf");
     base.RunSimulation();
-    double total = base.GetSystemEnergy();
+    double total = base.GetSystemEnergy().total;
     // Run the main branch once
     double x2 = 6.5846e+06;
     double tol = 0.0001e+06;
