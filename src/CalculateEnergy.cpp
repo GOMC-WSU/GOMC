@@ -709,6 +709,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
   inter_LJ.energy = tempLJEn;
   inter_coulomb.energy = tempREn;
+  std::cout << "LJ EN: " << tempLJEn << std::endl;
   return overlap;
 }
 
