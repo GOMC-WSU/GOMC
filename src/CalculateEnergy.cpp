@@ -702,8 +702,9 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                       particleKind[nIndex[i]], lambdaVDW);
         }
       }
+          */
+
     }
-    */
     #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
