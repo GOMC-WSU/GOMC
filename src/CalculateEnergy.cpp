@@ -604,6 +604,21 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                 cellVector, cellStartIndex, mapParticleToCell);
     neighborList = cellList.GetNeighborList(box);
 
+    //update unitcell in GPU
+    UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                        boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
+                        boxAxes.cellBasis[box].z);
+
+    if(!boxAxes.orthogonal[box]) {
+      //In this case, boxAxes is really an object of type BoxDimensionsNonOrth,
+      // so cast and copy the additional data to the GPU
+      const BoxDimensionsNonOrth *NonOrthAxes = static_cast<const BoxDimensionsNonOrth*>(&boxAxes);
+      UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                            NonOrthAxes->cellBasis_Inv[box].x,
+                            NonOrthAxes->cellBasis_Inv[box].y,
+                            NonOrthAxes->cellBasis_Inv[box].z);
+    }
+
     CallMolInterGPU(forcefield.particles->getCUDAVars(), 
                   start, length, cellVector, cellStartIndex,
                   neighborList, currentCoords, molCoords, mapParticleToCell, molCoordsToCell, currentAxes, electrostatic, particleCharge,
