@@ -602,7 +602,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       molCoordsToCell.push_back( cellList.PositionToCell(molCoords[atom], box ));
       std::cout << "pos2cell: " << cellList.PositionToCell(molCoords[atom], box ) << std::endl;
 
-      if(0>cellList.PositionToCell(molCoords[atom], box ){
+      if(0>cellList.PositionToCell(molCoords[atom], box )){
         std::cout << molCoords[atom] << std::endl;
         exit(1);
       } 
