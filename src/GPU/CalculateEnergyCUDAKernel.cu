@@ -111,8 +111,8 @@ void CallMolInterGPU(VariablesCUDA *vars,
                                 boxAxes.GetAxis(box).z * 0.5);
 
   MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(
-    moleculeStart,
-    moleculeLength,
+      moleculeStart,
+      moleculeLength,
       gpu_cellStartIndex,
       vars->gpu_cellVector,
       gpu_neighborList,
@@ -616,7 +616,8 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
     }
   }
   
-  currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
+  //currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
+  currentCell = gpu_mapParticleToCell[currentParticleIndex];
 
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
