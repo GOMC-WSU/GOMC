@@ -530,6 +530,8 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   double REn = 0.0, LJEn = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
+  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
+
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
@@ -551,6 +553,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
 
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
+    int cellAtomIsIn = 1;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
     if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
