@@ -17,7 +17,7 @@
     Checkpoint Output - RestartFromCheckpoint = true
 
 
-TEST(50StepEnergyTest, CheckAR_KR) {
+TEST(EnergyTest, CheckAR_KR) {
     chdir("./test/input/Systems/AR_KR/Base/");
     Simulation base("in.conf");
     base.RunSimulation();
@@ -27,7 +27,7 @@ TEST(50StepEnergyTest, CheckAR_KR) {
     EXPECT_EQ(total, x2);
 }
 */
-TEST(50StepEnergyTest, CheckMETHANOL) {
+TEST(EnergyTest, CheckMETHANOL) {
     chdir("./test/input/Systems/METHANOL_OPLSAA/Standard");
     Simulation base("in_GCMC.conf");
     base.RunSimulation();
