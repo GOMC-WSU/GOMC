@@ -576,7 +576,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-                    printf("Coords %d %d %f\n", currentParticle, 
+                    printf("Coords %d %d %f\n", currentParticle
                     ,neighborParticle,
                     distSq);
         int kA = gpu_particleKind[currentParticle];
