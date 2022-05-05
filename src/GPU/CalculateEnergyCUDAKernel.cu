@@ -543,8 +543,57 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   particlesInsideCurrentCell = gpu_moleculeLength;
 
   // total number of pairs
+  // Energy of molecule at current coordinates
   int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
+  for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
+    int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
+    int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
 
+    // global atom index
+    int currentParticle = gpu_moleculeStart + currentParticleIndex;
+    int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
+
+    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
+      // Check if they are within rcut
+      double distSq = 0.0;
+
+      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
+                   currentParticle, neighborParticle,
+                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
+                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
+                   gpu_Invcell_z)) {
+
+        int kA = gpu_particleKind[currentParticle];
+        int kB = gpu_particleKind[neighborParticle];
+        int mA = gpu_particleMol[currentParticle];
+        int mB = gpu_particleMol[neighborParticle];
+
+        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
+                                              gpu_molIndex, gpu_lambdaVDW);
+        LJEn += -1.0*CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
+                          gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
+                          gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
+                          sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
+
+        if(electrostatic) {
+          double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
+          if(qi_qj_fact != 0.0) {
+            qi_qj_fact *= qqFactGPU;
+            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
+                                   gpu_isFraction, gpu_molIndex,
+                                   gpu_lambdaCoulomb);
+            REn += -1.0*CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
+                                  gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
+                                  gpu_rCutCoulomb[box], gpu_isMartini[0],
+                                  gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
+                                  sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
+                                  gpu_count[0]);
+          }
+        }
+      }
+    }
+  }
+  // Energy of molecule at new coordinates
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
     int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
     int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
@@ -559,7 +608,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
 
       if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
                   gpu_nx, gpu_ny, gpu_nz,
-                   currentParticle, neighborParticle,
+                  neighborParticle, currentParticleIndex,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
