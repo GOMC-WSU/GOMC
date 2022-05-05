@@ -568,13 +568,17 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
     if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       double distSq = 0.0;
-
+      printf("Coords %d %f %f %f  %d %f %f %f\n", currentParticle, 
+      gpu_x[currentParticle],gpu_y[currentParticle],gpu_z[currentParticle],neighborParticle,
+      gpu_x[neighborParticle],gpu_y[neighborParticle],gpu_z[neighborParticle]);
       if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
                    currentParticle, neighborParticle,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-
+                    printf("Coords %d %d %f\n", currentParticle, 
+                    ,neighborParticle,
+                    distSq);
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];

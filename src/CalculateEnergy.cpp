@@ -638,8 +638,13 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         double distSq = 0.0;
         XYZ virComponents;
         //Subtract old energy
+        printf("Coords %d %f %f %f  %d %f %f %f\n", atom, 
+        currentCoords[atom].x,currentCoords[atom].y,currentCoords[atom].z,nIndex[i],
+        currentCoords[nIndex[i]].x,currentCoords[nIndex[i]].y,currentCoords[nIndex[i]].z,
+        );
         if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
                                nIndex[i], box)) {
+          printf("Dist %d %d %f\n", atom, nIndex[i], distSq);
           double lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
 
           if (electrostatic) {
