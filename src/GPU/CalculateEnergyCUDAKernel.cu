@@ -97,7 +97,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nz, newCoords.z, newCoordsNumber * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_mapMoleculeToCell, &mapNewCoordsToCell[0], newCoordsNumber * sizeof(double),
+  cudaMemcpy(gpu_mapMoleculeToCell, &mapNewCoordsToCell[0], newCoordsNumber * sizeof(int),
              cudaMemcpyHostToDevice);
   double3 axis = make_double3(boxAxes.GetAxis(box).x,
                               boxAxes.GetAxis(box).y,
@@ -551,7 +551,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
 
   // calculate number of particles inside neighbor Cell
-  int particlesInsideCurrentCell, particlesInsideNeighboringCells;
+  int particlesInsideNeighboringCells;
   int endIndex = gpu_cellStartIndex[neighborCell + 1];
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
