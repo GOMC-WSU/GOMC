@@ -565,7 +565,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
-    if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
+    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       double distSq = 0.0;
 
