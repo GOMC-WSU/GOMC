@@ -60,6 +60,13 @@ CellList::CellList(const CellList & other) : mols(other.mols)
   //head(other.head);
 }
 
+void CellList::SetCutoff()
+{
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    cutoff[b] = dimensions->rCut[b];
+  }
+}
+
 bool CellList::IsExhaustive() const
 {
   std::vector<int> particles(list);
