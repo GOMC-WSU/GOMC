@@ -27,7 +27,7 @@
 
 */
 
-TEST(FiftyStepTrajectoryTest, Check_AR_KR) {
+TEST(TrajectoryTest, Check_AR_KR) {
 
     ulong base_runsteps;
     std::string inputFileString("in.conf");
