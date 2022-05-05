@@ -74,7 +74,7 @@ TEST(TrajectoryTest, Check_AR_KR) {
     pdbBase.Init(rsBase, pdbnamesBase, frameNum);  
     pdbBaseRef.Init(rsBaseRef, pdbnamesBaseRef, frameNum);
   
-    for(int frame = 0; frame < 10; ++frame){
+    for(int frame = 1; frame < 10; ++frame){
         pdbBaseRef.Init(rsBaseRef, pdbnamesBaseRef, frameNum+frame);
         pdbBase.Init(rsBase, pdbnamesBase, frameNum+frame);    
 
