@@ -598,7 +598,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     std::vector<int> cellVector, cellStartIndex, mapParticleToCell, molCoordsToCell;
     std::vector< std::vector<int> > neighborList;
     for (uint p = 0; p < length; ++p) {
-      molCoordsToCell.push_back( cellList.Pos2Cell(molCoords[p], box ));
+      molCoordsToCell.push_back( cellList.PositionToCell(molCoords[p], box ));
     }
     cellList.GetCellListNeighbor(box, currentCoords.Count(),
                                 cellVector, cellStartIndex, mapParticleToCell);
