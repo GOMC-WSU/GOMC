@@ -615,7 +615,9 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
       }
     }
   }
-  
+  printf("currentParticleIndex %d\n", currentParticleIndex);
+  printf("currentCell %d\n", gpu_mapParticleToCell[currentParticleIndex]);
+
   //currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
   currentCell = gpu_mapParticleToCell[currentParticleIndex];
 
