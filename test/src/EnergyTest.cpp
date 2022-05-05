@@ -21,15 +21,16 @@ TEST(50StepEnergyTest, CheckAR_KR) {
     chdir("./test/input/Systems/AR_KR/Base/");
     Simulation base("in.conf");
     base.RunSimulation();
-    /*
-    chdir("../K_1");
-    Simulation K_1("in.conf");
-    K_1.RunSimulation();
-    chdir("../K_N");
-    Simulation K_N("in.conf");
-    K_N.RunSimulation();
-    chdir("../../../../..");
-    */
+    double total = base.GetSystemEnergy();
+    // Run the main branch once
+    double x2 = 123.00;
+    EXPECT_EQ(total, x2);
+}
+
+TEST(50StepEnergyTest, CheckMETHANOL) {
+    chdir("./test/input/Systems/METHANOL_OPLSAA/Standard");
+    Simulation base("in_GCMC.conf");
+    base.RunSimulation();
     double total = base.GetSystemEnergy();
     // Run the main branch once
     double x2 = 123.00;
