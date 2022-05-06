@@ -265,13 +265,13 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     std::cout << "sumLJEn eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
   }
   */
-  if (fabs(sumREnMolAbb - sumREn) >= std::numeric_limits<double>::epsilon()){
+  if (fabs(sumREnMolAbb - sumREn) >= 0.001){
     std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
     exit(1);
   } else {
     std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
   }
-  if (fabs(sumLJEnMolAbb - sumLJEn) >= std::numeric_limits<double>::epsilon()){
+  if (fabs(sumLJEnMolAbb - sumLJEn) >= 0.001){
     std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
     exit(1);
   } else {
