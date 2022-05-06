@@ -721,7 +721,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
-      if (blockIdx.x == 0 && threadIdx.x == 0){
+      if (threadIdx.x == 0){
         printf("CS %d\n", currentCell);
       }
       if (threadIdx.x == 0){
