@@ -590,8 +590,9 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                     const uint molIndex,
                                     const uint box) const
 {
-  double tempREn = 0.0, tempLJEn = 0.0;
-  
+  double tempREnOld = 0.0, tempLJEnOld = 0.0;
+  double tempREnNew = 0.0, tempLJEnNew = 0.0;
+
   bool overlap = false;
 
   if (box < BOXES_WITH_U_NB) {
@@ -599,8 +600,8 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 #ifdef GOMC_CUDA
-    double tempREnOld = 0.0, tempLJEnOld = 0.0;
-    double tempREnNew = 0.0, tempLJEnNew = 0.0;
+    //double tempREnOld = 0.0, tempLJEnOld = 0.0;
+    //double tempREnNew = 0.0, tempLJEnNew = 0.0;
 
     std::vector<int> cellVector, cellStartIndex, mapParticleToCell, molCoordsToCell;
     std::vector< std::vector<int> > neighborList;
@@ -652,10 +653,10 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
       #pragma omp parallel for default(none) shared(atom, nIndex, box, molIndex) \
-      reduction(+:tempREn, tempLJEn)
+      reduction(+:tempREnOld, tempLJEnOld)
 #else
       #pragma omp parallel for default(none) shared(atom, nIndex) \
-      reduction(+:tempREn, tempLJEn)
+      reduction(+:tempREnOld, tempLJEnOld)
 #endif
 #endif
       for(int i = 0; i < (int) nIndex.size(); i++) {
@@ -699,10 +700,10 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
       #pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p, molIndex, box) \
-      reduction(+:tempREn, tempLJEn)
+      reduction(+:tempREnNew, tempLJEnNew)
 #else
       #pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p) \
-      reduction(+:tempREn, tempLJEn)
+      reduction(+:tempREnNew, tempLJEnNew)
 #endif
 #endif
       for(int i = 0; i < (int) nIndex.size(); i++) {
@@ -743,8 +744,11 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
-  if(box == 1)
-    std::cout << "LJ EN" << tempLJEn << std::endl;
+  std::cout << "LJ EN OLD" << tempLJEnOld << std::endl;
+  std::cout << "LJ EN NEW" << tempLJEnNew << std::endl;
+  std::cout << "R EN OLD" << tempREnOld << std::endl;
+  std::cout << "R EN NEW" << tempREnNew << std::endl;
+  exit(1);
   inter_LJ.energy = tempLJEn;
   inter_coulomb.energy = tempREn;
   return overlap;
