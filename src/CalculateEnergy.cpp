@@ -239,22 +239,30 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       sumLJEnMolAbb += tempLJEnMolAbb;
       thisMol++;
   }
-  if (sumREn != tempREn){
+  if (fabs(sumREn - tempREn) >= DBL_EPSILON){
     std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
     exit(1);
   } else {
     std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
   }
-  if (sumLJEn != tempLJEn){
-    std::cout << "sumLJEn not eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
+  if (fabs(sumLJEn - tempLJEn) >= DBL_EPSILON){
+    std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
     exit(1);
   } else {
     std::cout << "sumLJEn eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
   }
-  assert(sumREn == tempREn);
-  assert(sumLJEn == tempLJEn);
-  assert(sumREnMolAbb == tempREn);
-  assert(sumLJEnMolAbb == tempLJEn);
+  if (fabs(sumREnMolAbb - tempREn) >= DBL_EPSILON){
+    std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
+    exit(1);
+  } else {
+    std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
+  }
+  if (fabs(sumLJEnMolAbb - tempLJEn) >= DBL_EPSILON){
+    std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
+    exit(1);
+  } else {
+    std::cout << "sumLJEn eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
+  }
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
