@@ -284,8 +284,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
   double3 halfAx = make_double3(boxAxes.GetAxis(box).x * 0.5,
                                 boxAxes.GetAxis(box).y * 0.5,
                                 boxAxes.GetAxis(box).z * 0.5);
-  printf("axis %f %f %f", axis.x,  axis.y,  axis.z);
-  printf("halfAx %f %f %f", halfAx.x,  halfAx.y,  halfAx.z);
+
   MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(
       moleculeStart,
       moleculeLength,
