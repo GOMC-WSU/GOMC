@@ -218,6 +218,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, sumREn, sumLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
+                  /*
     XYZArray molCoords(1);
     std::vector<int> molCoordsToCell(1);
     CallMolInterGPU(forcefield.particles->getCUDAVars(), 
@@ -226,6 +227,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, tempREnMolAbb, tempLJEnMolAbb, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
+                  /*
       sumREn += tempREnMol;
       sumLJEn += tempLJEnMol;
       sumREnMolAbb += tempREnMolAbb;
