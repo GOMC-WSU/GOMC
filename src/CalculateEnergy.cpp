@@ -654,7 +654,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         //Subtract old energy
                             if (box == 1)
               printf("curr coord %d %d %f %f %f\n", atom, nIndex[i], currentCoords.x[atom], 
-      currentCoords.z[atom], currentCoords.y[atom]);
+      currentCoords.y[atom], currentCoords.z[atom]);
         if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
                                nIndex[i], box)) {
                     if (box == 1)
