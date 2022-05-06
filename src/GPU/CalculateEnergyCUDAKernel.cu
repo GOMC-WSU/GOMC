@@ -186,7 +186,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
     CubDebugExit(cudaMemcpy(&REnOld, gpu_final_REn, sizeof(double),
                             cudaMemcpyDeviceToHost));
   } else {
-    REn = 0.0;
+    REnOld = 0.0;
   }
 
   MolInterGPUNewCoordinates <<< blocksPerGrid, threadsPerBlock>>>(
@@ -267,7 +267,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
     CubDebugExit(cudaMemcpy(&REnNew, gpu_final_REn, sizeof(double),
                             cudaMemcpyDeviceToHost));
   } else {
-    REn = 0.0;
+    REnNew = 0.0;
   }
 
   CUFREE(d_temp_storage);
@@ -925,10 +925,6 @@ __global__ void MolInterGPUNewCoordinates(int gpu_moleculeStart,
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
   int currentParticleIndex = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  // calculate number of particles inside neighbor Cell
-  int endIndex = gpu_cellStartIndex[neighborCell + 1];
-  int particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
-
   int currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
 
   int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
