@@ -654,6 +654,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         //Subtract old energy
         if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
                                nIndex[i], box)) {
+          printf("curr dist %f\n", distSq);
           double lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
 
           if (electrostatic) {
@@ -696,6 +697,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         if (currentAxes.InRcut(distSq, virComponents, molCoords, p,
                                currentCoords, nIndex[i], box)) {
           double lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
+          printf("new dist %f\n", distSq);
 
           if(distSq < forcefield.rCutLowSq) {
             overlap |= true;

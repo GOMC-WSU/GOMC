@@ -55,7 +55,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
 
   // Run the kernel
   threadsPerBlock = 256;
-  blocksPerGrid = newCoordsNumber * numberOfCells;
+  blocksPerGrid = newCoordsNumber * NUMBER_OF_NEIGHBOR_CELL;
   energyVectorLen = blocksPerGrid * threadsPerBlock;
 
   // Convert neighbor list to 1D array
@@ -578,6 +578,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
+        printf("curr dist %f\n", distSq);
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];
@@ -636,6 +637,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
+        printf("new dist %f\n", distSq);
 
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
