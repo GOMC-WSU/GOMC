@@ -303,6 +303,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
 void CallMolInterSummationGPU(VariablesCUDA *vars,
                     int moleculeStart,
                     int moleculeLength,
+                    const std::vector<int> &mapCurrentCoordsToCell,
                      const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,
                      const std::vector<std::vector<int> > &neighborList,
@@ -366,6 +367,7 @@ void CallMolInterSummationGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mapParticleToCell, &mapCurrentCoordsToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x,
                               boxAxes.GetAxis(box).y,
@@ -385,7 +387,7 @@ void CallMolInterSummationGPU(VariablesCUDA *vars,
       vars->gpu_x,
       vars->gpu_y,
       vars->gpu_z,
-      gpu_mapParticleToCell,
+      vars->gpu_mapParticleToCell,
       axis,
       halfAx,
       electrostatic,
