@@ -945,11 +945,11 @@ __global__ void MolInterGPUNewCoordinates(int gpu_moleculeStart,
         printf("NS %d\n", neighborCell);
       }
   // calculate number of particles inside neighbor Cell
-  endIndex = gpu_cellStartIndex[neighborCell + 1];
+  int endIndex = gpu_cellStartIndex[neighborCell + 1];
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Energy of molecule at new coordinates
-  numberOfPairs = particlesInsideNeighboringCells;
+  int numberOfPairs = particlesInsideNeighboringCells;
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
     int neighborParticleIndex = pairIndex ;
 
