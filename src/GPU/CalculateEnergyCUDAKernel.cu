@@ -721,7 +721,12 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
-
+      if (blockIdx.x == 0 && threadIdx.x == 0){
+        printf("CC %d\n", currentCell);
+      }
+      if (threadIdx.x == 0){
+        printf("NC %d\n", neighborCell);
+      }
   // calculate number of particles inside neighbor Cell
   int particlesInsideNeighboringCells;
   int endIndex = gpu_cellStartIndex[neighborCell + 1];
@@ -928,6 +933,12 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
 
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle] && gpu_particleMol[currentParticle] == gpu_particleMol[gpu_moleculeStart]) {
       // Check if they are within rcut
+      if (blockIdx.x == 0 && threadIdx.x == 0){
+        printf("CCB %d\n", currentCell);
+      }
+      if (threadIdx.x == 0){
+        printf("NCB %d\n", neighborCell);
+      }
       double distSq = 0.0;
       if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
                    currentParticle, neighborParticle,
