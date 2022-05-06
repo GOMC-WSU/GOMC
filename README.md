@@ -29,7 +29,10 @@ To cite GOMC project, please use cite the following papers:
       ```bash
       ./metamake.sh
       ```
-  5. Step 4 should generate all the executables in ```bin``` directory
+  5. Step 4 should generate all the executables in ```bin``` directory.
+
+  `./metamake.sh` accepts flags which indicates which ensembles to compile. Default behavior with no flag will compile all CPU compilers and if CUDA available, all GPU ensembles. Multiple flags can be used by separating with a space. Current accepted flags are: `CPU` to compile all CPU ensembles, `GPU` to compile all GPU ensembles, or you can compile ensembles individually by using any of the following flags:
+  `NVT`, `NPT`, `GCMC`, `GEMC`, `GPU_NVT`, `GPU_NPT`, `GPU_GCMC`, `GPU_GEMC`.
 
   You can set the number of the threads using the +pN argument, where N is the number of threads.
   For example:
