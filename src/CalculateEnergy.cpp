@@ -148,7 +148,7 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
     BoxDimensions const& boxAxes)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    std::cout <<" Calling box inter " << box << std::endl;
+    std::cout << " Calling box inter " << b << std::endl;
     //calculate LJ interaction and real term of electrostatic interaction
     potential = BoxInter(potential, coords, boxAxes, b);
     //calculate reciprocal term of electrostatic interaction
