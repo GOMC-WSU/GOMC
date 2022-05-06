@@ -34,6 +34,8 @@ To cite GOMC project, please use cite the following papers:
   `./metamake.sh` accepts flags which indicates which ensembles to compile. Default behavior with no flag will compile all CPU compilers and if CUDA available, all GPU ensembles. Multiple flags can be used by separating with a space. Current accepted flags are: `CPU` to compile all CPU ensembles, `GPU` to compile all GPU ensembles, or you can compile ensembles individually by using any of the following flags:
   `NVT`, `NPT`, `GCMC`, `GEMC`, `GPU_NVT`, `GPU_NPT`, `GPU_GCMC`, `GPU_GEMC`.
 
+> NOTES: Building GOMC requires cmake, available at http://www.cmake.org and in most Linux package repositories (as cmake). If you wish to utilize NVIDIA graphic cards you will need to install NVIDIA toolkit before compiling. The metamake file will automatically detect the location of CUDA installation. (More info in Manual)
+
 ## Building GOMC on Windows:
   1. Open the Windows-compatible CMake GUI.
   2. Set the Source Folder to the GOMC root folder.
@@ -46,9 +48,7 @@ To cite GOMC project, please use cite the following papers:
   9. Open the CMake-generated project/solution etc. to the desired IDE (e.g Visual Studio).
   10. Using the solution in the IDE of choice build GOMC per the IDE's standard release compilation/executable generation methods.
 
-   NOTES:
-      You can also use CMake from the Windows command line if its directory is
-      added to the PATH environment variable.
+> NOTES: You can also use CMake from the Windows command line if its directory is added to the PATH environment variable.
 
 ## Executing GOMC:
   You can set the number of the threads using the +pN argument, where N is the number of threads.
@@ -59,6 +59,3 @@ To cite GOMC project, please use cite the following papers:
 
   Which will run 4 threads and reads input file "in.conf".
 
-  NOTES:
-  Building GOMC requires cmake, available at http://www.cmake.org and in most Linux package repositories (as cmake).
-  If you wish to utilize NVIDIA graphic cards you will need to install NVIDIA toolkit before compiling. The metamake file will automatically detect the location of CUDA installation. (More info in Manual)
