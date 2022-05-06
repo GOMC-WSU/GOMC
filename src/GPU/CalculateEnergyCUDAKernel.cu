@@ -339,7 +339,7 @@ void CallMolInterSummationGPU(VariablesCUDA *vars,
 
   // Run the kernel
   threadsPerBlock = 256;
-  blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELL;
+  blocksPerGrid = moleculeLength * NUMBER_OF_NEIGHBOR_CELL;
   energyVectorLen = blocksPerGrid * threadsPerBlock;
 
   // Convert neighbor list to 1D array
