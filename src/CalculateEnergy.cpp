@@ -239,6 +239,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       sumLJEnMolAbb += tempLJEnMolAbb;
       thisMol++;
   }
+  /*
   if (fabs(sumREn - tempREn) >= std::numeric_limits<double>::epsilon()){
     std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
     exit(1);
@@ -258,6 +259,19 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
   }
   if (fabs(sumLJEnMolAbb - tempLJEn) >= std::numeric_limits<double>::epsilon()){
+    std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
+    exit(1);
+  } else {
+    std::cout << "sumLJEn eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
+  }
+  */
+  if (fabs(sumREnMolAbb - sumREn) >= std::numeric_limits<double>::epsilon()){
+    std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
+    exit(1);
+  } else {
+    std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
+  }
+  if (fabs(sumLJEnMolAbb - sumLJEn) >= std::numeric_limits<double>::epsilon()){
     std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
     exit(1);
   } else {
