@@ -223,7 +223,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, tempREnMol, tempLJEnMol, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
-/*
+
     XYZArray molCoords(1);
     std::vector<int> molCoordsToCell(1);
     CallMolInterGPU(forcefield.particles->getCUDAVars(), 
@@ -232,7 +232,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, tempREnMolAbb, tempLJEnMolAbb, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
-                  */
+                  
       sumREn += tempREnMol;
       sumLJEn += tempLJEnMol;
       sumREnMolAbb += tempREnMolAbb;
@@ -253,8 +253,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
   assert(sumREn == tempREn);
   assert(sumLJEn == tempLJEn);
-  //assert(sumREnMolAbb == tempREn);
-  //assert(sumLJEnMolAbb == tempLJEn);
+  assert(sumREnMolAbb == tempREn);
+  assert(sumLJEnMolAbb == tempLJEn);
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
