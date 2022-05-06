@@ -123,7 +123,7 @@ void CallMolInterSummationGPU(VariablesCUDA *vars,
                      double sc_sigma_6,
                      double sc_alpha,
                      uint sc_power,
-                     uint const box)
+                     uint const box);
 
 __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             int *gpu_cellVector,
