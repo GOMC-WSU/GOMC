@@ -191,12 +191,13 @@ void CallMolInterGPU(VariablesCUDA *vars,
   } else {
     REnOld = 0.0;
   }
-
+  cudaDeviceSynchronize();
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemset(gpu_LJEn, 0, sizeof(double)*energyVectorLen);
   cudaMemset(gpu_REn, 0, sizeof(double)*energyVectorLen);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
-  
+
   MolInterGPUNewCoordinates <<< blocksPerGrid, threadsPerBlock>>>(
       moleculeStart,
       moleculeLength,
