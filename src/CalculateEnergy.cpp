@@ -727,7 +727,8 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
-
+  if(box == 1)
+    std::cout << "LJ EN" << tempLJEn << std::endl;
   inter_LJ.energy = tempLJEn;
   inter_coulomb.energy = tempREn;
   return overlap;
