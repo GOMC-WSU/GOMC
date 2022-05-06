@@ -177,10 +177,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTER);
   double tempREn = 0.0, tempLJEn = 0.0;
-  double sumREn = 0.0, sumLJEn = 0.0;
-  double sumREnMol = 0.0, sumLJEnMol = 0.0;
-  double sumREnMolAbb = 0.0, sumLJEnMolAbb = 0.0;
-
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector< std::vector<int> > neighborList;
   cellList.GetCellListNeighbor(box, currentCoords.Count(),
@@ -208,7 +204,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
-
+  double sumREn = 0.0, sumLJEn = 0.0;
+  double sumREnMol = 0.0, sumLJEnMol = 0.0;
+  double sumREnMolAbb = 0.0, sumLJEnMolAbb = 0.0;
   for (auto & mol : cellVector){
       std::cout << "Box " << box <<  " Mol " << mol << std::endl;
       double tempREnMol = 0.0, tempLJEnMol = 0.0;
@@ -237,10 +235,15 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       sumREnMolAbb += tempREnMolAbb;
       sumLJEnMolAbb += tempLJEnMolAbb;
   }
+  if (sumREn == tempREn){
+    std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
+    exit(1);
+  }
+
   assert(sumREn == tempREn);
   assert(sumLJEn == tempLJEn);
-  assert(sumREnMolAbb == tempREn);
-  assert(sumLJEnMolAbb == tempLJEn);
+  //assert(sumREnMolAbb == tempREn);
+  //assert(sumLJEnMolAbb == tempLJEn);
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
