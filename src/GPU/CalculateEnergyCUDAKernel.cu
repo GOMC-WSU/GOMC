@@ -194,7 +194,9 @@ void CallMolInterGPU(VariablesCUDA *vars,
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemset(gpu_LJEn, 0, sizeof(double)*energyVectorLen);
-  cudaMemset(gpu_REn, 0, sizeof(double)*energyVectorLen);
+  if (electrostatic) {
+    cudaMemset(gpu_REn, 0, sizeof(double)*energyVectorLen);
+  }
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
