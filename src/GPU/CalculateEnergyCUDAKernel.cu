@@ -52,7 +52,8 @@ void CallMolInterGPU(VariablesCUDA *vars,
   int energyVectorLen;
   double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;
-  double *gpu_final_REn, *gpu_final_LJEn;
+  double *gpu_final_REnOld, *gpu_final_LJEnOld;
+  double *gpu_final_REnNew, *gpu_final_LJEnNew;
   int *gpu_mapMoleculeToCell;
 
   // Run the kernel
