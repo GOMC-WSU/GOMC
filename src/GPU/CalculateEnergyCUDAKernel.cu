@@ -284,8 +284,8 @@ void CallMolInterGPU(VariablesCUDA *vars,
   double3 halfAx = make_double3(boxAxes.GetAxis(box).x * 0.5,
                                 boxAxes.GetAxis(box).y * 0.5,
                                 boxAxes.GetAxis(box).z * 0.5);
-  printf("axis %d %d %d", axis[0],  axis[1],  axis[2]);
-  printf("halfAx %d %d %d", halfAx[0],  halfAx[1],  halfAx[2]);
+  printf("axis %f %f %f", axis.x,  axis.y,  axis.z);
+  printf("halfAx %f %f %f", halfAx.x,  halfAx.y,  halfAx.z);
   MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(
       moleculeStart,
       moleculeLength,
@@ -656,7 +656,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   }
   gpu_LJEn[threadID] = LJEn;
 }
-
+/*
 __global__ void MolInterGPU(int gpu_moleculeStart,
                             int gpu_moleculeLength,
                             int *gpu_cellStartIndex,
@@ -848,7 +848,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
   }
   gpu_LJEn[threadID] = LJEn;
 }
-
+*/
 __global__ void MolInterGPU(int gpu_moleculeStart,
                             int gpu_moleculeLength,
                             int *gpu_cellStartIndex,
@@ -858,7 +858,6 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
                             double *gpu_x,
                             double *gpu_y,
                             double *gpu_z,
-                            int *gpu_mapParticleToCell,
                             double3 axis,
                             double3 halfAx,
                             bool electrostatic,
