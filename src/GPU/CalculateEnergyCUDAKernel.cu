@@ -55,7 +55,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
 
   // Run the kernel
   threadsPerBlock = 256;
-  blocksPerGrid = newCoordsNumber * NUMBER_OF_NEIGHBOR_CELL;
+  blocksPerGrid = newCoordsNumber * numberOfCells;
   energyVectorLen = blocksPerGrid * threadsPerBlock;
 
   // Convert neighbor list to 1D array
