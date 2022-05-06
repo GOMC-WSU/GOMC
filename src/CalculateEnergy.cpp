@@ -207,8 +207,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double sumREn = 0.0, sumLJEn = 0.0;
   double sumREnMol = 0.0, sumLJEnMol = 0.0;
   double sumREnMolAbb = 0.0, sumLJEnMolAbb = 0.0;
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
-  MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
+  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+  MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
   while(thisMol!=end){
       uint mol = *thisMol;
       std::cout << "Box " << box <<  " Mol " << mol << std::endl;
