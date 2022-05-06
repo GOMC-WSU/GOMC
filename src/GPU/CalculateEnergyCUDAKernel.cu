@@ -41,7 +41,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
                      uint sc_power,
                      uint const box){
   int atomNumber = currentCoords.Count();
-  int newCoordsNumber = newCoords.Count();
+  int newCoordsNumber = moleculeLength;
   int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
   int *gpu_particleKind, *gpu_particleMol;
