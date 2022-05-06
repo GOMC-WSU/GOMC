@@ -206,7 +206,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   for (auto & mol : cellVector){
       double tempREnMol = 0.0, tempLJEnMol = 0.0;
-      uint length = mols.GetKind(molIndex).NumAtoms();
+      uint length = mols.GetKind(mol).NumAtoms();
 //    uint start = mols.MolStart(molIndex);
       CallMolInterGPU(forcefield.particles->getCUDAVars(), 
                   mol, length, cellVector, cellStartIndex,
