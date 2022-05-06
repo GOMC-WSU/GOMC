@@ -6,7 +6,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 ********************************************************************************/
 
 #ifndef CHECKPOINT_OUTPUT_H
-#define CHECKPOINT_OUTPUT__H
+#define CHECKPOINT_OUTPUT_H
 
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
