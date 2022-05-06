@@ -27,7 +27,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
-#include <assert.h>     /* assert */
+#include <limits>
 
 #endif
 #include "GOMCEventsProfile.h"
@@ -239,25 +239,25 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       sumLJEnMolAbb += tempLJEnMolAbb;
       thisMol++;
   }
-  if (fabs(sumREn - tempREn) >= DBL_EPSILON){
+  if (fabs(sumREn - tempREn) >= std::numeric_limits<double>::epsilon()){
     std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
     exit(1);
   } else {
     std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
   }
-  if (fabs(sumLJEn - tempLJEn) >= DBL_EPSILON){
+  if (fabs(sumLJEn - tempLJEn) >= std::numeric_limits<double>::epsilon()){
     std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
     exit(1);
   } else {
     std::cout << "sumLJEn eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
   }
-  if (fabs(sumREnMolAbb - tempREn) >= DBL_EPSILON){
+  if (fabs(sumREnMolAbb - tempREn) >= std::numeric_limits<double>::epsilon()){
     std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
     exit(1);
   } else {
     std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
   }
-  if (fabs(sumLJEnMolAbb - tempLJEn) >= DBL_EPSILON){
+  if (fabs(sumLJEnMolAbb - tempLJEn) >= std::numeric_limits<double>::epsilon()){
     std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
     exit(1);
   } else {
