@@ -628,7 +628,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 */
     CallMolInterGPU(forcefield.particles->getCUDAVars(), 
                   start, length, cellVector, cellStartIndex,
-                  neighborList, currentCoords, mapParticleToCell, currentAxes, electrostatic, particleCharge,
+                  neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
