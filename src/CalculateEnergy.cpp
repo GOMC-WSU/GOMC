@@ -266,16 +266,16 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
   */
   if (fabs(sumREnMolAbb - sumREn) >= 0.001){
-    std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
+    std::cout << "sumREn not eq sumREnMolAbb" << sumREn << " " << sumREnMolAbb << std::endl;
     exit(1);
   } else {
-    std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
+    std::cout << "sumREn eq sumREnMolAbb" << sumREn << " " << sumREnMolAbb << std::endl;
   }
   if (fabs(sumLJEnMolAbb - sumLJEn) >= 0.001){
-    std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
+    std::cout << "sumLJEn not eq sumLJEnMolAbb " << sumLJEn << " " << sumLJEnMolAbb << std::endl;
     exit(1);
   } else {
-    std::cout << "sumLJEn eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
+    std::cout << "sumLJEn eq sumLJEnMolAbb" << sumLJEn << " " << sumLJEnMolAbb << std::endl;
   }
 #else
 #ifdef _OPENMP
