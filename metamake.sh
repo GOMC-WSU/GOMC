@@ -159,6 +159,12 @@ else
     export CXX="$(which g++ 2> /dev/null)"
 fi
 
+# If user hasn't specified any ensemble, cmake automatically compiles all ensembles.
+# This will ensure we don't print empty for ensembles.
+if [ -z "$ENSEMBLES"]
+then
+	ENSEMBLES="NVT NPT GCMC GEMC GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC"
+fi
 echo "Ensembles To Compile: $ENSEMBLES"
 
 if (( use_profiler )); then
