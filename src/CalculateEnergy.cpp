@@ -213,14 +213,14 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       double tempREnMolAbb = 0.0, tempLJEnMolAbb = 0.0;
       uint length = mols.GetKind(mol).NumAtoms();
       uint start = mols.MolStart(mol);
-                        /*
+                        
       CallMolInterGPU(forcefield.particles->getCUDAVars(), 
                   start, length, cellVector, cellStartIndex,
                   neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
-                  particleKind, particleMol, sumREn, sumLJEn, forcefield.sc_coul,
+                  particleKind, particleMol, tempREnMol, tempLJEnMol, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
-
+/*
     XYZArray molCoords(1);
     std::vector<int> molCoordsToCell(1);
     CallMolInterGPU(forcefield.particles->getCUDAVars(), 
