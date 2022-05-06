@@ -233,13 +233,13 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   forcefield.sc_power, box);
       sumREn += tempREnMol;
       sumLJEn += tempLJEnMol;
-      sumREnAbb += tempREnMolAbb;
-      sumLJEnAbb += tempLJEnMolAbb;
+      sumREnMolAbb += tempREnMolAbb;
+      sumLJEnMolAbb += tempLJEnMolAbb;
   }
   assert (sumREn == tempREn);
   assert (sumLJEn == tempLJEn);
-  assert (sumREnAbb == tempREn);
-  assert (sumLJEnAbb == tempLJEn);
+  assert (sumREnMolAbb == tempREn);
+  assert (sumLJEnMolAbb == tempLJEn);
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
