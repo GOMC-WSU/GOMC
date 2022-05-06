@@ -933,7 +933,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
 
     if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle] && gpu_particleMol[currentParticle] == gpu_particleMol[gpu_moleculeStart]) {
       // Check if they are within rcut
-      if (blockIdx.x == 0 && threadIdx.x == 0){
+      if (threadIdx.x == 0){
         printf("CB %d\n", currentCell);
       }
       if (threadIdx.x == 0){
