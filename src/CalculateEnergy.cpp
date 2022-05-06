@@ -207,7 +207,10 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double sumREn = 0.0, sumLJEn = 0.0;
   double sumREnMol = 0.0, sumLJEnMol = 0.0;
   double sumREnMolAbb = 0.0, sumLJEnMolAbb = 0.0;
-  for (auto & mol : cellVector){
+  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
+  MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
+  while(thisMol!=end){
+      uint mol = *thisMol;
       std::cout << "Box " << box <<  " Mol " << mol << std::endl;
       double tempREnMol = 0.0, tempLJEnMol = 0.0;
       double tempREnMolAbb = 0.0, tempLJEnMolAbb = 0.0;
@@ -234,6 +237,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       sumLJEn += tempLJEnMol;
       sumREnMolAbb += tempREnMolAbb;
       sumLJEnMolAbb += tempLJEnMolAbb;
+      thisMol++;
   }
   if (sumREn != tempREn){
     std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
