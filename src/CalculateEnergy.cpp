@@ -235,7 +235,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       sumREnMolAbb += tempREnMolAbb;
       sumLJEnMolAbb += tempLJEnMolAbb;
   }
-  if (sumREn == tempREn){
+  if (sumREn != tempREn){
     std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
     exit(1);
   }
