@@ -237,7 +237,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       sumLJEn += tempLJEnMol;
       sumREnMolAbb += tempREnMolAbb;
       sumLJEnMolAbb += tempLJEnMolAbb;
-      thisMol++;
+      thisMol = end;
   }
   /*
   if (fabs(sumREn - tempREn) >= std::numeric_limits<double>::epsilon()){
