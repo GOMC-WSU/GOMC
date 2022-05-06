@@ -114,8 +114,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
   double3 halfAx = make_double3(boxAxes.GetAxis(box).x * 0.5,
                                 boxAxes.GetAxis(box).y * 0.5,
                                 boxAxes.GetAxis(box).z * 0.5);
-  cudaDeviceSynchronize();
-  checkLastErrorCUDA(__FILE__, __LINE__);
+
   MolInterGPUOldCoordinates <<< blocksPerGrid, threadsPerBlock>>>(
       moleculeStart,
       moleculeLength,
