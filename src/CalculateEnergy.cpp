@@ -210,15 +210,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       double tempREnMol = 0.0, tempLJEnMol = 0.0;
       double tempREnMolAbb = 0.0, tempLJEnMolAbb = 0.0;
       uint length = mols.GetKind(mol).NumAtoms();
-//    uint start = mols.MolStart(molIndex);
+      uint start = mols.MolStart(mol);
       CallMolInterGPU(forcefield.particles->getCUDAVars(), 
-                  mol, length, cellVector, cellStartIndex,
-                  neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
-                  particleKind, particleMol, sumREn, sumLJEn, forcefield.sc_coul,
-                  forcefield.sc_sigma_6, forcefield.sc_alpha,
-                  forcefield.sc_power, box);
-      CallMolInterGPU(forcefield.particles->getCUDAVars(), 
-                  mol, length, cellVector, cellStartIndex,
+                  start, length, cellVector, cellStartIndex,
                   neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
                   particleKind, particleMol, sumREn, sumLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
