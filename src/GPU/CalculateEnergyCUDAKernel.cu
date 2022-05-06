@@ -569,7 +569,9 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-
+    if (box == 1)
+      printf("curr coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_x[currentParticle], 
+      gpu_y[currentParticle], gpu_z[currentParticle]);
     if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       double distSq = 0.0;
@@ -627,7 +629,9 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-
+    if (box == 1)
+      printf("new coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_nx[currentParticleIndex], 
+      gpu_ny[currentParticleIndex], gpu_nz[currentParticleIndex]);
     if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       double distSq = 0.0;
