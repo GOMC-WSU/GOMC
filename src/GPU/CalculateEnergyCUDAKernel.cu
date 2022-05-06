@@ -931,7 +931,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
     int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
-    if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle] && gpu_particleMol[currentParticle] == gpu_particleMol[gpu_moleculeStart]) {
+    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle] && gpu_particleMol[currentParticle] == gpu_particleMol[gpu_moleculeStart]) {
       // Check if they are within rcut
       if (blockIdx.x == 0 && threadIdx.x == 0){
         printf("CCB %d\n", currentCell);
@@ -939,6 +939,8 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
       if (threadIdx.x == 0){
         printf("NCB %d\n", neighborCell);
       }
+      // To keep total summation energy correct
+      if(currentParticle < neighborParticle ){
       double distSq = 0.0;
       if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
                    currentParticle, neighborParticle,
@@ -975,6 +977,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
           }
         }
       }
+    }
     }
   }
   if(electrostatic) {
