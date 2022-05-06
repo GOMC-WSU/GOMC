@@ -837,7 +837,7 @@ __global__ void MolInterGPUOldCoordinates(int gpu_moleculeStart,
     if (box == 1)
       printf("curr coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_x[currentParticle], 
       gpu_y[currentParticle], gpu_z[currentParticle]);
-    if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
+    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       double distSq = 0.0;
       if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
