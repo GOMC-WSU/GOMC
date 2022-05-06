@@ -845,7 +845,6 @@ __global__ void MolInterGPUOldCoordinates(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-                    if (box == 1)
         printf("curr dist %f\n", distSq);
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
@@ -977,7 +976,6 @@ __global__ void MolInterGPUNewCoordinates(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-                    if (box == 1)
         printf("new dist %f\n", distSq);
 
         int kA = gpu_particleKind[currentParticle];
@@ -1174,7 +1172,6 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-                    if (box == 1)
         printf("new dist %f\n", distSq);
 
         int kA = gpu_particleKind[currentParticle];
@@ -1305,7 +1302,6 @@ __global__ void MolInterSummationKernelGPU(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-                    if (box == 1)
         printf("curr dist %f\n", distSq);
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
