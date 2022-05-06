@@ -74,10 +74,12 @@ void CallMolInterGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   CUMALLOC((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &gpu_final_LJEn, sizeof(double));
+  CUMALLOC((void**) &gpu_final_LJEnOld, sizeof(double));
+  CUMALLOC((void**) &gpu_final_LJEnNew, sizeof(double));
   if (electrostatic) {
     CUMALLOC((void**) &gpu_REn, energyVectorLen * sizeof(double));
-    CUMALLOC((void**) &gpu_final_REn, sizeof(double));
+    CUMALLOC((void**) &gpu_final_REnOld, sizeof(double));
+    CUMALLOC((void**) &gpu_final_REnNew, sizeof(double));
   }
   CUMALLOC((void**) &gpu_mapMoleculeToCell, newCoordsNumber*sizeof(int));
 
@@ -171,23 +173,26 @@ void CallMolInterGPU(VariablesCUDA *vars,
   size_t temp_storage_bytes = 0;
   // LJ ReduceSum
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-                    gpu_final_LJEn, energyVectorLen);
+                    gpu_final_LJEnOld, energyVectorLen);
   CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-                    gpu_final_LJEn, energyVectorLen);
+                    gpu_final_LJEnOld, energyVectorLen);
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(&LJEnOld, gpu_final_LJEn, sizeof(double),
+  CubDebugExit(cudaMemcpy(&LJEnOld, gpu_final_LJEnOld, sizeof(double),
                           cudaMemcpyDeviceToHost));
   if (electrostatic) {
     // Real Term ReduceSum
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-                      gpu_final_REn, energyVectorLen);
+                      gpu_final_REnOld, energyVectorLen);
     // Copy back the result to CPU ! :)
-    CubDebugExit(cudaMemcpy(&REnOld, gpu_final_REn, sizeof(double),
+    CubDebugExit(cudaMemcpy(&REnOld, gpu_final_REnOld, sizeof(double),
                             cudaMemcpyDeviceToHost));
   } else {
     REnOld = 0.0;
   }
+
+  cudaMemset(gpu_LJEn, 0, sizeof(double)*energyVectorLen);
+  cudaMemset(gpu_REn, 0, sizeof(double)*energyVectorLen);
 
   MolInterGPUNewCoordinates <<< blocksPerGrid, threadsPerBlock>>>(
       moleculeStart,
@@ -247,24 +252,25 @@ void CallMolInterGPU(VariablesCUDA *vars,
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
+  CUFREE(d_temp_storage);
   // ReduceSum
-  void * d_temp_storage = NULL;
-  size_t temp_storage_bytes = 0;
+  d_temp_storage = NULL;
+  temp_storage_bytes = 0;
   // LJ ReduceSum
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-                    gpu_final_LJEn, energyVectorLen);
+                    gpu_final_LJEnNew, energyVectorLen);
   CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-                    gpu_final_LJEn, energyVectorLen);
+                    gpu_final_LJEnNew, energyVectorLen);
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(&LJEnNew, gpu_final_LJEn, sizeof(double),
+  CubDebugExit(cudaMemcpy(&LJEnNew, gpu_final_LJEnNew, sizeof(double),
                           cudaMemcpyDeviceToHost));
   if (electrostatic) {
     // Real Term ReduceSum
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-                      gpu_final_REn, energyVectorLen);
+                      gpu_final_REnNew, energyVectorLen);
     // Copy back the result to CPU ! :)
-    CubDebugExit(cudaMemcpy(&REnNew, gpu_final_REn, sizeof(double),
+    CubDebugExit(cudaMemcpy(&REnNew, gpu_final_REnNew, sizeof(double),
                             cudaMemcpyDeviceToHost));
   } else {
     REnNew = 0.0;
@@ -276,14 +282,17 @@ void CallMolInterGPU(VariablesCUDA *vars,
   CUFREE(gpu_particleKind);
   CUFREE(gpu_particleMol);
   CUFREE(gpu_LJEn);
-  CUFREE(gpu_final_LJEn);
+  CUFREE(gpu_final_LJEnOld);
+  CUFREE(gpu_final_LJEnNew);
+
   CUFREE(gpu_mapMoleculeToCell);
   CUFREE(vars->gpu_nx);
   CUFREE(vars->gpu_ny);
   CUFREE(vars->gpu_nz);
   if (electrostatic) {
     CUFREE(gpu_REn);
-    CUFREE(gpu_final_REn);
+    CUFREE(gpu_final_REnOld);
+    CUFREE(gpu_final_REnNew);
   }
   CUFREE(gpu_neighborList);
   CUFREE(gpu_cellStartIndex);
