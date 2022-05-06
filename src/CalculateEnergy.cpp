@@ -679,12 +679,12 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                 num::qqFact;
 
             if (qi_qj_fact != 0.0) {
-              tempREn += -forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
+              tempREnOld += -forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
                          particleKind[nIndex[i]], qi_qj_fact, lambdaCoulomb, box);
             }
           }
 
-          tempLJEn += -forcefield.particles->CalcEn(distSq, particleKind[atom],
+          tempLJEnOld += -forcefield.particles->CalcEn(distSq, particleKind[atom],
                       particleKind[nIndex[i]], lambdaVDW);
         }
       }
@@ -729,13 +729,13 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                 particleCharge[nIndex[i]] * num::qqFact;
 
             if (qi_qj_fact != 0.0) {
-              tempREn += forcefield.particles->CalcCoulomb(distSq,
+              tempREnNew += forcefield.particles->CalcCoulomb(distSq,
                          particleKind[atom], particleKind[nIndex[i]],
                          qi_qj_fact, lambdaCoulomb, box);
             }
           }
 
-          tempLJEn += forcefield.particles->CalcEn(distSq,
+          tempLJEnNew += forcefield.particles->CalcEn(distSq,
                       particleKind[atom],
                       particleKind[nIndex[i]], lambdaVDW);
         }
