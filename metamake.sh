@@ -93,6 +93,16 @@ done
 shift "$(( OPTIND - 1 ))"
 
 while [ "$#" -ne 0 ]; do
+	if [[ "$1" == 'CPU' ]]; then
+		ENSEMBLES+="NVT NPT GCMC GEMC "
+		shift
+		continue
+	fi
+	if [[ "$1" == 'GPU' ]]; then
+		ENSEMBLES+="GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC "
+		shift
+		continue
+	fi
     case "$1" in
         NVT|NPT|GCMC|GEMC|GPU_NVT|GPU_NPT|GPU_GCMC|GPU_GEMC)                   # or just:  -t|--t*)
             ENSEMBLES+="$1 ";;
@@ -161,7 +171,7 @@ fi
 
 # If user hasn't specified any ensemble, cmake automatically compiles all ensembles.
 # This will ensure we don't print empty for ensembles.
-if [ -z "$ENSEMBLES"]
+if [ -z "$ENSEMBLES" ];
 then
 	ENSEMBLES="NVT NPT GCMC GEMC GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC"
 fi
