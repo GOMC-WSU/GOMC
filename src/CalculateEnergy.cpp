@@ -207,7 +207,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   forcefield.sc_power, box);
 
   for (auto & mol : cellVector){
-      std::cout << "Mol " << mol << std::endl;
+      std::cout << "Box " << box <<  " Mol " << mol << std::endl;
       double tempREnMol = 0.0, tempLJEnMol = 0.0;
       double tempREnMolAbb = 0.0, tempLJEnMolAbb = 0.0;
       uint length = mols.GetKind(mol).NumAtoms();
