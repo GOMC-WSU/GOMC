@@ -174,6 +174,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTER);
   double tempREn = 0.0, tempLJEn = 0.0;
+  double sumREn = 0.0, sumLJEn = 0.0;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector< std::vector<int> > neighborList;
@@ -202,6 +203,20 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
+
+  for (auto & mol : cellVector){
+      double tempREnMol = 0.0, tempLJEnMol = 0.0;
+      CallMolInterGPU(forcefield.particles->getCUDAVars(), 
+                  mol, length, cellVector, cellStartIndex,
+                  neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
+                  particleKind, particleMol, sumREn, sumLJEn, forcefield.sc_coul,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
+                  forcefield.sc_power, box);
+      sumREn += tempREnMol;
+      sumLJEn += tempLJEnMol;
+  }
+  assert (sumREn == tempREn);
+  assert (sumLJEn == tempLJEn);
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
