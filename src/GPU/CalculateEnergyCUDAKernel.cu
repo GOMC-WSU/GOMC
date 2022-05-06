@@ -424,7 +424,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
-  printf("NC %d BOX %d\n",neighborCell, box );
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
   int endIndex = gpu_cellStartIndex[neighborCell + 1];
