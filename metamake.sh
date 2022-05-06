@@ -173,7 +173,11 @@ fi
 # This will ensure we don't print empty for ensembles.
 if [ -z "$ENSEMBLES" ];
 then
-	ENSEMBLES="NVT NPT GCMC GEMC GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC"
+	ENSEMBLES="NVT NPT GCMC GEMC"
+	if (( use_cuda ))
+	then
+		ENSEMBLES+=" GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC"
+	fi
 fi
 echo "Ensembles To Compile: $ENSEMBLES"
 
