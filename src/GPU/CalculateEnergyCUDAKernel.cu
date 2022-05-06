@@ -834,6 +834,7 @@ __global__ void MolInterGPUOldCoordinates(int gpu_moleculeStart,
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
+    if (box == 1)
       printf("curr coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_x[currentParticle], 
       gpu_y[currentParticle], gpu_z[currentParticle]);
     if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
