@@ -27,6 +27,8 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#include <assert.h>     /* assert */
+
 #endif
 #include "GOMCEventsProfile.h"
 #define NUMBER_OF_NEIGHBOR_CELL 27
@@ -235,10 +237,10 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       sumREnMolAbb += tempREnMolAbb;
       sumLJEnMolAbb += tempLJEnMolAbb;
   }
-  assert (sumREn == tempREn);
-  assert (sumLJEn == tempLJEn);
-  assert (sumREnMolAbb == tempREn);
-  assert (sumLJEnMolAbb == tempLJEn);
+  assert(sumREn == tempREn);
+  assert(sumLJEn == tempLJEn);
+  assert(sumREnMolAbb == tempREn);
+  assert(sumLJEnMolAbb == tempLJEn);
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
