@@ -300,7 +300,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
 }
 
 
-void CallMolInterGPU(VariablesCUDA *vars,
+void CallMolInterSummationGPU(VariablesCUDA *vars,
                     int moleculeStart,
                     int moleculeLength,
                      const std::vector<int> &cellVector,
