@@ -227,7 +227,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, tempREnMolAbb, tempLJEnMolAbb, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
-                  /*
+                  */
       sumREn += tempREnMol;
       sumLJEn += tempLJEnMol;
       sumREnMolAbb += tempREnMolAbb;
