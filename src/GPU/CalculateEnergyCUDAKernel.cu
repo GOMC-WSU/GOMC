@@ -17,7 +17,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #define NUMBER_OF_NEIGHBOR_CELL 27
 
 using namespace cub;
-/*
+
 void CallMolInterGPU(VariablesCUDA *vars,
                     int moleculeStart,
                     int moleculeLength,
@@ -208,7 +208,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
   CUFREE(gpu_neighborList);
   CUFREE(gpu_cellStartIndex);
 }
-*/
+
 
 void CallMolInterGPU(VariablesCUDA *vars,
                     int moleculeStart,
@@ -655,7 +655,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   }
   gpu_LJEn[threadID] = LJEn;
 }
-/*
+
 __global__ void MolInterGPU(int gpu_moleculeStart,
                             int gpu_moleculeLength,
                             int *gpu_cellStartIndex,
@@ -779,6 +779,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
       }
     }
   }
+  /*
   currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
@@ -842,12 +843,13 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
       }
     }
   }
+  */
   if(electrostatic) {
     gpu_REn[threadID] = REn;
   }
   gpu_LJEn[threadID] = LJEn;
 }
-*/
+
 __global__ void MolInterGPU(int gpu_moleculeStart,
                             int gpu_moleculeLength,
                             int *gpu_cellStartIndex,

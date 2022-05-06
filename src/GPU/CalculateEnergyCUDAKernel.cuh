@@ -30,7 +30,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      double sc_alpha,
                      uint sc_power,
                      uint const box);
-/*
+
 void CallMolInterGPU(VariablesCUDA *vars,
                     int moleculeStart,
                     int moleculeLength,
@@ -53,7 +53,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
                      double sc_alpha,
                      uint sc_power,
                      uint const box);
-*/
+
 
 __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             int *gpu_cellVector,
@@ -102,7 +102,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
                             int box);
-                            
+
 void CallMolInterGPU(VariablesCUDA *vars,
                     int moleculeStart,
                     int moleculeLength,
@@ -220,7 +220,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
                             int box);
-/*
+
 __global__ void MolInterGPU(int gpu_moleculeStart,
                             int gpu_moleculeLength,
                             int *gpu_cellStartIndex,
@@ -275,7 +275,7 @@ __global__ void MolInterGPU(int gpu_moleculeStart,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
                             int box);
-                            */
+                            
 __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
                                  double qi_qj_fact, double gpu_rCutLow,
                                  int gpu_ewald, int gpu_VDW_Kind,

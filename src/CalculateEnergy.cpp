@@ -175,6 +175,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTER);
   double tempREn = 0.0, tempLJEn = 0.0;
   double sumREn = 0.0, sumLJEn = 0.0;
+  double sumREnMol = 0.0, sumLJEnMol = 0.0;
+  double sumREnMolAbb = 0.0, sumLJEnMolAbb = 0.0;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector< std::vector<int> > neighborList;
@@ -206,6 +208,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   for (auto & mol : cellVector){
       double tempREnMol = 0.0, tempLJEnMol = 0.0;
+      double tempREnMolAbb = 0.0, tempLJEnMolAbb = 0.0;
       uint length = mols.GetKind(mol).NumAtoms();
 //    uint start = mols.MolStart(molIndex);
       CallMolInterGPU(forcefield.particles->getCUDAVars(), 
@@ -214,11 +217,29 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, sumREn, sumLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
+      CallMolInterGPU(forcefield.particles->getCUDAVars(), 
+                  mol, length, cellVector, cellStartIndex,
+                  neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
+                  particleKind, particleMol, sumREn, sumLJEn, forcefield.sc_coul,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
+                  forcefield.sc_power, box);
+    XYZArray molCoords;
+    std::vector<int> molCoordsToCell;
+    CallMolInterGPU(forcefield.particles->getCUDAVars(), 
+                  start, length, cellVector, cellStartIndex,
+                  neighborList, currentCoords, molCoords, mapParticleToCell, molCoordsToCell, currentAxes, electrostatic, particleCharge,
+                  particleKind, particleMol, tempREnMolAbb, tempLJEnMolAbb, forcefield.sc_coul,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
+                  forcefield.sc_power, box);
       sumREn += tempREnMol;
       sumLJEn += tempLJEnMol;
+      sumREnAbb += tempREnMolAbb;
+      sumLJEnAbb += tempLJEnMolAbb;
   }
   assert (sumREn == tempREn);
   assert (sumLJEn == tempLJEn);
+  assert (sumREnAbb == tempREn);
+  assert (sumLJEnAbb == tempLJEn);
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
