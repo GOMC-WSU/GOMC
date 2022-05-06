@@ -241,7 +241,12 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   } else {
     std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
   }
-
+  if (sumLJEn != tempLJEn){
+    std::cout << "sumLJEn not eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
+    exit(1);
+  } else {
+    std::cout << "sumLJEn eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
+  }
   assert(sumREn == tempREn);
   assert(sumLJEn == tempLJEn);
   //assert(sumREnMolAbb == tempREn);
