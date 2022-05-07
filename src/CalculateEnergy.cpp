@@ -204,41 +204,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
-
-  double sumREn = 0.0, sumLJEn = 0.0;
-  double sumREnMol = 0.0, sumLJEnMol = 0.0;
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
-  MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-  while(thisMol!=end){
-      uint mol = *thisMol;
-      std::cout << "Box " << box <<  " Mol " << mol << std::endl;
-      double tempREnMol = 0.0, tempLJEnMol = 0.0;
-      uint length = mols.GetKind(mol).NumAtoms();
-      uint start = mols.MolStart(mol);
-                        
-      CallMolInterSummationGPU(forcefield.particles->getCUDAVars(), 
-                  start, length, mapParticleToCell, cellVector, cellStartIndex,
-                  neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
-                  particleKind, particleMol, tempREnMol, tempLJEnMol, forcefield.sc_coul,
-                  forcefield.sc_sigma_6, forcefield.sc_alpha,
-                  forcefield.sc_power, box);
-                  
-      sumREn += tempREnMol;
-      sumLJEn += tempLJEnMol;
-      thisMol++;
-  }
-  if (fabs(sumREn - tempREn) >= 0.001){
-    std::cout << "sumREn not eq tempRen" << sumREn << " " << tempREn << std::endl;
-    exit(1);
-  } else {
-    std::cout << "sumREn eq tempRen" << sumREn << " " << tempREn << std::endl;
-  }
-  if (fabs(sumLJEn - tempLJEn) >= 0.001){
-    std::cout << "sumLJEn not eq tempLJEn " << sumLJEn << " " << tempLJEn << std::endl;
-    exit(1);
-  } else {
-    std::cout << "sumLJEn eq tempLJEn" << sumLJEn << " " << tempLJEn << std::endl;
-  }
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
@@ -660,18 +625,26 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                             NonOrthAxes->cellBasis_Inv[box].y,
                             NonOrthAxes->cellBasis_Inv[box].z);
     }
-
-    CallMolInterGPU(forcefield.particles->getCUDAVars(), 
-                  start, length, cellVector, cellStartIndex,
-                  neighborList, currentCoords, molCoords, 
-                  mapParticleToCell, molCoordsToCell, currentAxes, 
-                  electrostatic, particleCharge,
-                  particleKind, particleMol, 
-                  tempREnOld, tempLJEnOld, 
-                  tempREnNew, tempLJEnNew,
-                  forcefield.sc_coul,
+      CallMolInterSummationGPU(forcefield.particles->getCUDAVars(), 
+                  start, length, mapParticleToCell, cellVector, cellStartIndex,
+                  neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
+                  particleKind, particleMol, tempREnOld, tempLJEnOld, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
+  std::cout << "LJ EN OLD" << tempLJEnOld << std::endl;
+  std::cout << "R EN OLD" << tempREnOld << std::endl;
+      exit(1);
+      CallMolInterGPU(forcefield.particles->getCUDAVars(), 
+                    start, length, cellVector, cellStartIndex,
+                    neighborList, currentCoords, molCoords, 
+                    mapParticleToCell, molCoordsToCell, currentAxes, 
+                    electrostatic, particleCharge,
+                    particleKind, particleMol, 
+                    tempREnOld, tempLJEnOld, 
+                    tempREnNew, tempLJEnNew,
+                    forcefield.sc_coul,
+                    forcefield.sc_sigma_6, forcefield.sc_alpha,
+                    forcefield.sc_power, box);
 
 #else
     for (uint p = 0; p < length; ++p) {
