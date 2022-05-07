@@ -150,7 +150,6 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
     BoxDimensions const& boxAxes)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    std::cout << " Calling box inter " << b << std::endl;
     //calculate LJ interaction and real term of electrostatic interaction
     potential = BoxInter(potential, coords, boxAxes, b);
     //calculate reciprocal term of electrostatic interaction
@@ -684,12 +683,12 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                 num::qqFact;
 
             if (qi_qj_fact != 0.0) {
-              tempREnOld += -forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
+              tempREnOld += forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
                          particleKind[nIndex[i]], qi_qj_fact, lambdaCoulomb, box);
             }
           }
 
-          tempLJEnOld += -forcefield.particles->CalcEn(distSq, particleKind[atom],
+          tempLJEnOld += forcefield.particles->CalcEn(distSq, particleKind[atom],
                       particleKind[nIndex[i]], lambdaVDW);
         }
       }
@@ -749,13 +748,8 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
-  std::cout << "LJ EN OLD" << tempLJEnOld << std::endl;
-  std::cout << "LJ EN NEW" << tempLJEnNew << std::endl;
-  std::cout << "R EN OLD" << tempREnOld << std::endl;
-  std::cout << "R EN NEW" << tempREnNew << std::endl;
-  exit(1);
-  inter_LJ.energy = tempLJEnOld + tempLJEnNew;
-  inter_coulomb.energy = tempREnOld + tempREnNew;
+  inter_LJ.energy = tempLJEnNew - tempLJEnOld;
+  inter_coulomb.energy = tempREnNew - tempREnOld;
   return overlap;
 }
 

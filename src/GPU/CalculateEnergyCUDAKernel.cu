@@ -131,7 +131,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
                                 boxAxes.GetAxis(box).y * 0.5,
                                 boxAxes.GetAxis(box).z * 0.5);
 
-  MolInterGPUNewCoordinates <<< blocksPerGrid, threadsPerBlock>>>(
+  MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(
       moleculeStart,
       moleculeLength,
       gpu_cellStartIndex,
@@ -220,7 +220,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
-  MolInterGPUNewCoordinates <<< blocksPerGrid, threadsPerBlock>>>(
+  MolInterGPU <<< blocksPerGrid, threadsPerBlock>>>(
       moleculeStart,
       moleculeLength,
       gpu_cellStartIndex,
@@ -775,136 +775,8 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   }
   gpu_LJEn[threadID] = LJEn;
 }
-__global__ void MolInterGPUOldCoordinates(int gpu_moleculeStart,
-                            int gpu_moleculeLength,
-                            int *gpu_cellStartIndex,
-                            int *gpu_cellVector,
-                            int *gpu_neighborList,
-                            int numberOfCells,
-                            double *gpu_x,
-                            double *gpu_y,
-                            double *gpu_z,
-                            int *gpu_mapParticleToCell,
-                            double3 axis,
-                            double3 halfAx,
-                            bool electrostatic,
-                            double *gpu_particleCharge,
-                            int *gpu_particleKind,
-                            int *gpu_particleMol,
-                            double *gpu_REn,
-                            double *gpu_LJEn,
-                            double *gpu_sigmaSq,
-                            double *gpu_epsilon_Cn,
-                            double *gpu_n,
-                            int *gpu_VDW_Kind,
-                            int *gpu_isMartini,
-                            int *gpu_count,
-                            double *gpu_rCut,
-                            double *gpu_rCutCoulomb,
-                            double *gpu_rCutLow,
-                            double *gpu_rOn,
-                            double *gpu_alpha,
-                            int *gpu_ewald,
-                            double *gpu_diElectric_1,
-                            int *gpu_nonOrth,
-                            double *gpu_cell_x,
-                            double *gpu_cell_y,
-                            double *gpu_cell_z,
-                            double *gpu_Invcell_x,
-                            double *gpu_Invcell_y,
-                            double *gpu_Invcell_z,
-                            bool sc_coul,
-                            double sc_sigma_6,
-                            double sc_alpha,
-                            uint sc_power,
-                            double *gpu_rMin,
-                            double *gpu_rMaxSq,
-                            double *gpu_expConst,
-                            int *gpu_molIndex,
-                            double *gpu_lambdaVDW,
-                            double *gpu_lambdaCoulomb,
-                            bool *gpu_isFraction,
-                            int box)
-{
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  double REn = 0.0, LJEn = 0.0;
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
-  int currentParticleIndex = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  int currentCell = gpu_mapParticleToCell[gpu_moleculeStart + currentParticleIndex];
-
-  //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  //int nCellIndex = blockIdx.x;
-  int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
-      if (threadIdx.x == 0){
-        printf("CS %d\n", currentCell);
-      }
-      if (threadIdx.x == 0){
-        printf("NS %d\n", neighborCell);
-      }
-  // calculate number of particles inside neighbor Cell
-  int particlesInsideNeighboringCells;
-  int endIndex = gpu_cellStartIndex[neighborCell + 1];
-  particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
-
-  // total number of pairs
-  // Energy of molecule at current coordinates
-  int numberOfPairs = particlesInsideNeighboringCells;
-  for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
-    int neighborParticleIndex = pairIndex ;
-
-    // global atom index
-    int currentParticle = gpu_moleculeStart + currentParticleIndex;
-    int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-    if (box == 1)
-      printf("curr coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_x[currentParticle], 
-      gpu_y[currentParticle], gpu_z[currentParticle]);
-    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
-      // Check if they are within rcut
-      double distSq = 0.0;
-      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
-                   currentParticle, neighborParticle,
-                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
-                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
-                   gpu_Invcell_z)) {
-        printf("curr dist %f\n", distSq);
-        int kA = gpu_particleKind[currentParticle];
-        int kB = gpu_particleKind[neighborParticle];
-        int mA = gpu_particleMol[currentParticle];
-        int mB = gpu_particleMol[neighborParticle];
-
-        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
-                                              gpu_molIndex, gpu_lambdaVDW);
-        LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-                          gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
-                          gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
-                          sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
-
-        if(electrostatic) {
-          double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
-          if(qi_qj_fact != 0.0) {
-            qi_qj_fact *= qqFactGPU;
-            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
-                                   gpu_isFraction, gpu_molIndex,
-                                   gpu_lambdaCoulomb);
-            REn += CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
-                                  gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
-                                  gpu_rCutCoulomb[box], gpu_isMartini[0],
-                                  gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
-                                  sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
-                                  gpu_count[0]);
-          }
-        }
-      }
-    }
-  }
-  if(electrostatic) {
-    gpu_REn[threadID] = REn;
-  }
-  gpu_LJEn[threadID] = LJEn;
-}
-
-__global__ void MolInterGPUNewCoordinates(int gpu_moleculeStart,
+__global__ void MolInterGPU(int gpu_moleculeStart,
                             int gpu_moleculeLength,
                             int *gpu_cellStartIndex,
                             int *gpu_cellVector,
@@ -967,12 +839,6 @@ __global__ void MolInterGPUNewCoordinates(int gpu_moleculeStart,
   int currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
 
   int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
-      if (threadIdx.x == 0){
-        printf("CS %d\n", currentCell);
-      }
-      if (threadIdx.x == 0){
-        printf("NS %d\n", neighborCell);
-      }
   // calculate number of particles inside neighbor Cell
   int endIndex = gpu_cellStartIndex[neighborCell + 1];
   int particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
@@ -985,9 +851,6 @@ __global__ void MolInterGPUNewCoordinates(int gpu_moleculeStart,
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-    if (box == 1)
-      printf("new coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_nx[currentParticleIndex], 
-      gpu_ny[currentParticleIndex], gpu_nz[currentParticleIndex]);
     if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       double distSq = 0.0;
@@ -998,204 +861,6 @@ __global__ void MolInterGPUNewCoordinates(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-        printf("new dist %f\n", distSq);
-
-        int kA = gpu_particleKind[currentParticle];
-        int kB = gpu_particleKind[neighborParticle];
-        int mA = gpu_particleMol[currentParticle];
-        int mB = gpu_particleMol[neighborParticle];
-
-        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
-                                              gpu_molIndex, gpu_lambdaVDW);
-        LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-                          gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
-                          gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
-                          sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
-
-        if(electrostatic) {
-          double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
-          if(qi_qj_fact != 0.0) {
-            qi_qj_fact *= qqFactGPU;
-            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
-                                   gpu_isFraction, gpu_molIndex,
-                                   gpu_lambdaCoulomb);
-            REn += CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
-                                  gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
-                                  gpu_rCutCoulomb[box], gpu_isMartini[0],
-                                  gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
-                                  sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
-                                  gpu_count[0]);
-          }
-        }
-      }
-    }
-  }
-  if(electrostatic) {
-    gpu_REn[threadID] = REn;
-  }
-  gpu_LJEn[threadID] = LJEn;
-}
-
-__global__ void MolInterGPU(int gpu_moleculeStart,
-                            int gpu_moleculeLength,
-                            int *gpu_cellStartIndex,
-                            int *gpu_cellVector,
-                            int *gpu_neighborList,
-                            int numberOfCells,
-                            double *gpu_x,
-                            double *gpu_y,
-                            double *gpu_z,
-                            double *gpu_nx,
-                            double *gpu_ny,
-                            double *gpu_nz,
-                            int *gpu_mapParticleToCell,
-                            int *gpu_mapMoleculeToCell,
-                            double3 axis,
-                            double3 halfAx,
-                            bool electrostatic,
-                            double *gpu_particleCharge,
-                            int *gpu_particleKind,
-                            int *gpu_particleMol,
-                            double *gpu_REn,
-                            double *gpu_LJEn,
-                            double *gpu_sigmaSq,
-                            double *gpu_epsilon_Cn,
-                            double *gpu_n,
-                            int *gpu_VDW_Kind,
-                            int *gpu_isMartini,
-                            int *gpu_count,
-                            double *gpu_rCut,
-                            double *gpu_rCutCoulomb,
-                            double *gpu_rCutLow,
-                            double *gpu_rOn,
-                            double *gpu_alpha,
-                            int *gpu_ewald,
-                            double *gpu_diElectric_1,
-                            int *gpu_nonOrth,
-                            double *gpu_cell_x,
-                            double *gpu_cell_y,
-                            double *gpu_cell_z,
-                            double *gpu_Invcell_x,
-                            double *gpu_Invcell_y,
-                            double *gpu_Invcell_z,
-                            bool sc_coul,
-                            double sc_sigma_6,
-                            double sc_alpha,
-                            uint sc_power,
-                            double *gpu_rMin,
-                            double *gpu_rMaxSq,
-                            double *gpu_expConst,
-                            int *gpu_molIndex,
-                            double *gpu_lambdaVDW,
-                            double *gpu_lambdaCoulomb,
-                            bool *gpu_isFraction,
-                            int box)
-{
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  double REn = 0.0, LJEn = 0.0;
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
-
-  int currentParticleIndex = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  int currentCell = gpu_mapParticleToCell[gpu_moleculeStart + currentParticleIndex];
-
-  //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  //int nCellIndex = blockIdx.x;
-  int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
-      if (threadIdx.x == 0){
-        printf("CS %d\n", currentCell);
-      }
-      if (threadIdx.x == 0){
-        printf("NS %d\n", neighborCell);
-      }
-  // calculate number of particles inside neighbor Cell
-  int particlesInsideNeighboringCells;
-  int endIndex = gpu_cellStartIndex[neighborCell + 1];
-  particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
-
-  // total number of pairs
-  // Energy of molecule at current coordinates
-  int numberOfPairs = particlesInsideNeighboringCells;
-  for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
-    int neighborParticleIndex = pairIndex ;
-
-    // global atom index
-    int currentParticle = gpu_moleculeStart + currentParticleIndex;
-    int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-    if (box == 1)
-      printf("curr coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_x[currentParticle], 
-      gpu_y[currentParticle], gpu_z[currentParticle]);
-    if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
-      // Check if they are within rcut
-      double distSq = 0.0;
-      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
-                   currentParticle, neighborParticle,
-                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
-                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
-                   gpu_Invcell_z)) {
-                    if (box == 1)
-        printf("curr dist %f\n", distSq);
-        int kA = gpu_particleKind[currentParticle];
-        int kB = gpu_particleKind[neighborParticle];
-        int mA = gpu_particleMol[currentParticle];
-        int mB = gpu_particleMol[neighborParticle];
-
-        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
-                                              gpu_molIndex, gpu_lambdaVDW);
-        LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-                          gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
-                          gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
-                          sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
-
-        if(electrostatic) {
-          double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
-          if(qi_qj_fact != 0.0) {
-            qi_qj_fact *= qqFactGPU;
-            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
-                                   gpu_isFraction, gpu_molIndex,
-                                   gpu_lambdaCoulomb);
-            REn += CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
-                                  gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
-                                  gpu_rCutCoulomb[box], gpu_isMartini[0],
-                                  gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
-                                  sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
-                                  gpu_count[0]);
-          }
-        }
-      }
-    }
-  }
-  currentCell = gpu_mapMoleculeToCell[currentParticleIndex];
-  //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  //int nCellIndex = blockIdx.x;
-  neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
-
-  // calculate number of particles inside neighbor Cell
-  endIndex = gpu_cellStartIndex[neighborCell + 1];
-  particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
-
-  // Energy of molecule at new coordinates
-  numberOfPairs = particlesInsideNeighboringCells;
-  for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
-    int neighborParticleIndex = pairIndex ;
-
-    // global atom index
-    int currentParticle = gpu_moleculeStart + currentParticleIndex;
-    int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-    if (box == 1)
-      printf("new coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_nx[currentParticleIndex], 
-      gpu_ny[currentParticleIndex], gpu_nz[currentParticleIndex]);
-    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
-      // Check if they are within rcut
-      double distSq = 0.0;
-
-      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
-                  gpu_nx, gpu_ny, gpu_nz,
-                  neighborParticle, currentParticleIndex,
-                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
-                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
-                   gpu_Invcell_z)) {
-        printf("new dist %f\n", distSq);
-
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];
@@ -1293,12 +958,6 @@ __global__ void MolInterSummationKernelGPU(int gpu_moleculeStart,
   //int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   //int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[currentCell*NUMBER_OF_NEIGHBOR_CELL + blockIdx.x % NUMBER_OF_NEIGHBOR_CELL];
-      if (threadIdx.x == 0){
-        printf("CS %d\n", currentCell);
-      }
-      if (threadIdx.x == 0){
-        printf("NS %d\n", neighborCell);
-      }
   // calculate number of particles inside neighbor Cell
   int particlesInsideNeighboringCells;
   int endIndex = gpu_cellStartIndex[neighborCell + 1];
@@ -1313,9 +972,6 @@ __global__ void MolInterSummationKernelGPU(int gpu_moleculeStart,
     // global atom index
     int currentParticle = gpu_moleculeStart + currentParticleIndex;
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-    if (box == 1)
-      printf("curr coord %d %d %f %f %f\n", currentParticle, neighborParticle, gpu_x[currentParticle], 
-      gpu_y[currentParticle], gpu_z[currentParticle]);
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       double distSq = 0.0;
@@ -1324,7 +980,6 @@ __global__ void MolInterSummationKernelGPU(int gpu_moleculeStart,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-        printf("curr dist %f\n", distSq);
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];
@@ -1361,137 +1016,6 @@ __global__ void MolInterSummationKernelGPU(int gpu_moleculeStart,
   gpu_LJEn[threadID] = LJEn;
 }
 
-
-__global__ void MolInterGPU(int gpu_moleculeStart,
-                            int gpu_moleculeLength,
-                            int *gpu_cellStartIndex,
-                            int *gpu_cellVector,
-                            int *gpu_neighborList,
-                            int numberOfCells,
-                            double *gpu_x,
-                            double *gpu_y,
-                            double *gpu_z,
-                            double3 axis,
-                            double3 halfAx,
-                            bool electrostatic,
-                            double *gpu_particleCharge,
-                            int *gpu_particleKind,
-                            int *gpu_particleMol,
-                            double *gpu_REn,
-                            double *gpu_LJEn,
-                            double *gpu_sigmaSq,
-                            double *gpu_epsilon_Cn,
-                            double *gpu_n,
-                            int *gpu_VDW_Kind,
-                            int *gpu_isMartini,
-                            int *gpu_count,
-                            double *gpu_rCut,
-                            double *gpu_rCutCoulomb,
-                            double *gpu_rCutLow,
-                            double *gpu_rOn,
-                            double *gpu_alpha,
-                            int *gpu_ewald,
-                            double *gpu_diElectric_1,
-                            int *gpu_nonOrth,
-                            double *gpu_cell_x,
-                            double *gpu_cell_y,
-                            double *gpu_cell_z,
-                            double *gpu_Invcell_x,
-                            double *gpu_Invcell_y,
-                            double *gpu_Invcell_z,
-                            bool sc_coul,
-                            double sc_sigma_6,
-                            double sc_alpha,
-                            uint sc_power,
-                            double *gpu_rMin,
-                            double *gpu_rMaxSq,
-                            double *gpu_expConst,
-                            int *gpu_molIndex,
-                            double *gpu_lambdaVDW,
-                            double *gpu_lambdaCoulomb,
-                            bool *gpu_isFraction,
-                            int box)
-{
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  double REn = 0.0, LJEn = 0.0;
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
-
-  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
-  int nCellIndex = blockIdx.x;
-  int neighborCell = gpu_neighborList[nCellIndex];
-  // calculate number of particles inside neighbor Cell
-  int particlesInsideCurrentCell, particlesInsideNeighboringCells;
-  int endIndex = gpu_cellStartIndex[neighborCell + 1];
-  particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
-
-  // Calculate number of particles inside current Cell
-  endIndex = gpu_cellStartIndex[currentCell + 1];
-  particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
-  
-  // total number of pairs
-  int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
-
-  for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
-    int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
-    int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
-
-    int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
-    int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-
-    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle] && gpu_particleMol[currentParticle] == gpu_particleMol[gpu_moleculeStart]) {
-      // Check if they are within rcut
-      if (threadIdx.x == 0){
-        printf("CB %d\n", currentCell);
-      }
-      if (threadIdx.x == 0){
-        printf("NB %d\n", neighborCell);
-      }
-      // To keep total summation
-      if(currentParticle < neighborParticle ){
-      double distSq = 0.0;
-      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
-                   currentParticle, neighborParticle,
-                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
-                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
-                   gpu_Invcell_z)) {
-                    if (box == 1)
-        printf("curr dist %f\n", distSq);
-        int kA = gpu_particleKind[currentParticle];
-        int kB = gpu_particleKind[neighborParticle];
-        int mA = gpu_particleMol[currentParticle];
-        int mB = gpu_particleMol[neighborParticle];
-
-        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
-                                              gpu_molIndex, gpu_lambdaVDW);
-        LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-                          gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
-                          gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
-                          sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
-
-        if(electrostatic) {
-          double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
-          if(qi_qj_fact != 0.0) {
-            qi_qj_fact *= qqFactGPU;
-            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
-                                   gpu_isFraction, gpu_molIndex,
-                                   gpu_lambdaCoulomb);
-            REn += CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
-                                  gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
-                                  gpu_rCutCoulomb[box], gpu_isMartini[0],
-                                  gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
-                                  sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
-                                  gpu_count[0]);
-          }
-        }
-      }
-    }
-    }
-  }
-  if(electrostatic) {
-    gpu_REn[threadID] = REn;
-  }
-  gpu_LJEn[threadID] = LJEn;
-}
 __device__ double CalcCoulombGPU(double distSq,
                                  int kind1,
                                  int kind2,
