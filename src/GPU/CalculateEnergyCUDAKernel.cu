@@ -84,7 +84,8 @@ void CallMolInterGPU(VariablesCUDA *vars,
     CUMALLOC((void**) &gpu_final_REnOld, sizeof(double));
     CUMALLOC((void**) &gpu_final_REnNew, sizeof(double));
   }
-  CUMALLOC((void**) &gpu_mapMoleculeToCell, newCoordsNumber*sizeof(int));
+  CUMALLOC((void**) &gpu_mapCurrMoleculeToCell, newCoordsNumber*sizeof(int));
+  CUMALLOC((void**) &gpu_mapNewMoleculeToCell, newCoordsNumber*sizeof(int));
 
   CUMALLOC((void**) &vars->gpu_cx, newCoordsNumber*sizeof(double));
   CUMALLOC((void**) &vars->gpu_cy, newCoordsNumber*sizeof(double));
@@ -310,7 +311,9 @@ void CallMolInterGPU(VariablesCUDA *vars,
   CUFREE(gpu_final_LJEnOld);
   CUFREE(gpu_final_LJEnNew);
 
-  CUFREE(gpu_mapMoleculeToCell);
+  CUFREE(gpu_mapCurrMoleculeToCell);
+  CUFREE(gpu_mapNewMoleculeToCell);
+
   CUFREE(vars->gpu_nx);
   CUFREE(vars->gpu_ny);
   CUFREE(vars->gpu_nz);
