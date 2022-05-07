@@ -86,7 +86,7 @@ inline uint Translate::Transform()
 inline void Translate::CalcEn()
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_DISPLACE);
-  //cellList.RemoveMol(m, b, coordCurrRef);
+  cellList.RemoveMol(m, b, coordCurrRef);
   molRemoved = true;
   overlap = false;
 

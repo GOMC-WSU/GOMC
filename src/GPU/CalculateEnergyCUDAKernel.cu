@@ -25,9 +25,11 @@ void CallMolInterGPU(VariablesCUDA *vars,
                      const std::vector<int> &cellStartIndex,
                      const std::vector<std::vector<int> > &neighborList,
                      XYZArray const &currentCoords,
-                     XYZArray const &newCoords,
+                     XYZArray const &currMolCoords,
+                     XYZArray const &newMolCoords,
                      const std::vector<int> &mapCurrentCoordsToCell,
-                     const std::vector<int> &mapNewCoordsToCell,
+                     const std::vector<int> &mapCurrMolCoordsToCell,
+                     const std::vector<int> &mapNewMolCoordsToCell,
                      BoxDimensions const &boxAxes,
                      bool electrostatic,
                      const std::vector<double> &particleCharge,
@@ -54,7 +56,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REnOld, *gpu_final_LJEnOld;
   double *gpu_final_REnNew, *gpu_final_LJEnNew;
-  int *gpu_mapMoleculeToCell;
+  int *gpu_mapCurrMoleculeToCell, *gpu_mapNewMoleculeToCell;
 
   // Run the kernel
   threadsPerBlock = 256;
@@ -84,6 +86,10 @@ void CallMolInterGPU(VariablesCUDA *vars,
   }
   CUMALLOC((void**) &gpu_mapMoleculeToCell, newCoordsNumber*sizeof(int));
 
+  CUMALLOC((void**) &vars->gpu_cx, newCoordsNumber*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_cy, newCoordsNumber*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_cz, newCoordsNumber*sizeof(double));
+
   CUMALLOC((void**) &vars->gpu_nx, newCoordsNumber*sizeof(double));
   CUMALLOC((void**) &vars->gpu_ny, newCoordsNumber*sizeof(double));
   CUMALLOC((void**) &vars->gpu_nz, newCoordsNumber*sizeof(double));
@@ -95,17 +101,26 @@ void CallMolInterGPU(VariablesCUDA *vars,
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleKind, &particleKind[0], particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
+  
   cudaMemcpy(vars->gpu_x, currentCoords.x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, currentCoords.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, currentCoords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapCurrentCoordsToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_nx, newCoords.x, newCoordsNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_cx, currMolCoords.x, newCoordsNumber * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ny, newCoords.y, newCoordsNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_cy, currMolCoords.y, newCoordsNumber * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_nz, newCoords.z, newCoordsNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_cz, currMolCoords.z, newCoordsNumber * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_mapMoleculeToCell, &mapNewCoordsToCell[0], newCoordsNumber * sizeof(int),
+  cudaMemcpy(vars->gpu_nx, newMolCoords.x, newCoordsNumber * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ny, newMolCoords.y, newCoordsNumber * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_nz, newMolCoords.z, newCoordsNumber * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_mapCurrMoleculeToCell, &mapCurrMolCoordsToCell[0], newCoordsNumber * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_mapNewMoleculeToCell, &mapNewMolCoordsToCell[0], newCoordsNumber * sizeof(int),
              cudaMemcpyHostToDevice);
   double3 axis = make_double3(boxAxes.GetAxis(box).x,
                               boxAxes.GetAxis(box).y,
@@ -115,7 +130,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
                                 boxAxes.GetAxis(box).y * 0.5,
                                 boxAxes.GetAxis(box).z * 0.5);
 
-  MolInterGPUOldCoordinates <<< blocksPerGrid, threadsPerBlock>>>(
+  MolInterGPUNewCoordinates <<< blocksPerGrid, threadsPerBlock>>>(
       moleculeStart,
       moleculeLength,
       gpu_cellStartIndex,
@@ -125,7 +140,11 @@ void CallMolInterGPU(VariablesCUDA *vars,
       vars->gpu_x,
       vars->gpu_y,
       vars->gpu_z,
+      vars->gpu_cx,
+      vars->gpu_cy,
+      vars->gpu_cz,
       vars->gpu_mapParticleToCell,
+      gpu_mapCurrMoleculeToCell,
       axis,
       halfAx,
       electrostatic,
@@ -214,7 +233,7 @@ void CallMolInterGPU(VariablesCUDA *vars,
       vars->gpu_ny,
       vars->gpu_nz,
       vars->gpu_mapParticleToCell,
-      gpu_mapMoleculeToCell,
+      gpu_mapNewMoleculeToCell,
       axis,
       halfAx,
       electrostatic,

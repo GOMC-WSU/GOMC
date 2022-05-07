@@ -601,11 +601,14 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 #ifdef GOMC_CUDA
     //double tempREnOld = 0.0, tempLJEnOld = 0.0;
     //double tempREnNew = 0.0, tempLJEnNew = 0.0;
-
-    std::vector<int> cellVector, cellStartIndex, mapParticleToCell, molCoordsToCell;
+    std::vector<int> cellVector, cellStartIndex, mapParticleToCell, currMolCoordsToCell, newMolCoordsToCell;
     std::vector< std::vector<int> > neighborList;
+    XYZArray currMolCoords(length);
+
     for (uint p = 0; p < length; ++p) {
-      molCoordsToCell.push_back( cellList.PositionToCell(molCoords[p], box ));
+      currMolCoords.Set(p, currentCoords[start + p]);
+      currMolCoordsToCell.push_back( cellList.PositionToCell(currMolCoords[p], box ));
+      newMolCoordsToCell.push_back( cellList.PositionToCell(molCoords[p], box ));
     }
     cellList.GetCellListNeighbor(box, currentCoords.Count(),
                                 cellVector, cellStartIndex, mapParticleToCell);
@@ -625,19 +628,12 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                             NonOrthAxes->cellBasis_Inv[box].y,
                             NonOrthAxes->cellBasis_Inv[box].z);
     }
-      CallMolInterSummationGPU(forcefield.particles->getCUDAVars(), 
-                  start, length, mapParticleToCell, cellVector, cellStartIndex,
-                  neighborList, currentCoords, currentAxes, electrostatic, particleCharge,
-                  particleKind, particleMol, tempREnOld, tempLJEnOld, forcefield.sc_coul,
-                  forcefield.sc_sigma_6, forcefield.sc_alpha,
-                  forcefield.sc_power, box);
-  std::cout << "LJ EN OLD" << tempLJEnOld << std::endl;
-  std::cout << "R EN OLD" << tempREnOld << std::endl;
-      exit(1);
       CallMolInterGPU(forcefield.particles->getCUDAVars(), 
                     start, length, cellVector, cellStartIndex,
-                    neighborList, currentCoords, molCoords, 
-                    mapParticleToCell, molCoordsToCell, currentAxes, 
+                    neighborList, currentCoords, 
+                    currMolCoords, molCoords, 
+                    mapParticleToCell, currMolCoordsToCell, 
+                    newMolCoordsToCell, currentAxes, 
                     electrostatic, particleCharge,
                     particleKind, particleMol, 
                     tempREnOld, tempLJEnOld, 
