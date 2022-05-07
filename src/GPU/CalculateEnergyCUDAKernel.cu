@@ -317,6 +317,10 @@ void CallMolInterGPU(VariablesCUDA *vars,
   CUFREE(vars->gpu_nx);
   CUFREE(vars->gpu_ny);
   CUFREE(vars->gpu_nz);
+  CUFREE(vars->gpu_cx);
+  CUFREE(vars->gpu_cy);
+  CUFREE(vars->gpu_cz);
+
   if (electrostatic) {
     CUFREE(gpu_REn);
     CUFREE(gpu_final_REnOld);
