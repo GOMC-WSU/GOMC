@@ -834,9 +834,9 @@ __global__ void TranslateMolKernel(
   else
     WrapPBCNonOrth3(coor, axis, gpu_cell_x, gpu_cell_y, gpu_cell_z,
                     gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
-  gpu_nx[threadID] = coor.x;
-  gpu_ny[threadID] = coor.y;
-  gpu_nz[threadID] = coor.z;
+  //gpu_nx[threadID] = coor.x;
+  //gpu_ny[threadID] = coor.y;
+  //gpu_nz[threadID] = coor.z;
 }
 
 __global__ void RotateMolKernel(  
