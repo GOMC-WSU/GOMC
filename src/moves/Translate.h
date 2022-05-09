@@ -85,6 +85,11 @@ inline uint Translate::Transform()
     std::cout << newMolPos.x[i] << ", " << newMolPos.y[i]
      << ", " << newMolPos.z[i] << std::endl;
   }
+
+  for (int i = 0; i < testNMP.Count(); ++i){
+    std::cout << coordCurrRef.x[pStart+i] << ", " << coordCurrRef.y[pStart+i]
+     << ", " << coordCurrRef.z[pStart+i] << std::endl;
+  }
   std::cout << "B4 COM" << std::endl;
 
     std::cout << newCOM.x << ", " << newCOM.y
