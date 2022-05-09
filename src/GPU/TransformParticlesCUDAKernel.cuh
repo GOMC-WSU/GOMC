@@ -15,6 +15,7 @@ typedef r123::Philox4x64 RNG;
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
 #include "math.h"
+#include "BoxDimensions.h"
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                const std::vector<int8_t> &isMoleculeInvolved,

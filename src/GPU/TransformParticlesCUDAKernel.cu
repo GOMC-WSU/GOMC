@@ -435,7 +435,7 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
                                double scale)
 {
   int threadsPerBlock = 256;
-  int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
+  int blocksPerGrid = (int)(newCoordsNumber / threadsPerBlock) + 1;
 
   int newCoordsNumber = moleculeLength;
   int molCount = 1;
@@ -450,9 +450,9 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_nx, newMolPos.x, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_ny, newMolPos.y, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nz, newMolPos.z, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomx, newCOM.x, molCount * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomy, newCOM.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomz, newCOM.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomx, &newCOM.x, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomy, &newCOM.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomz, &newCOM.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
 
   double3 axis = make_double3(boxAxes.x, boxAxes.y, boxAxes.z);
   double3 halfAx = make_double3(boxAxes.x * 0.5, boxAxes.y * 0.5, boxAxes.z * 0.5);
@@ -484,9 +484,9 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
   cudaMemcpy(newMolPos.x, vars->gpu_nx, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.y, vars->gpu_ny, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.z, vars->gpu_nz, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(newCOM.x, vars->gpu_ncomx, molCount * sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(newCOM.y, vars->gpu_ncomy, molCount * sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(newCOM.z, vars->gpu_ncomz, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&newCOM.x, vars->gpu_ncomx, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&newCOM.y, vars->gpu_ncomy, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&newCOM.z, vars->gpu_ncomz, molCount * sizeof(double), cudaMemcpyDeviceToHost);
 
   CUFREE(vars->gpu_nx);
   CUFREE(vars->gpu_ny);
@@ -739,7 +739,7 @@ __global__ void TranslateMolKernel(
   
   double3 coor = make_double3(gpu_nx[threadID], gpu_ny[threadID], gpu_nz[threadID]);
   // wrap again
-  if(isOrthogonal)
+  if(*gpu_nonOrth)
     WrapPBC3(coor, axis);
   else
     WrapPBCNonOrth3(coor, axis, gpu_cell_x, gpu_cell_y, gpu_cell_z,
