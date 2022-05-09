@@ -93,6 +93,8 @@ inline uint Translate::Transform()
 #ifdef GOMC_CUDA
   CallTranslateMolRandGPU(particles->getCUDAVars(), 
                           newMolPos, newCOM, 
+                          coordCurrRef,
+                          comCurrRef,
                           boxDimRef,
                           pStart, pLen,
                           m, b, 

@@ -424,6 +424,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
 void CallTranslateMolRandGPU(VariablesCUDA *vars,
                               XYZArray &newMolPos,
                               XYZ &newCOM,
+                              XYZArray const &currentCoords,
+                              XYZArray const &currentComs,
                               BoxDimensions const &boxAxes,
                               uint moleculeStart,
                               uint moleculeLength,
@@ -439,8 +441,6 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(newCoordsNumber / threadsPerBlock) + 1;
 
-
-
   CUMALLOC((void**) &vars->gpu_nx, newCoordsNumber*sizeof(double));
   CUMALLOC((void**) &vars->gpu_ny, newCoordsNumber*sizeof(double));
   CUMALLOC((void**) &vars->gpu_nz, newCoordsNumber*sizeof(double));
@@ -448,12 +448,12 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &vars->gpu_ncomy, molCount*sizeof(double));
   CUMALLOC((void**) &vars->gpu_ncomz, molCount*sizeof(double));
 
-  cudaMemcpy(vars->gpu_nx, &vars->gpu_x[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_ny, &vars->gpu_y[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_nz, &vars->gpu_z[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_ncomx, &vars->gpu_comx[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_ncomy, &vars->gpu_comy[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_ncomz, &vars->gpu_comz[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_nx, &currentCoords.x[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ny, &currentCoords.y[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_nz, &currentCoords.z[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomx, &currentComs.x[molIndex], molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomy, &currentComs.y[molIndex], molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomz, &currentComs.z[molIndex], molCount * sizeof(double), cudaMemcpyHostToDevice);
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x,
                               boxAxes.GetAxis(box).y,
@@ -506,6 +506,8 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
 void CallRotateMolRandGPU(VariablesCUDA *vars,
                               XYZArray &newMolPos,
                               XYZ &newCOM,
+                              XYZArray const &currentCoords,
+                              XYZArray const &currentComs,
                               BoxDimensions const &boxAxes,
                               uint moleculeStart,
                               uint moleculeLength,
@@ -530,12 +532,12 @@ void CallRotateMolRandGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &vars->gpu_ncomy, molCount*sizeof(double));
   CUMALLOC((void**) &vars->gpu_ncomz, molCount*sizeof(double));
 
-  cudaMemcpy(vars->gpu_nx, &vars->gpu_x[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_ny, &vars->gpu_y[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_nz, &vars->gpu_z[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_ncomx, &vars->gpu_comx[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_ncomy, &vars->gpu_comy[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(vars->gpu_ncomz, &vars->gpu_comz[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_nx, &currentCoords.x[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ny, &currentCoords.y[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_nz, &currentCoords.z[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomx, &currentComs.x[molIndex], molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomy, &currentComs.y[molIndex], molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomz, &currentComs.z[molIndex], molCount * sizeof(double), cudaMemcpyHostToDevice);
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x,
                               boxAxes.GetAxis(box).y,
