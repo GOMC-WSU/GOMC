@@ -16,6 +16,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include "COM.h"
 #include "PRNG.h"
 #include <algorithm>
+#include "Random123Wrapper.h" //For box iterators used in initial assignment
 
 //Coordinates array
 class Coordinates : public XYZArray

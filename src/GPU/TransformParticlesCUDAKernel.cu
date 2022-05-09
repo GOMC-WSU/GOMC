@@ -811,13 +811,12 @@ __global__ void TranslateMolKernel(
   if (threadID >= moleculeLength)
     return;
 
-  double3 shiftx, shifty, shiftz;
+  double shiftx, shifty, shiftz;
   double3 randnums = SymRandomCoordsGPU(molIndex, key, step, seed);
   shiftx = max * randnums.x;
   shifty = max * randnums.y;
   shiftz = max * randnums.z;
   gpu_nx[threadID] += shiftx;
-  gpu_ny[threadID] += shifty;
   gpu_nz[threadID] += shiftz;
   if (threadIdx.x == 0){
     gpu_ncomx[threadID] += shiftx;
