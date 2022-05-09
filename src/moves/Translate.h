@@ -77,7 +77,6 @@ inline uint Translate::Transform()
 {
   GOMC_EVENT_START(1, GomcProfileEvent::TRANS_DISPLACE);
     std::cout << "B4" << std::endl;
-  std::cout << newMolPos << std::endl;
   XYZArray testNMP = newMolPos;
   XYZ testCOM = newCOM;
     std::cout << "B4 POS" << std::endl;
