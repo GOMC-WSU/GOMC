@@ -72,7 +72,7 @@ inline uint Rotate::Transform()
 #ifdef GOMC_CUDA
     newCOM = comCurrRef.Get(m);
     CallRotateMolRandGPU(particles->getCUDAVars(), 
-                          newMolPos, newCom, 
+                          newMolPos, newCOM, 
                           boxDimRef,
                           pStart, pLen,
                           m, b, 
