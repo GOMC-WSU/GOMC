@@ -63,7 +63,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
 
 void CallTranslateMolRandGPU(VariablesCUDA *vars,
                               XYZArray &newMolPos,
-                              XYZArray &newCOMs,
+                              XYZ &newCOM,
                               uint moleculeStart,
                               uint moleculeLength,
                                uint moleculeIndex,
