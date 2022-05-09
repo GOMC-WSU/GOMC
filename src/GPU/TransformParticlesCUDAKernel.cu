@@ -838,7 +838,9 @@ __global__ void TranslateMolKernel(
   printf("thread %d shift.x %f\n", threadID, shift.x);
   printf("thread %d shift.y %f\n", threadID, shift.y);
   printf("thread %d shift.z %f\n", threadID, shift.z);
-
+  printf("thread %d gpu_nx %f\n", threadID, gpu_nx[threadID]);
+  printf("thread %d gpu_ny %f\n", threadID, gpu_ny[threadID]);
+  printf("thread %d gpu_nz %f\n", threadID, gpu_nz[threadID]);
   gpu_nx[threadID] += shift.x;
   gpu_ny[threadID] += shift.y;
   gpu_nz[threadID] += shift.z;
