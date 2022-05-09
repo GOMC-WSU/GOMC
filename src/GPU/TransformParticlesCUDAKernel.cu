@@ -487,7 +487,6 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
                             vars->gpu_Invcell_z[box]);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
-  printf("newCoordsNumber %d\n",newCoordsNumber);
   cudaMemcpy(newMolPos.x, vars->gpu_nx, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.y, vars->gpu_ny, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.z, vars->gpu_nz, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
