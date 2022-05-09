@@ -72,6 +72,8 @@ inline uint Rotate::Transform()
     newCOM = comCurrRef.Get(m);
     CallRotateMolRandGPU(particles->getCUDAVars(), 
                           newMolPos, newCOM, 
+                          coordCurrRef,
+                          comCurrRef,
                           boxDimRef,
                           pStart, pLen,
                           m, b, 
