@@ -814,6 +814,7 @@ __global__ void TranslateMolKernel(
   double shiftx = scale * randnums.x;
   double shifty = scale * randnums.y;
   double shiftz = scale * randnums.z;
+  printf("thread %d shiftx %f\n", threadID, shiftx);
   gpu_nx[threadID] += shiftx;
   gpu_ny[threadID] += shifty;
   gpu_nz[threadID] += shiftz;
