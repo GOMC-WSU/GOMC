@@ -73,7 +73,20 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
                                ulong step,
                                unsigned int key,
                                ulong seed,
-                               double scale);                            
+                               double scale);         
+
+void CallRotateMolRandGPU(VariablesCUDA *vars,
+                              XYZArray &newMolPos,
+                              XYZ &newCOM,
+                              BoxDimensions const &boxAxes,
+                              uint moleculeStart,
+                              uint moleculeLength,
+                               uint moleculeIndex,
+                               uint box,
+                               ulong step,
+                               unsigned int key,
+                               ulong seed,
+                               double scale);                   
 
 __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double t_max,
@@ -145,6 +158,30 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       int8_t *gpu_isMoleculeInvolved);
 
 __global__ void TranslateMolKernel(  
+                            uint moleculeIndex,
+                            uint moleculeLength,
+                            uint key,
+                            uint step, 
+                            uint seed,
+                            double scale,                          
+                            double *gpu_nx,
+                            double *gpu_ny,
+                            double *gpu_nz,
+                            double *gpu_ncomx,
+                            double *gpu_ncomy,
+                            double *gpu_ncomz,
+                            int *gpu_nonOrth,
+                            double3 axis,
+                            double3 halfAx,
+                            double *gpu_cell_x,
+                            double *gpu_cell_y,
+                            double *gpu_cell_z,
+                            double *gpu_Invcell_x,
+                            double *gpu_Invcell_y,
+                            double *gpu_Invcell_z);
+
+
+__global__ void RotateMolKernel(  
                             uint moleculeIndex,
                             uint moleculeLength,
                             uint key,
