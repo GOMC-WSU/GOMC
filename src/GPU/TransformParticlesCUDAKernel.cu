@@ -455,8 +455,8 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_ncomy, &newCOM.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_ncomz, &newCOM.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
 
-  double3 axis = make_double3(boxAxes.GetAxis(box).x,, boxAxes..GetAxis(box).y, boxAxes..GetAxis(box).z);
-  double3 halfAx = make_double3(boxAxes.GetAxis(box).x * 0.5, boxAxes.GetAxis(box).y * 0.5, boxAxes..GetAxis(box).z * 0.5);
+  double3 axis = make_double3(boxAxes.GetAxis(box).x,, boxAxes.GetAxis(box).y, boxAxes.GetAxis(box).z);
+  double3 halfAx = make_double3(boxAxes.GetAxis(box).x * 0.5, boxAxes.GetAxis(box).y * 0.5, boxAxes.GetAxis(box).z * 0.5);
 
   TranslateMolKernel<<<blocksPerGrid, threadsPerBlock>>>(  
                             moleculeIndex,
