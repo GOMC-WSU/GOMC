@@ -448,12 +448,12 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &vars->gpu_ncomy, molCount*sizeof(double));
   CUMALLOC((void**) &vars->gpu_ncomz, molCount*sizeof(double));
 
-  cudaMemcpy(vars->gpu_nx, newMolPos.x, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ny, newMolPos.y, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_nz, newMolPos.z, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomx, &newCOM.x, molCount * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomy, &newCOM.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomz, &newCOM.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_nx, vars->gpu_x[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_ny, vars->gpu_y[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_nz, vars->gpu_z[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_ncomx, vars->gpu_comx[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_ncomy, vars->gpu_comy[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_ncomz, vars->gpu_comz[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x,
                               boxAxes.GetAxis(box).y,
@@ -530,12 +530,12 @@ void CallRotateMolRandGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &vars->gpu_ncomy, molCount*sizeof(double));
   CUMALLOC((void**) &vars->gpu_ncomz, molCount*sizeof(double));
 
-  cudaMemcpy(vars->gpu_nx, newMolPos.x, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ny, newMolPos.y, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_nz, newMolPos.z, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomx, &newCOM.x, molCount * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomy, &newCOM.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ncomz, &newCOM.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_nx, vars->gpu_x[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_ny, vars->gpu_y[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_nz, vars->gpu_z[moleculeStart], newCoordsNumber * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_ncomx, vars->gpu_comx[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_ncomy, vars->gpu_comy[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_ncomz, vars->gpu_comz[molIndex], molCount * sizeof(double), cudaMemcpyDeviceToDevice);
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x,
                               boxAxes.GetAxis(box).y,
