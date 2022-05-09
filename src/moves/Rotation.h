@@ -22,6 +22,7 @@ public:
   virtual void Accept(const uint earlyReject, const ulong step);
   virtual void PrintAcceptKind();
 private:
+  XYZ newCOM;
   Intermolecular inter_LJ, inter_Real, recip;
 };
 
@@ -69,7 +70,7 @@ inline uint Rotate::Transform()
   GOMC_EVENT_START(1, GomcProfileEvent::TRANS_ROTATE);
 
 #ifdef GOMC_CUDA
-    XYZ newCom = comRef.Get(m);
+    newCom = comCurrRef.Get(m);
     CallRotateMolRandGPU(particles->getCUDAVars(), 
                           newMolPos, newCom, 
                           boxDimRef,
