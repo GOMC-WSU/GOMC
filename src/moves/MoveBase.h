@@ -45,7 +45,7 @@ public:
     molForceRecRef(sys.molForceRecRef), velocity(sys.vel), prng(sys.prng),
     boxDimRef(sys.boxDimRef), molRef(statV.mol), particles(statV.forcefield.particles),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList), r123wrapper(sys.r123wrapper)
+    cellList(sys.cellList), r123Wrapper(sys.r123Wrapper)
   {
     atomForceNew.Init(sys.atomForceRef.Count());
     molForceNew.Init(sys.molForceRef.Count());
@@ -97,7 +97,7 @@ protected:
   XYZArray& atomForceRecRef;
   XYZArray& molForceRecRef;
   Velocity& velocity;
-  Random123Wrapper &r123wrapper;
+  Random123Wrapper &r123Wrapper;
 
   PRNG & prng;
   BoxDimensions & boxDimRef;

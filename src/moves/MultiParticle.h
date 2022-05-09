@@ -57,7 +57,7 @@ private:
   VariablesCUDA *cudaVars;
   std::vector<int> particleMol;
 #endif
-  Random123Wrapper &r123wrapper;
+  Random123Wrapper &r123Wrapper;
   const Molecules& mols;
 
   double GetCoeff();
@@ -78,7 +78,7 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
 
   newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
-  molLookup(sys.molLookup), r123wrapper(sys.r123wrapper), mols(statV.mol)
+  molLookup(sys.molLookup), r123Wrapper(sys.r123Wrapper), mols(statV.mol)
 {
   molTorqueRef.Init(sys.com.Count());
   molTorqueNew.Init(sys.com.Count());
@@ -311,8 +311,8 @@ inline uint MultiParticle::Transform()
     double r_max = moveSetRef.GetRMAX(bPick);
     CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, r_max,
                            molTorqueRef.x, molTorqueRef.y, molTorqueRef.z, inForceRange,
-                           r123wrapper.GetStep(), r123wrapper.GetKeyValue(),
-                           r123wrapper.GetSeedValue(), particleMol,
+                           r123Wrapper.GetStep(), r123Wrapper.GetKeyValue(),
+                           r123Wrapper.GetSeedValue(), particleMol,
                            newMolsPos.Count(), newCOMs.Count(),
                            boxDimRef.GetAxis(bPick).x, boxDimRef.GetAxis(bPick).y,
                            boxDimRef.GetAxis(bPick).z, newMolsPos, newCOMs,
@@ -321,8 +321,8 @@ inline uint MultiParticle::Transform()
     double t_max = moveSetRef.GetTMAX(bPick);
     CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, t_max,
                               molForceRef.x, molForceRef.y, molForceRef.z, inForceRange,
-                              r123wrapper.GetStep(), r123wrapper.GetKeyValue(),
-                              r123wrapper.GetSeedValue(), particleMol,
+                              r123Wrapper.GetStep(), r123Wrapper.GetKeyValue(),
+                              r123Wrapper.GetSeedValue(), particleMol,
                               newMolsPos.Count(), newCOMs.Count(),
                               boxDimRef.GetAxis(bPick).x, boxDimRef.GetAxis(bPick).y,
                               boxDimRef.GetAxis(bPick).z, newMolsPos, newCOMs,
@@ -443,7 +443,7 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
   double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
-  double pr = r123wrapper.GetRandomNumber(newCOMs.Count());
+  double pr = r123Wrapper.GetRandomNumber(newCOMs.Count());
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -479,7 +479,7 @@ inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb,
                  std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE;
 
   if (forceInRange) {
-    XYZ randnums = r123wrapper.GetRandomCoords(molIndex);
+    XYZ randnums = r123Wrapper.GetRandomCoords(molIndex);
     val.x = log(exp(-1.0 * lbmax.x) + 2.0 * randnums.x * sinh(lbmax.x)) / lb.x;
     val.y = log(exp(-1.0 * lbmax.y) + 2.0 * randnums.y * sinh(lbmax.y)) / lb.y;
     val.z = log(exp(-1.0 * lbmax.z) + 2.0 * randnums.z * sinh(lbmax.z)) / lb.z;
@@ -617,8 +617,8 @@ inline void MultiParticle::TranslateForceBiased(uint molIndex)
 inline void MultiParticle::RotateRandom(uint molIndex)
 {
   double r_max = moveSetRef.GetRMAX(bPick);
-  double symRand = r123wrapper.GetSymRandom(molIndex, r_max);
-  XYZ sphereCoords = r123wrapper.GetRandomCoordsOnSphere(molIndex);
+  double symRand = r123Wrapper.GetSymRandom(molIndex, r_max);
+  XYZ sphereCoords = r123Wrapper.GetRandomCoordsOnSphere(molIndex);
   RotationMatrix matrix = RotationMatrix::FromAxisAngle(symRand, sphereCoords);
 
   XYZ center = comCurrRef.Get(molIndex);
@@ -644,7 +644,7 @@ inline void MultiParticle::RotateRandom(uint molIndex)
 inline void MultiParticle::TranslateRandom(uint molIndex)
 {
   double t_max = moveSetRef.GetTMAX(bPick);
-  XYZ shift = r123wrapper.GetSymRandomCoords(molIndex, t_max);
+  XYZ shift = r123Wrapper.GetSymRandomCoords(molIndex, t_max);
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
 

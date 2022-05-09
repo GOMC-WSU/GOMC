@@ -68,7 +68,7 @@ private:
   PRNG & prngRef;
   MoleculeLookup & molLookRef;
   Molecules const& molRef;
-  Random123Wrapper &r123wrapper;
+  Random123Wrapper &r123Wrapper;
 
 };
 

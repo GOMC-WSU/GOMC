@@ -53,10 +53,10 @@ System::System(StaticVals& statics,
   ms(multisim),
 #endif
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
-  coordinates(boxDimRef, com, molLookupRef, prng, statics.mol, r123wrapper),
+  coordinates(boxDimRef, com, molLookupRef, prng, statics.mol, r123Wrapper),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   calcEnergy(statics, *this), 
-  checkpointSet(startStep, trueStep, molLookupRef, moveSettings, statics.mol, prng, r123wrapper, set),
+  checkpointSet(startStep, trueStep, molLookupRef, moveSettings, statics.mol, prng, r123Wrapper, set),
   vel(statics.forcefield, molLookupRef, statics.mol, prng),
   restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
   startStepRef(startStep),
@@ -68,7 +68,7 @@ System::System(StaticVals& statics,
     prngParallelTemp = new PRNG(molLookupRef);
 #endif
   prng.Init(set.prng.prngMaker.prng);
-  r123wrapper.SetRandomSeed(set.config.in.prng.seed);
+  r123Wrapper.SetRandomSeed(set.config.in.prng.seed);
 #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
@@ -261,9 +261,9 @@ void System::ChooseAndRunMove(const ulong step)
   if(restartFromCheckpoint){
     // step - startStepRef = Δstep
     // true step + Δstep
-    r123wrapper.SetStep(trueStep + step - startStepRef);
+    r123Wrapper.SetStep(trueStep + step - startStepRef);
   } else {
-    r123wrapper.SetStep(step);
+    r123Wrapper.SetStep(step);
   }
   double draw = 0;
   uint majKind = 0;

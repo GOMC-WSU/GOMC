@@ -76,9 +76,9 @@ inline uint Rotate::Transform()
                           boxDimRef,
                           pStart, pLen,
                           m, b, 
-                          r123wrapper.GetStep(), 
-                          r123wrapper.GetKeyValue(),
-                          r123wrapper.GetSeedValue(),
+                          r123Wrapper.GetStep(), 
+                          r123Wrapper.GetKeyValue(),
+                          r123Wrapper.GetSeedValue(),
                           moveSetRef.Scale(b, mv::ROTATE, mk));
 #else
   coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
