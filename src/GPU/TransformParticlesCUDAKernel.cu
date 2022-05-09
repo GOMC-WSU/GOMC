@@ -874,7 +874,7 @@ __global__ void RotateMolKernel(
   // perform the rotation on the coordinates
   ApplyRotation(gpu_nx[threadID], gpu_ny[threadID], gpu_nz[threadID],
                 gpu_ncomx[0], gpu_ncomy[0], gpu_ncomz[0],
-                theta, rotvec, xAxes, yAxes, zAxes, *gpu_nonOrth,
+                theta, rotvec, axis.x, axis.y, axis.z, *gpu_nonOrth,
                 gpu_cell_x, gpu_cell_y, gpu_cell_z,
                 gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
 }
