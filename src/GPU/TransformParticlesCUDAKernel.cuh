@@ -61,6 +61,18 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double lambdaBETA,
                             XYZArray &r_k);
 
+void CallTranslateMolRandGPU(VariablesCUDA *vars,
+                              XYZArray &newMolPos,
+                              XYZArray &newCOMs,
+                              uint moleculeStart,
+                              uint moleculeLength,
+                               uint moleculeIndex,
+                               uint box,
+                               ulong step,
+                               unsigned int key,
+                               ulong seed,
+                               double scale);                            
+
 __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double t_max,
     double *molForcex,
@@ -235,5 +247,7 @@ __global__ void BrownianMotionTranslateKernel(
   ulong seed,
   double BETA,
   int *kill);
+
+
 
 #endif

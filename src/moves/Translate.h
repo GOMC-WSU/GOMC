@@ -76,9 +76,18 @@ inline uint Translate::PrepNEMTMC(const uint box, const uint midx, const uint ki
 inline uint Translate::Transform()
 {
   GOMC_EVENT_START(1, GomcProfileEvent::TRANS_DISPLACE);
+#ifdef GOMC_CUDA
+  CallTranslateMolRandGPU(particles->getCUDAVars(), 
+                          newMolPos, newCOM, pStart, pLen,
+                          m, b, 
+                          r123wrapper.GetStep(), 
+                          r123wrapper.GetKeyValue(),
+                          r123wrapper.GetSeedValue(),
+                          moveSetRef.Scale(b, mv::DISPLACE, mk));
+#else
   coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
                              m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
-  
+#endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_DISPLACE);
   return mv::fail_state::NO_FAIL;
 }

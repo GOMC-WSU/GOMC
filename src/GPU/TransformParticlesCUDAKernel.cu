@@ -421,6 +421,21 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
+void CallTranslateMolRandGPU(VariablesCUDA *vars,
+                              XYZArray &newMolPos,
+                              XYZArray &newCOMs,
+                              uint moleculeStart,
+                              uint moleculeLength,
+                               uint moleculeIndex,
+                               uint box,
+                               ulong step,
+                               unsigned int key,
+                               ulong seed,
+                               double scale)
+{
+  
+}  
+
 __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double t_max,
     double *molForcex,

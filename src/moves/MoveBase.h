@@ -38,9 +38,9 @@ public:
     calcEnRef(sys.calcEnergy), atomForceRef(sys.atomForceRef),
     molForceRef(sys.molForceRef), atomForceRecRef(sys.atomForceRecRef),
     molForceRecRef(sys.molForceRecRef), velocity(sys.vel), prng(sys.prng),
-    boxDimRef(sys.boxDimRef), molRef(statV.mol),
+    boxDimRef(sys.boxDimRef), molRef(statV.mol), particles(statV.forcefield.particles),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList)
+    cellList(sys.cellList), r123wrapper(sys.r123wrapper)
   {
     atomForceNew.Init(sys.atomForceRef.Count());
     molForceNew.Init(sys.molForceRef.Count());
@@ -92,10 +92,12 @@ protected:
   XYZArray& atomForceRecRef;
   XYZArray& molForceRecRef;
   Velocity& velocity;
+  Random123Wrapper &r123wrapper;
 
   PRNG & prng;
   BoxDimensions & boxDimRef;
   Molecules const& molRef;
+  FFParticle * particles;    //!<For LJ/Mie energy between unbonded atoms
   const double BETA;
   const bool ewald;
   CellList& cellList;
