@@ -84,6 +84,7 @@ void Coordinates::TranslateRand
 (XYZArray & dest, XYZ & newCOM,  uint & pStart, uint & pLen,
  const uint m, const uint b, const double max)
 {
+  std::cout << "MAX " << max << std::endl;
   XYZ shift = prngRef.SymXYZ(max);
   uint stop = 0;
   //Get range.
