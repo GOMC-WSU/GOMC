@@ -860,7 +860,8 @@ __global__ void TranslateMolKernel(
     printf("thread %d gpu_ncomy+shift+wrapped %f\n", threadID, gpu_ncomy[threadID]);
     printf("thread %d gpu_ncomz+shift+wrapped %f\n", threadID, gpu_ncomz[threadID]);
   }
-  
+      printf("thread %d *gpu_nonOrth %d\n", threadID, *gpu_nonOrth);
+
   double3 coor = make_double3(gpu_nx[threadID], gpu_ny[threadID], gpu_nz[threadID]);
   // wrap again
   if(*gpu_nonOrth)
