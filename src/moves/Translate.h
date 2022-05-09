@@ -95,13 +95,25 @@ inline uint Translate::Transform()
   coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
                              m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
 #endif
-  std::cout << newMolPos << std::endl;
-  std::cout << newCOM << std::endl;
+  //std::cout << newMolPos << std::endl;
+  //std::cout << newCOM << std::endl;
 
   coordCurrRef.TranslateRand(testNMP, testCOM, pStart, pLen,
                              m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
-  std::cout << testNMP << std::endl;
-  std::cout << testCOM << std::endl;
+    std::cout << "TEST POS" << std::endl;
+
+  for (auto & atom : testNMP){
+    std::cout << atom.x << std::endl;
+    std::cout << atom.y << std::endl;
+    std::cout << atom.z << std::endl;
+  }
+  std::cout << "TEST COM" << std::endl;
+
+  for (auto & atom : testCOM){
+    std::cout << atom.x << std::endl;
+    std::cout << atom.y << std::endl;
+    std::cout << atom.z << std::endl;
+  }
   exit(1);
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_DISPLACE);
   return mv::fail_state::NO_FAIL;
