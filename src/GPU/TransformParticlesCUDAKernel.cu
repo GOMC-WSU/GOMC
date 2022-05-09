@@ -424,6 +424,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
 void CallTranslateMolRandGPU(VariablesCUDA *vars,
                               XYZArray &newMolPos,
                               XYZ &newCOM,
+                              BoxDimensions const &boxAxes,
                               uint moleculeStart,
                               uint moleculeLength,
                                uint moleculeIndex,
@@ -433,7 +434,66 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
                                ulong seed,
                                double scale)
 {
+  int threadsPerBlock = 256;
+  int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
 
+  int newCoordsNumber = moleculeLength;
+  int molCount = 1;
+
+  CUMALLOC((void**) &vars->gpu_nx, newCoordsNumber*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_ny, newCoordsNumber*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_nz, newCoordsNumber*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_ncomx, molCount*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_ncomy, molCount*sizeof(double));
+  CUMALLOC((void**) &vars->gpu_ncomz, molCount*sizeof(double));
+
+  cudaMemcpy(vars->gpu_nx, newMolPos.x, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ny, newMolPos.y, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_nz, newMolPos.z, newCoordsNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomx, newCOM.x, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomy, newCOM.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_ncomz, newCOM.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
+
+  double3 axis = make_double3(boxAxes.x, boxAxes.y, boxAxes.z);
+  double3 halfAx = make_double3(boxAxes.x * 0.5, boxAxes.y * 0.5, boxAxes.z * 0.5);
+
+  TranslateMolKernel<<<blocksPerGrid, threadsPerBlock>>>(  
+                            moleculeIndex,
+                            moleculeLength,
+                            key,
+                            step, 
+                            seed,
+                            scale,                          
+                            vars->gpu_nx,
+                            vars->gpu_ny,
+                            vars->gpu_nz,
+                            vars->gpu_ncomx,
+                            vars->gpu_ncomy,
+                            vars->gpu_ncomz,
+                            vars->gpu_nonOrth,
+                            axis,
+                            halfAx,
+                            vars->gpu_cell_x[box],
+                            vars->gpu_cell_y[box],
+                            vars->gpu_cell_z[box],
+                            vars->gpu_Invcell_x[box],
+                            vars->gpu_Invcell_y[box],
+                            vars->gpu_Invcell_z[box]);
+  checkLastErrorCUDA(__FILE__, __LINE__);
+
+  cudaMemcpy(newMolPos.x, vars->gpu_nx, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(newMolPos.y, vars->gpu_ny, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(newMolPos.z, vars->gpu_nz, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(newCOM.x, vars->gpu_ncomx, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(newCOM.y, vars->gpu_ncomy, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(newCOM.z, vars->gpu_ncomz, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+
+  CUFREE(vars->gpu_nx);
+  CUFREE(vars->gpu_ny);
+  CUFREE(vars->gpu_nz);
+  CUFREE(vars->gpu_ncomx);
+  CUFREE(vars->gpu_ncomy);
+  CUFREE(vars->gpu_ncomz);
 }  
 
 __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
@@ -631,6 +691,64 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                 gpu_cell_x, gpu_cell_y, gpu_cell_z,
                 gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
 }
+
+
+__global__ void TranslateMolKernel(  
+                            uint moleculeIndex,
+                            uint moleculeLength,
+                            uint key,
+                            uint step, 
+                            uint seed,
+                            double scale,                          
+                            double *gpu_nx,
+                            double *gpu_ny,
+                            double *gpu_nz,
+                            double *gpu_ncomx,
+                            double *gpu_ncomy,
+                            double *gpu_ncomz,
+                            int *gpu_nonOrth,
+                            double3 axis,
+                            double3 halfAx,
+                            double *gpu_cell_x,
+                            double *gpu_cell_y,
+                            double *gpu_cell_z,
+                            double *gpu_Invcell_x,
+                            double *gpu_Invcell_y,
+                            double *gpu_Invcell_z)
+{
+  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+  if (threadID >= moleculeLength)
+    return;
+
+  double3 randnums = SymRandomCoordsGPU(moleculeIndex, key, step, seed);
+  double shiftx = scale * randnums.x;
+  double shifty = scale * randnums.y;
+  double shiftz = scale * randnums.z;
+  gpu_nx[threadID] += shiftx;
+  gpu_ny[threadID] += shifty;
+  gpu_nz[threadID] += shiftz;
+  if (threadIdx.x == 0){
+    gpu_ncomx[threadID] += shiftx;
+    gpu_ncomy[threadID] += shifty;
+    gpu_ncomz[threadID] += shiftz;
+    double3 com = make_double3(gpu_ncomx[threadID], gpu_ncomy[threadID], gpu_ncomz[threadID]);
+    gpu_ncomx[threadID] = com.x;
+    gpu_ncomy[threadID] = com.y;
+    gpu_ncomz[threadID] = com.z;
+  }
+  
+  double3 coor = make_double3(gpu_nx[threadID], gpu_ny[threadID], gpu_nz[threadID]);
+  // wrap again
+  if(isOrthogonal)
+    WrapPBC3(coor, axis);
+  else
+    WrapPBCNonOrth3(coor, axis, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                    gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+  gpu_nx[threadID] = coor.x;
+  gpu_ny[threadID] = coor.y;
+  gpu_nz[threadID] = coor.z;
+}
+
 
 // CUDA implementation of MultiParticle Brownian transformation 
 

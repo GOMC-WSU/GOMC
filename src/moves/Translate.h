@@ -78,7 +78,9 @@ inline uint Translate::Transform()
   GOMC_EVENT_START(1, GomcProfileEvent::TRANS_DISPLACE);
 #ifdef GOMC_CUDA
   CallTranslateMolRandGPU(particles->getCUDAVars(), 
-                          newMolPos, newCOM, pStart, pLen,
+                          newMolPos, newCOM, 
+                          boxDimRef,
+                          pStart, pLen,
                           m, b, 
                           r123wrapper.GetStep(), 
                           r123wrapper.GetKeyValue(),
