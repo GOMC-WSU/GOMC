@@ -865,10 +865,11 @@ __global__ void TranslateMolKernel(
   double3 coor = make_double3(gpu_nx[threadID], gpu_ny[threadID], gpu_nz[threadID]);
   // wrap again
   if(*gpu_nonOrth)
-    WrapPBC3(coor, axis);
-  else
     WrapPBCNonOrth3(coor, axis, gpu_cell_x, gpu_cell_y, gpu_cell_z,
-                    gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+                  gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+  else
+    WrapPBC3(coor, axis);
+
   gpu_nx[threadID] = coor.x;
   gpu_ny[threadID] = coor.y;
   gpu_nz[threadID] = coor.z;
