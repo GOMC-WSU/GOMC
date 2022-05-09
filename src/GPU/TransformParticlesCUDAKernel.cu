@@ -855,6 +855,9 @@ __global__ void TranslateMolKernel(
     gpu_ncomx[threadID] = com.x;
     gpu_ncomy[threadID] = com.y;
     gpu_ncomz[threadID] = com.z;
+  printf("thread %d gpu_nx+shift+wrapped %f\n", threadID, gpu_nx[threadID]);
+  printf("thread %d gpu_ny+shift+wrapped %f\n", threadID, gpu_ny[threadID]);
+  printf("thread %d gpu_nz+shift+wrapped %f\n", threadID, gpu_nz[threadID]);
   }
   
   double3 coor = make_double3(gpu_nx[threadID], gpu_ny[threadID], gpu_nz[threadID]);
