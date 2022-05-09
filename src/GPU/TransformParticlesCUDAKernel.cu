@@ -523,8 +523,6 @@ void CallRotateMolRandGPU(VariablesCUDA *vars,
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(newCoordsNumber / threadsPerBlock) + 1;
 
-
-
   CUMALLOC((void**) &vars->gpu_nx, newCoordsNumber*sizeof(double));
   CUMALLOC((void**) &vars->gpu_ny, newCoordsNumber*sizeof(double));
   CUMALLOC((void**) &vars->gpu_nz, newCoordsNumber*sizeof(double));
