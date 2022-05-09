@@ -80,7 +80,18 @@ inline uint Translate::Transform()
   std::cout << newMolPos << std::endl;
   XYZArray testNMP = newMolPos;
   XYZArray testCOM = newCOM;
+    std::cout << "B4 POS" << std::endl;
 
+  for (int i = 0; i < testNMP.Count(); ++i){
+    std::cout << newMolPos.x[i] << ", " << newMolPos.y[i]
+     << ", " << newMolPos.z[i] << std::endl;
+  }
+  std::cout << "B4 COM" << std::endl;
+
+  for (int i = 0; i < testNMP.Count(); ++i){
+    std::cout << newCOM.x[i] << ", " << newCOM.y[i]
+     << ", " << newCOM.z[i] << std::endl;
+  }
 #ifdef GOMC_CUDA
   CallTranslateMolRandGPU(particles->getCUDAVars(), 
                           newMolPos, newCOM, 
@@ -102,18 +113,29 @@ inline uint Translate::Transform()
                              m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
     std::cout << "TEST POS" << std::endl;
 
-  for (auto & atom : testNMP){
-    std::cout << atom.x << std::endl;
-    std::cout << atom.y << std::endl;
-    std::cout << atom.z << std::endl;
+  for (int i = 0; i < testNMP.Count(); ++i){
+    std::cout << testNMP.x[i] << ", " << testNMP.y[i]
+     << ", " << testNMP.z[i] << std::endl;
   }
   std::cout << "TEST COM" << std::endl;
 
-  for (auto & atom : testCOM){
-    std::cout << atom.x << std::endl;
-    std::cout << atom.y << std::endl;
-    std::cout << atom.z << std::endl;
+  for (int i = 0; i < testNMP.Count(); ++i){
+    std::cout << testCOM.x[i] << ", " << testCOM.y[i]
+     << ", " << testCOM.z[i] << std::endl;
   }
+  std::cout << "AFTER POS" << std::endl;
+
+  for (int i = 0; i < testNMP.Count(); ++i){
+    std::cout << newMolPos.x[i] << ", " << newMolPos.y[i]
+     << ", " << newMolPos.z[i] << std::endl;
+  }
+  std::cout << "AFTER COM" << std::endl;
+
+  for (int i = 0; i < testNMP.Count(); ++i){
+    std::cout << newCOM.x[i] << ", " << newCOM.y[i]
+     << ", " << newCOM.z[i] << std::endl;
+  }
+
   exit(1);
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_DISPLACE);
   return mv::fail_state::NO_FAIL;
