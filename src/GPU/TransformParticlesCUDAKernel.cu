@@ -109,29 +109,6 @@ __device__ inline double3 SymRandomCoordsGPU(unsigned int counter, unsigned int 
   return r01;
 }
 
-// Exact same behavior as SymXYZ function on host
-__device__ inline double3 SymXYZGPU(unsigned int counter, unsigned int key,
-                                             ulong step, ulong seed, double max)
-{
-  RNG::ctr_type c = {{}};
-  RNG::ukey_type uk = {{}};
-  uk[0] = step;
-  uk[1] = seed;
-  RNG::key_type k = uk;
-  c[0] = counter;
-  c[1] = key;
-  RNG::ctr_type r = philox4x64(c, k);
-  double3 r01;
-  double x_scale = r123::u01<double>(r[0]);
-  double y_scale = r123::u01<double>(r[1]);
-  double z_scale = r123::u01<double>(r[2]);
-
-  r01.x = 2*max*x_scale - max;
-  r01.y = 2*max*y_scale - max;
-  r01.z = 2*max*z_scale - max;
-  return r01;
-}
-
 //Returns a uniformly random point on the unit sphere
 __device__ inline double3 RandomCoordsOnSphereGPU(unsigned int counter, unsigned int key,
                                                   ulong step, ulong seed)
@@ -834,14 +811,18 @@ __global__ void TranslateMolKernel(
   if (threadID >= moleculeLength)
     return;
 
-  double3 shift = SymXYZGPU(molIndex, key, step, seed, max);
-  gpu_nx[threadID] += shift.x;
-  gpu_ny[threadID] += shift.y;
-  gpu_nz[threadID] += shift.z;
+  double3 shiftx, shifty, shiftz;
+  double3 randnums = SymRandomCoordsGPU(molIndex, key, step, seed);
+  shiftx = max * randnums.x;
+  shifty = max * randnums.y;
+  shiftz = max * randnums.z;
+  gpu_nx[threadID] += shiftx;
+  gpu_ny[threadID] += shifty;
+  gpu_nz[threadID] += shiftz;
   if (threadIdx.x == 0){
-    gpu_ncomx[threadID] += shift.x;
-    gpu_ncomy[threadID] += shift.y;
-    gpu_ncomz[threadID] += shift.z;
+    gpu_ncomx[threadID] += shiftx;
+    gpu_ncomy[threadID] += shifty;
+    gpu_ncomz[threadID] += shiftz;
     double3 com = make_double3(gpu_ncomx[threadID], gpu_ncomy[threadID], gpu_ncomz[threadID]);
     gpu_ncomx[threadID] = com.x;
     gpu_ncomy[threadID] = com.y;

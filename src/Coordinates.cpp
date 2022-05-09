@@ -84,7 +84,8 @@ void Coordinates::TranslateRand
 (XYZArray & dest, XYZ & newCOM,  uint & pStart, uint & pLen,
  const uint m, const uint b, const double max)
 {
-  XYZ shift = prngRef.SymXYZ(max);
+  //XYZ shift = prngRef.SymXYZ(max);
+  XYZ shift = r123Wrapper.GetSymRandomCoords(m,max);
   uint stop = 0;
   //Get range.
   molRef.GetRange(pStart, stop, pLen, m);
