@@ -79,7 +79,7 @@ inline uint Translate::Transform()
     std::cout << "B4" << std::endl;
   std::cout << newMolPos << std::endl;
   XYZArray testNMP = newMolPos;
-  XYZArray testCOM = newCOM;
+  XYZ testCOM = newCOM;
     std::cout << "B4 POS" << std::endl;
 
   for (int i = 0; i < testNMP.Count(); ++i){
