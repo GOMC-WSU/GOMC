@@ -835,19 +835,9 @@ __global__ void TranslateMolKernel(
     return;
 
   double3 shift = SymXYZGPU(molIndex, key, step, seed, max);
-  printf("thread %d max %f\n", threadID, max);
-  printf("thread %d shift.x %f\n", threadID, shift.x);
-  printf("thread %d shift.y %f\n", threadID, shift.y);
-  printf("thread %d shift.z %f\n", threadID, shift.z);
-  printf("thread %d gpu_nx %f\n", threadID, gpu_nx[threadID]);
-  printf("thread %d gpu_ny %f\n", threadID, gpu_ny[threadID]);
-  printf("thread %d gpu_nz %f\n", threadID, gpu_nz[threadID]);
   gpu_nx[threadID] += shift.x;
   gpu_ny[threadID] += shift.y;
   gpu_nz[threadID] += shift.z;
-  printf("thread %d gpu_nx+shift %f\n", threadID, gpu_nx[threadID]);
-  printf("thread %d gpu_ny+shift %f\n", threadID, gpu_ny[threadID]);
-  printf("thread %d gpu_nz+shift %f\n", threadID, gpu_nz[threadID]);
   if (threadIdx.x == 0){
     gpu_ncomx[threadID] += shift.x;
     gpu_ncomy[threadID] += shift.y;
@@ -856,11 +846,7 @@ __global__ void TranslateMolKernel(
     gpu_ncomx[threadID] = com.x;
     gpu_ncomy[threadID] = com.y;
     gpu_ncomz[threadID] = com.z;
-    printf("thread %d gpu_ncomx+shift+wrapped %f\n", threadID, gpu_ncomx[threadID]);
-    printf("thread %d gpu_ncomy+shift+wrapped %f\n", threadID, gpu_ncomy[threadID]);
-    printf("thread %d gpu_ncomz+shift+wrapped %f\n", threadID, gpu_ncomz[threadID]);
   }
-      printf("thread %d *gpu_nonOrth %d\n", threadID, *gpu_nonOrth);
 
   double3 coor = make_double3(gpu_nx[threadID], gpu_ny[threadID], gpu_nz[threadID]);
   // wrap again
@@ -873,9 +859,6 @@ __global__ void TranslateMolKernel(
   gpu_nx[threadID] = coor.x;
   gpu_ny[threadID] = coor.y;
   gpu_nz[threadID] = coor.z;
-  printf("thread %d gpu_nx+shift+wrapped %f\n", threadID, gpu_nx[threadID]);
-  printf("thread %d gpu_ny+shift+wrapped %f\n", threadID, gpu_ny[threadID]);
-  printf("thread %d gpu_nz+shift+wrapped %f\n", threadID, gpu_nz[threadID]);
 }
 
 __global__ void RotateMolKernel(  
