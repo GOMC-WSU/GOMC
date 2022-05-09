@@ -53,7 +53,7 @@ System::System(StaticVals& statics,
   ms(multisim),
 #endif
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
-  coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
+  coordinates(boxDimRef, com, molLookupRef, prng, statics.mol, r123wrapper),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   calcEnergy(statics, *this), 
   checkpointSet(startStep, trueStep, molLookupRef, moveSettings, statics.mol, prng, r123wrapper, set),
