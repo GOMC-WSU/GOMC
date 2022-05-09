@@ -68,7 +68,6 @@ inline uint Rotate::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
 inline uint Rotate::Transform()
 {
   GOMC_EVENT_START(1, GomcProfileEvent::TRANS_ROTATE);
-/*
 #ifdef GOMC_CUDA
     newCOM = comCurrRef.Get(m);
     CallRotateMolRandGPU(particles->getCUDAVars(), 
@@ -84,9 +83,6 @@ inline uint Rotate::Transform()
   coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
                           moveSetRef.Scale(b, mv::ROTATE, mk));
 #endif
-*/
-  coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
-                          moveSetRef.Scale(b, mv::ROTATE, mk));
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_ROTATE);
   return mv::fail_state::NO_FAIL;
 }

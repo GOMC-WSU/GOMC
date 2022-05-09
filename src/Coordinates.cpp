@@ -108,8 +108,11 @@ void Coordinates::RotateRand
 {
   //Rotate (-max, max) radians about a uniformly random vector
   //Not uniformly random, but symmetrical wrt detailed balance
+  //RotationMatrix matrix = RotationMatrix::FromAxisAngle(
+  //                          prngRef.Sym(max), prngRef.PickOnUnitSphere());
+  
   RotationMatrix matrix = RotationMatrix::FromAxisAngle(
-                            prngRef.Sym(max), prngRef.PickOnUnitSphere());
+                            r123Wrapper.GetSymRandom(m,max), r123Wrapper.GetRandomCoordsOnSphere(m));
 
   XYZ center = comRef.Get(m);
   uint stop = 0;
