@@ -22,6 +22,7 @@ public:
   virtual void Accept(const uint earlyReject, const ulong step);
   virtual void PrintAcceptKind();
 private:
+  XYZ newCOM;
   Intermolecular inter_LJ, inter_Real, recip;
 };
 
@@ -67,9 +68,23 @@ inline uint Rotate::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
 inline uint Rotate::Transform()
 {
   GOMC_EVENT_START(1, GomcProfileEvent::TRANS_ROTATE);
+#ifdef GOMC_CUDA
+    newCOM = comCurrRef.Get(m);
+    CallRotateMolRandGPU(particles->getCUDAVars(), 
+                          newMolPos, newCOM, 
+                          coordCurrRef,
+                          comCurrRef,
+                          boxDimRef,
+                          pStart, pLen,
+                          m, b, 
+                          r123Wrapper.GetStep(), 
+                          r123Wrapper.GetKeyValue(),
+                          r123Wrapper.GetSeedValue(),
+                          moveSetRef.Scale(b, mv::ROTATE, mk));
+#else
   coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
                           moveSetRef.Scale(b, mv::ROTATE, mk));
-  
+#endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_ROTATE);
   return mv::fail_state::NO_FAIL;
 }

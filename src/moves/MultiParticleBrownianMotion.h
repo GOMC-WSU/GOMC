@@ -55,7 +55,7 @@ private:
   int moveType;
   std::vector<uint> moleculeIndex;
   const MoleculeLookup& molLookup;
-  Random123Wrapper &r123wrapper;
+  Random123Wrapper &r123Wrapper;
   bool allTranslate;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
@@ -75,9 +75,9 @@ private:
 
 inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals const &statV) :
   MoveBase(sys, statV),
-  newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
+  newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol, sys.r123Wrapper),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
-  molLookup(sys.molLookup), r123wrapper(sys.r123wrapper)
+  molLookup(sys.molLookup), r123Wrapper(sys.r123Wrapper)
 {
   molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
@@ -289,9 +289,9 @@ inline uint MultiParticleBrownian::Transform()
       boxDimRef.GetAxis(bPick),
       BETA, 
       r_max,
-      r123wrapper.GetStep(), 
-      r123wrapper.GetKeyValue(), 
-      r123wrapper.GetSeedValue(),
+      r123Wrapper.GetStep(), 
+      r123Wrapper.GetKeyValue(), 
+      r123Wrapper.GetSeedValue(),
       bPick,
       isOrthogonal,
       kill);
@@ -308,9 +308,9 @@ inline uint MultiParticleBrownian::Transform()
       boxDimRef.GetAxis(bPick),
       BETA, 
       t_max,
-      r123wrapper.GetStep(), 
-      r123wrapper.GetKeyValue(), 
-      r123wrapper.GetSeedValue(),
+      r123Wrapper.GetStep(), 
+      r123Wrapper.GetKeyValue(), 
+      r123Wrapper.GetSeedValue(),
       bPick,
       isOrthogonal,
       kill);
@@ -470,7 +470,7 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
   //variance is 2A according to the paper, so stdDev is sqrt(variance)
   double stdDev = sqrt(2.0 * max);
   
-  randnums = r123wrapper.GetGaussianCoords(molIndex, 0.0, stdDev);
+  randnums = r123Wrapper.GetGaussianCoords(molIndex, 0.0, stdDev);
   num.x = lbmax.x + randnums.x;
   num.y = lbmax.y + randnums.y;
   num.z = lbmax.z + randnums.z;
