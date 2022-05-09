@@ -22,7 +22,7 @@ public:
   NEMTMC(System &sys, StaticVals const& statV) :
     MoveBase(sys, statV), lambdaRef(sys.lambdaRef), systemRef(sys),
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef), 
-    backUpCoordinate(boxDimRef, backUpCOM, sys.molLookupRef, sys.prng, statV.mol),
+    backUpCoordinate(boxDimRef, backUpCOM, sys.molLookupRef, sys.prng, statV.mol, sys.r123Wrapper),
     backUpCOM(sys.boxDimRef, backUpCoordinate, sys.molLookupRef, statV.mol),
     backUpMoveSetting(sys.boxDimRef), propagationMove(NULL), r123Wrapper(sys.r123Wrapper)
   {

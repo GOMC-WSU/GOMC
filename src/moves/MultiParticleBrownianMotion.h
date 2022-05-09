@@ -75,7 +75,7 @@ private:
 
 inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals const &statV) :
   MoveBase(sys, statV),
-  newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol, r123Wrapper),
+  newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol, sys.r123Wrapper),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
   molLookup(sys.molLookup), r123Wrapper(sys.r123Wrapper)
 {
