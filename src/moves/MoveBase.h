@@ -28,6 +28,11 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include "GOMCEventsProfile.h" // for NVTX profiling
 #include "Velocity.h"
 
+#ifdef GOMC_CUDA
+#include "TransformParticlesCUDAKernel.cuh"
+#include "VariablesCUDA.cuh"
+#endif
+
 class MoveBase
 {
 public:
