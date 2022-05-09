@@ -85,8 +85,7 @@ inline uint Translate::Transform()
                           r123wrapper.GetStep(), 
                           r123wrapper.GetKeyValue(),
                           r123wrapper.GetSeedValue(),
-                          moveSetRef.Scale(b, mv::DISPLACE, mk),
-                          b);
+                          moveSetRef.Scale(b, mv::DISPLACE, mk));
 #else
   coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
                              m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));

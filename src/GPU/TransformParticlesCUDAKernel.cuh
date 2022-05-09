@@ -73,8 +73,7 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
                                ulong step,
                                unsigned int key,
                                ulong seed,
-                               double scale,
-                               uint box);                            
+                               double scale);                            
 
 __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double t_max,

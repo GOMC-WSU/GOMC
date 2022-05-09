@@ -432,8 +432,7 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
                                ulong step,
                                unsigned int key,
                                ulong seed,
-                               double scale,
-                               uint box)
+                               double scale)
 {
   int newCoordsNumber = moleculeLength;
   int molCount = 1;
