@@ -88,10 +88,9 @@ inline uint Translate::Transform()
   }
   std::cout << "B4 COM" << std::endl;
 
-  for (int i = 0; i < testNMP.Count(); ++i){
-    std::cout << newCOM.x[i] << ", " << newCOM.y[i]
-     << ", " << newCOM.z[i] << std::endl;
-  }
+    std::cout << newCOM.x << ", " << newCOM.y
+     << ", " << newCOM.z << std::endl;
+  
 #ifdef GOMC_CUDA
   CallTranslateMolRandGPU(particles->getCUDAVars(), 
                           newMolPos, newCOM, 
@@ -119,10 +118,9 @@ inline uint Translate::Transform()
   }
   std::cout << "TEST COM" << std::endl;
 
-  for (int i = 0; i < testNMP.Count(); ++i){
-    std::cout << testCOM.x[i] << ", " << testCOM.y[i]
-     << ", " << testCOM.z[i] << std::endl;
-  }
+    std::cout << testCOM.x << ", " << testCOM.y
+     << ", " << testCOM.z << std::endl;
+
   std::cout << "AFTER POS" << std::endl;
 
   for (int i = 0; i < testNMP.Count(); ++i){
@@ -131,10 +129,9 @@ inline uint Translate::Transform()
   }
   std::cout << "AFTER COM" << std::endl;
 
-  for (int i = 0; i < testNMP.Count(); ++i){
-    std::cout << newCOM.x[i] << ", " << newCOM.y[i]
-     << ", " << newCOM.z[i] << std::endl;
-  }
+    std::cout << newCOM.x << ", " << newCOM.y
+     << ", " << newCOM.z << std::endl;
+  
 
   exit(1);
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_DISPLACE);
