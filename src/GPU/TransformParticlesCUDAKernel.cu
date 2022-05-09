@@ -822,10 +822,6 @@ __global__ void TranslateMolKernel(
     gpu_ncomx[threadID] += shiftx;
     gpu_ncomy[threadID] += shifty;
     gpu_ncomz[threadID] += shiftz;
-    double3 com = make_double3(gpu_ncomx[threadID], gpu_ncomy[threadID], gpu_ncomz[threadID]);
-    gpu_ncomx[threadID] = com.x;
-    gpu_ncomy[threadID] = com.y;
-    gpu_ncomz[threadID] = com.z;
   }
 
   double3 coor = make_double3(gpu_nx[threadID], gpu_ny[threadID], gpu_nz[threadID]);
