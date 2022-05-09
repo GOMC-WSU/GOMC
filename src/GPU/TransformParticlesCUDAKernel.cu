@@ -895,7 +895,7 @@ __global__ void RotateMolKernel(
   double3 rotvec;
   
   double3 randnums = RandomCoordsOnSphereGPU(molIndex, key, step, seed);
-  theta = scale * SymRandomGPU(molIndex, key, step, seed);
+  theta = max * SymRandomGPU(molIndex, key, step, seed);
   rotvec = randnums;
 
   // perform the rotation on the coordinates
