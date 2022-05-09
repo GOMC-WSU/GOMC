@@ -432,13 +432,15 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
                                ulong step,
                                unsigned int key,
                                ulong seed,
-                               double scale)
+                               double scale,
+                               uint box)
 {
+  int newCoordsNumber = moleculeLength;
+  int molCount = 1;
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(newCoordsNumber / threadsPerBlock) + 1;
 
-  int newCoordsNumber = moleculeLength;
-  int molCount = 1;
+
 
   CUMALLOC((void**) &vars->gpu_nx, newCoordsNumber*sizeof(double));
   CUMALLOC((void**) &vars->gpu_ny, newCoordsNumber*sizeof(double));
@@ -454,8 +456,8 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_ncomy, &newCOM.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_ncomz, &newCOM.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
 
-  double3 axis = make_double3(boxAxes.x, boxAxes.y, boxAxes.z);
-  double3 halfAx = make_double3(boxAxes.x * 0.5, boxAxes.y * 0.5, boxAxes.z * 0.5);
+  double3 axis = make_double3(boxAxes.GetAxis(box).x,, boxAxes..GetAxis(box).y, boxAxes..GetAxis(box).z);
+  double3 halfAx = make_double3(boxAxes.GetAxis(box).x * 0.5, boxAxes.GetAxis(box).y * 0.5, boxAxes..GetAxis(box).z * 0.5);
 
   TranslateMolKernel<<<blocksPerGrid, threadsPerBlock>>>(  
                             moleculeIndex,
