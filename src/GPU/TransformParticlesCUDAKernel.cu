@@ -511,13 +511,14 @@ void CallTranslateMolRandGPU(VariablesCUDA *vars,
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
-  cudaMemcpy(newMolPos.x, vars->gpu_nx, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(newMolPos.y, vars->gpu_ny, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(newMolPos.z, vars->gpu_nz, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&newMolPos.x[0], vars->gpu_nx, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&newMolPos.y[0], vars->gpu_ny, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&newMolPos.z[0], vars->gpu_nz, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(&newCOM.x, vars->gpu_ncomx, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(&newCOM.y, vars->gpu_ncomy, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(&newCOM.z, vars->gpu_ncomz, molCount * sizeof(double), cudaMemcpyDeviceToHost);
-
+  cudaDeviceSynchronize();
+  checkLastErrorCUDA(__FILE__, __LINE__);
   CUFREE(vars->gpu_nx);
   CUFREE(vars->gpu_ny);
   CUFREE(vars->gpu_nz);
@@ -595,7 +596,7 @@ void CallRotateMolRandGPU(VariablesCUDA *vars,
                             vars->gpu_Invcell_z[box]);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
-  
+
   cudaMemcpy(newMolPos.x, vars->gpu_nx, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.y, vars->gpu_ny, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.z, vars->gpu_nz, newCoordsNumber * sizeof(double), cudaMemcpyDeviceToHost);
