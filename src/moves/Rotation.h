@@ -71,6 +71,10 @@ inline uint Rotate::Transform()
 
 #ifdef GOMC_CUDA
     newCOM = comCurrRef.Get(m);
+    std::cout << "step " << r123wrapper.GetStep() << std::endl;
+    std::cout << "key " << r123wrapper.GetKeyValue() << std::endl;
+    std::cout << "seed " << r123wrapper.GetSeedValue() << std::endl;
+
     CallRotateMolRandGPU(particles->getCUDAVars(), 
                           newMolPos, newCOM, 
                           boxDimRef,
