@@ -31,7 +31,9 @@ public:
   explicit CellList(const Molecules& mols, BoxDimensions& dims);
   CellList(const CellList & other);
   void SetCutoff();
-
+  #ifdef GOMC_CUDA
+  void CopyNeighborListToGPU(VariablesCUDA *cudaVars);
+  #endif
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
   void AddMol(const int molIndex, const int box, const XYZArray& pos);
   void GridAll(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
@@ -94,7 +96,6 @@ private:
   std::vector<int> numberOfCells;
   std::vector<int> startOfBoxCellList;
   void FlattenNeighborList();
-  void CopyNeighborListToGPU(VariablesCUDA *cudaVars);
   #endif
 
 };

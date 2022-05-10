@@ -129,10 +129,7 @@ void System::Init(Setup & set)
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
   #ifdef GOMC_CUDA
   cellList.CopyNeighborListToGPU(statV.forcefield.particles->getCUDAVars());
-  cellList.FlattenNeighborList();
-  InitGPUCellList(cudaVars, neighborlist1D, numberOfCells, startOfBoxCellList);
-  cellList.InitCellListGPU(statics.mol, boxDimRef, )
-  #else
+  #endif
   //check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
 
