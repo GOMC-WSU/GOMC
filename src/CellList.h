@@ -15,6 +15,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include <iostream>
 
 #ifdef GOMC_CUDA
+#include "VariablesCUDA.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
