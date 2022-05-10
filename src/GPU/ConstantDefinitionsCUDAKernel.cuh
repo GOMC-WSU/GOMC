@@ -44,8 +44,9 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
 void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
                        double *rMaxSq, uint size);
-void InitGPUCellList(VariablesCUDA &vars, 
-                    const std::vector<int> & neighborList,
-                    const std::vector<int> & );
+void InitGPUCellList(VariablesCUDA *vars, 
+                    const std::vector<int> &neighborList,
+                    const std::vector<int> &numberOfCells,
+                    const std::vector<int> &startOfBoxCellList);
 #endif /*GOMC_CUDA*/
 #endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/

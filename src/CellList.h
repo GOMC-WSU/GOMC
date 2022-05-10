@@ -95,7 +95,7 @@ private:
   #ifdef GOMC_CUDA
   std::vector<int> neighborlist1D;
   std::vector<int> numberOfCells;
-  std::vector<int> startOfCell;
+  std::vector<int> startOfBoxCellList;
   void FlattenNeighborList();
   VariablesCUDA *cudaVars;
   #endif

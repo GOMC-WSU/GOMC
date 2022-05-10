@@ -144,11 +144,20 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
 }
 
 void InitGPUCellList(VariablesCUDA *vars, 
-                    const std::vector<std::vector<int> > &neighborList,
-                    const std::vector<std::vector<int> > &cellsPerBox)
+                    const std::vector<int> &neighborList,
+                    const std::vector<int> &numberOfCells,
+                    const std::vector<int> &startOfBoxCellList)
 {
-  CUMALLOC((void**) &vars->gpu_numberOfCells,  cellsPerBox.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_numberOfCells,  numberOfCells.size() * sizeof(int));
   CUMALLOC((void**) &vars->gpu_neighborList, neighborList.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_startOfBoxCellList, startOfBoxCellList.size() * sizeof(int));
+
+  cudaMemcpy(vars->gpu_numberOfCells, &numberOfCells[0], numberOfCells.size() * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_neighborList, &neighborList[0], neighborList.size() * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_startOfBoxCellList, &startOfBoxCellList[0], startOfBoxCellList.size() * sizeof(int),
+             cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
