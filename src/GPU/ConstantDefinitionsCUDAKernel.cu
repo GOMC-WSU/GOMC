@@ -143,6 +143,22 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
+void InitGPUCellList(VariablesCUDA &vars, 
+                    const std::vector<std::vector<int> > &neighborList,
+                    uint box)
+{
+  int NUMBER_OF_NEIGHBOR_CELL = 27;
+  int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
+  int numberOfCells = neighborList.size();
+  // Convert neighbor list to 1D array
+  std::vector<int> neighborlist1D(neighborListCount);
+  for(int i = 0; i < neighborList.size(); i++) {
+    for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELL; j++) {
+      neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[i][j];
+    }
+  }
+}
+
 void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
                        double *rMaxSq, uint size)
 {

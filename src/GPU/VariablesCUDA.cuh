@@ -137,5 +137,8 @@ public:
 
   // new pair interaction calculation done on GPU
   int *gpu_cellVector, *gpu_mapParticleToCell;
+  int *gpu_neighborList, *gpu_cellStartIndex;
+  int *gpu_numberOfCells;
+
 };
 #endif
