@@ -1,10 +1,10 @@
 #ifndef CELLLIST_GPU_H
 #define CELLLIST_GPU_H
 
-#include "CellList.h"
+#include "VariablesCUDA.cuh"
 
-class CellListGPU : public CellList {
-    CellListGPU();
+class CellListGPU {
+    CellListGPU(VariablesCUDA * cv);
 };
 
 #endif
