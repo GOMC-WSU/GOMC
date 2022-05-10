@@ -15,7 +15,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include <iostream>
 
 #ifdef GOMC_CUDA
-#include "src/GPU/ConstantDefinitionsCUDAKernel.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
 class Molecules;
