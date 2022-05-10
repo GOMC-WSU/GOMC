@@ -12,6 +12,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include "CUDAMemoryManager.cuh"
 #include <iostream>
 #include <stdio.h>
+#include "CellList.h"
 
 void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
                     double *lambdaCoulomb, bool *isFraction)
@@ -144,9 +145,9 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
 }
 
 void InitGPUCellList(VariablesCUDA &vars, 
-                    const std::vector<std::vector<int> > &neighborList,
-                    uint box)
+                    CellList & cl)
 {
+  /*
   int NUMBER_OF_NEIGHBOR_CELL = 27;
   int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
@@ -157,6 +158,7 @@ void InitGPUCellList(VariablesCUDA &vars,
       neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[i][j];
     }
   }
+  */
 }
 
 void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
