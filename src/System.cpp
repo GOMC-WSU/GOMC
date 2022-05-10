@@ -52,7 +52,12 @@ System::System(StaticVals& statics,
 #if GOMC_LIB_MPI
   ms(multisim),
 #endif
-  moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
+  moveSettings(boxDimRef), 
+  #ifdef GOMC_CUDA
+  cellList(statics.mol, boxDimRef, statics.forcefield.particles->getCUDAVars()),
+  #else
+  cellList(statics.mol, boxDimRef),
+  #endif
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol, r123Wrapper),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   calcEnergy(statics, *this), 
