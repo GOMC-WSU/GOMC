@@ -168,11 +168,7 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
   if(allTranslate) {
     moveType = mp::MPDISPLACE;
   } else {
-    moveType = prng.randIntExc(mp::MPTOTALTYPES);    
-    moveType2 = r123Wrapper.
-    std::cout << moveType << std::endl;
-    std::cout << moveType2 << std::endl;
-
+    moveType = prng.randIntExc(mp::MPTOTALTYPES);
   }
 
   SetMolInBox(bPick);
