@@ -36,7 +36,7 @@ CellList::CellList(const Molecules& mols, BoxDimensions& dims, VariablesCUDA * c
   }
   ResizeGrid(dims);
   FlattenNeighborList();
-  InitGPUCellList(cudaVars, neighborlist1D, startOfBoxCellList);
+  InitGPUCellList(cudaVars, neighborlist1D, numberOfCells, startOfBoxCellList);
 }
 #endif
 
