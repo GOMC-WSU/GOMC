@@ -106,6 +106,7 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
   isOrthogonal = statV.isOrthogonal;
+  cellListGPU = new CellListGPU(cudaVars);
   cudaMallocHost((void**) &kill, sizeof(int));
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
