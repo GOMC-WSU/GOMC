@@ -143,16 +143,12 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
-void InitGPUCellList(VariablesCUDA &vars, 
+void InitGPUCellList(VariablesCUDA *vars, 
                     const std::vector<std::vector<int> > &neighborList,
                     const std::vector<std::vector<int> > &cellsPerBox)
 {
-
-  
-  gpu_numberOfCells;
-  gpu_neighborList
-  CUMALLOC((void**) &vars->gpu_numberOfCells, atomNumber * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_numberOfCells,  cellsPerBox.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_neighborList, neighborList.size() * sizeof(int));
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
