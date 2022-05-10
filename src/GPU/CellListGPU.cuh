@@ -5,6 +5,7 @@
 #include "VariablesCUDA.cuh"
 
 class CellListGPU {
+  public:
     CellListGPU(VariablesCUDA * cv);
     // new pair interaction calculation done on GPU
     // new pair interaction calculation done on GPU
