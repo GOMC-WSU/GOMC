@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CUDAMemoryManager.cuh"
 #include "TransformParticlesCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
+#include "CellListGPU.cuh"
 #endif
 
 class MultiParticleBrownian : public MoveBase
@@ -59,6 +60,7 @@ private:
   bool allTranslate;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
+  CellListGPU *cellListGPU;
   bool isOrthogonal;
   int *kill; // kill the simulation if we started with bad configuration
 #endif
