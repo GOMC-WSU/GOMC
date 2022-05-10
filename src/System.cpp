@@ -53,11 +53,7 @@ System::System(StaticVals& statics,
   ms(multisim),
 #endif
   moveSettings(boxDimRef), 
-  #ifdef GOMC_CUDA
-  cellList(statics.mol, boxDimRef, statics.forcefield.particles->getCUDAVars()),
-  #else
   cellList(statics.mol, boxDimRef),
-  #endif
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol, r123Wrapper),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   calcEnergy(statics, *this), 
@@ -131,7 +127,12 @@ void System::Init(Setup & set)
   molForceRecRef.Init(com.Count());
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
-
+  #ifdef GOMC_CUDA
+  cellList.CopyNeighborListToGPU(statV.forcefield.particles->getCUDAVars());
+  cellList.FlattenNeighborList();
+  InitGPUCellList(cudaVars, neighborlist1D, numberOfCells, startOfBoxCellList);
+  cellList.InitCellListGPU(statics.mol, boxDimRef, )
+  #else
   //check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
 

@@ -29,9 +29,6 @@ class CellList
 {
 public:
   explicit CellList(const Molecules& mols, BoxDimensions& dims);
-  #ifdef GOMC_CUDA
-  CellList(const Molecules& mols, BoxDimensions& dims, VariablesCUDA * cv);
-  #endif
   CellList(const CellList & other);
   void SetCutoff();
 
@@ -97,7 +94,7 @@ private:
   std::vector<int> numberOfCells;
   std::vector<int> startOfBoxCellList;
   void FlattenNeighborList();
-  VariablesCUDA *cudaVars;
+  void CopyNeighborListToGPU(VariablesCUDA *cudaVars);
   #endif
 
 };

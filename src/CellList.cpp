@@ -25,21 +25,6 @@ CellList::CellList(const Molecules& mols,  BoxDimensions& dims)
   }
 }
 
-#ifdef GOMC_CUDA
-CellList::CellList(const Molecules& mols, BoxDimensions& dims, VariablesCUDA * cv)
-  : mols(&mols), cudaVars(cv)
-{
-  dimensions = &dims;
-  isBuilt = false;
-  for(uint b = 0; b < BOX_TOTAL; b++) {
-    edgeCells[b][0] = edgeCells[b][1] = edgeCells[b][2] = 0;
-  }
-  ResizeGrid(dims);
-  FlattenNeighborList();
-  InitGPUCellList(cudaVars, neighborlist1D, numberOfCells, startOfBoxCellList);
-}
-#endif
-
 CellList::CellList(const CellList & other) : mols(other.mols)
 {
   dimensions = other.dimensions;
@@ -97,6 +82,12 @@ void CellList::FlattenNeighborList(){
     }
   }
 }
+
+void CellList::CopyNeighborListToGPU(VariablesCUDA *cudaVars){
+  FlattenNeighborList();
+  InitGPUCellList(cudaVars, neighborlist1D, numberOfCells, startOfBoxCellList);
+}
+
 #endif
 
 void CellList::SetCutoff()
