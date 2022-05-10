@@ -6,10 +6,12 @@
 
 class CellListGPU {
     CellListGPU(VariablesCUDA * cv);
-  // new pair interaction calculation done on GPU
-  int *gpu_cellVector;
-  int *gpu_mapParticleToCell;
-
+    // new pair interaction calculation done on GPU
+    // new pair interaction calculation done on GPU
+    int *gpu_cellVector, *gpu_mapParticleToCell, *gpu_cellStartIndex;
+    // Fixed as long as volume doesnt change
+    // Regenerate after volume moves.
+    int *gpu_neighborList, *gpu_numberOfCells, *gpu_startOfBoxCellList;
 };
 
 #endif
