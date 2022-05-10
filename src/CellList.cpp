@@ -36,7 +36,7 @@ CellList::CellList(const Molecules& mols, BoxDimensions& dims, VariablesCUDA * c
   }
   ResizeGrid(dims);
   FlattenNeighborList();
-  InitGPUCellList(cudaVars, neighborlist1D, startOfCell);
+  InitGPUCellList(cudaVars, neighborlist1D, startOfBoxCellList);
 }
 #endif
 
@@ -92,7 +92,7 @@ void CellList::FlattenNeighborList(){
   for (int b = 0; b < BOXES_WITH_U_NB; ++b){
     for(int i = 0; i < neighborList[b].size(); i++) {
       for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELL; j++) {
-        neighborlist1D[startOfCell[b]*NUMBER_OF_NEIGHBOR_CELL + i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[b][i][j];
+        neighborlist1D[startOfBoxCellList[b] + i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[b][i][j];
       }
     }
   }
