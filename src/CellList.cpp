@@ -79,18 +79,19 @@ void CellList::FlattenNeighborList(){
   int NUMBER_OF_NEIGHBOR_CELL = 27;
 
   int totalCells = 0; 
+  std::vector < std::vector<std::vector<int> > > neighborList
   for (int b = 0; b < BOXES_WITH_U_NB; ++b){
     startOfCell.push_back(totalCells);
-    std::vector<std::vector<int> > neighborList = cellList.GetNeighborList(b);
-    totalCells += neighborList.size();
-    numberOfCells.push_back(numberOfCells);
+    neighborList.push_back(GetNeighborList(b));
+    totalCells += neighborList[b].size();
+    numberOfCells.push_back(neighborList[b].size());
   }
   // Convert neighbor list to 1D array
   neighborlist1D.resize(totalCells*NUMBER_OF_NEIGHBOR_CELL);
   for (int b = 0; b < BOXES_WITH_U_NB; ++b){
-    for(int i = 0; i < neighborList.size(); i++) {
+    for(int i = 0; i < neighborList[b].size(); i++) {
       for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELL; j++) {
-        neighborlist1D[startOfCell[b]*NUMBER_OF_NEIGHBOR_CELL + i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[i][j];
+        neighborlist1D[startOfCell[b]*NUMBER_OF_NEIGHBOR_CELL + i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[b][i][j];
       }
     }
   }
