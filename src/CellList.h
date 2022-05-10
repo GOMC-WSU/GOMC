@@ -14,6 +14,10 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include <cassert>
 #include <iostream>
 
+#ifdef GOMC_CUDA
+#include "src/GPU/ConstantDefinitionsCUDAKernel.cuh"
+#endif
+
 class Molecules;
 class XYZArray;
 class BoxDimensions;
@@ -83,6 +87,14 @@ private:
   BoxDimensions *dimensions;
   double cutoff[BOX_TOTAL];
   bool isBuilt;
+  #ifdef GOMC_CUDA
+  std::vector<int> neighborlist1D;
+  std::vector<int> numberOfCells;
+  std::vector<int> startOfCell;
+  void FlattenNeighborList();
+  VariablesCUDA *cudaVars;
+  #endif
+
 };
 
 
