@@ -26,7 +26,7 @@ CellList::CellList(const Molecules& mols,  BoxDimensions& dims)
 }
 
 #ifdef GOMC_CUDA
-CellList::CellList(const Molecules& mols, BoxDimensions& dims, CUDAVars * cv)
+CellList::CellList(const Molecules& mols, BoxDimensions& dims, VariablesCUDA * cv)
   : mols(&mols), cudaVars(cv)
 {
   dimensions = &dims;
