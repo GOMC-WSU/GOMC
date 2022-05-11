@@ -256,7 +256,8 @@ void Simulation::GetGPUCellList(std::vector<int> & cellVector,
   system->cellListGPU->MapParticlesToCell(staticValues->forcefield.particles->getCUDAVars(),
                                           system->coordinates,
                                           system->boxDimRef.axis);
-  system->cellListGPU->CopyMapParticlesToCellToHost(system->coordinates,
+  system->cellListGPU->CopyMapParticlesToCellToHost(staticValues->forcefield.particles->getCUDAVars(),
+                                                    system->coordinates,
                                                     mapParticleToCell);
 }
 #endif
