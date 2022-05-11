@@ -49,7 +49,7 @@ __global__ void MapParticlesToCell(int atomNumber,
 
 }
 
-__device__ int PositionToCell(int atomIndex,
+__device__ int CellListGPU::PositionToCell(int atomIndex,
                             double* gpu_x,
                             double* gpu_y,
                             double* gpu_z,                                
