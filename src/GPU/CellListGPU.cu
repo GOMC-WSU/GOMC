@@ -1,5 +1,6 @@
 #ifdef GOMC_CUDA
 #include "CellListGPU.cuh"
+#include "cub/cub.cuh"
 
 
 
@@ -112,6 +113,15 @@ __global__ void MapParticlesToCellKernel(int atomNumber,
 
 }
 
+// CustomMin functor
+struct CustomMin
+{
+    template <typename T>
+    CUB_RUNTIME_FUNCTION __forceinline__
+    T operator()(const T &a, const T &b) const {
+        return (b < a) ? b : a;
+    }
+};
 
 // Make sure a zero element is padded onto the end.
 // https://github.com/NVIDIA/cub/issues/367
@@ -134,15 +144,7 @@ void CellListGPU::CalculateNewRowOffsets( int numberOfRows,
     cudaFree(d_temp_storage);
 }
 
-// CustomMin functor
-struct CustomMin
-{
-    template <typename T>
-    CUB_RUNTIME_FUNCTION __forceinline__
-    T operator()(const T &a, const T &b) const {
-        return (b < a) ? b : a;
-    }
-};
+
 
 void CellListGPU::CreateStartVector(int numberOfAtoms,
                                 int * mapParticleToCell,
