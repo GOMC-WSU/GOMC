@@ -24,6 +24,9 @@ class CellListGPU {
     void MapParticlesToCell(VariablesCUDA * cv,
                             XYZArray const &coords,
                             XYZArray const &axes);
+    void CopyMapParticlesToCellToHost(
+                                      XYZArray const &coords,
+                                      std::vector<int> & host_mapParticleToCell);
     // new pair interaction calculation done on GPU
     int *gpu_cellVector, *gpu_mapParticleToCell, *gpu_cellStartIndex;
     // Fixed as long as volume doesnt change
