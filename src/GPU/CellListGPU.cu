@@ -14,9 +14,12 @@ gpu_startOfBoxCellList(cv->gpu_startOfBoxCellListGPURes),
 gpu_cellSize(cv->gpu_cellSizeGPURes),
 gpu_edgeCells(cv->gpu_edgeCellsGPURes)
 {
+    CUMALLOC((void**) &cv->gpu_OnesGPURes, atomNumber * sizeof(int));
     CUMALLOC((void**) &cv->gpu_particleIndices, atomNumber * sizeof(int));
     thrust::device_vector<int>pI(atomNumber);
 	thrust::sequence(pI.begin(),pI.end());
+    // Fill with 1s
+    cuMemsetD32(reinterpret_cast<CUdeviceptr>(cv->gpu_OnesGPURes),  1, size_t(atomNumber));
     cudaMemcpy(cv->gpu_particleIndices, thrust::raw_pointer_cast(&pI[0]), atomNumber * sizeof(int), cudaMemcpyDeviceToDevice);
 }
 
@@ -77,6 +80,49 @@ void CellListGPU::CalculateCellDegrees(VariablesCUDA * cv,
     checkLastErrorCUDA(__FILE__, __LINE__);
 
 }
+
+void CellListGPU::CalculateCellDegreesCUB(VariablesCUDA * cv,
+                                    XYZArray const &coords){
+    int atomNumber = coords.Count();                                            // Run the kernel
+    CreateCellDegrees(atomNumber,
+                    cv->gpu_mapParticleToCellSortedGPURes,
+                    cv->gpu_OnesGPURes,
+                    cv->gpu_CellDegreeSanityCheck,
+                    cv->gpu_cellDegreesGPURes
+                    cv->gpu_IterationsReq);
+    cudaDeviceSynchronize();
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
+}
+
+// Need to sort first, since ReduceByKey needs keys to be in stretches of the same key
+void CellListGPU::CreateCellDegrees(int numberOfAtoms,
+                                int * mapParticleToCellSortedGPURes,
+                                int * OnesGPURes,
+                                int * gpu_CellDegreeSanityCheck,
+                                int * cellDegreesGPURes
+                                int * iterationsReq){
+    // Declare, allocate, and initialize device-accessible pointers for input and output
+    int          num_items = numberOfAtoms;          // e.g., 8
+    int          *d_keys_in = mapParticleToCellSortedGPURes;         // e.g., [0, 2, 2, 9, 5, 5, 5, 8]
+    int          *d_values_in = OnesGPURes;       // e.g., [0, 7, 1, 6, 2, 5, 3, 4]
+    int          *d_unique_out = gpu_CellDegreeSanityCheck;      // e.g., [-, -, -, -, -, -, -, -]
+    int          *d_aggregates_out = cellDegreesGPURes;  // e.g., [-, -, -, -, -, -, -, -]
+    int          *d_num_runs_out = iterationsReq;    // e.g., [-]
+    CustomMin    reduction_op;
+    // Determine temporary device storage requirements
+    void     *d_temp_storage = NULL;
+    size_t   temp_storage_bytes = 0;
+    cub::DeviceReduce::ReduceByKey(d_temp_storage, temp_storage_bytes, d_keys_in, d_unique_out, d_values_in, d_aggregates_out, d_num_runs_out, reduction_op, num_items);
+    // Allocate temporary storage
+    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+    // Run reduce-by-key
+    cub::DeviceReduce::ReduceByKey(d_temp_storage, temp_storage_bytes, d_keys_in, d_unique_out, d_values_in, d_aggregates_out, d_num_runs_out, reduction_op, num_items);
+    // d_unique_out      <-- [0, 2, 9, 5, 8]
+    // d_aggregates_out  <-- [0, 1, 6, 2, 4]
+    // d_num_runs_out    <-- [5]
+}
+
 
 void CellListGPU::PrefixScanCellDegrees(VariablesCUDA * cv,
                                     int numberOfCells){
@@ -155,7 +201,7 @@ __global__ void MapParticlesToCellKernel(int atomNumber,
     gpu_mapParticleToCell[threadID] = cell;
 
 }
-/*
+
 // CustomMin functor
 struct CustomMin
 {
@@ -165,7 +211,7 @@ struct CustomMin
         return (b < a) ? b : a;
     }
 };
-*/
+
 // Make sure a zero element is padded onto the end.
 // https://github.com/NVIDIA/cub/issues/367
 void CellListGPU::CalculateNewRowOffsets( int numberOfRows,

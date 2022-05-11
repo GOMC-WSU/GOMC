@@ -156,6 +156,9 @@ public:
   int *gpu_cellDegreesGPURes;
   int *gpu_particleIndices;
   int *gpu_mapParticleToCellSortedGPURes;
+  int *gpu_OnesGPURes;
+  int *gpu_CellDegreeSanityCheck;
+  int *gpu_IterationsReq;
 
 };
 #endif

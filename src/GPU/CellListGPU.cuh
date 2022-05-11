@@ -38,6 +38,8 @@ class CellListGPU {
                               XYZArray const &coords);
     void CalculateCellDegrees(VariablesCUDA * cv,
                               XYZArray const &coords);
+    void CalculateCellDegreesCUB(VariablesCUDA * cv,
+                              XYZArray const &coords);
     void PrefixScanCellDegrees(VariablesCUDA * cv,
                                         int numberOfCells);
     // new pair interaction calculation done on GPU
@@ -53,11 +55,14 @@ class CellListGPU {
                           int * mapParticleToCellSorted,
                           int * particleIndices,
                           int * particleIndicesSorted);
+
     void CreateCellDegrees(int numberOfAtoms,
-                            int * mapParticleToCell,
-                            int * mapParticleToCellSorted,
-                            int * particleIndices,
-                            int * particleIndicesSorted);
+                          int * mapParticleToCellSortedGPURes,
+                          int * OnesGPURes,
+                          int * gpu_CellDegreeSanityCheck,
+                          int * cellDegreesGPURes
+                          int * iterationsReq);
+
     void CalculateNewRowOffsets( int numberOfRows,
                                 int * global_row_offsets_dev_ptr,
                                 int * global_degrees_dev_ptr);
