@@ -1,6 +1,5 @@
 #ifdef GOMC_CUDA
 #include "CellListGPU.cuh"
-#include "CalculateMinImageCUDAKernel.cuh"
 
 CellListGPU::CellListGPU(VariablesCUDA * cv):
 gpu_cellVector(cv->gpu_cellVectorGPURes),
@@ -37,7 +36,7 @@ __device__ int PositionToCell(int atomIndex,
                                gpu_y[atomIndex],
                                gpu_z[atomIndex]);
     if(gpu_nonOrth[0]){
-        pos = TransformUnSlant(pos, 
+        pos = TransformUnSlantGPU(pos, 
                                 gpu_Invcell_x,
                                 gpu_Invcell_y,
                                 gpu_Invcell_z);
