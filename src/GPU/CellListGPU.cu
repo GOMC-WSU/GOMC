@@ -18,8 +18,11 @@ gpu_edgeCells(cv->gpu_edgeCellsGPURes)
     CUMALLOC((void**) &cv->gpu_particleIndices, atomNumber * sizeof(int));
     thrust::device_vector<int>pI(atomNumber);
 	thrust::sequence(pI.begin(),pI.end());
+    thrust::device_vector<int>ones(atomNumber);
+    thrust::fill(ones.begin(),ones.end(), 1);
+	thrust::sequence(pI.begin(),pI.end());
     // Fill with 1s
-    cuMemsetD32(reinterpret_cast<CUdeviceptr>(cv->gpu_OnesGPURes),  1, size_t(atomNumber));
+    cudaMemcpy(cv->gpu_OnesGPURes, thrust::raw_pointer_cast(&ones[0]), atomNumber * sizeof(int), cudaMemcpyDeviceToDevice);
     cudaMemcpy(cv->gpu_particleIndices, thrust::raw_pointer_cast(&pI[0]), atomNumber * sizeof(int), cudaMemcpyDeviceToDevice);
 }
 
