@@ -24,7 +24,7 @@ class CellListGPU {
     void MapParticlesToCell(VariablesCUDA * cv,
                             XYZArray const &coords,
                             XYZArray const &axes);
-    void CopyMapParticlesToCellToHost(
+    void CopyMapParticlesToCellToHost(VariablesCUDA * cv,
                                       XYZArray const &coords,
                                       std::vector<int> & host_mapParticleToCell);
     // new pair interaction calculation done on GPU

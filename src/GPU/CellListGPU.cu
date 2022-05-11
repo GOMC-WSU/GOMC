@@ -40,13 +40,13 @@ void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
 
 }
 
-void CellListGPU::CopyMapParticlesToCellToHost(
+void CellListGPU::CopyMapParticlesToCellToHost(VariablesCUDA * cv,
                                     XYZArray const &coords,
                                     std::vector<int> & host_mapParticleToCell){
     int atomNumber = coords.Count();
     host_mapParticleToCell.clear();
     host_mapParticleToCell.resize(atomNumber);
-    cudaMemcpy(&host_mapParticleToCell[0], gpu_mapParticleToCell, atomNumber * sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&host_mapParticleToCell[0], cv->gpu_mapParticleToCellGPURes, atomNumber * sizeof(double), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 }
