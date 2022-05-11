@@ -1,6 +1,5 @@
 #ifdef GOMC_CUDA
 #include "CellListGPU.cuh"
-#include "CellListGPU.cuh"
 
 CellListGPU::CellListGPU(VariablesCUDA * cv):
 gpu_cellVector(cv->gpu_cellVectorGPURes),
@@ -44,9 +43,6 @@ __global__ void MapParticlesToCell(int atomNumber,
                             gpu_cellSize,
                             gpu_edgeCells,
                             gpu_nonOrth,
-                            gpu_cell_x,
-                            gpu_cell_y,
-                            gpu_cell_z,
                             gpu_Invcell_x,
                             gpu_Invcell_y,
                             gpu_Invcell_z);
