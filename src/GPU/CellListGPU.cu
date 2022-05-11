@@ -43,6 +43,21 @@ void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
 
 }
 
+
+void CellListGPU::SortMappedParticles(VariablesCUDA * cv,
+                                    XYZArray const &coords){
+    int atomNumber = coords.Count();
+    // Run the kernel
+    CreateStartVector(atomNumber,
+                    cv->gpu_mapParticleToCellGPURes,
+                    cv->gpu_particleIndices,
+                    cv->gpu_mapParticleToCellSortedGPURes,
+                    cv->gpu_cellVectorGPURes);
+    cudaDeviceSynchronize();
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
+}
+
 void CellListGPU::CopyMapParticlesToCellToHost(VariablesCUDA * cv,
                                     XYZArray const &coords,
                                     std::vector<int> & host_mapParticleToCell){

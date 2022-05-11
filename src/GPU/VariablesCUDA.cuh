@@ -142,10 +142,14 @@ public:
   int *gpu_neighborList;
 
   // new pair interaction calculation done on GPU
-  int *gpu_cellVectorGPURes, *gpu_mapParticleToCellGPURes, *gpu_cellStartIndexGPURes;
+  int *gpu_cellVectorGPURes; 
+  int *gpu_mapParticleToCellGPURes; 
+  int *gpu_cellStartIndexGPURes;
   // Fixed as long as volume doesnt change
   // Regenerate after volume moves.
-  int *gpu_neighborListGPURes, *gpu_numberOfCellsGPURes, *gpu_startOfBoxCellListGPURes;
+  int *gpu_neighborListGPURes; 
+  int *gpu_numberOfCellsGPURes; 
+  int *gpu_startOfBoxCellListGPURes;
   int *gpu_edgeCellsGPURes;
   double *gpu_cellSizeGPURes;
 
