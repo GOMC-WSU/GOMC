@@ -77,6 +77,15 @@ void CellListGPU::CalculateCellDegrees(VariablesCUDA * cv,
 
 }
 
+void CellListGPU::PrefixScanCellDegrees(VariablesCUDA * cv,
+                                    int numberOfCells){
+    CalculateNewRowOffsets(numberOfCells,
+                           cv->gpu_cellStartIndexGPURes,
+                           cv->gpu_cellDegreesGPURes);
+    cudaDeviceSynchronize();
+    checkLastErrorCUDA(__FILE__, __LINE__);
+}
+
 void CellListGPU::CopyMapParticlesToCellToHost(VariablesCUDA * cv,
                                     XYZArray const &coords,
                                     std::vector<int> & host_mapParticleToCell){

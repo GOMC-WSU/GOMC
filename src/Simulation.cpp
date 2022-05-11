@@ -260,6 +260,8 @@ void Simulation::GetGPUCellList(std::vector<int> & cellVector,
                                           system->coordinates);
   system->cellListGPU->CalculateCellDegrees(staticValues->forcefield.particles->getCUDAVars(),
                                           system->coordinates);
+  system->cellListGPU->PrefixScanCellDegrees(staticValues->forcefield.particles->getCUDAVars(),
+                                          system->cellList.CellsInBox(0));
   system->cellListGPU->CopyMapParticlesToCellToHost(staticValues->forcefield.particles->getCUDAVars(),
                                                     system->coordinates,
                                                     mapParticleToCell);

@@ -38,6 +38,8 @@ class CellListGPU {
                               XYZArray const &coords);
     void CalculateCellDegrees(VariablesCUDA * cv,
                               XYZArray const &coords);
+    void PrefixScanCellDegrees(VariablesCUDA * cv,
+                                        int numberOfCells);
     // new pair interaction calculation done on GPU
     int *gpu_cellVector, *gpu_mapParticleToCell, *gpu_cellStartIndex;
     // Fixed as long as volume doesnt change
