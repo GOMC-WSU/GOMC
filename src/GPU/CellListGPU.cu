@@ -1,5 +1,6 @@
 #ifdef GOMC_CUDA
 #include "CellListGPU.cuh"
+#include "CalculateMinImageCUDAKernel.cuh"
 
 CellListGPU::CellListGPU(VariablesCUDA * cv):
 gpu_cellVector(cv->gpu_cellVectorGPURes),
