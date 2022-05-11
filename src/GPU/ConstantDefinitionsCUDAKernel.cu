@@ -159,6 +159,7 @@ void InitGPUCellList(VariablesCUDA *vars,
   CUMALLOC((void**) &vars->gpu_startOfBoxCellListGPURes, startOfBoxCellList.size() * sizeof(int));
   CUMALLOC((void**) &vars->gpu_cellSizeGPURes, BOX_TOTAL * 3 * sizeof(double));
   CUMALLOC((void**) &vars->gpu_edgeCellsGPURes, BOX_TOTAL * 3 * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_cellDegreesGPURes, (neighborList.size()+1) * sizeof(double));
 
   cudaMemcpy(vars->gpu_numberOfCellsGPURes, &numberOfCells[0], numberOfCells.size() * sizeof(int),
              cudaMemcpyHostToDevice);
