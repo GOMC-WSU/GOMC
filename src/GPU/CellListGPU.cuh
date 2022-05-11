@@ -4,6 +4,7 @@
 
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
+#include "CalculateMinImageCUDAKernel.cuh"
 
 class CellListGPU {
   public:
