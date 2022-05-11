@@ -152,6 +152,10 @@ public:
   int *gpu_startOfBoxCellListGPURes;
   int *gpu_edgeCellsGPURes;
   double *gpu_cellSizeGPURes;
+    // Intermediate variable for counting number of molecules in cell
+  int *gpu_cellDegreesGPURes;
+  int *gpu_particleIndices;
+  int *gpu_mapParticleToCellSortedGPURes;
 
 };
 #endif
