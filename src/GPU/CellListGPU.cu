@@ -154,7 +154,7 @@ __global__ void MapParticlesToCellKernel(int atomNumber,
     gpu_mapParticleToCell[threadID] = cell;
 
 }
-
+/*
 // CustomMin functor
 struct CustomMin
 {
@@ -164,7 +164,7 @@ struct CustomMin
         return (b < a) ? b : a;
     }
 };
-
+*/
 // Make sure a zero element is padded onto the end.
 // https://github.com/NVIDIA/cub/issues/367
 void CellListGPU::CalculateNewRowOffsets( int numberOfRows,

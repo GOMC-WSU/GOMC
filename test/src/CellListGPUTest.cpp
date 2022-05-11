@@ -17,11 +17,16 @@ TEST(CellListGPU, CheckMETHANOL) {
                         cellStartIndex,
                         mapParticleToCell,
                         neighborList);
+    std::vector<int> particleIndices;
 
     base.GetGPUCellList(cellVectorGPU,
                         cellStartIndexGPU,
                         mapParticleToCellGPU,
-                        neighborListGPU);
+                        neighborListGPU,
+                        particleIndices);
+    for (auto & p : particleIndices)
+        std::cout << p << std::endl;
+    std::cout << "Size: " << particleIndices.size() << std::endl;
 
     EXPECT_EQ(mapParticleToCell, mapParticleToCellGPU);
     EXPECT_EQ(cellStartIndex, cellStartIndexGPU);

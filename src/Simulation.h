@@ -43,7 +43,8 @@ public:
     void GetGPUCellList(std::vector<int> & cellVector, 
                                 std::vector<int> & cellStartIndex, 
                                 std::vector<int> & mapParticleToCell,
-                                std::vector< std::vector<int> > & neighborList);
+                                std::vector< std::vector<int> > & neighborList,
+                                std::vector<int> & Pinds);
 
   #endif
 private:
