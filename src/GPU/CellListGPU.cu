@@ -30,9 +30,6 @@ void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
                                     XYZArray const &coords,
                                     XYZArray const &axes){
     int atomNumber = coords.Count();
-    cudaMemcpy(cv->gpu_x, coords.x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(cv->gpu_y, coords.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(cv->gpu_z, coords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
     // Run the kernel
     int threadsPerBlock = 256;
     int blocksPerGrid = (int)(atomNumber / threadsPerBlock) + 1;
