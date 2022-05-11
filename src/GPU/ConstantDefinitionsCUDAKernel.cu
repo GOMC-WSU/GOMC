@@ -141,6 +141,7 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_cellVector, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_cellVectorGPURes, atomNumber * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_cellVectorGPURes, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_mapParticleToCellGPURes, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_mapParticleToCellSortedGPURes, atomNumber * sizeof(int));
 
