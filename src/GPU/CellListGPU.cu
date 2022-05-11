@@ -7,12 +7,15 @@ gpu_mapParticleToCell(cv->gpu_mapParticleToCellGPURes),
 gpu_cellStartIndex(cv->gpu_cellStartIndexGPURes),
 gpu_neighborList(cv->gpu_neighborListGPURes),
 gpu_numberOfCells(cv->gpu_numberOfCellsGPURes),
-gpu_startOfBoxCellList(cv->gpu_startOfBoxCellListGPURes)
+gpu_startOfBoxCellList(cv->gpu_startOfBoxCellListGPURes),
+gpu_cellSize(cv->gpu_cellSizeGPURes),
+gpu_edgeCells(cv->gpu_edgeCellsGPURes)
 {
 }
 
 void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
-                                    XYZArray const &coords){
+                                    XYZArray const &coords,
+                                    XYZArray const &axes){
     int atomNumber = coords.Count();
     cudaMemcpy(cv->gpu_x, coords.x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(cv->gpu_y, coords.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);

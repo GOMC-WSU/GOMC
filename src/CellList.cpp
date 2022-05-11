@@ -68,7 +68,7 @@ void CellList::FlattenNeighborList(){
 
   int totalCells = 0; 
   std::vector < std::vector<std::vector<int> > > neighborList;
-  for (int b = 0; b < BOXES_WITH_U_NB; ++b){
+  for (int b = 0; b < BOX_TOTAL; ++b){
     startOfBoxCellList.push_back(totalCells);
     neighborList.push_back(GetNeighborList(b));
     totalCells += neighborList[b].size()*NUMBER_OF_NEIGHBOR_CELL;
@@ -77,7 +77,7 @@ void CellList::FlattenNeighborList(){
   // Convert neighbor list to 1D array
   neighborlist1D.clear();
   neighborlist1D.resize(totalCells);
-  for (int b = 0; b < BOXES_WITH_U_NB; ++b){
+  for (int b = 0; b < BOX_TOTAL; ++b){
     for(int i = 0; i < neighborList[b].size(); i++) {
       for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELL; j++) {
         neighborlist1D[startOfBoxCellList[b] + i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[b][i][j];
@@ -85,10 +85,28 @@ void CellList::FlattenNeighborList(){
     }
   }
 }
+void CellList::FlattenCellDetails(){
+  cellSizeVec.clear();
+  edgeCellsVec.clear();
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    cellSizeVec.push_back(cellSize[b].x);
+    cellSizeVec.push_back(cellSize[b].y);
+    cellSizeVec.push_back(cellSize[b].z);
+    edgeCellsVec.push_back(edgeCells[b][0]);
+    edgeCellsVec.push_back(edgeCells[b][1]);
+    edgeCellsVec.push_back(edgeCells[b][2]);
+  }
+}
 
 void CellList::CopyNeighborListToGPU(VariablesCUDA *cudaVars){
   FlattenNeighborList();
-  InitGPUCellList(cudaVars, neighborlist1D, numberOfCells, startOfBoxCellList);
+  FlattenCellDetails();
+  InitGPUCellList(cudaVars, 
+                  neighborlist1D, 
+                  numberOfCells, 
+                  startOfBoxCellList,
+                  edgeCellsVec,
+                  cellSizeVec);
 }
 
 #endif

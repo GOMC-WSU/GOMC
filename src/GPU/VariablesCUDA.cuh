@@ -146,5 +146,7 @@ public:
   // Fixed as long as volume doesnt change
   // Regenerate after volume moves.
   int *gpu_neighborListGPURes, *gpu_numberOfCellsGPURes, *gpu_startOfBoxCellListGPURes;
+  int *gpu_edgeCellsGPURes, *gpu_cellSizeGPURes;
+
 };
 #endif

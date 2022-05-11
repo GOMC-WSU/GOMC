@@ -95,6 +95,8 @@ private:
   std::vector<int> neighborlist1D;
   std::vector<int> numberOfCells;
   std::vector<int> startOfBoxCellList;
+  std::vector<double> cellSizeVec;
+  std::vector<int> edgeCellsVec;
   void FlattenNeighborList();
   #endif
 
