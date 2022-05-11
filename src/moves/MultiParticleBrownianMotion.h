@@ -26,7 +26,7 @@ public:
   MultiParticleBrownian(System &sys, StaticVals const& statV);
   ~MultiParticleBrownian() {
 #ifdef GOMC_CUDA
-    cellListGPU = sys.cellListGPU;
+    cellListGPU = NULL;
     cudaVars = NULL;
     cudaFreeHost(kill);
     kill = NULL;
