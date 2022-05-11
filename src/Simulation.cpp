@@ -269,7 +269,7 @@ void Simulation::GetGPUCellList(std::vector<int> & cellVector,
                                                     system->coordinates.Count(),
                                                     cellVector);
   system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellStartIndexGPURes,
-                                                    system->cellList.CellsInBox(0),
+                                                    system->cellList.CellsInBox(0)+1,
                                                     cellStartIndex);                                                    
 }
 #endif

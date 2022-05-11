@@ -24,5 +24,8 @@ TEST(CellListGPU, CheckMETHANOL) {
                         neighborListGPU);
 
     EXPECT_EQ(mapParticleToCell, mapParticleToCellGPU);
+    EXPECT_EQ(cellStartIndex, cellStartIndexGPU);
+    EXPECT_EQ(cellVector, cellVectorGPU);
+
 }
 #endif
