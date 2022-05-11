@@ -94,7 +94,15 @@ void CellListGPU::CalculateCellDegreesCUB(VariablesCUDA * cv,
     checkLastErrorCUDA(__FILE__, __LINE__);
 
 }
-
+// CustomMin functor
+struct CustomMin
+{
+    template <typename T>
+    CUB_RUNTIME_FUNCTION __forceinline__
+    T operator()(const T &a, const T &b) const {
+        return (b < a) ? b : a;
+    }
+};
 // Need to sort first, since ReduceByKey needs keys to be in stretches of the same key
 void CellListGPU::CreateCellDegrees(int numberOfAtoms,
                                 int * mapParticleToCellSortedGPURes,
@@ -202,15 +210,7 @@ __global__ void MapParticlesToCellKernel(int atomNumber,
 
 }
 
-// CustomMin functor
-struct CustomMin
-{
-    template <typename T>
-    CUB_RUNTIME_FUNCTION __forceinline__
-    T operator()(const T &a, const T &b) const {
-        return (b < a) ? b : a;
-    }
-};
+
 
 // Make sure a zero element is padded onto the end.
 // https://github.com/NVIDIA/cub/issues/367
