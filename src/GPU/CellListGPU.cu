@@ -46,7 +46,7 @@ void CellListGPU::CopyMapParticlesToCellToHost(VariablesCUDA * cv,
     int atomNumber = coords.Count();
     host_mapParticleToCell.clear();
     host_mapParticleToCell.resize(atomNumber);
-    cudaMemcpy(&host_mapParticleToCell[0], cv->gpu_mapParticleToCellGPURes, atomNumber * sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&host_mapParticleToCell[0], cv->gpu_mapParticleToCellGPURes, atomNumber * sizeof(int), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 }
