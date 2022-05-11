@@ -139,7 +139,12 @@ public:
   int *gpu_cellVector, *gpu_mapParticleToCell, *gpu_cellStartIndex;
   // Fixed as long as volume doesnt change
   // Regenerate after volume moves.
-  int *gpu_neighborList, *gpu_numberOfCells, *gpu_startOfBoxCellList;
+  int *gpu_neighborList;
 
+  // new pair interaction calculation done on GPU
+  int *gpu_cellVectorGPURes, *gpu_mapParticleToCellGPURes, *gpu_cellStartIndexGPURes;
+  // Fixed as long as volume doesnt change
+  // Regenerate after volume moves.
+  int *gpu_neighborListGPURes, *gpu_numberOfCellsGPURes, *gpu_startOfBoxCellListGPURes;
 };
 #endif

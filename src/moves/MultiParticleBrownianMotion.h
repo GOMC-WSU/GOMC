@@ -350,6 +350,7 @@ inline void MultiParticleBrownian::CalcEn()
   // reference values in Accept() function
   //cellList.GridAll(boxDimRef, newMolsPos, molLookup);
   cellList.GridBox(boxDimRef, newMolsPos, molLookup, bPick);
+  //cellListGPU->GridBox(boxDimRef, newMolsPos, molLookup, bPick);
 
   //back up cached fourier term
   calcEwald->backupMolCache();

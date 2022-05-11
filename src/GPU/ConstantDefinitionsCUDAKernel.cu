@@ -140,6 +140,8 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_mForceRecz, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_cellVector, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_cellVectorGPURes, atomNumber * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_mapParticleToCellGPURes, atomNumber * sizeof(int));
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
@@ -148,15 +150,15 @@ void InitGPUCellList(VariablesCUDA *vars,
                     const std::vector<int> &numberOfCells,
                     const std::vector<int> &startOfBoxCellList)
 {
-  CUMALLOC((void**) &vars->gpu_numberOfCells,  numberOfCells.size() * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_neighborList, neighborList.size() * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_startOfBoxCellList, startOfBoxCellList.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_numberOfCellsGPURes,  numberOfCells.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_neighborListGPURes, neighborList.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_startOfBoxCellListGPURes, startOfBoxCellList.size() * sizeof(int));
 
-  cudaMemcpy(vars->gpu_numberOfCells, &numberOfCells[0], numberOfCells.size() * sizeof(int),
+  cudaMemcpy(vars->gpu_numberOfCellsGPURes, &numberOfCells[0], numberOfCells.size() * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_neighborList, &neighborList[0], neighborList.size() * sizeof(int),
+  cudaMemcpy(vars->gpu_neighborListGPURes, &neighborList[0], neighborList.size() * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_startOfBoxCellList, &startOfBoxCellList[0], startOfBoxCellList.size() * sizeof(int),
+  cudaMemcpy(vars->gpu_startOfBoxCellListGPURes, &startOfBoxCellList[0], startOfBoxCellList.size() * sizeof(int),
              cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
