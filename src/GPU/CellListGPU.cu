@@ -79,6 +79,6 @@ __device__ int PositionToCell(int atomIndex,
     z -= (z == gpu_edgeCells[2] ?  1 : 0);
     return x * gpu_edgeCells[1] * gpu_edgeCells[2] + y * gpu_edgeCells[2] + z;
 }
-                            }
+                            
 
 #endif
