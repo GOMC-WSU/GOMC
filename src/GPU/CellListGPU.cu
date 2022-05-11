@@ -4,7 +4,7 @@
 
 
 
-CellListGPU::CellListGPU(VariablesCUDA * cv):
+CellListGPU::CellListGPU(VariablesCUDA * cv, int atomNumber):
 gpu_cellVector(cv->gpu_cellVectorGPURes),
 gpu_mapParticleToCell(cv->gpu_mapParticleToCellGPURes),
 gpu_cellStartIndex(cv->gpu_cellStartIndexGPURes),

@@ -131,7 +131,7 @@ void System::Init(Setup & set)
   // For now copy the neighbor list to the GPU
   // Once this can be built on the GPU we can only do this in GTest
   cellList.CopyNeighborListToGPU(statV.forcefield.particles->getCUDAVars());
-  cellListGPU = new CellListGPU(statV.forcefield.particles->getCUDAVars());
+  cellListGPU = new CellListGPU(statV.forcefield.particles->getCUDAVars(), coordinates.Count());
   #endif
   //check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
