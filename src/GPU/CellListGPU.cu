@@ -53,8 +53,8 @@ void CellListGPU::SortMappedParticles(VariablesCUDA * cv,
     // Run the kernel
     CreateStartVector(atomNumber,
                     cv->gpu_mapParticleToCellGPURes,
-                    cv->gpu_particleIndices,
                     cv->gpu_mapParticleToCellSortedGPURes,
+                    cv->gpu_particleIndices,
                     cv->gpu_cellVectorGPURes);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
