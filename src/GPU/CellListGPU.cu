@@ -88,7 +88,7 @@ void CellListGPU::CalculateCellDegreesCUB(VariablesCUDA * cv,
                     cv->gpu_mapParticleToCellSortedGPURes,
                     cv->gpu_OnesGPURes,
                     cv->gpu_CellDegreeSanityCheck,
-                    cv->gpu_cellDegreesGPURes
+                    cv->gpu_cellDegreesGPURes,
                     cv->gpu_IterationsReq);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
@@ -100,7 +100,7 @@ void CellListGPU::CreateCellDegrees(int numberOfAtoms,
                                 int * mapParticleToCellSortedGPURes,
                                 int * OnesGPURes,
                                 int * gpu_CellDegreeSanityCheck,
-                                int * cellDegreesGPURes
+                                int * cellDegreesGPURes,
                                 int * iterationsReq){
     // Declare, allocate, and initialize device-accessible pointers for input and output
     int          num_items = numberOfAtoms;          // e.g., 8
