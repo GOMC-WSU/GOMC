@@ -8,7 +8,7 @@
 class CellListGPU {
   public:
     CellListGPU(VariablesCUDA * cv);
-    void MapParticlesToCell(int atomNumber,
+    void MapParticlesToCell(VariablesCUDA * cv,
                             XYZArray const &coords);
     // new pair interaction calculation done on GPU
     int *gpu_cellVector, *gpu_mapParticleToCell, *gpu_cellStartIndex;
