@@ -18,7 +18,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CUDAMemoryManager.cuh"
 #include "TransformParticlesCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
-#include "CellListGPU.cuh"
 #endif
 
 class MultiParticleBrownian : public MoveBase
@@ -106,7 +105,7 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
   isOrthogonal = statV.isOrthogonal;
-  cellListGPU = new CellListGPU(cudaVars);
+  cellListGPU = sys.cellListGPU;
   cudaMallocHost((void**) &kill, sizeof(int));
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
