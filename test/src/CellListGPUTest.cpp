@@ -5,7 +5,8 @@
 #ifdef GOMC_CUDA
 TEST(CellListGPU, CheckMETHANOL) {
     int result = chdir("./test/input/Systems/METHANOL_OPLSAA/10K/Standard");
-    Simulation base("in_GCMC.conf");
+    Simulation base("in_NVT.conf");
+    //Simulation base("in_GCMC.conf");
     std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
     std::vector< std::vector<int> > neighborList;
     std::vector<int> cellVectorGPU, cellStartIndexGPU, mapParticleToCellGPU;
