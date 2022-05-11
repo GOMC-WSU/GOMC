@@ -262,8 +262,14 @@ void Simulation::GetGPUCellList(std::vector<int> & cellVector,
                                           system->coordinates);
   system->cellListGPU->PrefixScanCellDegrees(staticValues->forcefield.particles->getCUDAVars(),
                                           system->cellList.CellsInBox(0));
-  system->cellListGPU->CopyMapParticlesToCellToHost(staticValues->forcefield.particles->getCUDAVars(),
-                                                    system->coordinates,
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_mapParticleToCellGPURes,
+                                                    system->coordinates.Count(),
                                                     mapParticleToCell);
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellVectorGPURes,
+                                                    system->coordinates.Count(),
+                                                    cellVector);
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellStartIndexGPURes,
+                                                    system->cellList.CellsInBox(0),
+                                                    cellStartIndex);                                                    
 }
 #endif

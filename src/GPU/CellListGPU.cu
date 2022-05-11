@@ -86,13 +86,12 @@ void CellListGPU::PrefixScanCellDegrees(VariablesCUDA * cv,
     checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
-void CellListGPU::CopyMapParticlesToCellToHost(VariablesCUDA * cv,
-                                    XYZArray const &coords,
-                                    std::vector<int> & host_mapParticleToCell){
-    int atomNumber = coords.Count();
-    host_mapParticleToCell.clear();
-    host_mapParticleToCell.resize(atomNumber);
-    cudaMemcpy(&host_mapParticleToCell[0], cv->gpu_mapParticleToCellGPURes, atomNumber * sizeof(int), cudaMemcpyDeviceToHost);
+void CellListGPU::CopyGPUMemoryToToHost(int * deviceMemory,
+                                    int size,
+                                    std::vector<int> & hostMemory){
+    hostMemory.clear();
+    hostMemory.resize(size);
+    cudaMemcpy(&hostMemory[0], deviceMemory, size * sizeof(int), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 }
