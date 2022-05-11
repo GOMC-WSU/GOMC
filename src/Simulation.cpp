@@ -253,6 +253,8 @@ void Simulation::GetGPUCellList(std::vector<int> & cellVector,
                                 std::vector<int> & cellStartIndex, 
                                 std::vector<int> & mapParticleToCell,
                                 std::vector< std::vector<int> > & neighborList){
+  system->cellListGPU->MapParticlesToCell(staticValues->forcefield.particles->getCUDAVars(),
+                                          system->coordinates);
 
 }
 #endif
