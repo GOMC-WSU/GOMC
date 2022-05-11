@@ -8,6 +8,8 @@
 #include<thrust/device_vector.h>
 #include<thrust/sequence.h>
 #include "CUDAMemoryManager.cuh"
+// For cuMemsetD32
+#include <cuda_runtime.h>
 
 __global__ void MapParticlesToCellKernel(int atomNumber,
                     double* gpu_x,
