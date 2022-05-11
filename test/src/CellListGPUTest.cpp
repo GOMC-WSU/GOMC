@@ -24,10 +24,6 @@ TEST(CellListGPU, CheckMETHANOL) {
                         mapParticleToCellGPU,
                         neighborListGPU,
                         particleIndices);
-    for (auto & p : particleIndices)
-        std::cout << p << std::endl;
-    std::cout << "Size: " << particleIndices.size() << std::endl;
-
     EXPECT_EQ(mapParticleToCell, mapParticleToCellGPU);
     EXPECT_EQ(cellStartIndex, cellStartIndexGPU);
     EXPECT_EQ(cellVector, cellVectorGPU);
