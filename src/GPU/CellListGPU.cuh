@@ -18,6 +18,18 @@ class CellListGPU {
     // Regenerate after volume moves.
     int *gpu_neighborList, *gpu_numberOfCells, *gpu_startOfBoxCellList;
     int *gpu_cellSize, *gpu_edgeCells;
+    private:
+        __global__ void MapParticlesToCellKernel(int atomNumber,
+                            double* gpu_x,
+                            double* gpu_y,
+                            double* gpu_z,                                
+                            int* gpu_mapParticleToCell,
+                            double *gpu_cellSize,
+                            int *gpu_edgeCells,
+                            int* gpu_nonOrth,
+                            double *gpu_Invcell_x,
+                            double *gpu_Invcell_y,
+                            double *gpu_Invcell_z);
 
 
 };
