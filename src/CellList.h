@@ -98,6 +98,7 @@ private:
   std::vector<double> cellSizeVec;
   std::vector<int> edgeCellsVec;
   void FlattenNeighborList();
+  void FlattenCellDetails();
   #endif
 
 };
