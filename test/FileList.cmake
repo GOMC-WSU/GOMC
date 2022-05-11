@@ -3,8 +3,12 @@ set(TestSources
     test/src/BitLibTest.cpp
     test/src/EndianTest.cpp
     test/src/MolLookupTest.cpp
-    test/src/TrajectoryTest.cpp
-    test/src/EnergyTest.cpp
+    test/src/CellListGPUTest.cpp
+
+    # Still working on these
+    #test/src/TrajectoryTest.cpp
+    #test/src/EnergyTest.cpp
+
     #test/src/CircuitTester.cpp
     #test/src/PSFParserTest.cpp
     #test/src/ConsistentTrajectoryTest.cpp
