@@ -166,7 +166,7 @@ void InitGPUCellList(VariablesCUDA *vars,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_edgeCellsGPURes, &edgeCells[0], edgeCells.size() * sizeof(int),
             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_cellSizeGPURes, &cellSizes[0], cellSize.size() * sizeof(double),
+  cudaMemcpy(vars->gpu_cellSizeGPURes, &cellSize[0], cellSize.size() * sizeof(double),
              cudaMemcpyHostToDevice);
 
   checkLastErrorCUDA(__FILE__, __LINE__);
