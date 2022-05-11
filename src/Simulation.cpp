@@ -239,4 +239,20 @@ ulong Simulation::GetTrueStep(){
 ulong Simulation::GetRunSteps(){
   return totalSteps - startStep;
 }
+
+void Simulation::GetCPUCellList(uint box,
+                                std::vector<int> & cellVector, 
+                                std::vector<int> & cellStartIndex, 
+                                std::vector<int> & mapParticleToCell,
+                                std::vector< std::vector<int> > & neighborList){
+  system->cellList.GetCellListNeighbor(box, system->coordinates.Count(),
+                                cellVector, cellStartIndex, mapParticleToCell);
+  neighborList = system->cellList.GetNeighborList(box);
+}
+void Simulation::GetGPUCellList(std::vector<int> & cellVector, 
+                                std::vector<int> & cellStartIndex, 
+                                std::vector<int> & mapParticleToCell,
+                                std::vector< std::vector<int> > & neighborList){
+
+}
 #endif
