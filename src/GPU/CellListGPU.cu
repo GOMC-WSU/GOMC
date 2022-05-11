@@ -22,34 +22,7 @@ void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
     cudaMemcpy(cv->gpu_z, coords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
 }
 
-__global__ void MapParticlesToCell(int atomNumber,
-                            double* gpu_x,
-                            double* gpu_y,
-                            double* gpu_z,                                
-                            int* gpu_mapParticleToCell,
-                            double *gpu_cellSize,
-                            int *gpu_edgeCells,
-                            int* gpu_nonOrth,
-                            double *gpu_Invcell_x,
-                            double *gpu_Invcell_y,
-                            double *gpu_Invcell_z){
-    int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-    if (threadID >= atomNumber)
-        return;
-    int cell = PositionToCell(threadID,
-                            gpu_x,
-                            gpu_y,
-                            gpu_z,
-                            gpu_cellSize,
-                            gpu_edgeCells,
-                            gpu_nonOrth,
-                            gpu_Invcell_x,
-                            gpu_Invcell_y,
-                            gpu_Invcell_z);
-
-}
-
-__device__ int CellListGPU::PositionToCell(int atomIndex,
+__device__ int PositionToCell(int atomIndex,
                             double* gpu_x,
                             double* gpu_y,
                             double* gpu_z,                                
@@ -78,6 +51,33 @@ __device__ int CellListGPU::PositionToCell(int atomIndex,
     y -= (y == gpu_edgeCells[1] ?  1 : 0);
     z -= (z == gpu_edgeCells[2] ?  1 : 0);
     return x * gpu_edgeCells[1] * gpu_edgeCells[2] + y * gpu_edgeCells[2] + z;
+}
+
+__global__ void MapParticlesToCell(int atomNumber,
+                            double* gpu_x,
+                            double* gpu_y,
+                            double* gpu_z,                                
+                            int* gpu_mapParticleToCell,
+                            double *gpu_cellSize,
+                            int *gpu_edgeCells,
+                            int* gpu_nonOrth,
+                            double *gpu_Invcell_x,
+                            double *gpu_Invcell_y,
+                            double *gpu_Invcell_z){
+    int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+    if (threadID >= atomNumber)
+        return;
+    int cell = PositionToCell(threadID,
+                            gpu_x,
+                            gpu_y,
+                            gpu_z,
+                            gpu_cellSize,
+                            gpu_edgeCells,
+                            gpu_nonOrth,
+                            gpu_Invcell_x,
+                            gpu_Invcell_y,
+                            gpu_Invcell_z);
+
 }
                             
 
