@@ -115,8 +115,8 @@ void CellListGPU::CreateCellDegrees(int numberOfAtoms,
                                 int * iterationsReq){
     // Declare, allocate, and initialize device-accessible pointers for input and output
     int          num_items = numberOfAtoms;          // e.g., 8
-    int          *d_keys_in = mapParticleToCellSortedGPURes;         // e.g., [0, 2, 2, 9, 5, 5, 5, 8]
-    int          *d_values_in = OnesGPURes;       // e.g., [0, 7, 1, 6, 2, 5, 3, 4]
+    int          *d_keys_in = mapParticleToCellSortedGPURes;           // e.g., [0, 2, 2, 9, 5, 5, 5, 8]
+    int          *d_values_in = OnesGPURes;                            // e.g., [0, 7, 1, 6, 2, 5, 3, 4]
     int          *d_unique_out = gpu_CellDegreeSanityCheck;      // e.g., [-, -, -, -, -, -, -, -]
     int          *d_aggregates_out = cellDegreesGPURes;  // e.g., [-, -, -, -, -, -, -, -]
     int          *d_num_runs_out = iterationsReq;    // e.g., [-]
