@@ -61,6 +61,22 @@ void CellListGPU::SortMappedParticles(VariablesCUDA * cv,
 
 }
 
+void CellListGPU::CalculateCellDegrees(VariablesCUDA * cv,
+                                    XYZArray const &coords){
+    int atomNumber = coords.Count();                                            // Run the kernel
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (int)(atomNumber / threadsPerBlock) + 1;
+    // Run the kernel
+    CalculateCellDegreesKernel<<< blocksPerGrid, 
+                                threadsPerBlock, 
+                                (3*threadsPerBlock+2)*sizeof(int)>>>(atomNumber,
+                                                                cv->gpu_mapParticleToCellSortedGPURes,
+                                                                cv->gpu_cellDegreesGPURes);
+    cudaDeviceSynchronize();
+    checkLastErrorCUDA(__FILE__, __LINE__);
+
+}
+
 void CellListGPU::CopyMapParticlesToCellToHost(VariablesCUDA * cv,
                                     XYZArray const &coords,
                                     std::vector<int> & host_mapParticleToCell){

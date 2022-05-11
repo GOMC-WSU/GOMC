@@ -258,6 +258,8 @@ void Simulation::GetGPUCellList(std::vector<int> & cellVector,
                                           system->boxDimRef.axis);
   system->cellListGPU->SortMappedParticles(staticValues->forcefield.particles->getCUDAVars(),
                                           system->coordinates);
+  system->cellListGPU->CalculateCellDegrees(staticValues->forcefield.particles->getCUDAVars(),
+                                          system->coordinates);
   system->cellListGPU->CopyMapParticlesToCellToHost(staticValues->forcefield.particles->getCUDAVars(),
                                                     system->coordinates,
                                                     mapParticleToCell);
