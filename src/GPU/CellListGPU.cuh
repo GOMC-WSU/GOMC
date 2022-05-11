@@ -18,6 +18,10 @@ __global__ void MapParticlesToCellKernel(int atomNumber,
                     double *gpu_Invcell_y,
                     double *gpu_Invcell_z);
 
+__global__ void CalculateCellDegreesKernel(int atomNumber,
+                                            int* gpu_mapParticleToCellSorted,
+                                            int* gpu_cellDegrees);
+
 class CellListGPU {
   public:
     CellListGPU(VariablesCUDA * cv);
@@ -34,6 +38,20 @@ class CellListGPU {
     int *gpu_neighborList, *gpu_numberOfCells, *gpu_startOfBoxCellList;
     int *gpu_edgeCells;
     double *gpu_cellSize;
+  private:
+    void CreateStartVector(int numberOfAtoms,
+                          int * mapParticleToCell,
+                          int * mapParticleToCellSorted,
+                          int * particleIndices,
+                          int * particleIndicesSorted);
+    void CreateCellDegrees(int numberOfAtoms,
+                            int * mapParticleToCell,
+                            int * mapParticleToCellSorted,
+                            int * particleIndices,
+                            int * particleIndicesSorted);
+    void CalculateNewRowOffsets( int numberOfRows,
+                                int * global_row_offsets_dev_ptr,
+                                int * global_degrees_dev_ptr);
 };
 
 #endif
