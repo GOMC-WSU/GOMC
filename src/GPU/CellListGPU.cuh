@@ -13,6 +13,9 @@ class CellListGPU {
     // Fixed as long as volume doesnt change
     // Regenerate after volume moves.
     int *gpu_neighborList, *gpu_numberOfCells, *gpu_startOfBoxCellList;
+  private:
+    void MapParticlesToCell(int atomNumber,
+                            int* gpu_mapParticleToCell);
 };
 
 #endif
