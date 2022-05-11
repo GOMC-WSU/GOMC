@@ -23,7 +23,7 @@ void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
     // Run the kernel
     int threadsPerBlock = 256;
     int blocksPerGrid = (int)(atomNumber / threadsPerBlock) + 1;
-    MapParticlesToCell<<< blocksPerGrid, threadsPerBlock>>>(
+    MapParticlesToCellKernel<<< blocksPerGrid, threadsPerBlock>>>(
                             atomNumber,
                             cv->gpu_x,
                             cv->gpu_y,
@@ -69,7 +69,7 @@ __device__ int PositionToCell(int atomIndex,
     return x * gpu_edgeCells[1] * gpu_edgeCells[2] + y * gpu_edgeCells[2] + z;
 }
 
-__global__ void MapParticlesToCell(int atomNumber,
+__global__ void MapParticlesToCellKernel(int atomNumber,
                             double* gpu_x,
                             double* gpu_y,
                             double* gpu_z,                                
