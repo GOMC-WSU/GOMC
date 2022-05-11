@@ -74,11 +74,17 @@ void CellListGPU::CalculateCellDegrees(VariablesCUDA * cv,
     int threadsPerBlock = 256;
     int blocksPerGrid = (int)(atomNumber / threadsPerBlock) + 1;
     // Run the kernel
+    /*
     CalculateCellDegreesKernel<<< blocksPerGrid, 
                                 threadsPerBlock, 
                                 (3*threadsPerBlock+2)*sizeof(int)>>>(atomNumber,
                                                                 cv->gpu_mapParticleToCellSortedGPURes,
                                                                 cv->gpu_cellDegreesGPURes);
+    */
+ CalculateCellDegreesKernel<<< blocksPerGrid, 
+                                threadsPerBlock>>>(atomNumber,
+                                                    cv->gpu_mapParticleToCellSortedGPURes,
+                                                    cv->gpu_cellDegreesGPURes);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -274,6 +280,16 @@ __global__ void CalculateCellDegreesKernel(int atomNumber,
     int threadID = blockIdx.x * blockDim.x + threadIdx.x;
     if (threadID >= atomNumber)
         return;
+    atomicAdd(&gpu_cellDegrees[gpu_mapParticleToCellSorted[threadID]], 1);
+}
+
+/*
+__global__ void CalculateCellDegreesKernel(int atomNumber,
+                                            int* gpu_mapParticleToCellSorted,
+                                            int* gpu_cellDegrees){
+    int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+    if (threadID >= atomNumber)
+        return;
     extern __shared__ int part_ary[];
     // minimum cell to maximum cell
     // 0..BlockSize-1 - count of each cell key
@@ -330,6 +346,6 @@ __global__ void CalculateCellDegreesKernel(int atomNumber,
         atomicAdd(&gpu_cellDegrees[part_ary[3*blockDim.x]+reductionIteration], part_ary[reductionIteration]);
     }
 }
-
+*/
 
 #endif
