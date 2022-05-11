@@ -27,7 +27,7 @@ __global__ void CalculateCellDegreesKernel(int atomNumber,
 
 class CellListGPU {
   public:
-    CellListGPU(VariablesCUDA * cv);
+    CellListGPU(VariablesCUDA * cv, int atomCount);
     void MapParticlesToCell(VariablesCUDA * cv,
                             XYZArray const &coords,
                             XYZArray const &axes);
