@@ -7,7 +7,7 @@
 class CellListGPU {
   public:
     CellListGPU(VariablesCUDA * cv);
-    // new pair interaction calculation done on GPU
+    void GridAll(VariablesCUDA * cv);
     // new pair interaction calculation done on GPU
     int *gpu_cellVector, *gpu_mapParticleToCell, *gpu_cellStartIndex;
     // Fixed as long as volume doesnt change
