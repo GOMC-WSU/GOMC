@@ -5,6 +5,9 @@
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
 #include "CalculateMinImageCUDAKernel.cuh"
+#include<thrust/device_vector.h>
+#include<thrust/sequence.h>
+#include "CUDAMemoryManager.cuh"
 
 __global__ void MapParticlesToCellKernel(int atomNumber,
                     double* gpu_x,

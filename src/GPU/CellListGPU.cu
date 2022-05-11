@@ -14,6 +14,11 @@ gpu_startOfBoxCellList(cv->gpu_startOfBoxCellListGPURes),
 gpu_cellSize(cv->gpu_cellSizeGPURes),
 gpu_edgeCells(cv->gpu_edgeCellsGPURes)
 {
+    thrust::device_vector<int>pI(atomNumber);
+	thrust::sequence(pI.begin(),pI.end());
+	cv->gpu_particleIndices = thrust::raw_pointer_cast(&pI[0]);
+    CUMALLOC((void**) &cv->gpu_particleIndicesSorted, atomNumber * sizeof(int));
+
 }
 
 void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
