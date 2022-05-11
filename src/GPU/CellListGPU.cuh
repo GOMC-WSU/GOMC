@@ -60,7 +60,7 @@ class CellListGPU {
                           int * mapParticleToCellSortedGPURes,
                           int * OnesGPURes,
                           int * gpu_CellDegreeSanityCheck,
-                          int * cellDegreesGPURes
+                          int * cellDegreesGPURes,
                           int * iterationsReq);
 
     void CalculateNewRowOffsets( int numberOfRows,
