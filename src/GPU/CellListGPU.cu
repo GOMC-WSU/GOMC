@@ -32,9 +32,9 @@ void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
                             gpu_cellSize,
                             gpu_edgeCells,
                             cv->gpu_nonOrth,
-                            cv->gpu_Invcell_x,
-                            cv->gpu_Invcell_y,
-                            cv->gpu_Invcell_z);
+                            cv->gpu_Invcell_x[0],
+                            cv->gpu_Invcell_y[0],
+                            cv->gpu_Invcell_z[0]);
 
 }
 
