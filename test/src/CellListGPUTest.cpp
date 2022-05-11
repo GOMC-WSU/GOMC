@@ -10,8 +10,9 @@ TEST(CellListGPU, CheckMETHANOL) {
     std::vector< std::vector<int> > neighborList;
     std::vector<int> cellVectorGPU, cellStartIndexGPU, mapParticleToCellGPU;
     std::vector< std::vector<int> > neighborListGPU;
-    
-    base.GetCPUCellList(cellVector,
+    uint box = 0;
+    base.GetCPUCellList(box,
+                        cellVector,
                         cellStartIndex,
                         mapParticleToCell,
                         neighborList);
