@@ -249,6 +249,7 @@ void Simulation::GetCPUCellList(uint box,
                                 cellVector, cellStartIndex, mapParticleToCell);
   neighborList = system->cellList.GetNeighborList(box);
 }
+#if GOMC_CUDA
 void Simulation::GetGPUCellList(std::vector<int> & cellVector, 
                                 std::vector<int> & cellStartIndex, 
                                 std::vector<int> & mapParticleToCell,
@@ -276,4 +277,5 @@ void Simulation::GetGPUCellList(std::vector<int> & cellVector,
                                                     cellStartIndex);                                                    
 
 }
+#endif
 #endif
