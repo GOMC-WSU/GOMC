@@ -280,6 +280,7 @@ void CellList::RebuildNeighbors(int b)
 void CellList::GridAll(BoxDimensions& dims, const XYZArray& pos,
                        const MoleculeLookup& lookup)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::GRID_ALL_CPU);
   dimensions = &dims;
   list.resize(pos.Count());
   ResizeGrid(dims);
@@ -296,11 +297,13 @@ void CellList::GridAll(BoxDimensions& dims, const XYZArray& pos,
       ++it;
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::GRID_ALL_CPU);
 }
 
 void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
                        const MoleculeLookup& lookup, const uint b)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::GRID_BOX_CPU);
   dimensions = &dims;
   list.resize(pos.Count());
   ResizeGridBox(dims, b);
@@ -314,6 +317,7 @@ void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
     AddMol(*it, b, pos);
     ++it;
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::GRID_BOX_CPU);
 }
 
 

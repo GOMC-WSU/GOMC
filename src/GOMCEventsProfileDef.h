@@ -119,6 +119,11 @@ GOMC_PROFILE_EVENT(SELF_MOL, "ewald_molecule_self_energy")
 GOMC_PROFILE_EVENT(SELF_SWAP, "ewald_molecule_swap_self_energy")
 GOMC_PROFILE_EVENT(CORR_MOL, "ewald_molecule_correction_energy")
 GOMC_PROFILE_EVENT(CORR_SWAP, "ewald_molecule_swap_correction_energy")
+// cell list
+GOMC_PROFILE_EVENT(GRID_ALL_CPU, "create cell list of both boxes on cpu")
+GOMC_PROFILE_EVENT(GRID_BOX_CPU, "create cell list of one box on cpu")
+GOMC_PROFILE_EVENT(GRID_ALL_GPU, "create cell list of both boxes on gpu")
+GOMC_PROFILE_EVENT(GRID_BOX_GPU, "create cell list of one box on gpu")
 // dummy events
 GOMC_PROFILE_EVENT(DUMMY_EVENT1, "Dummy Event1")
 GOMC_PROFILE_EVENT(DUMMY_EVENT2, "Dummy Event2")
