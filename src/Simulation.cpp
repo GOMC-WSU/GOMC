@@ -265,13 +265,13 @@ void Simulation::GetGPUCellList(std::vector<int> & cellVector,
   system->cellListGPU->PrefixScanCellDegrees(staticValues->forcefield.particles->getCUDAVars(),
                                           system->cellList.CellsInBox(0));
 
-  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_mapParticleToCellGPURes,
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_mapParticleToCell,
                                                     system->coordinates.Count(),
                                                     mapParticleToCell);
-  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellVectorGPURes,
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellVector,
                                                     system->coordinates.Count(),
                                                     cellVector);
-  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellStartIndexGPURes,
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellStartIndex,
                                                     system->cellList.CellsInBox(0)+1,
                                                     cellStartIndex);                                                    
 
