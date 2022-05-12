@@ -140,9 +140,6 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_mForceRecz, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_cellVector, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_cellVector, atomNumber * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_cellVector, atomNumber * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_mapParticleToCellSorted, atomNumber * sizeof(int));
 
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -156,7 +153,6 @@ void InitGPUCellList(VariablesCUDA *vars,
                     const std::vector<double> &cellSize)
 {
   CUMALLOC((void**) &vars->gpu_numberOfCells,  numberOfCells.size() * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_neighborList, neighborList.size() * sizeof(int));
   CUMALLOC((void**) &vars->gpu_startOfBoxCellList, startOfBoxCellList.size() * sizeof(int));
   CUMALLOC((void**) &vars->gpu_cellSize, BOX_TOTAL * 3 * sizeof(double));
   CUMALLOC((void**) &vars->gpu_edgeCells, BOX_TOTAL * 3 * sizeof(double));
