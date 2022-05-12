@@ -13,6 +13,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include "GOMCEventsProfile.h" // for NVTX profiling
 
 #ifdef GOMC_CUDA
 #include "VariablesCUDA.cuh"

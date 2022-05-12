@@ -8,8 +8,9 @@
 #include<thrust/device_vector.h>
 #include<thrust/sequence.h>
 #include<thrust/fill.h>
-
 #include "CUDAMemoryManager.cuh"
+#include "GOMCEventsProfile.h" // for NVTX profiling
+
 // For cuMemsetD32
 //#include <cuda_runtime.h>
 
