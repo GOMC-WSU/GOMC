@@ -239,4 +239,43 @@ ulong Simulation::GetTrueStep(){
 ulong Simulation::GetRunSteps(){
   return totalSteps - startStep;
 }
+
+void Simulation::GetCPUCellList(uint box,
+                                std::vector<int> & cellVector, 
+                                std::vector<int> & cellStartIndex, 
+                                std::vector<int> & mapParticleToCell,
+                                std::vector< std::vector<int> > & neighborList){
+  system->cellList.GetCellListNeighbor(box, system->coordinates.Count(),
+                                cellVector, cellStartIndex, mapParticleToCell);
+  neighborList = system->cellList.GetNeighborList(box);
+}
+#if GOMC_CUDA
+void Simulation::GetGPUCellList(std::vector<int> & cellVector, 
+                                std::vector<int> & cellStartIndex, 
+                                std::vector<int> & mapParticleToCell,
+                                std::vector< std::vector<int> > & neighborList,
+                                std::vector<int> & Pinds){
+
+  system->cellListGPU->MapParticlesToCell(staticValues->forcefield.particles->getCUDAVars(),
+                                          system->coordinates,
+                                          system->boxDimRef.axis);
+  system->cellListGPU->SortMappedParticles(staticValues->forcefield.particles->getCUDAVars(),
+                                          system->coordinates);
+  system->cellListGPU->CalculateCellDegrees(staticValues->forcefield.particles->getCUDAVars(),
+                                          system->coordinates);
+  system->cellListGPU->PrefixScanCellDegrees(staticValues->forcefield.particles->getCUDAVars(),
+                                          system->cellList.CellsInBox(0));
+
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_mapParticleToCell,
+                                                    system->coordinates.Count(),
+                                                    mapParticleToCell);
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellVector,
+                                                    system->coordinates.Count(),
+                                                    cellVector);
+  system->cellListGPU->CopyGPUMemoryToToHost(staticValues->forcefield.particles->getCUDAVars()->gpu_cellStartIndex,
+                                                    system->cellList.CellsInBox(0)+1,
+                                                    cellStartIndex);                                                    
+
+}
+#endif
 #endif

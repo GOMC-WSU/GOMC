@@ -42,6 +42,17 @@ __device__ inline void TransformUnSlantGPU(double3 &dist, const double3 &slant,
   dist.z = slant.x * gpu_Invcell_z[0] + slant.y * gpu_Invcell_z[1] + slant.z * gpu_Invcell_z[2];
 }
 
+__device__ inline double3 TransformUnSlantGPU(double3 &pos,
+                                           const double *gpu_Invcell_x, 
+                                           const double *gpu_Invcell_y,
+                                           const double *gpu_Invcell_z)
+{
+  double3 temp;
+  temp.x = pos.x * gpu_Invcell_x[0] + pos.y * gpu_Invcell_x[1] + pos.z * gpu_Invcell_x[2];
+  temp.y = pos.x * gpu_Invcell_y[0] + pos.y * gpu_Invcell_y[1] + pos.z * gpu_Invcell_y[2];
+  temp.z = pos.x * gpu_Invcell_z[0] + pos.y * gpu_Invcell_z[1] + pos.z * gpu_Invcell_z[2];
+  return temp;
+}
 __device__ inline void WrapPBC(double &v, const double &ax)
 {
   if(v >= ax)

@@ -13,6 +13,13 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include "GOMCEventsProfile.h" // for NVTX profiling
+
+#ifdef GOMC_CUDA
+#include "VariablesCUDA.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
+class VariablesCUDA;
+#endif
 
 class Molecules;
 class XYZArray;
@@ -25,7 +32,9 @@ public:
   explicit CellList(const Molecules& mols, BoxDimensions& dims);
   CellList(const CellList & other);
   void SetCutoff();
-
+  #ifdef GOMC_CUDA
+  void CopyNeighborListToGPU(VariablesCUDA *cudaVars);
+  #endif
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
   void AddMol(const int molIndex, const int box, const XYZArray& pos);
   void GridAll(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
@@ -83,6 +92,16 @@ private:
   BoxDimensions *dimensions;
   double cutoff[BOX_TOTAL];
   bool isBuilt;
+  #ifdef GOMC_CUDA
+  std::vector<int> neighborlist1D;
+  std::vector<int> numberOfCells;
+  std::vector<int> startOfBoxCellList;
+  std::vector<double> cellSizeVec;
+  std::vector<int> edgeCellsVec;
+  void FlattenNeighborList();
+  void FlattenCellDetails();
+  #endif
+
 };
 
 

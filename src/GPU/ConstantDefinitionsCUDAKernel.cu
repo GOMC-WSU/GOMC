@@ -140,6 +140,46 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_mForceRecz, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_cellVector, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_mapParticleToCellSorted, atomNumber * sizeof(int));
+
+  checkLastErrorCUDA(__FILE__, __LINE__);
+}
+
+void InitGPUCellList(VariablesCUDA *vars, 
+                    const std::vector<int> &neighborList,
+                    const std::vector<int> &numberOfCells,
+                    const std::vector<int> &startOfBoxCellList,
+                    const std::vector<int> &edgeCells,
+                    const std::vector<double> &cellSize)
+{
+  CUMALLOC((void**) &vars->gpu_neighborList,  neighborList.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_numberOfCells,  numberOfCells.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_startOfBoxCellList, startOfBoxCellList.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_cellSize, BOX_TOTAL * 3 * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_edgeCells, BOX_TOTAL * 3 * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_cellDegrees, (neighborList.size()+1) * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_CellDegreeSanityCheck, neighborList.size() * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_cellStartIndex, (neighborList.size()+1) * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_IterationsReq, 1 * sizeof(int));
+
+  vars->d_temp_storage_sort_vals = NULL;
+  vars->d_temp_storage_sort = &(vars->d_temp_storage_sort_vals);
+  vars->temp_storage_bytes_sort = &vars->zero1;
+
+  vars->d_temp_storage_prefix_sum_vals = NULL;
+  vars->d_temp_storage_prefix_sum = &(vars->d_temp_storage_prefix_sum_vals);
+  vars->temp_storage_bytes_prefix_sum = &vars->zero2;
+
+  cudaMemcpy(vars->gpu_numberOfCells, &numberOfCells[0], numberOfCells.size() * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_neighborList, &neighborList[0], neighborList.size() * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_startOfBoxCellList, &startOfBoxCellList[0], startOfBoxCellList.size() * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_edgeCells, &edgeCells[0], edgeCells.size() * sizeof(int),
+            cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_cellSize, &cellSize[0], cellSize.size() * sizeof(double),
+             cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
