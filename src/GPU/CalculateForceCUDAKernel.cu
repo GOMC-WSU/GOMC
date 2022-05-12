@@ -329,7 +329,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS * threadsPerBlock;
 
   #if GPU_RESIDENT
-
+  gpu_neighborList = vars->gpu_neighborList;
+  gpu_cellStartIndex = vars->gpu_cellStartIndex;
   #else
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(numberOfCellPairs);
