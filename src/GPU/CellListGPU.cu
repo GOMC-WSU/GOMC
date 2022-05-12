@@ -239,7 +239,7 @@ void CellListGPU::CalculateNewRowOffsets( int numberOfRows,
     int  *d_in = global_degrees_dev_ptr;        // e.g., [8, 6, 7, 5, 3, 0, 9]
     int  *d_out = global_row_offsets_dev_ptr;         // e.g., [ ,  ,  ,  ,  ,  ,  ]
     // Determine temporary device storage requirements
-    if(temp_storage_bytes_prefix_sum == NULL){
+    if(*temp_storage_bytes_prefix_sum == 0){
         cub::DeviceScan::ExclusiveSum(*d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
         // Allocate temporary storage
         CUMALLOC(d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum);
@@ -273,7 +273,7 @@ void CellListGPU::CreateStartVector(int numberOfAtoms,
     int  *d_keys_out = mapParticleToCellSorted;       
     int  *d_values_in = particleIndices;    
     int  *d_values_out = particleIndicesSorted;   
-    if(temp_storage_bytes_sort == NULL){
+    if(*temp_storage_bytes_sort == 0){
         std::cout << "First sort pairs" << std::endl;
         cub::DeviceRadixSort::SortPairs(*d_temp_storage_sort, *temp_storage_bytes_sort,
             d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
