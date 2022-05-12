@@ -232,22 +232,22 @@ __global__ void MapParticlesToCellKernel(int atomNumber,
 void CellListGPU::CalculateNewRowOffsets( int numberOfRows,
                                         int * global_row_offsets_dev_ptr,
                                         int * global_degrees_dev_ptr,
-                                        void     *d_temp_storage_prefix_sum,
+                                        void     **d_temp_storage_prefix_sum,
                                         size_t   *temp_storage_bytes_prefix_sum){
     // Declare, allocate, and initialize device-accessible pointers for input and output
     int  num_items = numberOfRows+1;      // e.g., 7
     int  *d_in = global_degrees_dev_ptr;        // e.g., [8, 6, 7, 5, 3, 0, 9]
     int  *d_out = global_row_offsets_dev_ptr;         // e.g., [ ,  ,  ,  ,  ,  ,  ]
     // Determine temporary device storage requirements
-    if(d_temp_storage_prefix_sum == NULL){
-        cub::DeviceScan::ExclusiveSum(d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
+    if(*temp_storage_bytes_prefix_sum == NULL){
+        cub::DeviceScan::ExclusiveSum(*d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
         // Allocate temporary storage
-        CUMALLOC(&d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum);
+        CUMALLOC(d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum);
     } else {
-        cudaMemset(d_temp_storage_prefix_sum, 0, *temp_storage_bytes_prefix_sum);
+        cudaMemset(*d_temp_storage_prefix_sum, 0, *temp_storage_bytes_prefix_sum);
     }
     // Run exclusive prefix sum
-    cub::DeviceScan::ExclusiveSum(d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
+    cub::DeviceScan::ExclusiveSum(*d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
     // d_out s<-- [0, 8, 14, 21, 26, 29, 29]
     //cudaFree(temp_storage_bytes_prefix_sum);
 }
@@ -259,7 +259,7 @@ void CellListGPU::CreateStartVector(int numberOfAtoms,
                                 int * mapParticleToCellSorted,
                                 int * particleIndices,
                                 int * particleIndicesSorted,
-                                void     *d_temp_storage_sort,
+                                void     **d_temp_storage_sort,
                                 size_t   *temp_storage_bytes_sort){
     // Declare, allocate, and initialize device-accessible pointers for sorting data
     // numberOfAtoms            e.g., 7
@@ -273,16 +273,16 @@ void CellListGPU::CreateStartVector(int numberOfAtoms,
     int  *d_keys_out = mapParticleToCellSorted;       
     int  *d_values_in = particleIndices;    
     int  *d_values_out = particleIndicesSorted;   
-    if(d_temp_storage_sort == NULL){
-        cub::DeviceRadixSort::SortPairs(d_temp_storage_sort, *temp_storage_bytes_sort,
+    if(temp_storage_bytes_sort == NULL){
+        cub::DeviceRadixSort::SortPairs(*d_temp_storage_sort, *temp_storage_bytes_sort,
             d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
         // Allocate temporary storage
-        CUMALLOC(&d_temp_storage_sort, *temp_storage_bytes_sort);
+        CUMALLOC(d_temp_storage_sort, *temp_storage_bytes_sort);
     } else {
-        cudaMemset(d_temp_storage_sort, 0, *temp_storage_bytes_sort);
+        cudaMemset(*d_temp_storage_sort, 0, *temp_storage_bytes_sort);
     }
     // Run sorting operation
-    cub::DeviceRadixSort::SortPairs(d_temp_storage_sort, *temp_storage_bytes_sort,
+    cub::DeviceRadixSort::SortPairs(*d_temp_storage_sort, *temp_storage_bytes_sort,
         d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
     // mapParticleToCellSorted        <-- [0, 3, 5, 6, 7, 8, 9]
     // particleIndicesSorted          <-- [5, 4, 3, 1, 2, 0, 6]

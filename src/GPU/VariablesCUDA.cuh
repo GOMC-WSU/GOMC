@@ -154,9 +154,9 @@ public:
   int *gpu_Ones;
   int *gpu_CellDegreeSanityCheck;
   int *gpu_IterationsReq;
-  void    *d_temp_storage_sort;
+  void    **d_temp_storage_sort;
   size_t  *temp_storage_bytes_sort;
-  void    *d_temp_storage_prefix_sum;
+  void    **d_temp_storage_prefix_sum;
   size_t  *temp_storage_bytes_prefix_sum;
   // New variables for GPU residence
   double * LJEn, RJEn;
