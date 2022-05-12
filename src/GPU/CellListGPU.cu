@@ -242,7 +242,7 @@ void CellListGPU::CalculateNewRowOffsets( int numberOfRows,
     if(d_temp_storage_prefix_sum == NULL){
         cub::DeviceScan::ExclusiveSum(d_temp_storage_prefix_sum, temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
         // Allocate temporary storage
-        CUMALLOC(&temp_storage_bytes_prefix_sum, temp_storage_bytes_prefix_sum);
+        CUMALLOC(&d_temp_storage_prefix_sum, temp_storage_bytes_prefix_sum);
     }
     // Run exclusive prefix sum
     cub::DeviceScan::ExclusiveSum(d_temp_storage_prefix_sum, temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
