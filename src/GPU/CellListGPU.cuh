@@ -32,12 +32,16 @@ __global__ void CalculateCellDegreesKernel(int atomNumber,
 class CellListGPU {
   public:
     CellListGPU(VariablesCUDA * cv, int atomCount);
-    void MapParticlesToCell(VariablesCUDA * cv,
-                            XYZArray const &coords,
-                            XYZArray const &axes);
+    void GridAll(VariablesCUDA * cv,
+                  XYZArray const &coords,
+                  XYZArray const &axes,
+                  int numberOfCells);
     void CopyGPUMemoryToToHost(int * deviceMemory,
                                     int size,
                                     std::vector<int> & hostMemory);
+    void MapParticlesToCell(VariablesCUDA * cv,
+                            XYZArray const &coords,
+                            XYZArray const &axes);
     void SortMappedParticles(VariablesCUDA * cv,
                               XYZArray const &coords);
     void CalculateCellDegrees(VariablesCUDA * cv,

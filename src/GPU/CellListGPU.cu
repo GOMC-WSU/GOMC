@@ -26,6 +26,17 @@ gpu_edgeCells(cv->gpu_edgeCellsGPURes)
     cudaMemcpy(cv->gpu_particleIndices, thrust::raw_pointer_cast(&pI[0]), atomNumber * sizeof(int), cudaMemcpyDeviceToDevice);
 }
 
+void CellListGPU::GridAll(VariablesCUDA * cv,
+                        XYZArray const &coords,
+                        XYZArray const &axes,
+                        int numberOfCells){
+    MapParticlesToCell(cv,coords,axes);
+    SortMappedParticles(cv,coords);
+    CalculateCellDegrees(cv,coords);
+    PrefixScanCellDegrees(cv, numberOfCells);
+}
+
+
 void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
                                     XYZArray const &coords,
                                     XYZArray const &axes){
