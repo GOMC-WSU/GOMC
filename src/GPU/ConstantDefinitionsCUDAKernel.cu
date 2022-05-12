@@ -152,6 +152,7 @@ void InitGPUCellList(VariablesCUDA *vars,
                     const std::vector<int> &edgeCells,
                     const std::vector<double> &cellSize)
 {
+  CUMALLOC((void**) &vars->gpu_neighborList,  neighborList.size() * sizeof(int));
   CUMALLOC((void**) &vars->gpu_numberOfCells,  numberOfCells.size() * sizeof(int));
   CUMALLOC((void**) &vars->gpu_startOfBoxCellList, startOfBoxCellList.size() * sizeof(int));
   CUMALLOC((void**) &vars->gpu_cellSize, BOX_TOTAL * 3 * sizeof(double));
