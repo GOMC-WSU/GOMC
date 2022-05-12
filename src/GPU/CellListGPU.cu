@@ -64,7 +64,9 @@ void CellListGPU::SortMappedParticles(VariablesCUDA * cv,
                     cv->gpu_mapParticleToCell,
                     cv->gpu_mapParticleToCellSorted,
                     cv->gpu_particleIndices,
-                    cv->gpu_cellVector);
+                    cv->gpu_cellVector,
+                    cv->d_temp_storage_sort,
+                    cv->temp_storage_bytes_sort);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -147,7 +149,9 @@ void CellListGPU::PrefixScanCellDegrees(VariablesCUDA * cv,
                                     int numberOfCells){
     CalculateNewRowOffsets(numberOfCells,
                            cv->gpu_cellStartIndex,
-                           cv->gpu_cellDegrees);
+                           cv->gpu_cellDegrees,
+                           cv->d_temp_storage_prefix_sum,
+                           cv->temp_storage_bytes_prefix_sum);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 }
@@ -227,21 +231,23 @@ __global__ void MapParticlesToCellKernel(int atomNumber,
 // https://github.com/NVIDIA/cub/issues/367
 void CellListGPU::CalculateNewRowOffsets( int numberOfRows,
                                         int * global_row_offsets_dev_ptr,
-                                        int * global_degrees_dev_ptr){
+                                        int * global_degrees_dev_ptr,
+                                        void     *d_temp_storage_prefix_sum,
+                                        size_t   temp_storage_bytes_prefix_sum){
     // Declare, allocate, and initialize device-accessible pointers for input and output
     int  num_items = numberOfRows+1;      // e.g., 7
     int  *d_in = global_degrees_dev_ptr;        // e.g., [8, 6, 7, 5, 3, 0, 9]
     int  *d_out = global_row_offsets_dev_ptr;         // e.g., [ ,  ,  ,  ,  ,  ,  ]
     // Determine temporary device storage requirements
-    void     *d_temp_storage = NULL;
-    size_t   temp_storage_bytes = 0;
-    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_in, d_out, num_items);
-    // Allocate temporary storage
-    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+    if(d_temp_storage_prefix_sum == NULL){
+        cub::DeviceScan::ExclusiveSum(temp_storage_bytes_prefix_sum, temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
+        // Allocate temporary storage
+        CUMALLOC(&temp_storage_bytes_prefix_sum, temp_storage_bytes_prefix_sum);
+    }
     // Run exclusive prefix sum
-    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_in, d_out, num_items);
+    cub::DeviceScan::ExclusiveSum(temp_storage_bytes_prefix_sum, temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
     // d_out s<-- [0, 8, 14, 21, 26, 29, 29]
-    cudaFree(d_temp_storage);
+    //cudaFree(temp_storage_bytes_prefix_sum);
 }
 
 
@@ -250,7 +256,9 @@ void CellListGPU::CreateStartVector(int numberOfAtoms,
                                 int * mapParticleToCell,
                                 int * mapParticleToCellSorted,
                                 int * particleIndices,
-                                int * particleIndicesSorted){
+                                int * particleIndicesSorted,
+                                void     *d_temp_storage_sort,
+                                size_t   temp_storage_bytes_sort){
     // Declare, allocate, and initialize device-accessible pointers for sorting data
     // numberOfAtoms            e.g., 7
     // mapParticleToCell        e.g., [8, 6, 7, 5, 3, 0, 9]
@@ -263,14 +271,14 @@ void CellListGPU::CreateStartVector(int numberOfAtoms,
     int  *d_keys_out = mapParticleToCellSorted;       
     int  *d_values_in = particleIndices;    
     int  *d_values_out = particleIndicesSorted;   
-    void     *d_temp_storage = NULL;
-    size_t   temp_storage_bytes = 0;
-    cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
-        d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
-    // Allocate temporary storage
-    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+    if(d_temp_storage_sort == NULL){
+        cub::DeviceRadixSort::SortPairs(d_temp_storage_sort, temp_storage_bytes_sort,
+            d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
+        // Allocate temporary storage
+        CUMALLOC(&d_temp_storage_sort, temp_storage_bytes_sort);
+    }
     // Run sorting operation
-    cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
+    cub::DeviceRadixSort::SortPairs(d_temp_storage_sort, temp_storage_bytes_sort,
         d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
     // mapParticleToCellSorted        <-- [0, 3, 5, 6, 7, 8, 9]
     // particleIndicesSorted          <-- [5, 4, 3, 1, 2, 0, 6]
