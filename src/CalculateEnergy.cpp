@@ -27,6 +27,8 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#include <limits>
+
 #endif
 #include "GOMCEventsProfile.h"
 #define NUMBER_OF_NEIGHBOR_CELL 27
@@ -174,7 +176,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTER);
   double tempREn = 0.0, tempLJEn = 0.0;
-
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector< std::vector<int> > neighborList;
   cellList.GetCellListNeighbor(box, currentCoords.Count(),
@@ -587,14 +588,60 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                     const uint molIndex,
                                     const uint box) const
 {
-  double tempREn = 0.0, tempLJEn = 0.0;
+  double tempREnOld = 0.0, tempLJEnOld = 0.0;
+  double tempREnNew = 0.0, tempLJEnNew = 0.0;
+
   bool overlap = false;
 
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTER);
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
+#ifdef GOMC_CUDA
+    //double tempREnOld = 0.0, tempLJEnOld = 0.0;
+    //double tempREnNew = 0.0, tempLJEnNew = 0.0;
+    std::vector<int> cellVector, cellStartIndex, mapParticleToCell, currMolCoordsToCell, newMolCoordsToCell;
+    std::vector< std::vector<int> > neighborList;
+    XYZArray currMolCoords(length);
 
+    for (uint p = 0; p < length; ++p) {
+      currMolCoords.Set(p, currentCoords[start + p]);
+      currMolCoordsToCell.push_back( cellList.PositionToCell(currMolCoords[p], box ));
+      newMolCoordsToCell.push_back( cellList.PositionToCell(molCoords[p], box ));
+    }
+    cellList.GetCellListNeighbor(box, currentCoords.Count(),
+                                cellVector, cellStartIndex, mapParticleToCell);
+    neighborList = cellList.GetNeighborList(box);
+
+    //update unitcell in GPU
+    UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                        currentAxes.cellBasis[box].x, currentAxes.cellBasis[box].y,
+                        currentAxes.cellBasis[box].z);
+
+    if(!currentAxes.orthogonal[box]) {
+      //In this case, currentAxes is really an object of type BoxDimensionsNonOrth,
+      // so cast and copy the additional data to the GPU
+      const BoxDimensionsNonOrth *NonOrthAxes = static_cast<const BoxDimensionsNonOrth*>(&currentAxes);
+      UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                            NonOrthAxes->cellBasis_Inv[box].x,
+                            NonOrthAxes->cellBasis_Inv[box].y,
+                            NonOrthAxes->cellBasis_Inv[box].z);
+    }
+      CallMolInterGPU(forcefield.particles->getCUDAVars(), 
+                    start, length, cellVector, cellStartIndex,
+                    neighborList, currentCoords, 
+                    currMolCoords, molCoords, 
+                    mapParticleToCell, currMolCoordsToCell, 
+                    newMolCoordsToCell, currentAxes, 
+                    electrostatic, particleCharge,
+                    particleKind, particleMol, 
+                    tempREnOld, tempLJEnOld, 
+                    tempREnNew, tempLJEnNew,
+                    forcefield.sc_coul,
+                    forcefield.sc_sigma_6, forcefield.sc_alpha,
+                    forcefield.sc_power, box);
+
+#else
     for (uint p = 0; p < length; ++p) {
       uint atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom],
@@ -610,10 +657,10 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
       #pragma omp parallel for default(none) shared(atom, nIndex, box, molIndex) \
-      reduction(+:tempREn, tempLJEn)
+      reduction(+:tempREnOld, tempLJEnOld)
 #else
       #pragma omp parallel for default(none) shared(atom, nIndex) \
-      reduction(+:tempREn, tempLJEn)
+      reduction(+:tempREnOld, tempLJEnOld)
 #endif
 #endif
       for(int i = 0; i < (int) nIndex.size(); i++) {
@@ -622,6 +669,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         //Subtract old energy
         if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
                                nIndex[i], box)) {
+
           double lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
 
           if (electrostatic) {
@@ -631,16 +679,15 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                 num::qqFact;
 
             if (qi_qj_fact != 0.0) {
-              tempREn += -forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
+              tempREnOld += forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
                          particleKind[nIndex[i]], qi_qj_fact, lambdaCoulomb, box);
             }
           }
 
-          tempLJEn += -forcefield.particles->CalcEn(distSq, particleKind[atom],
+          tempLJEnOld += forcefield.particles->CalcEn(distSq, particleKind[atom],
                       particleKind[nIndex[i]], lambdaVDW);
         }
       }
-
       //add new energy
       n = cellList.EnumerateLocal(molCoords[p], box);
       //store atom index in neighboring cell
@@ -653,10 +700,10 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
       #pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p, molIndex, box) \
-      reduction(+:tempREn, tempLJEn)
+      reduction(+:tempREnNew, tempLJEnNew)
 #else
       #pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p) \
-      reduction(+:tempREn, tempLJEn)
+      reduction(+:tempREnNew, tempLJEnNew)
 #endif
 #endif
       for(int i = 0; i < (int) nIndex.size(); i++) {
@@ -665,7 +712,6 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         if (currentAxes.InRcut(distSq, virComponents, molCoords, p,
                                currentCoords, nIndex[i], box)) {
           double lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
-
           if(distSq < forcefield.rCutLowSq) {
             overlap |= true;
           }
@@ -677,23 +723,23 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                 particleCharge[nIndex[i]] * num::qqFact;
 
             if (qi_qj_fact != 0.0) {
-              tempREn += forcefield.particles->CalcCoulomb(distSq,
+              tempREnNew += forcefield.particles->CalcCoulomb(distSq,
                          particleKind[atom], particleKind[nIndex[i]],
                          qi_qj_fact, lambdaCoulomb, box);
             }
           }
 
-          tempLJEn += forcefield.particles->CalcEn(distSq,
+          tempLJEnNew += forcefield.particles->CalcEn(distSq,
                       particleKind[atom],
                       particleKind[nIndex[i]], lambdaVDW);
         }
       }
     }
+    #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
-
-  inter_LJ.energy = tempLJEn;
-  inter_coulomb.energy = tempREn;
+  inter_LJ.energy = tempLJEnNew - tempLJEnOld;
+  inter_coulomb.energy = tempREnNew - tempREnOld;
   return overlap;
 }
 

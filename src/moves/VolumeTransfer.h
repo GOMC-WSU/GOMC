@@ -52,7 +52,7 @@ inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
   MoveBase(sys, statV), molLookRef(sys.molLookupRef),
   newDim(), newDimNonOrth(),
   newMolsPos(boxDimRef, newCOMs, sys.molLookupRef,
-             sys.prng, statV.mol), forcefield(statV.forcefield),
+             sys.prng, statV.mol, sys.r123Wrapper), forcefield(statV.forcefield),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
           statV.mol), GEMC_KIND(statV.kindOfGEMC),
   PRESSURE(statV.pressure), regrewGrid(false)

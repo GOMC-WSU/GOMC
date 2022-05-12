@@ -84,7 +84,8 @@ void Coordinates::TranslateRand
 (XYZArray & dest, XYZ & newCOM,  uint & pStart, uint & pLen,
  const uint m, const uint b, const double max)
 {
-  XYZ shift = prngRef.SymXYZ(max);
+  //XYZ shift = prngRef.SymXYZ(max);
+  XYZ shift = r123Wrapper.GetSymRandomCoords(m,max);
   uint stop = 0;
   //Get range.
   molRef.GetRange(pStart, stop, pLen, m);
@@ -107,8 +108,11 @@ void Coordinates::RotateRand
 {
   //Rotate (-max, max) radians about a uniformly random vector
   //Not uniformly random, but symmetrical wrt detailed balance
+  //RotationMatrix matrix = RotationMatrix::FromAxisAngle(
+  //                          prngRef.Sym(max), prngRef.PickOnUnitSphere());
+  
   RotationMatrix matrix = RotationMatrix::FromAxisAngle(
-                            prngRef.Sym(max), prngRef.PickOnUnitSphere());
+                            r123Wrapper.GetSymRandom(m,max), r123Wrapper.GetRandomCoordsOnSphere(m));
 
   XYZ center = comRef.Get(m);
   uint stop = 0;

@@ -103,7 +103,7 @@ public:
   MoleculeLookup & molLookupRef;
 
   PRNG prng;
-  Random123Wrapper r123wrapper;
+  Random123Wrapper r123Wrapper;
 
 #if GOMC_LIB_MPI
   MultiSim const*const& ms;

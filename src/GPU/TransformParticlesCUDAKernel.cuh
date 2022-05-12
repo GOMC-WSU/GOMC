@@ -15,6 +15,7 @@ typedef r123::Philox4x64 RNG;
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
 #include "math.h"
+#include "BoxDimensions.h"
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                const std::vector<int8_t> &isMoleculeInvolved,
@@ -60,6 +61,35 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             XYZArray &newCOMs,
                             double lambdaBETA,
                             XYZArray &r_k);
+
+void CallTranslateMolRandGPU(VariablesCUDA *vars,
+                              XYZArray &newMolPos,
+                              XYZ &newCOM,
+                              XYZArray const &currentCoords,
+                              XYZArray const &currentComs,                              BoxDimensions const &boxAxes,
+                              uint moleculeStart,
+                              uint moleculeLength,
+                               uint moleculeIndex,
+                               uint box,
+                               ulong step,
+                               unsigned int key,
+                               ulong seed,
+                               double scale);         
+
+void CallRotateMolRandGPU(VariablesCUDA *vars,
+                              XYZArray &newMolPos,
+                              XYZ &newCOM,
+                              XYZArray const &currentCoords,
+                              XYZArray const &currentComs,
+                              BoxDimensions const &boxAxes,
+                              uint moleculeStart,
+                              uint moleculeLength,
+                               uint moleculeIndex,
+                               uint box,
+                               ulong step,
+                               unsigned int key,
+                               ulong seed,
+                               double scale);                   
 
 __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double t_max,
@@ -129,6 +159,53 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *gpu_r_k_y,
                                       double *gpu_r_k_z,
                                       int8_t *gpu_isMoleculeInvolved);
+
+__global__ void TranslateMolKernel(  
+                            uint moleculeIndex,
+                            uint moleculeLength,
+                            uint key,
+                            uint step, 
+                            uint seed,
+                            double scale,                          
+                            double *gpu_nx,
+                            double *gpu_ny,
+                            double *gpu_nz,
+                            double *gpu_ncomx,
+                            double *gpu_ncomy,
+                            double *gpu_ncomz,
+                            int *gpu_nonOrth,
+                            double3 axis,
+                            double3 halfAx,
+                            double *gpu_cell_x,
+                            double *gpu_cell_y,
+                            double *gpu_cell_z,
+                            double *gpu_Invcell_x,
+                            double *gpu_Invcell_y,
+                            double *gpu_Invcell_z);
+
+
+__global__ void RotateMolKernel(  
+                            uint moleculeIndex,
+                            uint moleculeLength,
+                            uint key,
+                            uint step, 
+                            uint seed,
+                            double scale,                          
+                            double *gpu_nx,
+                            double *gpu_ny,
+                            double *gpu_nz,
+                            double *gpu_ncomx,
+                            double *gpu_ncomy,
+                            double *gpu_ncomz,
+                            int *gpu_nonOrth,
+                            double3 axis,
+                            double3 halfAx,
+                            double *gpu_cell_x,
+                            double *gpu_cell_y,
+                            double *gpu_cell_z,
+                            double *gpu_Invcell_x,
+                            double *gpu_Invcell_y,
+                            double *gpu_Invcell_z);
 
 // Brownian Motion multiparticle
 void BrownianMotionRotateParticlesGPU(
@@ -235,5 +312,7 @@ __global__ void BrownianMotionTranslateKernel(
   ulong seed,
   double BETA,
   int *kill);
+
+
 
 #endif
