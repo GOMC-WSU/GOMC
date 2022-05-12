@@ -161,6 +161,12 @@ void InitGPUCellList(VariablesCUDA *vars,
   CUMALLOC((void**) &vars->gpu_CellDegreeSanityCheck, neighborList.size() * sizeof(int));
   CUMALLOC((void**) &vars->gpu_cellStartIndex, (neighborList.size()+1) * sizeof(int));
   CUMALLOC((void**) &vars->gpu_IterationsReq, 1 * sizeof(int));
+  
+  d_temp_storage_sort = NULL;
+  temp_storage_bytes_sort = NULL;
+
+  d_temp_storage_prefix_sum = NULL;
+  temp_storage_bytes_prefix_sum = NULL;
 
   cudaMemcpy(vars->gpu_numberOfCells, &numberOfCells[0], numberOfCells.size() * sizeof(int),
              cudaMemcpyHostToDevice);

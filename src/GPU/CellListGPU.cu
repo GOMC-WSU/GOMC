@@ -243,6 +243,8 @@ void CellListGPU::CalculateNewRowOffsets( int numberOfRows,
         cub::DeviceScan::ExclusiveSum(d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
         // Allocate temporary storage
         CUMALLOC(&d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum);
+    } else {
+        cudaMemset(d_temp_storage_prefix_sum, 0, *temp_storage_bytes_prefix_sum);
     }
     // Run exclusive prefix sum
     cub::DeviceScan::ExclusiveSum(d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
@@ -276,6 +278,8 @@ void CellListGPU::CreateStartVector(int numberOfAtoms,
             d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
         // Allocate temporary storage
         CUMALLOC(&d_temp_storage_sort, *temp_storage_bytes_sort);
+    } else {
+        cudaMemset(d_temp_storage_sort, 0, *temp_storage_bytes_sort);
     }
     // Run sorting operation
     cub::DeviceRadixSort::SortPairs(d_temp_storage_sort, *temp_storage_bytes_sort,
