@@ -5,16 +5,8 @@
 
 
 CellListGPU::CellListGPU(VariablesCUDA * cv, int atomNumber):
-gpu_cellVector(cv->gpu_cellVectorGPURes),
-gpu_mapParticleToCell(cv->gpu_mapParticleToCellGPURes),
-gpu_cellStartIndex(cv->gpu_cellStartIndexGPURes),
-gpu_neighborList(cv->gpu_neighborListGPURes),
-gpu_numberOfCells(cv->gpu_numberOfCellsGPURes),
-gpu_startOfBoxCellList(cv->gpu_startOfBoxCellListGPURes),
-gpu_cellSize(cv->gpu_cellSizeGPURes),
-gpu_edgeCells(cv->gpu_edgeCellsGPURes)
 {
-    CUMALLOC((void**) &cv->gpu_OnesGPURes, atomNumber * sizeof(int));
+    CUMALLOC((void**) &cv->gpu_Ones, atomNumber * sizeof(int));
     CUMALLOC((void**) &cv->gpu_particleIndices, atomNumber * sizeof(int));
     thrust::device_vector<int>pI(atomNumber);
 	thrust::sequence(pI.begin(),pI.end());
@@ -22,7 +14,7 @@ gpu_edgeCells(cv->gpu_edgeCellsGPURes)
     thrust::fill(ones.begin(),ones.end(), 1);
 	thrust::sequence(pI.begin(),pI.end());
     // Fill with 1s
-    cudaMemcpy(cv->gpu_OnesGPURes, thrust::raw_pointer_cast(&ones[0]), atomNumber * sizeof(int), cudaMemcpyDeviceToDevice);
+    cudaMemcpy(cv->gpu_Ones, thrust::raw_pointer_cast(&ones[0]), atomNumber * sizeof(int), cudaMemcpyDeviceToDevice);
     cudaMemcpy(cv->gpu_particleIndices, thrust::raw_pointer_cast(&pI[0]), atomNumber * sizeof(int), cudaMemcpyDeviceToDevice);
 }
 
@@ -49,7 +41,7 @@ void CellListGPU::MapParticlesToCell(VariablesCUDA * cv,
                             cv->gpu_x,
                             cv->gpu_y,
                             cv->gpu_z,                                
-                            cv->gpu_mapParticleToCellGPURes,
+                            cv->gpu_mapParticleToCell,
                             gpu_cellSize,
                             gpu_edgeCells,
                             cv->gpu_nonOrth,
@@ -67,10 +59,10 @@ void CellListGPU::SortMappedParticles(VariablesCUDA * cv,
     int atomNumber = coords.Count();
     // Run the kernel
     CreateStartVector(atomNumber,
-                    cv->gpu_mapParticleToCellGPURes,
-                    cv->gpu_mapParticleToCellSortedGPURes,
+                    cv->gpu_mapParticleToCell,
+                    cv->gpu_mapParticleToCellSorted,
                     cv->gpu_particleIndices,
-                    cv->gpu_cellVectorGPURes);
+                    cv->gpu_cellVector);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -86,13 +78,13 @@ void CellListGPU::CalculateCellDegrees(VariablesCUDA * cv,
     CalculateCellDegreesKernel<<< blocksPerGrid, 
                                 threadsPerBlock, 
                                 (3*threadsPerBlock+2)*sizeof(int)>>>(atomNumber,
-                                                                cv->gpu_mapParticleToCellSortedGPURes,
-                                                                cv->gpu_cellDegreesGPURes);
+                                                                cv->gpu_mapParticleToCellSorted,
+                                                                cv->gpu_cellDegrees);
     */
  CalculateCellDegreesKernel<<< blocksPerGrid, 
                                 threadsPerBlock>>>(atomNumber,
-                                                    cv->gpu_mapParticleToCellSortedGPURes,
-                                                    cv->gpu_cellDegreesGPURes);
+                                                    cv->gpu_mapParticleToCellSorted,
+                                                    cv->gpu_cellDegrees);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -102,10 +94,10 @@ void CellListGPU::CalculateCellDegreesCUB(VariablesCUDA * cv,
                                     XYZArray const &coords){
     int atomNumber = coords.Count();                                            // Run the kernel
     CreateCellDegrees(atomNumber,
-                    cv->gpu_mapParticleToCellSortedGPURes,
-                    cv->gpu_OnesGPURes,
+                    cv->gpu_mapParticleToCellSorted,
+                    cv->gpu_Ones,
                     cv->gpu_CellDegreeSanityCheck,
-                    cv->gpu_cellDegreesGPURes,
+                    cv->gpu_cellDegrees,
                     cv->gpu_IterationsReq);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
@@ -122,17 +114,17 @@ struct CustomMin
 };
 // Need to sort first, since ReduceByKey needs keys to be in stretches of the same key
 void CellListGPU::CreateCellDegrees(int numberOfAtoms,
-                                int * mapParticleToCellSortedGPURes,
-                                int * OnesGPURes,
+                                int * mapParticleToCellSorted,
+                                int * Ones,
                                 int * gpu_CellDegreeSanityCheck,
-                                int * cellDegreesGPURes,
+                                int * cellDegrees,
                                 int * iterationsReq){
     // Declare, allocate, and initialize device-accessible pointers for input and output
     int          num_items = numberOfAtoms;          // e.g., 8
-    int          *d_keys_in = mapParticleToCellSortedGPURes;           // e.g., [0, 2, 2, 9, 5, 5, 5, 8]
-    int          *d_values_in = OnesGPURes;                            // e.g., [0, 7, 1, 6, 2, 5, 3, 4]
+    int          *d_keys_in = mapParticleToCellSorted;           // e.g., [0, 2, 2, 9, 5, 5, 5, 8]
+    int          *d_values_in = Ones;                            // e.g., [0, 7, 1, 6, 2, 5, 3, 4]
     int          *d_unique_out = gpu_CellDegreeSanityCheck;      // e.g., [-, -, -, -, -, -, -, -]
-    int          *d_aggregates_out = cellDegreesGPURes;  // e.g., [-, -, -, -, -, -, -, -]
+    int          *d_aggregates_out = cellDegrees;  // e.g., [-, -, -, -, -, -, -, -]
     int          *d_num_runs_out = iterationsReq;    // e.g., [-]
     CustomMin    reduction_op;
     // Determine temporary device storage requirements
@@ -152,8 +144,8 @@ void CellListGPU::CreateCellDegrees(int numberOfAtoms,
 void CellListGPU::PrefixScanCellDegrees(VariablesCUDA * cv,
                                     int numberOfCells){
     CalculateNewRowOffsets(numberOfCells,
-                           cv->gpu_cellStartIndexGPURes,
-                           cv->gpu_cellDegreesGPURes);
+                           cv->gpu_cellStartIndex,
+                           cv->gpu_cellDegrees);
     cudaDeviceSynchronize();
     checkLastErrorCUDA(__FILE__, __LINE__);
 }

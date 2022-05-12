@@ -1,4 +1,5 @@
 # Find CUDA is enabled, set it up
+set(GPU_RESIDENT 1)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	message("-- Debug build type detected, passing : '-g -G --keep' to nvcc")
