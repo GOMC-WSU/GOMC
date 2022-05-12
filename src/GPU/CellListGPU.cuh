@@ -58,7 +58,7 @@ class CellListGPU {
                           int * particleIndices,
                           int * particleIndicesSorted,
                           void     *d_temp_storage_sort,
-                          size_t   temp_storage_bytes_sort);
+                          size_t   *temp_storage_bytes_sort);
 
     void CreateCellDegrees(int numberOfAtoms,
                           int * mapParticleToCellSortedGPURes,
@@ -71,7 +71,7 @@ class CellListGPU {
                                 int * global_row_offsets_dev_ptr,
                                 int * global_degrees_dev_ptr,
                                 void     *d_temp_storage_prefix_sum,
-                                size_t   temp_storage_bytes_prefix_sum);
+                                size_t   *temp_storage_bytes_prefix_sum);
 };
 
 #endif
