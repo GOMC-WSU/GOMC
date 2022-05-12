@@ -4,7 +4,7 @@
 
 
 
-CellListGPU::CellListGPU(VariablesCUDA * cv, int atomNumber):
+CellListGPU::CellListGPU(VariablesCUDA * cv, int atomNumber)
 {
     CUMALLOC((void**) &cv->gpu_Ones, atomNumber * sizeof(int));
     CUMALLOC((void**) &cv->gpu_particleIndices, atomNumber * sizeof(int));
