@@ -154,8 +154,8 @@ public:
   int *gpu_Ones;
   int *gpu_CellDegreeSanityCheck;
   int *gpu_IterationsReq;
-  int zero1 = 0;
-  int zero2 = 0;
+  size_t zero1 = 0;
+  size_t zero2 = 0;
   void    **d_temp_storage_sort;
   size_t  *temp_storage_bytes_sort;
   void    **d_temp_storage_prefix_sum;
