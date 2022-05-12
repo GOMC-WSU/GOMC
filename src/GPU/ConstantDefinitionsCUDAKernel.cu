@@ -164,23 +164,14 @@ void InitGPUCellList(VariablesCUDA *vars,
 
   cudaMemcpy(vars->gpu_numberOfCells, &numberOfCells[0], numberOfCells.size() * sizeof(int),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars->gpu_neighborList, &neighborList[0], neighborList.size() * sizeof(int),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars->gpu_startOfBoxCellList, &startOfBoxCellList[0], startOfBoxCellList.size() * sizeof(int),
              cudaMemcpyHostToDevice);
-               checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars->gpu_edgeCells, &edgeCells[0], edgeCells.size() * sizeof(int),
             cudaMemcpyHostToDevice);
-              checkLastErrorCUDA(__FILE__, __LINE__);
-
   cudaMemcpy(vars->gpu_cellSize, &cellSize[0], cellSize.size() * sizeof(double),
              cudaMemcpyHostToDevice);
-
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
