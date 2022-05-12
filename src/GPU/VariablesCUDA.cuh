@@ -156,8 +156,12 @@ public:
   int *gpu_IterationsReq;
   size_t zero1 = 0;
   size_t zero2 = 0;
+
+  void    *d_temp_storage_sort_vals;
   void    **d_temp_storage_sort;
   size_t  *temp_storage_bytes_sort;
+  
+  void    *d_temp_storage_prefix_sum_vals;
   void    **d_temp_storage_prefix_sum;
   size_t  *temp_storage_bytes_prefix_sum;
   // New variables for GPU residence
