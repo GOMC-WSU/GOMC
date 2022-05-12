@@ -22,7 +22,7 @@ void CellListGPU::GridAll(VariablesCUDA * cv,
                         XYZArray const &coords,
                         XYZArray const &axes,
                         int numberOfCells){
-    GOMC_EVENT_START(1, GomcProfileEvent::GRID_ALL_CPU);
+    GOMC_EVENT_START(1, GomcProfileEvent::GRID_ALL_GPU);
     MapParticlesToCell(cv,coords,axes);
     SortMappedParticles(cv,coords);
     CalculateCellDegrees(cv,coords);
