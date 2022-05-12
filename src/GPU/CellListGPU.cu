@@ -239,7 +239,7 @@ void CellListGPU::CalculateNewRowOffsets( int numberOfRows,
     int  *d_in = global_degrees_dev_ptr;        // e.g., [8, 6, 7, 5, 3, 0, 9]
     int  *d_out = global_row_offsets_dev_ptr;         // e.g., [ ,  ,  ,  ,  ,  ,  ]
     // Determine temporary device storage requirements
-    if(*temp_storage_bytes_prefix_sum == NULL){
+    if(temp_storage_bytes_prefix_sum == NULL){
         cub::DeviceScan::ExclusiveSum(*d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum, d_in, d_out, num_items);
         // Allocate temporary storage
         CUMALLOC(d_temp_storage_prefix_sum, *temp_storage_bytes_prefix_sum);
