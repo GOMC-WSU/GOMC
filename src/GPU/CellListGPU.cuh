@@ -50,13 +50,6 @@ class CellListGPU {
                               XYZArray const &coords);
     void PrefixScanCellDegrees(VariablesCUDA * cv,
                                         int numberOfCells);
-    // new pair interaction calculation done on GPU
-    int *gpu_cellVector, *gpu_mapParticleToCell, *gpu_cellStartIndex;
-    // Fixed as long as volume doesnt change
-    // Regenerate after volume moves.
-    int *gpu_neighborList, *gpu_numberOfCells, *gpu_startOfBoxCellList;
-    int *gpu_edgeCells;
-    double *gpu_cellSize;
   private:
     void CreateStartVector(int numberOfAtoms,
                           int * mapParticleToCell,

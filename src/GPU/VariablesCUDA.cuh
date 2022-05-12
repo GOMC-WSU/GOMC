@@ -141,10 +141,6 @@ public:
   // Regenerate after volume moves.
   int *gpu_neighborList;
 
-  // new pair interaction calculation done on GPU
-  int *gpu_cellVector; 
-  int *gpu_mapParticleToCell; 
-  int *gpu_cellStartIndex;
   // Fixed as long as volume doesnt change
   // Regenerate after volume moves.
   int *gpu_neighborList; 
