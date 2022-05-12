@@ -349,7 +349,11 @@ inline void MultiParticleBrownian::CalcEn()
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function
   //cellList.GridAll(boxDimRef, newMolsPos, molLookup);
+  #if GOMC_CUDA
+  cellListGPU.GridAll(cudaVars, coordCurrRef, currAxes, cellList.CellsInBox(0));
+  #else
   cellList.GridBox(boxDimRef, newMolsPos, molLookup, bPick);
+  #endif
 
   //back up cached fourier term
   calcEwald->backupMolCache();
@@ -457,7 +461,11 @@ inline void MultiParticleBrownian::Accept(const uint rejectState, const ulong st
     // Update the velocity in box
     velocity.UpdateBoxVelocity(bPick);
   } else {
+    #if GOMC_CUDA
+    cellListGPU.GridAll(cudaVars, coordCurrRef, currAxes, cellList.CellsInBox(0));
+    #else
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
+    #endif
     calcEwald->exgMolCache();
   }
 
