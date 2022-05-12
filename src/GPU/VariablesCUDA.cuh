@@ -142,23 +142,26 @@ public:
   int *gpu_neighborList;
 
   // new pair interaction calculation done on GPU
-  int *gpu_cellVectorGPURes; 
-  int *gpu_mapParticleToCellGPURes; 
-  int *gpu_cellStartIndexGPURes;
+  int *gpu_cellVector; 
+  int *gpu_mapParticleToCell; 
+  int *gpu_cellStartIndex;
   // Fixed as long as volume doesnt change
   // Regenerate after volume moves.
-  int *gpu_neighborListGPURes; 
-  int *gpu_numberOfCellsGPURes; 
-  int *gpu_startOfBoxCellListGPURes;
-  int *gpu_edgeCellsGPURes;
-  double *gpu_cellSizeGPURes;
+  int *gpu_neighborList; 
+  int *gpu_numberOfCells; 
+  int *gpu_startOfBoxCellList;
+  int *gpu_edgeCells;
+  double *gpu_cellSize;
     // Intermediate variable for counting number of molecules in cell
-  int *gpu_cellDegreesGPURes;
+  int *gpu_cellDegrees;
   int *gpu_particleIndices;
-  int *gpu_mapParticleToCellSortedGPURes;
-  int *gpu_OnesGPURes;
+  int *gpu_mapParticleToCellSorted;
+  int *gpu_Ones;
   int *gpu_CellDegreeSanityCheck;
   int *gpu_IterationsReq;
+
+  // New variables for GPU residence
+  double * LJEn, RJEn;
 
 };
 #endif
