@@ -274,14 +274,21 @@ void CellListGPU::CreateStartVector(int numberOfAtoms,
     int  *d_values_in = particleIndices;    
     int  *d_values_out = particleIndicesSorted;   
     if(temp_storage_bytes_sort == NULL){
+        std::cout << "First sort pairs" << std::endl;
         cub::DeviceRadixSort::SortPairs(*d_temp_storage_sort, *temp_storage_bytes_sort,
             d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
+                    std::cout << "First CUMALLOC sort pairs" << std::endl;
+
         // Allocate temporary storage
         CUMALLOC(d_temp_storage_sort, *temp_storage_bytes_sort);
     } else {
+                std::cout << "First clear mem sort pairs" << std::endl;
+
         cudaMemset(*d_temp_storage_sort, 0, *temp_storage_bytes_sort);
     }
     // Run sorting operation
+            std::cout << "second sort pairs" << std::endl;
+
     cub::DeviceRadixSort::SortPairs(*d_temp_storage_sort, *temp_storage_bytes_sort,
         d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
     // mapParticleToCellSorted        <-- [0, 3, 5, 6, 7, 8, 9]
