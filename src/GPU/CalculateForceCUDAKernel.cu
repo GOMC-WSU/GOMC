@@ -328,10 +328,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
   energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS * threadsPerBlock;
 
-  #if GPU_RESIDENT
-  gpu_neighborList = vars->gpu_neighborList;
-  gpu_cellStartIndex = vars->gpu_cellStartIndex;
-  #else
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(numberOfCellPairs);
   for(int i = 0; i < numberOfCells; i++) {
@@ -339,15 +335,10 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELLS + j] = neighborList[i][j];
     }
   }
-  CUMALLOC((void**) &gpu_neighborList, numberOfCellPairs * sizeof(int));
-  CUMALLOC((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
-  cudaMemcpy(gpu_neighborList, &neighborlist1D[0], numberOfCellPairs * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  #endif
 
   CUMALLOC((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
+  CUMALLOC((void**) &gpu_neighborList, numberOfCellPairs * sizeof(int));
+  CUMALLOC((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   CUMALLOC((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
@@ -364,7 +355,10 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_mForcex, mForcex, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mForcey, mForcey, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mForcez, mForcez, molCount * sizeof(double), cudaMemcpyHostToDevice);
-
+  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_neighborList, &neighborlist1D[0], numberOfCellPairs * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleKind, &particleKind[0], particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
