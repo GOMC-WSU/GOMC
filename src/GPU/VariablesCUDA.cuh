@@ -136,6 +136,36 @@ public:
   bool *gpu_isFraction;
 
   // new pair interaction calculation done on GPU
-  int *gpu_cellVector, *gpu_mapParticleToCell;
+  int *gpu_cellVector, *gpu_mapParticleToCell, *gpu_cellStartIndex;
+  // Fixed as long as volume doesnt change
+  // Regenerate after volume moves.
+  int *gpu_neighborList;
+
+  // Fixed as long as volume doesnt change
+  // Regenerate after volume moves.
+  int *gpu_numberOfCells; 
+  int *gpu_startOfBoxCellList;
+  int *gpu_edgeCells;
+  double *gpu_cellSize;
+    // Intermediate variable for counting number of molecules in cell
+  int *gpu_cellDegrees;
+  int *gpu_particleIndices;
+  int *gpu_mapParticleToCellSorted;
+  int *gpu_Ones;
+  int *gpu_CellDegreeSanityCheck;
+  int *gpu_IterationsReq;
+  size_t zero1 = 0;
+  size_t zero2 = 0;
+
+  void    *d_temp_storage_sort_vals;
+  void    **d_temp_storage_sort;
+  size_t  *temp_storage_bytes_sort;
+  
+  void    *d_temp_storage_prefix_sum_vals;
+  void    **d_temp_storage_prefix_sum;
+  size_t  *temp_storage_bytes_prefix_sum;
+  // New variables for GPU residence
+  double * LJEn, RJEn;
+
 };
 #endif

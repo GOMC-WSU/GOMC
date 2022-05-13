@@ -60,6 +60,56 @@ CellList::CellList(const CellList & other) : mols(other.mols)
   //head(other.head);
 }
 
+#ifdef GOMC_CUDA
+void CellList::FlattenNeighborList(){
+  int NUMBER_OF_NEIGHBOR_CELL = 27;
+  startOfBoxCellList.clear();
+  numberOfCells.clear();
+
+  int totalCells = 0; 
+  std::vector < std::vector<std::vector<int> > > neighborList;
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    startOfBoxCellList.push_back(totalCells);
+    neighborList.push_back(GetNeighborList(b));
+    totalCells += neighborList[b].size()*NUMBER_OF_NEIGHBOR_CELL;
+    numberOfCells.push_back(neighborList[b].size());
+  }
+  // Convert neighbor list to 1D array
+  neighborlist1D.clear();
+  neighborlist1D.resize(totalCells);
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    for(int i = 0; i < neighborList[b].size(); i++) {
+      for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELL; j++) {
+        neighborlist1D[startOfBoxCellList[b] + i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[b][i][j];
+      }
+    }
+  }
+}
+void CellList::FlattenCellDetails(){
+  cellSizeVec.clear();
+  edgeCellsVec.clear();
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    cellSizeVec.push_back(cellSize[b].x);
+    cellSizeVec.push_back(cellSize[b].y);
+    cellSizeVec.push_back(cellSize[b].z);
+    edgeCellsVec.push_back(edgeCells[b][0]);
+    edgeCellsVec.push_back(edgeCells[b][1]);
+    edgeCellsVec.push_back(edgeCells[b][2]);
+  }
+}
+
+void CellList::CopyNeighborListToGPU(VariablesCUDA *cudaVars){
+  FlattenNeighborList();
+  FlattenCellDetails();
+  InitGPUCellList(cudaVars, 
+                  neighborlist1D, 
+                  numberOfCells, 
+                  startOfBoxCellList,
+                  edgeCellsVec,
+                  cellSizeVec);
+}
+
+#endif
 
 void CellList::SetCutoff()
 {
@@ -230,6 +280,7 @@ void CellList::RebuildNeighbors(int b)
 void CellList::GridAll(BoxDimensions& dims, const XYZArray& pos,
                        const MoleculeLookup& lookup)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::GRID_ALL_CPU);
   dimensions = &dims;
   list.resize(pos.Count());
   ResizeGrid(dims);
@@ -246,11 +297,13 @@ void CellList::GridAll(BoxDimensions& dims, const XYZArray& pos,
       ++it;
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::GRID_ALL_CPU);
 }
 
 void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
                        const MoleculeLookup& lookup, const uint b)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::GRID_BOX_CPU);
   dimensions = &dims;
   list.resize(pos.Count());
   ResizeGridBox(dims, b);
@@ -264,6 +317,7 @@ void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
     AddMol(*it, b, pos);
     ++it;
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::GRID_BOX_CPU);
 }
 
 

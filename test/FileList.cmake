@@ -3,8 +3,12 @@ set(TestSources
     test/src/BitLibTest.cpp
     test/src/EndianTest.cpp
     test/src/MolLookupTest.cpp
-    test/src/TrajectoryTest.cpp
-    test/src/EnergyTest.cpp
+    test/src/CellListGPUTest.cpp
+
+    # Still working on these
+    #test/src/TrajectoryTest.cpp
+    #test/src/EnergyTest.cpp
+
     #test/src/CircuitTester.cpp
     #test/src/PSFParserTest.cpp
     #test/src/ConsistentTrajectoryTest.cpp
@@ -229,6 +233,7 @@ set(cudaHeaders
     src/GPU/CalculateEnergyCUDAKernel.cuh
     src/GPU/CalculateForceCUDAKernel.cuh
     src/GPU/CalculateEwaldCUDAKernel.cuh
+    src/GPU/CellListGPU.cuh
     src/GPU/CUDAMemoryManager.cuh
     src/GPU/TransformParticlesCUDAKernel.cuh
     src/GPU/VariablesCUDA.cuh)
@@ -237,6 +242,7 @@ set(cudaSources
     src/GPU/CalculateEnergyCUDAKernel.cu
     src/GPU/CalculateForceCUDAKernel.cu
     src/GPU/CalculateEwaldCUDAKernel.cu
+    src/GPU/CellListGPU.cu
     src/GPU/ConstantDefinitionsCUDAKernel.cu
     src/GPU/CUDAMemoryManager.cu
     src/GPU/TransformParticlesCUDAKernel.cu)

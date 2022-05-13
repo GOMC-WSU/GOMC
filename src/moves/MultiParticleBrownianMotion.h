@@ -26,6 +26,7 @@ public:
   MultiParticleBrownian(System &sys, StaticVals const& statV);
   ~MultiParticleBrownian() {
 #ifdef GOMC_CUDA
+    cellListGPU = NULL;
     cudaVars = NULL;
     cudaFreeHost(kill);
     kill = NULL;
@@ -59,6 +60,7 @@ private:
   bool allTranslate;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
+  CellListGPU *cellListGPU;
   bool isOrthogonal;
   int *kill; // kill the simulation if we started with bad configuration
 #endif
@@ -104,6 +106,7 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
   isOrthogonal = statV.isOrthogonal;
+  cellListGPU = sys.cellListGPU;
   cudaMallocHost((void**) &kill, sizeof(int));
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -346,7 +349,11 @@ inline void MultiParticleBrownian::CalcEn()
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function
   //cellList.GridAll(boxDimRef, newMolsPos, molLookup);
+  #if GOMC_CUDA
+  cellListGPU->GridAll(cudaVars, coordCurrRef, boxDimRef.axis, cellList.CellsInBox(0));
+  #else
   cellList.GridBox(boxDimRef, newMolsPos, molLookup, bPick);
+  #endif
 
   //back up cached fourier term
   calcEwald->backupMolCache();
@@ -454,7 +461,11 @@ inline void MultiParticleBrownian::Accept(const uint rejectState, const ulong st
     // Update the velocity in box
     velocity.UpdateBoxVelocity(bPick);
   } else {
+    #if GOMC_CUDA
+    cellListGPU->GridAll(cudaVars, coordCurrRef, boxDimRef.axis, cellList.CellsInBox(0));
+    #else
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
+    #endif
     calcEwald->exgMolCache();
   }
 

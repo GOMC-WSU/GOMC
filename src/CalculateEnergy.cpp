@@ -303,8 +303,12 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector<std::vector<int> > neighborList;
+  #if GPU_RESIDENT
+
+  #else
   cellList.GetCellListNeighbor(box, coords.Count(), cellVector, cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
+  #endif
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU

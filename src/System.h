@@ -31,6 +31,10 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 
 #include "CheckpointSetup.h"
 
+#ifdef GOMC_CUDA
+#include "CellListGPU.cuh"
+#endif
+
 
 //Initialization variables
 class Setup;
@@ -112,6 +116,9 @@ public:
 
   MoveSettings moveSettings;
   CellList cellList;
+  #ifdef GOMC_CUDA
+  CellListGPU * cellListGPU;
+  #endif
   SystemPotential potential;
   Coordinates coordinates;
   XYZArray atomForceRef;
