@@ -823,35 +823,42 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             bool *gpu_isFraction,
                             int box)
 {
+  __shared__ double shr_cutoff;
+  __shared__ int shr_particlesInsideCurrentCell, shr_numberOfPairs;
+  __shared__ int shr_currentCellStartIndex, shr_neighborCellStartIndex;
   double REn = 0.0, LJEn = 0.0;
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
   int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
-  int nCellIndex = blockIdx.x;
-  int neighborCell = gpu_neighborList[nCellIndex];
+  int neighborCell = gpu_neighborList[ blockIdx.x];
 
-  // Calculate number of particles inside current Cell
-  int particlesInsideCurrentCell = gpu_cellStartIndex[currentCell + 1] - gpu_cellStartIndex[currentCell];
+  if (threadIdx.x == 0) {
+    // Calculate number of particles inside current Cell
+	shr_currentCellStartIndex = gpu_cellStartIndex[currentCell];
+    shr_particlesInsideCurrentCell = gpu_cellStartIndex[currentCell + 1] - shr_currentCellStartIndex;
 
-  // Calculate number of particles inside neighbor Cell
-  int particlesInsideNeighboringCell = gpu_cellStartIndex[neighborCell + 1] - gpu_cellStartIndex[neighborCell];
+    // Calculate number of particles inside neighbor Cell
+	shr_neighborCellStartIndex = gpu_cellStartIndex[neighborCell];
+    int particlesInsideNeighboringCell = gpu_cellStartIndex[neighborCell + 1] - shr_neighborCellStartIndex;
 
-  // Total number of pairs
-  int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCell;
+    // Total number of pairs
+    shr_numberOfPairs = shr_particlesInsideCurrentCell * particlesInsideNeighboringCell;
+    shr_cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
+  }
+  __syncthreads();
+  
+  for(int pairIndex = threadIdx.x; pairIndex < shr_numberOfPairs; pairIndex += blockDim.x) {
+    int currentParticleIndex = pairIndex % shr_particlesInsideCurrentCell;
+    int neighborParticleIndex = pairIndex / shr_particlesInsideCurrentCell;
 
-  for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
-    int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
-    int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
-
-    int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
-    int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
+    int currentParticle = gpu_cellVector[shr_currentCellStartIndex + currentParticleIndex];
+    int neighborParticle = gpu_cellVector[shr_neighborCellStartIndex + neighborParticleIndex];
 
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       double distSq;
       double3 virComponents;
       if(InRcutGPU(distSq, virComponents, gpu_x, gpu_y, gpu_z,
                    currentParticle, neighborParticle,
-                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
+                   axis, halfAx, shr_cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
 
