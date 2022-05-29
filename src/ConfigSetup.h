@@ -745,7 +745,7 @@ struct TargetSwapCollection {
 struct MEMCVal {
   bool enable, readVol, readRatio, readSmallBB, readLargeBB;
   bool readSK, readLK;
-  bool MEMC1, MEMC2, MEMC3;
+  bool MEMC1, MEMC2, MEMC3, MEMC2Liq, MEMC3Liq;
   XYZ subVol;
   std::vector<std::string> smallKind, largeKind;
   std::vector<uint> exchangeRatio;
@@ -754,6 +754,7 @@ struct MEMCVal {
   MEMCVal(void)
   {
     MEMC1 = MEMC2 = MEMC3 = false;
+    MEMC2Liq = MEMC3Liq = false;
     readVol = readRatio = readSmallBB = false;
     readLargeBB = readSK = readLK = false;
   }
