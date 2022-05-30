@@ -21,8 +21,10 @@ using namespace geom;
 //
 // Swapping one Large molecule with one or more small molecules and vice versa.
 // Sub-Volume location and orientation is based on the COM and backbone of the
-// the small molecule. We always pick small molecule from sourceBox and Large
-// from destBox
+// the small and large molecule. We always pick small molecule from sourceBox and Large
+// from destBox to swap, and insert in the cavity left behind by small or large molecule kind
+// The acceptance criteria for GCMC simulation is similar to MEMC-2, but the GEMC
+// simulation has different acceptance criteria
 
 class MoleculeExchange2Liq : public MoleculeExchange1
 {
@@ -51,11 +53,9 @@ public:
 
 protected:
 
-  virtual void AdjustExRatio();
   virtual void SetMEMC(StaticVals const& statV);
   virtual void SetExchangeData();
   virtual uint PickMolInCav();
-  //virtual uint ReplaceMolecule();
   virtual double GetCoeff() const;
 
 
@@ -110,37 +110,13 @@ inline void MoleculeExchange2Liq::SetMEMC(StaticVals const& statV)
   }
 }
 
-inline void MoleculeExchange2Liq::AdjustExRatio()
-{
-  // if(((counter + 1) % perAdjust) == 0) {
-  //   int exMax = ceil((float)molInCavCount / (float)perAdjust);
-  //   int exMin = 1;
-  //   uint index = kindS + kindL * molRef.GetKindsCount();
-  //   double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
-  //   if(std::abs(currAccept - lastAccept) >= 0.05 * currAccept) {
-  //     if(currAccept >= lastAccept) {
-  //       exchangeRatio += exDiff;
-  //     } else {
-  //       exDiff *= -1;
-  //       exchangeRatio += exDiff;
-  //     }
-  //     lastAccept = currAccept;
-  //     if(exchangeRatio < exMin)
-  //       exchangeRatio = exMin;
-  //     if(exchangeRatio > exMax)
-  //       exchangeRatio = exMax;
-  //   }
-  //   molInCavCount = 0;
-  //   counter = 0;
-  // }
-}
-
 inline uint MoleculeExchange2Liq::SetBoxMolKind(const double subDraw,
   const double movPerc)
 {
   uint state = mv::fail_state::NO_FAIL;
   overlap = false;
-  //pick a random source and dest Box. We always replace Large with small kind
+  //pick a random source and dest Box. We always replace Large kind in 
+  // dest box with small kind in source box
   prng.PickBoxPair(sourceBox, destBox, subDraw, movPerc);
   //pick one of the exchange type
   SetExchangeData();
@@ -190,17 +166,20 @@ inline void MoleculeExchange2Liq::SetExchangeData()
 inline uint MoleculeExchange2Liq::PickMolInCav()
 {
   uint state = mv::fail_state::NO_FAIL;
-  numMolInCavity[sourceBox] = exchangeRatio;
+  // Exchange N_ex small molecule with one large kind
+  numMolInCavity[sourceBox] = exchangeRatio; 
   numMolInCavity[destBox] = 1;
   //pick a random small kind in source box and use the COM as cavity center
   uint pickedS, pickedKS;
   state = prng.PickMol(kindS, pickedKS, pickedS, sourceBox);
   if(state == mv::fail_state::NO_FAIL) {
     cavityCenter[sourceBox] = comCurrRef.Get(pickedS);
-    //If we want to orient the cavity with backbone of picked small mol
     if(molRef.NumAtoms(kindS) == 1) {
+      // with single site molecules, we cannot define the backbone, therefore
+      // use random orientation
       SetBasis(cavityMatrix[sourceBox], prng.RandomUnitVect());
     } else {
+      //Orient the cavity with backbone of picked small molecule
       uint start = molRef.MolStart(pickedS) + smallBB[0];
       uint end = molRef.MolStart(pickedS) + smallBB[1];
       SetBasis(cavityMatrix[sourceBox], boxDimRef.MinImage(coordCurrRef.Difference(start, end), sourceBox));
@@ -208,8 +187,8 @@ inline uint MoleculeExchange2Liq::PickMolInCav()
     //Calculate inverse matrix for cav here Inv = transpose
     TransposeMatrix(invCavityMatrix[sourceBox], cavityMatrix[sourceBox]);
 
-    //Find all the molecule small kind in the cavity. Returns False if we cannot find
-    // exchangeRatio of small molecule
+    // Find all the molecule small kind in the cavity of sourceBox. Returns False if we cannot find
+    // exchangeRatio of small molecule in source box
     if((exchangeRatio == 1) || 
       calcEnRef.FindMolInCavity(moleculeIndexInCavity[sourceBox],
         cavityCenter[sourceBox], cavity, invCavityMatrix[sourceBox], 
@@ -237,17 +216,22 @@ inline uint MoleculeExchange2Liq::PickMolInCav()
         moleculeIndexInCavity[sourceBox][kindS].erase(moleculeIndexInCavity[sourceBox][kindS].begin() + picked);
       }
 
-      //pick a molecule from Large kind in destBox
-      state = prng.PickMol(kindL, kindIndex[destBox], molIndex[destBox], 1, destBox);
+      //pick a Large molecule kind from destBox
+      uint pickedL, pickedKL;
+      state = prng.PickMol(kindL, pickedKL, pickedL, destBox);
       // Now set up the cavity for large molecule in destBox
       if(state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX) {
-        uint pickedL = molIndex[destBox][0];
+        molIndex[destBox].push_back(pickedL);
+        kindIndex[destBox].push_back(kindL);
         // Find the center of large molecule in destbox
         cavityCenter[destBox] = comCurrRef.Get(pickedL);
         //If we want to orient the cavity with backbone of picked large mol
         if(molRef.NumAtoms(kindL) == 1) {
+          // with single site molecules, we cannot define the backbone, therefore
+          // use random orientation
           SetBasis(cavityMatrix[destBox], prng.RandomUnitVect());
         } else {
+          //Orient the cavity with backbone of picked large molecule kind
           uint start = molRef.MolStart(pickedL) + largeBB[0];
           uint end = molRef.MolStart(pickedL) + largeBB[1];
           SetBasis(cavityMatrix[destBox], boxDimRef.MinImage(coordCurrRef.Difference(start, end), destBox));
@@ -283,7 +267,7 @@ inline uint MoleculeExchange2Liq::Prep(const double subDraw, const double movPer
     numTypeBSource = (double)(molLookRef.NumKindInBoxSwappable(kindIndex[destBox][0], sourceBox)); //large kind in source box
     numTypeBDest = (double)(molLookRef.NumKindInBoxSwappable(kindIndex[destBox][0], destBox)); // large kind in destBox
     
-    //transferring type A from source to dest
+    //transferring small kind from sourceBox to destBox
     for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
       newMol[sourceBox].push_back(cbmc::TrialMol(molRef.kinds[kindIndex[sourceBox][n]],
                                   boxDimRef, destBox));
@@ -291,15 +275,15 @@ inline uint MoleculeExchange2Liq::Prep(const double subDraw, const double movPer
                                   boxDimRef, sourceBox));
     }
 
+    //transferring large kind from destBox to sourceBox
     for(uint n = 0; n < numMolInCavity[destBox]; n++) {
-      //transferring type B from dest to source
       newMol[destBox].push_back(cbmc::TrialMol(molRef.kinds[kindIndex[destBox][n]],
                                 boxDimRef, sourceBox));
       oldMol[destBox].push_back(cbmc::TrialMol(molRef.kinds[kindIndex[destBox][n]],
                                 boxDimRef, destBox));
     }
 
-    //set the old coordinate and new after proper wrap & unwrap
+    //set the oldMol and newMol coordinate for small kind, after proper wrap & unwrap
     for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
       XYZArray mol(pLen[sourceBox][n]);
       coordCurrRef.CopyRange(mol, pStart[sourceBox][n], 0, pLen[sourceBox][n]);
@@ -308,12 +292,13 @@ inline uint MoleculeExchange2Liq::Prep(const double subDraw, const double movPer
       oldMol[sourceBox][n].SetCoords(coordCurrRef, pStart[sourceBox][n]);
       //set coordinate of oldMol to newMol for small kind, later it will shift to cavityCenter
       newMol[sourceBox][n].SetCoords(mol, 0);
-      //copy cavityMatrix of small kind in sourceBox for the old trial of small kind
+      //copy cavityMatrix of small kind in sourceBox for the old trial
       oldMol[sourceBox][n].SetCavMatrix(cavityMatrix[sourceBox]);
-      //copy cavityMatrix of large kind in dest for the new trial of small kind
+      //copy cavityMatrix of large kind in dest for the new trial
       newMol[sourceBox][n].SetCavMatrix(cavityMatrix[destBox]);
     }
 
+    //set the oldMol and newMol coordinate for large kind, after proper wrap & unwrap
     for(uint n = 0; n < numMolInCavity[destBox]; n++) {
       XYZArray mol(pLen[destBox][n]);
       coordCurrRef.CopyRange(mol, pStart[destBox][n], 0, pLen[destBox][n]);
@@ -322,16 +307,17 @@ inline uint MoleculeExchange2Liq::Prep(const double subDraw, const double movPer
       oldMol[destBox][n].SetCoords(coordCurrRef, pStart[destBox][n]);
       //set coordinate of oldMol to newMol for large kind, later it will shift to cavityCenter
       newMol[destBox][n].SetCoords(mol, 0);
-      //copy cavityMatrix of large kind in destBox for the old trial of large kind
+      //copy cavityMatrix of large kind in destBox for the old trial
       oldMol[destBox][n].SetCavMatrix(cavityMatrix[destBox]);
-      //copy cavityMatrix of small kind in source for the new trial of large kind
+      //copy cavityMatrix of small kind in source for the new trial
       newMol[destBox][n].SetCavMatrix(cavityMatrix[sourceBox]);
     }
 
+    // set cavity center and dimension for large kind
     for(uint n = 0; n < numMolInCavity[destBox]; n++) {
       //SetSeed(x, x, has cavity, COM is fixed, rotate around Backbone)
 
-      //Inserting Large kind from destBox to the cavityCenter in sourceBox
+      //Inserting Large kind from destBox to the cavity in sourceBox
       newMol[destBox][n].SetSeed(cavityCenter[sourceBox], cavity, true, true, true);
       // Set the Backbone of large molecule to be inserted
       newMol[destBox][n].SetBackBone(largeBB);
@@ -342,6 +328,7 @@ inline uint MoleculeExchange2Liq::Prep(const double subDraw, const double movPer
     }
 
     
+    // set cavity center and dimension for small large kind
     for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
       //SetSeed(x, x, has cavity, COM is fixed, rotate around Backbone)
 
@@ -353,7 +340,7 @@ inline uint MoleculeExchange2Liq::Prep(const double subDraw, const double movPer
         //Perform rotational trial move around backbone for small kind in sourceBox
         oldMol[sourceBox][n].SetSeed(cavityCenter[sourceBox], cavity, true, true, true);
         // Set the Backbone of small molecule to perform rotational trial around it
-        oldMol[destBox][n].SetBackBone(smallBB);
+        oldMol[sourceBox][n].SetBackBone(smallBB);
       } else {
         //Inserting Small kind from sourceBox to the cavity in destBox
         newMol[sourceBox][n].SetSeed(cavityCenter[destBox], cavity, true, false, false);
@@ -483,7 +470,6 @@ inline void MoleculeExchange2Liq::CalcEn()
 inline double MoleculeExchange2Liq::GetCoeff() const
 {
 #if ENSEMBLE == GEMC
-   
   double ratioM = numTypeASource * numTypeBDest / 
     ((numTypeBSource + 1.0) * (numTypeADest + exchangeRatio));
   double ratioF = num::Factorial(totalMolInCavity[sourceBox] - 1) /
@@ -622,13 +608,13 @@ inline void MoleculeExchange2Liq::Accept(const uint rejectState, const ulong ste
       }
 
     } else {
-      //transfer small molecule from destBox to source
+      //transfer back small molecule kind from destBox to source
       for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
         cellList.RemoveMol(molIndex[sourceBox][n], destBox, coordCurrRef);
         this->RecoverMol(sourceBox, n, destBox, sourceBox);
         cellList.AddMol(molIndex[sourceBox][n], sourceBox, coordCurrRef);
       }
-      //transfer large from sourceBox to dest
+      //transfer back large molecule kind from sourceBox to dest
       for(uint n = 0; n < numMolInCavity[destBox]; n++) {
         cellList.RemoveMol(molIndex[destBox][n], sourceBox, coordCurrRef);
         this->RecoverMol(destBox, n, sourceBox, destBox);
