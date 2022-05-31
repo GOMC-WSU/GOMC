@@ -866,7 +866,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-4.4f \n", "Info: MEMC-2-Liq move frequency",
             sys.moves.memc);
         sys.memcVal.enable = true;
-        sys.memcVal.MEMC3Liq = true;
+        sys.memcVal.MEMC2Liq = true;
       }
     } else if(CheckString(line[0], "MEMC-3-LiqFreq")) {
       if(stringtod(line[1]) > 0.0){
