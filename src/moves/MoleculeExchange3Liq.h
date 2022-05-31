@@ -192,7 +192,7 @@ inline uint MoleculeExchange3Liq::PickMolInCav()
       uint pickedL, pickedKL;
       state = prng.PickMol(kindL, pickedKL, pickedL, destBox);
       // Now set up the cavity for large molecule in destBox
-      if(state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX) {
+      if(state == mv::fail_state::NO_FAIL) {
         molIndex[destBox].push_back(pickedL);
         kindIndex[destBox].push_back(kindL);
         // Find the center of large molecule in destBox
