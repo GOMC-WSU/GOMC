@@ -375,8 +375,8 @@ inline uint MoleculeExchange2Liq::Transform()
         kCount[kindIndex[sourceBox][0]] -= numMolInCavity[sourceBox];
         kCount[kindIndex[destBox][0]] += numMolInCavity[destBox];
       } else if (b == destBox) {
-        kCount[kindIndex[destBox][0]] -= numMolInCavity[destBox];
         kCount[kindIndex[sourceBox][0]] += numMolInCavity[sourceBox];
+        kCount[kindIndex[destBox][0]] -= numMolInCavity[destBox];
       }
       tcNew[b].energy = calcEnRef.EnergyCorrection(b, kCount);
       delTC += tcNew[b].energy - sysPotRef.boxEnergy[b].tc;
