@@ -70,7 +70,7 @@ protected:
   // To keep track of small molecules in cavity in each box
   uint numMolInCavity[BOX_TOTAL], totalMolInCavity[BOX_TOTAL];
   //To store total sets of exchange pairs
-  vector< vector<uint> > smallBBVec;
+  //vector< vector<uint> > smallBBVec;
   vector< vector<uint> > moleculeIndexInCavity[BOX_TOTAL];
   XYZ cavityCenter[BOX_TOTAL];
   XYZArray cavityMatrix[BOX_TOTAL], invCavityMatrix[BOX_TOTAL];
@@ -139,8 +139,8 @@ inline void MoleculeExchange3Liq::SetExchangeData()
   exchangeRatio = exchangeRatioVec[exType];
   largeBB[0] = largeBBVec[exType][0];
   largeBB[1] = largeBBVec[exType][1];
-  smallBB[0] = smallBBVec[exType][0];
-  smallBB[1] = smallBBVec[exType][1];
+  // smallBB[0] = smallBBVec[exType][0];
+  // smallBB[1] = smallBBVec[exType][1];
 }
 
 inline uint MoleculeExchange3Liq::PickMolInCav()
@@ -386,12 +386,93 @@ inline uint MoleculeExchange3Liq::Transform()
 
 inline void MoleculeExchange3Liq::CalcEn()
 {
-  MoleculeExchange2Liq::CalcEn();
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MEMC);
+  W_recip = 1.0;
+  correct_oldA = 0.0, correct_newA = 0.0;
+  self_oldA = 0.0, self_newA = 0.0;
+  correct_oldB = 0.0, correct_newB = 0.0;
+  self_oldB = 0.0, self_newB = 0.0;
+  recipDest = 0.0, recipSource = 0.0;
+
+  if(!overlap) {
+    for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
+      correct_newA += calcEwald->SwapCorrection(newMol[sourceBox][n]);
+      correct_oldA += calcEwald->SwapCorrection(oldMol[sourceBox][n]);
+      self_newA += calcEwald->SwapSelf(newMol[sourceBox][n]);
+      self_oldA += calcEwald->SwapSelf(oldMol[sourceBox][n]);
+    }
+    recipDest = calcEwald->MolExchangeReciprocal(newMol[sourceBox],
+      oldMol[destBox], molIndex[sourceBox], molIndex[destBox], true);
+
+    for(uint n = 0; n < numMolInCavity[destBox]; n++) {
+      correct_newB += calcEwald->SwapCorrection(newMol[destBox][n]);
+      correct_oldB += calcEwald->SwapCorrection(oldMol[destBox][n]);
+      self_newB += calcEwald->SwapSelf(newMol[destBox][n]);
+      self_oldB += calcEwald->SwapSelf(oldMol[destBox][n]);
+    }
+    recipSource = calcEwald->MolExchangeReciprocal(newMol[destBox],
+      oldMol[sourceBox], molIndex[destBox], molIndex[sourceBox], true);
+
+    //need to contribute the self and correction energy
+    W_recip = exp(-1.0 * ffRef.beta * (recipSource + recipDest +
+                                       correct_newA - correct_oldA +
+                                       correct_newB - correct_oldB +
+                                       self_newA - self_oldA +
+                                       self_newB - self_oldB));
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MEMC);
 }
 
 inline double MoleculeExchange3Liq::GetCoeff() const
 {
-  MoleculeExchange2Liq::GetCoeff();
+#if ENSEMBLE == GEMC
+  double ratioM = numTypeASource * numTypeBDest / 
+    ((numTypeBSource + 1.0) * (numTypeADest + exchangeRatio));
+  double ratioF = num::Factorial(totalMolInCavity[sourceBox] - 1) /
+    (num::Factorial(totalMolInCavity[destBox], exchangeRatio - 1) *
+     num::Factorial(totalMolInCavity[sourceBox] - exchangeRatio));
+ 
+  // subVolume will cancel out
+  return ratioF * ratioM;
+#elif ENSEMBLE == GCMC
+  if(ffRef.isFugacity) {
+    if(sourceBox == mv::BOX0) {
+      //Insert Large molecule
+      double delA = molRef.kinds[kindIndex[sourceBox][0]].chemPot * numMolInCavity[sourceBox];
+      double insB = molRef.kinds[kindIndex[destBox][0]].chemPot * numMolInCavity[destBox];
+      double ratioF = num::Factorial(totalMolInCavity[sourceBox] - 1) /
+          num::Factorial(totalMolInCavity[sourceBox] - exchangeRatio);
+      double ratioM = numTypeASource / (numTypeBSource + 1.0);
+      return (insB / delA) * ratioF * ratioM / pow(volCav, exchangeRatio - 1);
+    } else {
+      //Delete Large Molecule
+      double insA = molRef.kinds[kindIndex[sourceBox][0]].chemPot * numMolInCavity[sourceBox];
+      double delB = molRef.kinds[kindIndex[destBox][0]].chemPot * numMolInCavity[destBox];
+      double ratioF = num::Factorial(totalMolInCavity[destBox]) /
+                      num::Factorial(totalMolInCavity[destBox] + exchangeRatio - 1);
+      double ratioM = numTypeBDest / (numTypeADest + exchangeRatio);
+      return (insA / delB) * ratioF * ratioM * pow(volCav, exchangeRatio - 1);
+    }
+  } else {
+    if(sourceBox == mv::BOX0) {
+      //Insert Large molecule
+      double delA = (-BETA * molRef.kinds[kindIndex[sourceBox][0]].chemPot * numMolInCavity[sourceBox]);
+      double insB = (BETA * molRef.kinds[kindIndex[destBox][0]].chemPot * numMolInCavity[destBox]);
+      double ratioF = num::Factorial(totalMolInCavity[sourceBox] - 1) /
+        num::Factorial(totalMolInCavity[sourceBox] - exchangeRatio);
+      double ratioM =  numTypeASource / (numTypeBSource + 1.0);
+      return exp(delA + insB) * ratioF * ratioM / pow(volCav, exchangeRatio - 1);
+    } else {
+      //Delete Large Molecule
+      double insA = (BETA * molRef.kinds[kindIndex[sourceBox][0]].chemPot * numMolInCavity[sourceBox]);
+      double delB = (-BETA * molRef.kinds[kindIndex[destBox][0]].chemPot * numMolInCavity[destBox]);
+      double ratioF = num::Factorial(totalMolInCavity[destBox]) /
+                      num::Factorial(totalMolInCavity[destBox] + exchangeRatio - 1);
+      double ratioM = numTypeBDest / (numTypeADest + exchangeRatio);
+      return exp(insA + delB) * ratioF * ratioM * pow(volCav, exchangeRatio - 1);
+    }
+  }
+#endif
 }
 
 
@@ -416,7 +497,99 @@ inline void MoleculeExchange3Liq::RecoverMol(uint box, const uint n,const uint f
 
 inline void MoleculeExchange3Liq::Accept(const uint rejectState, const ulong step)
 {
-  MoleculeExchange2Liq::Accept(rejectState, step);
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_MEMC);
+  bool result;
+
+  //If we didn't skip the move calculation
+  if(rejectState == mv::fail_state::NO_FAIL) {
+    double molTransCoeff = GetCoeff();
+    double Wrat = W_tc * W_recip;
+
+    for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
+      Wrat *= newMol[sourceBox][n].GetWeight() / oldMol[sourceBox][n].GetWeight();
+    }
+
+    for(uint n = 0; n < numMolInCavity[destBox]; n++) {
+      Wrat *= newMol[destBox][n].GetWeight() / oldMol[destBox][n].GetWeight();
+    }
+
+    if(!overlap) {
+      result = prng() < molTransCoeff * Wrat;
+    } else {
+      result = false;
+    }
+
+    if(result) {
+      //Add tail corrections
+      sysPotRef.boxEnergy[sourceBox].tc = tcNew[sourceBox].energy;
+      sysPotRef.boxEnergy[destBox].tc = tcNew[destBox].energy;
+
+      //Add rest of energy.
+      for(uint n = 0; n < numMolInCavity[destBox]; n++) {
+        sysPotRef.boxEnergy[sourceBox] += newMol[destBox][n].GetEnergy();
+        sysPotRef.boxEnergy[destBox] -= oldMol[destBox][n].GetEnergy();
+      }
+
+      for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
+        sysPotRef.boxEnergy[sourceBox] -= oldMol[sourceBox][n].GetEnergy();
+        sysPotRef.boxEnergy[destBox] += newMol[sourceBox][n].GetEnergy();
+      }
+
+      //Add Reciprocal energy
+      sysPotRef.boxEnergy[sourceBox].recip += recipSource;
+      sysPotRef.boxEnergy[destBox].recip += recipDest;
+      //Add correction energy
+      sysPotRef.boxEnergy[sourceBox].correction -= correct_oldA;
+      sysPotRef.boxEnergy[sourceBox].correction += correct_newB;
+      sysPotRef.boxEnergy[destBox].correction += correct_newA;
+      sysPotRef.boxEnergy[destBox].correction -= correct_oldB;
+      //Add self energy
+      sysPotRef.boxEnergy[sourceBox].self -= self_oldA;
+      sysPotRef.boxEnergy[sourceBox].self += self_newB;
+      sysPotRef.boxEnergy[destBox].self += self_newA;
+      sysPotRef.boxEnergy[destBox].self -= self_oldB;
+
+      calcEwald->UpdateRecip(sourceBox);
+      calcEwald->UpdateRecip(destBox);
+      //small and large molecule have  already transferred to destBox and added to cellist
+      //Retotal
+      sysPotRef.Total();
+
+      // Update the velocity
+      for(uint n = 0; n < numMolInCavity[destBox]; n++) {
+        velocity.UpdateMolVelocity(molIndex[destBox][n], sourceBox);
+      }
+      for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
+        velocity.UpdateMolVelocity(molIndex[sourceBox][n], destBox);
+      }
+
+    } else {
+      //transfer back small molecule kind from destBox to source
+      for(uint n = 0; n < numMolInCavity[sourceBox]; n++) {
+        cellList.RemoveMol(molIndex[sourceBox][n], destBox, coordCurrRef);
+        this->RecoverMol(sourceBox, n, destBox, sourceBox);
+        cellList.AddMol(molIndex[sourceBox][n], sourceBox, coordCurrRef);
+      }
+      //transfer back large molecule kind from sourceBox to dest
+      for(uint n = 0; n < numMolInCavity[destBox]; n++) {
+        cellList.RemoveMol(molIndex[destBox][n], sourceBox, coordCurrRef);
+        this->RecoverMol(destBox, n, sourceBox, destBox);
+        cellList.AddMol(molIndex[destBox][n], destBox, coordCurrRef);
+      }
+    }
+  } else {
+    //else we didn't even try because we knew it would fail
+    result = false;
+  }
+
+  moveSetRef.Update(mv::MEMC, result, sourceBox);
+  moveSetRef.Update(mv::MEMC, result, destBox);
+
+  //If we consider total acceptance of S->L and L->S
+  AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), sourceBox);
+  AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), destBox);
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_MEMC);
 }
 
 #endif
