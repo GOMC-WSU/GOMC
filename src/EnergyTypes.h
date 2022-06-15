@@ -87,18 +87,18 @@ class Energy
 {
 public:
   Energy() : intraBond(0.0), intraNonbond(0.0), inter(0.0),
-    tc(0.0), total(0.0), real(0.0), recip(0.0), self(0.0),
+    tailCorrection(0.0), total(0.0), real(0.0), recip(0.0), self(0.0),
     correction(0.0), totalElect(0.0) {}
   Energy(double bond, double nonbond, double inter, double real,
          double recip, double self, double correc) :
     intraBond(bond), intraNonbond(nonbond), inter(inter),
-    tc(0.0), total(0.0), real(real), recip(recip), self(self),
+    tailCorrection(0.0), total(0.0), real(real), recip(recip), self(self),
     correction(correc), totalElect(0.0) {}
 
   //VALUE SETTERS
   double Total()
   {
-    total = intraBond + intraNonbond + inter + tc + real + recip + self +
+    total = intraBond + intraNonbond + inter + tailCorrection + real + recip + self +
             correction;
     return total;
   }
@@ -114,7 +114,7 @@ public:
     intraBond = 0.0;
     intraNonbond = 0.0;
     inter = 0.0;
-    tc = 0.0;
+    tailCorrection = 0.0;
     real = 0.0;
     recip = 0.0;
     self = 0.0;
@@ -140,7 +140,7 @@ public:
 
 //private:
   //MEMBERS
-  double intraBond, intraNonbond, inter, tc, total, real, recip, self,
+  double intraBond, intraNonbond, inter, tailCorrection, total, real, recip, self,
          correction, totalElect;
 };
 
@@ -149,7 +149,7 @@ inline Energy& Energy::operator-=(Energy const& rhs)
   inter -= rhs.inter;
   intraBond -= rhs.intraBond;
   intraNonbond -= rhs.intraNonbond;
-  tc -= rhs.tc;
+  tailCorrection -= rhs.tailCorrection;
   real -= rhs.real;
   recip -= rhs.recip;
   self -= rhs.self;
@@ -165,7 +165,7 @@ inline Energy& Energy::operator+=(Energy const& rhs)
   inter += rhs.inter;
   intraBond += rhs.intraBond;
   intraNonbond += rhs.intraNonbond;
-  tc += rhs.tc;
+  tailCorrection += rhs.tailCorrection;
   real += rhs.real;
   recip += rhs.recip;
   self += rhs.self;
@@ -181,7 +181,7 @@ inline Energy& Energy::operator*=(double const& rhs)
   inter *= rhs;
   intraBond *= rhs;
   intraNonbond *= rhs;
-  tc *= rhs;
+  tailCorrection *= rhs;
   real *= rhs;
   recip *= rhs;
   self *= rhs;
@@ -204,7 +204,7 @@ public:
   double Total()
   {
     TotalElect();
-    total = inter + tc + real + recip + self + correction;
+    total = inter + tailCorrection + real + recip + self + correction;
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         totalTens[i][j] = interTens[i][j] + realTens[i][j] + recipTens[i][j] +
@@ -223,7 +223,7 @@ public:
   void Zero()
   {
     inter = 0.0;
-    tc = 0.0;
+    tailCorrection = 0.0;
     real = 0.0;
     recip = 0.0;
     self = 0.0;
@@ -245,7 +245,7 @@ public:
   Virial& operator-=(Virial const& rhs)
   {
     inter -= rhs.inter;
-    tc -= rhs.tc;
+    tailCorrection -= rhs.tailCorrection;
     real -= rhs.real;
     recip -= rhs.recip;
     self -= rhs.self;
@@ -270,7 +270,7 @@ public:
   Virial& operator+=(Virial const& rhs)
   {
     inter += rhs.inter;
-    tc += rhs.tc;
+    tailCorrection += rhs.tailCorrection;
     real += rhs.real;
     recip += rhs.recip;
     self += rhs.self;
@@ -305,7 +305,7 @@ public:
   Virial& operator=(Virial const& rhs)
   {
     inter = rhs.inter;
-    tc = rhs.tc;
+    tailCorrection = rhs.tailCorrection;
     real = rhs.real;
     recip = rhs.recip;
     self = rhs.self;
@@ -329,7 +329,7 @@ public:
   Virial& operator/=(const double rhs)
   {
     inter /= rhs;
-    tc /= rhs;
+    tailCorrection /= rhs;
     real /= rhs;
     recip /= rhs;
     self /= rhs;
@@ -352,7 +352,7 @@ public:
 
 //private:
   //MEMBERS
-  double inter, tc, real, recip, self, correction, totalElect, total;
+  double inter, tailCorrection, real, recip, self, correction, totalElect, total;
   //Store the pressure tensor
   double interTens[3][3], realTens[3][3], recipTens[3][3], totalTens[3][3],
          corrTens[3][3];
@@ -457,9 +457,9 @@ inline bool SystemPotential::ComparePotentials(SystemPotential & other)
     std::cout << "difference: " << totalEnergy.intraNonbond - other.totalEnergy.intraNonbond << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.tc != other.totalEnergy.tc) {
-    std::cout << "my tc: " << totalEnergy.tc << "  other tc: " << other.totalEnergy.tc << std::endl;
-    std::cout << "difference: " << totalEnergy.tc - other.totalEnergy.tc << std::endl;
+  if(totalEnergy.tailCorrection != other.totalEnergy.tailCorrection) {
+    std::cout << "my LRC: " << totalEnergy.tailCorrection << "  other LRC: " << other.totalEnergy.tailCorrection << std::endl;
+    std::cout << "difference: " << totalEnergy.tailCorrection - other.totalEnergy.tailCorrection << std::endl;
     returnVal = false;
   }
   if(totalEnergy.real != other.totalEnergy.real) {
@@ -508,7 +508,7 @@ inline std::ostream& operator<<(std::ostream& out, Energy& en)
 
   out << std::setprecision(6) << std::fixed;
   out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond << "  IntraNB: "
-      << en.intraNonbond << "  Inter: " << en.inter << "  Tc: " << en.tc;
+      << en.intraNonbond << "  Inter: " << en.inter << "  LRC: " << en.tailCorrection;
   if (en.totalElect != 0.0) {
     out << std::endl << "\tTotal Electric: " << en.totalElect << "  Real: " << en.real
         << "  Recip: " << en.recip << "  Self: " << en.self << "  Correction: "
