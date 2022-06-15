@@ -25,7 +25,6 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #if ENSEMBLE == GCMC || ENSEMBLE == NVT || ENSEMBLE == NPT
 #define BOXES_WITH_U_NB 1
 #elif ENSEMBLE == GEMC
-//case for NVT, GCMC
 #define BOXES_WITH_U_NB 2
 #endif
 #endif
