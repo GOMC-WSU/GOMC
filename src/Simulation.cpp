@@ -159,7 +159,7 @@ bool Simulation::RecalculateAndCheck(void)
   compare &= num::approximatelyEqual(system->potential.totalEnergy.intraBond, pot.totalEnergy.intraBond, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.intraNonbond, pot.totalEnergy.intraNonbond, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.inter, pot.totalEnergy.inter, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.tc, pot.totalEnergy.tc, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.tailCorrection, pot.totalEnergy.tailCorrection, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.real, pot.totalEnergy.real, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.self, pot.totalEnergy.self, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.correction, pot.totalEnergy.correction, EPSILON);
@@ -174,7 +174,7 @@ bool Simulation::RecalculateAndCheck(void)
         << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
         << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
         << std::setw(12) << system->potential.totalEnergy.inter << " | "
-        << std::setw(12) << system->potential.totalEnergy.tc << " | "
+        << std::setw(12) << system->potential.totalEnergy.tailCorrection << " | "
         << std::setw(12) << system->potential.totalEnergy.real << " | "
         << std::setw(12) << system->potential.totalEnergy.self << " | "
         << std::setw(12) << system->potential.totalEnergy.correction << " | "
@@ -183,7 +183,7 @@ bool Simulation::RecalculateAndCheck(void)
         << std::setw(12) << pot.totalEnergy.intraBond << " | "
         << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
         << std::setw(12) << pot.totalEnergy.inter << " | "
-        << std::setw(12) << pot.totalEnergy.tc << " | "
+        << std::setw(12) << pot.totalEnergy.tailCorrection << " | "
         << std::setw(12) << pot.totalEnergy.real << " | "
         << std::setw(12) << pot.totalEnergy.self << " | "
         << std::setw(12) << pot.totalEnergy.correction << " | "

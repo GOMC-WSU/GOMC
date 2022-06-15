@@ -411,8 +411,8 @@ void NEMTMC::AddWork()
 inline void NEMTMC::UpdateEnergy()
 {
   //Add tail corrections
-  sysPotRef.boxEnergy[sourceBox].tc += tcDiffSource;
-  sysPotRef.boxEnergy[destBox].tc += tcDiffDest;
+  sysPotRef.boxEnergy[sourceBox].tailCorrection += tcDiffSource;
+  sysPotRef.boxEnergy[destBox].tailCorrection += tcDiffDest;
   //Add rest of energy.
   sysPotRef.boxEnergy[sourceBox] -= oldEnergy[sourceBox];
   sysPotRef.boxEnergy[sourceBox] += newEnergy[sourceBox];
