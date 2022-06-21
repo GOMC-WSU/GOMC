@@ -68,7 +68,7 @@ void EnPartCntSample::Sample(const ulong step)
   if ((step + 1) % stepsPerSample == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       samplesE[b][samplesCollectedInFrame] =
-        var->energyRef[b].inter + var->energyRef[b].tc +
+        var->energyRef[b].inter + var->energyRef[b].tailCorrection +
         var->energyRef[b].totalElect;
 
       for (uint k = 0; k < var->numKinds; ++k) {
