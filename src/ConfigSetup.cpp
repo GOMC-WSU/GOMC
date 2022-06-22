@@ -1057,6 +1057,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     else if(CheckString(line[0], "ChemPot")) {
       if (line.size() > 3 && multisim != NULL) {
         std::string resName = line[1];
+        if (sys.chemPot.cp.count(resName) > 0) {
+          std::cout << "Error: Should specify either chemical potential or " 
+                    << "fugacity at most once for resName " << resName << std::endl;
+          exit(EXIT_FAILURE);
+        }
         double val = stringtod(line[2 + multisim->worldRank]);
         sys.chemPot.cp[resName] = val;
         printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
@@ -1066,6 +1071,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         exit(EXIT_FAILURE);
       } else {
         std::string resName = line[1];
+        if (sys.chemPot.cp.count(resName) > 0) {
+        std::cout << "Error: Should specify either chemical potential or " 
+                  << "fugacity at most once for resName " << resName << std::endl;
+          exit(EXIT_FAILURE);
+        }
         double val = stringtod(line[2]);
         sys.chemPot.cp[resName] = val;
         printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
@@ -1078,6 +1088,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
       sys.chemPot.isFugacity = true;
       std::string resName = line[1];
+      if (sys.chemPot.cp.count(resName) > 0) {
+        std::cout << "Error: Should specify either chemical potential or " 
+                  << "fugacity at most once for resName " << resName << std::endl;
+        exit(EXIT_FAILURE);
+      }
       double val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
       printf("%-40s %-6s %-6.4f bar\n", "Info: Fugacity", resName.c_str(),
