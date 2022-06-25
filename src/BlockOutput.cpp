@@ -182,7 +182,7 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   //Note: The order of Init should be same as order of SetRef
   blocks[out::ENERGY_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_TOTAL, BOXES_WITH_U_NB);
   blocks[out::ENERGY_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_INTER, BOXES_WITH_U_NB);
-  blocks[out::ENERGY_TC_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_TC, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_LRC_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_LRC, BOXES_WITH_U_NB);
   blocks[out::ENERGY_INTRA_B_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_INTRA_B, BOXES_WITH_U_NB);
   blocks[out::ENERGY_INTRA_NB_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_INTRA_NB, BOXES_WITH_U_NB);
   blocks[out::ENERGY_ELECT_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, firstInvSteps, firstPrint, out::ENERGY_ELECT, BOXES_WITH_U_NB);
@@ -208,7 +208,7 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
     blocks[out::ENERGY_TOTAL_IDX].SetRef(&var->energyRef[b].total, b);
     blocks[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].intraBond, b);
     blocks[out::ENERGY_INTER_IDX].SetRef(&var->energyRef[b].inter, b);
-    blocks[out::ENERGY_TC_IDX].SetRef(&var->energyRef[b].tc, b);
+    blocks[out::ENERGY_LRC_IDX].SetRef(&var->energyRef[b].tailCorrection, b);
     blocks[out::ENERGY_INTRA_NB_IDX].SetRef(&var->energyRef[b].intraNonbond, b);
     blocks[out::ENERGY_ELECT_IDX].SetRef(&var->energyRef[b].totalElect, b);
     blocks[out::ENERGY_REAL_IDX].SetRef(&var->energyRef[b].real, b);

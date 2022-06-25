@@ -193,8 +193,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const ulong step)
 
     if(result) {
       //Add tail corrections
-      sysPotRef.boxEnergy[sourceBox].tc += tcLose.energy;
-      sysPotRef.boxEnergy[destBox].tc += tcGain.energy;
+      sysPotRef.boxEnergy[sourceBox].tailCorrection += tcLose.energy;
+      sysPotRef.boxEnergy[destBox].tailCorrection += tcGain.energy;
       //Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();

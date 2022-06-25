@@ -1343,7 +1343,7 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
   }
 
   if(!forcefield.freeEnergy) {
-    pot.boxEnergy[box].tc = en;
+    pot.boxEnergy[box].tailCorrection = en;
   }
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   else {
@@ -1366,7 +1366,7 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
     //We already calculated part of the change for this type in the loop
     en += lambdaVDW * mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
           currentAxes.volInv[box];
-    pot.boxEnergy[box].tc = en;
+    pot.boxEnergy[box].tailCorrection = en;
   }
 #endif
 }
@@ -1379,14 +1379,14 @@ double CalculateEnergy::EnergyCorrection(const uint box,
     return 0.0;
   }
 
-  double tc = 0.0;
+  double tailCorrection = 0.0;
   for (uint i = 0; i < mols.kindsCount; ++i) {
     for (uint j = 0; j < mols.kindsCount; ++j) {
-      tc += mols.pairEnCorrections[i * mols.kindsCount + j] *
+      tailCorrection += mols.pairEnCorrections[i * mols.kindsCount + j] *
             kCount[i] * kCount[j] * currentAxes.volInv[box];
     }
   }
-  return tc;
+  return tailCorrection;
 }
 
 void CalculateEnergy::VirialCorrection(Virial& virial,
@@ -1408,7 +1408,7 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
   }
 
   if(!forcefield.freeEnergy) {
-    virial.tc = vir;
+    virial.tailCorrection = vir;
   }
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   else {
@@ -1431,7 +1431,7 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
     //We already calculated part of the change for this type in the loop
     vir += lambdaVDW * mols.pairVirCorrections[fk * mols.GetKindsCount() + fk] *
            currentAxes.volInv[box];
-    virial.tc = vir;
+    virial.tailCorrection = vir;
   }
 #endif
 }
@@ -1821,19 +1821,19 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
+      energyDiff[s].tailCorrection += mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
                           rhoDeltaIJ_2 * (lambdaVDW - lambda_istate);
       if(s == iState) {
         //Calculate du/dl in VDW LRC for current state
-        dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
+        dUdL_VDW.tailCorrection += mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
                        rhoDeltaIJ_2;
       }
     }
-    energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+    energyDiff[s].tailCorrection += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
                         currentAxes.volInv[box] * (lambdaVDW - lambda_istate);
     if(s == iState) {
       //Calculate du/dl in VDW LRC for current state
-      dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+      dUdL_VDW.tailCorrection += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
                      currentAxes.volInv[box];
     }
   }

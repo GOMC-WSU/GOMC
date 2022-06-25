@@ -395,10 +395,10 @@ inline double FF_EXP6::EnergyLRC(const uint kind1, const uint kind2) const
   double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6.0) /
              ((double)n[idx] - 6.0);
 
-  double tc = 2.0 * M_PI * (A * B * exp(-rCut / B) *
+  double tailCorrection = 2.0 * M_PI * (A * B * exp(-rCut / B) *
                             (2.0 * B * B + (2.0 * B * rCut) + rCut * rCut) -
                             C / (3.0 * rCut * rCut * rCut));
-  return tc;
+  return tailCorrection;
 }
 //!!Returns virial correction
 inline double FF_EXP6::VirialLRC(const uint kind1, const uint kind2) const
@@ -410,11 +410,11 @@ inline double FF_EXP6::VirialLRC(const uint kind1, const uint kind2) const
   double B = rMin[idx] / (double)n[idx];
   double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6.0) /
              ((double)n[idx] - 6.0);
-  double tc = 2.0 * M_PI * (A * exp(-rCut / B) *
+  double tailCorrection = 2.0 * M_PI * (A * exp(-rCut / B) *
                             (6.0 * B * B * B + 6.0 * B * B * rCut +
                              3.0 * rCut * rCut * B + rCut * rCut * rCut) -
                             2.0 * C / (rCut * rCut * rCut));
-  return tc;
+  return tailCorrection;
 }
 
 inline double FF_EXP6::ImpulsePressureCorrection(const uint kind1, const uint kind2) const
@@ -426,8 +426,8 @@ inline double FF_EXP6::ImpulsePressureCorrection(const uint kind1, const uint ki
   double B = -1.0 * (double)n[idx] / rMin[idx];
   double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6.0) /
              ((double)n[idx] - 6.0);
-  double tc = 2.0 * M_PI * (A * exp(rCut * B) * rCut3 - C / rCut3);
-  return tc;
+  double tailCorrection = 2.0 * M_PI * (A * exp(rCut * B) * rCut3 - C / rCut3);
+  return tailCorrection;
 }
 
 inline double FF_EXP6::CalcdEndL(const double distSq, const uint kind1,
