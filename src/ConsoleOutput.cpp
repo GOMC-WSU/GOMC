@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "ConsoleOutput.h"          //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
@@ -301,7 +301,7 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
   printElement(en.dihedral, elementWidth);
   printElement(en.intraNonbond, elementWidth);
   printElement(en.inter, elementWidth);
-  printElement(en.tc, elementWidth);
+  printElement(en.tailCorrection, elementWidth);
   printElement(en.totalElect, elementWidth);
   printElement(en.real, elementWidth);
   printElement(en.recip, elementWidth);

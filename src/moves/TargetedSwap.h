@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef TARGETEDSWAP_H
 #define TARGETEDSWAP_H
@@ -681,8 +681,8 @@ inline void TargetedSwap::Accept(const uint rejectState, const ulong step)
 
     if(result) {
       //Add tail corrections
-      sysPotRef.boxEnergy[sourceBox].tc += tcLose.energy;
-      sysPotRef.boxEnergy[destBox].tc += tcGain.energy;
+      sysPotRef.boxEnergy[sourceBox].tailCorrection += tcLose.energy;
+      sysPotRef.boxEnergy[destBox].tailCorrection += tcGain.energy;
       //Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();

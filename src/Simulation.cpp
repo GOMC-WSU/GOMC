@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "Simulation.h"
 #include "Setup.h"          //For setup object
@@ -162,7 +162,7 @@ bool Simulation::RecalculateAndCheck(void)
   compare &= num::approximatelyEqual(system->potential.totalEnergy.dihedral, pot.totalEnergy.dihedral, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.intraNonbond, pot.totalEnergy.intraNonbond, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.inter, pot.totalEnergy.inter, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.tc, pot.totalEnergy.tc, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.tailCorrection, pot.totalEnergy.tailCorrection, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.real, pot.totalEnergy.real, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.self, pot.totalEnergy.self, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.correction, pot.totalEnergy.correction, EPSILON);
@@ -180,7 +180,7 @@ bool Simulation::RecalculateAndCheck(void)
         << std::setw(12) << system->potential.totalEnergy.dihedral << " | "
         << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
         << std::setw(12) << system->potential.totalEnergy.inter << " | "
-        << std::setw(12) << system->potential.totalEnergy.tc << " | "
+        << std::setw(12) << system->potential.totalEnergy.tailCorrection << " | "
         << std::setw(12) << system->potential.totalEnergy.real << " | "
         << std::setw(12) << system->potential.totalEnergy.self << " | "
         << std::setw(12) << system->potential.totalEnergy.correction << " | "
@@ -192,7 +192,7 @@ bool Simulation::RecalculateAndCheck(void)
         << std::setw(12) << pot.totalEnergy.dihedral << " | "
         << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
         << std::setw(12) << pot.totalEnergy.inter << " | "
-        << std::setw(12) << pot.totalEnergy.tc << " | "
+        << std::setw(12) << pot.totalEnergy.tailCorrection << " | "
         << std::setw(12) << pot.totalEnergy.real << " | "
         << std::setw(12) << pot.totalEnergy.self << " | "
         << std::setw(12) << pot.totalEnergy.correction << " | "

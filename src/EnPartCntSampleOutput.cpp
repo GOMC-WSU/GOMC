@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "EnPartCntSampleOutput.h"
 #include "PDBConst.h"
@@ -68,7 +68,7 @@ void EnPartCntSample::Sample(const ulong step)
   if ((step + 1) % stepsPerSample == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       samplesE[b][samplesCollectedInFrame] =
-        var->energyRef[b].inter + var->energyRef[b].tc +
+        var->energyRef[b].inter + var->energyRef[b].tailCorrection +
         var->energyRef[b].totalElect;
 
       for (uint k = 0; k < var->numKinds; ++k) {

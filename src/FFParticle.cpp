@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "FFParticle.h"
 #include "NumLib.h" //For Sq, Cb, and MeanA/G functions.
@@ -95,55 +95,55 @@ void FFParticle::Init(ff_setup::Particle const& mie,
 double FFParticle::EnergyLRC(const uint kind1, const uint kind2) const
 {
   uint idx = FlatIndex(kind1, kind2);
-  double tc = 1.0;
+  double tailCorrection = 1.0;
   double sigma = sqrt(sigmaSq[idx]);
   double rRat = sigma / forcefield.rCut;
   double N = (double)(n[idx]);
-  tc *= sigma * sigmaSq[idx];
-  tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
-  tc *= (pow(rRat, n[idx] - 3.0) - ((N - 3.0) / 3.0) * rRat * rRat * rRat);
+  tailCorrection *= sigma * sigmaSq[idx];
+  tailCorrection *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
+  tailCorrection *= (pow(rRat, n[idx] - 3.0) - ((N - 3.0) / 3.0) * rRat * rRat * rRat);
   /*
     if(forcefield.freeEnergy) {
       //For free energy calc, we only consider attraction part
-      tc *= (-((N - 3.0) / 3.0) * pow(rRat, 3));
+      tailCorrection *= (-((N - 3.0) / 3.0) * pow(rRat, 3));
     } else {
-      tc *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
+      tailCorrection *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
     }
   */
-  return tc;
+  return tailCorrection;
 }
 
 double FFParticle::VirialLRC(const uint kind1, const uint kind2) const
 {
   uint idx = FlatIndex(kind1, kind2);
-  double tc = 1.0;
+  double tailCorrection = 1.0;
   double sigma = sqrt(sigmaSq[idx]);
   double rRat = sigma / forcefield.rCut;
   double N = (double)(n[idx]);
-  tc *= sigma * sigmaSq[idx];
-  tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
-  tc *= (N * pow(rRat, n[idx] - 3.0) - (N - 3.0) * 2.0 * rRat * rRat * rRat);
+  tailCorrection *= sigma * sigmaSq[idx];
+  tailCorrection *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
+  tailCorrection *= (N * pow(rRat, n[idx] - 3.0) - (N - 3.0) * 2.0 * rRat * rRat * rRat);
   /*
     if(forcefield.freeEnergy) {
       //For free energy calc, we only consider attraction part
-      tc *= (- (N - 3.0) * 2.0 * pow(rRat, 3));
+      tailCorrection *= (- (N - 3.0) * 2.0 * pow(rRat, 3));
     } else {
-      tc *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
+      tailCorrection *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
     }
   */
-  return tc;
+  return tailCorrection;
 }
 
 double FFParticle::ImpulsePressureCorrection(const uint kind1, const uint kind2) const
 {
   uint idx = FlatIndex(kind1, kind2);
-  double tc = 1.0;
+  double tailCorrection = 1.0;
   double sigma = sqrt(sigmaSq[idx]);
   double rRat = sigma / forcefield.rCut;
   double N = (double)(n[idx]);
-  tc *= 2.0 * M_PI * epsilon_cn[idx] * forcefield.rCutSq * forcefield.rCut ;
-  tc *= (pow(rRat, N) - pow(rRat, 6.0));
-  return tc;
+  tailCorrection *= 2.0 * M_PI * epsilon_cn[idx] * forcefield.rCutSq * forcefield.rCut ;
+  tailCorrection *= (pow(rRat, N) - pow(rRat, 6.0));
+  return tailCorrection;
 }
 
 void FFParticle::Blend(ff_setup::Particle const& mie)
