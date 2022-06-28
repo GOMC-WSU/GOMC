@@ -157,6 +157,9 @@ bool Simulation::RecalculateAndCheck(void)
 
   bool compare = true;
   compare &= num::approximatelyEqual(system->potential.totalEnergy.intraBond, pot.totalEnergy.intraBond, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.bond, pot.totalEnergy.bond, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.angle, pot.totalEnergy.angle, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.dihedral, pot.totalEnergy.dihedral, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.intraNonbond, pot.totalEnergy.intraNonbond, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.inter, pot.totalEnergy.inter, EPSILON);
   compare &= num::approximatelyEqual(system->potential.totalEnergy.tailCorrection, pot.totalEnergy.tailCorrection, EPSILON);
@@ -168,10 +171,13 @@ bool Simulation::RecalculateAndCheck(void)
   if(!compare) {
     std::cout
         << "=================================================================\n"
-        << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+        << "Energy       INTRA B |       BOND |     ANGLE |     DIHEDRAL |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
         << std::endl
         << "System: "
         << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
+        << std::setw(12) << system->potential.totalEnergy.bond << " | "
+        << std::setw(12) << system->potential.totalEnergy.angle << " | "
+        << std::setw(12) << system->potential.totalEnergy.dihedral << " | "
         << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
         << std::setw(12) << system->potential.totalEnergy.inter << " | "
         << std::setw(12) << system->potential.totalEnergy.tailCorrection << " | "
@@ -180,7 +186,10 @@ bool Simulation::RecalculateAndCheck(void)
         << std::setw(12) << system->potential.totalEnergy.correction << " | "
         << std::setw(12) << system->potential.totalEnergy.recip << std::endl
         << "Recalc: "
-        << std::setw(12) << pot.totalEnergy.intraBond << " | "
+        << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
+        << std::setw(12) << pot.totalEnergy.bond << " | "
+        << std::setw(12) << pot.totalEnergy.angle << " | "
+        << std::setw(12) << pot.totalEnergy.dihedral << " | "
         << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
         << std::setw(12) << pot.totalEnergy.inter << " | "
         << std::setw(12) << pot.totalEnergy.tailCorrection << " | "
