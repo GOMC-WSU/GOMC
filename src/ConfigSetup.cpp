@@ -1226,6 +1226,15 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                out.restart.settings.frequency);
       } else
         printf("%-40s %-s \n", "Info: Printing restart coordinate", "Inactive");
+    } else if(CheckString(line[0], "CheckpointFreq")) {
+      out.checkpoint.enable = checkBool(line[1]);
+      if(line.size() == 3)
+        out.checkpoint.frequency = stringtoi(line[2]);
+      if(out.checkpoint.enable)
+        printf("%-40s %-lu \n", "Info: Checkpoint frequency",
+               out.checkpoint.frequency);
+      else
+        printf("%-40s %-s \n", "Info: Saving checkpoint", "Inactive");
     } else if(CheckString(line[0], "DCDFreq")) {
       out.state_dcd.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
@@ -1846,6 +1855,11 @@ void ConfigSetup::verifyInputs(void)
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
+    if(sys.step.equil > (sys.step.initStep + sys.step.total) && !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
+    std::cout << "Error: Equilibration steps cannot exceed " <<
+              "Total run steps!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   if(sys.moves.displace == DBL_MAX) {
     if(!exptMode){
@@ -2354,8 +2368,16 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Restart coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(in.restart.restartFromCheckpoint && in.files.checkpoint.name[0] == "") {
-    std::cout << "Error: Restart from checkpoint requested but checkpoint filename is not specified!\n";
+  // If both checkpoint and restart output are enabled,
+  // Checkpoint freq must be divisible by restart freq.
+  if(out.checkpoint.enable && !(out.restart.settings.enable)){
+    std::cout << "Error: CheckpointFreq cannot be used without RestartFreq!\n";
+    exit(EXIT_FAILURE);
+  } 
+  if((out.checkpoint.enable && out.restart.settings.enable) &&
+    out.checkpoint.frequency % out.restart.settings.frequency != 0){
+    std::cout << "Error: Checkpoint frequency must be divisible by restart frequency!\n";
+    std::cout << "Example: RestartFreq 1000; CheckpointFreq 10000\n";
     exit(EXIT_FAILURE);
   } 
   if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX) {

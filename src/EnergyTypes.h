@@ -93,7 +93,7 @@ public:
   Energy(double intraBond, double nonbond, double inter, double real,
           double recip, double self, double correc) :  
           bond(0.0), angle(0.0), dihedral(0.0), intraBond(intraBond), intraNonbond(nonbond), inter(inter),
-          tc(0.0), total(0.0), real(real), recip(recip), self(self),
+          tailCorrection(0.0), total(0.0), real(real), recip(recip), self(self),
           correction(correc), totalElect(0.0) {}
 
   Energy(double bond, double angle, double dihedral, double intraBond, double nonbond, double inter, double real,
