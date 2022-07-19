@@ -2529,7 +2529,6 @@ void ConfigSetup::verifyInputs(void)
 
 const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM";
 const std::string config_setup::PRNGKind::KIND_SEED = "INTSEED";
-const std::string config_setup::PRNGKind::KIND_RESTART = "RESTART";
 const std::string config_setup::FFKind::FF_CHARMM = "CHARMM";
 const std::string config_setup::FFKind::FF_EXOTIC = "EXOTIC";
 const std::string config_setup::FFKind::FF_MARTINI = "MARTINI";
