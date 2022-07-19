@@ -52,6 +52,9 @@ bool ExtendedSystem::operator==(const ExtendedSystem & other){
 void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input & inputFiles,
                           MoleculeLookup & molLookup, Molecules & mols)
 {
+  if(!inputFiles.restart.enable) {
+    return;
+  }
   // Read the extended system file and update the cellBasis data
   if(inputFiles.restart.restartFromXSCFile) {
     for(int b = 0; b < BOX_TOTAL; b++) {
