@@ -1723,6 +1723,11 @@ void ConfigSetup::verifyInputs(void)
     printf("Warning: Cell dimension set, but will be ignored in restart mode.\n");
   }
 
+  if (in.restart.restartFromCheckpoint && !in.restart.enable){
+    std::cout << "Error: Checkpoint cannot be used without Restart true!" << std::endl;
+    exit(EXIT_FAILURE);    
+  }
+
   if(in.prng.kind == "RANDOM" && in.prng.seed != UINT_MAX) {
     printf("Warning: Seed value set, but will be ignored.\n");
   }
@@ -2384,6 +2389,7 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: CheckpointFreq cannot be used without RestartFreq!\n";
     exit(EXIT_FAILURE);
   } 
+  
   if((out.checkpoint.enable && out.restart.settings.enable) &&
     out.checkpoint.frequency % out.restart.settings.frequency != 0){
     std::cout << "Error: Checkpoint frequency must equal restart frequency!\n";
