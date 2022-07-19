@@ -19,8 +19,6 @@ ConfigSetup::ConfigSetup(void)
 {
   int i;
   exptMode = false;
-  in.restart.enable = false;
-  in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
   in.restart.restartFromCheckpoint = false;
   in.restart.restartFromBinaryCoorFile = false;
@@ -216,12 +214,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     if(line.size() == 0)
       continue;
 
-    if(CheckString(line[0], "Restart")) {
-      in.restart.enable = checkBool(line[1]);
-      if(in.restart.enable) {
-        printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
-      }
-    } else if(CheckString(line[0], "FirstStep")) {
+    if(CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
     } else if(CheckString(line[0], "PRNG")) {
       if("RANDOM" == line[1]){
@@ -1002,7 +995,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           temp.z = stringtod(line[4]);
           sys.volume.axis[box].Set(0, temp);
           sys.volume.readCellBasis[box][0] = true;
-          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+          sys.volume.hasVolume[box] = sys.volume.ReadCellBasis();
         }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
@@ -1019,7 +1012,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           temp.z = stringtod(line[4]);
           sys.volume.axis[box].Set(1, temp);
           sys.volume.readCellBasis[box][1] = true;
-          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+          sys.volume.hasVolume[box] = sys.volume.ReadCellBasis();
         }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
@@ -1036,7 +1029,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           temp.z = stringtod(line[4]);
           sys.volume.axis[box].Set(2, temp);
           sys.volume.readCellBasis[box][2] = true;
-          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+          sys.volume.hasVolume[box] = sys.volume.ReadCellBasis();
         }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
@@ -1719,8 +1712,10 @@ void ConfigSetup::verifyInputs(void)
            "Warning: Electrostatic calculation with Ewald method", "Inactive");
   }
 
-  if(in.restart.enable  && sys.volume.hasVolume) {
-    printf("Warning: Cell dimension set, but will be ignored in restart mode.\n");
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    if(in.files.xscInput.defined[b] && sys.volume.hasVolume[b]) {
+      printf("Warning: Cell dimensions for box %d set, but will be overwritten by XSC file\n", b);
+    }
   }
 
   if(in.prng.kind == "RANDOM" && in.prng.seed != UINT_MAX) {
@@ -1854,12 +1849,13 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Total run steps is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.adjustment > sys.step.equil && !in.restart.enable &&
-      !in.restart.recalcTrajectory) {
+  
+  if(sys.step.adjustment > sys.step.equil) {
     std::cout << "Error: Move adjustment frequency cannot exceed " <<
               "Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
+  
   if(sys.step.equil > (sys.step.initStep + sys.step.total) && !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
     std::cout << "Error: Equilibration steps cannot exceed " <<
               "Total run steps!" << std::endl;
@@ -1997,33 +1993,30 @@ void ConfigSetup::verifyInputs(void)
     }
   }
 
-  if(in.restart.enable) {
-    // error checking to see if if we missed any binary coordinate file
-    if(in.restart.restartFromBinaryCoorFile) {
-      for(i = 0 ; i < BOX_TOTAL ; i++) {
-        if(!in.files.binaryCoorInput.defined[i]) {
-          std::cout << "Error: Binary coordinate file is not specified for box number " <<
-                    i << "!" << std::endl;  
-          exit(EXIT_FAILURE);
-        }
+  // error checking to see if if we missed any binary coordinate file
+  if(in.restart.restartFromBinaryCoorFile) {
+    for(i = 0 ; i < BOX_TOTAL ; i++) {
+      if(!in.files.binaryCoorInput.defined[i]) {
+        std::cout << "Error: Binary coordinate file is not specified for box number " <<
+                  i << "!" << std::endl;  
+        exit(EXIT_FAILURE);
       }
     }
-    // error checking to see if if we missed any xsc file
-    if(in.restart.restartFromXSCFile) {
-      for(i = 0 ; i < BOX_TOTAL ; i++) {
-        if(!in.files.xscInput.defined[i]) {
-          std::cout << "Error: Extended system file is not specified for box number " <<
-                    i << "!" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+  }
+  // error checking to see if if we missed any xsc file
+  if(in.restart.restartFromXSCFile) {
+    for(i = 0 ; i < BOX_TOTAL ; i++) {
+      if(!in.files.xscInput.defined[i]) {
+        std::cout << "Error: Extended system file is not specified for box number " <<
+                  i << "!" << std::endl;
+        exit(EXIT_FAILURE);
       }
     }
   }
 
-  if(!sys.volume.hasVolume && !in.restart.enable) {
-    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
-              " Cell Basis vectors!" << std::endl;
-    for(uint b = 0; b < BOX_TOTAL; b++) {
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    if(!sys.volume.hasVolume[b] && !in.files.xscInput.defined[b]) {
+      std::cout << "Error: Cell Basis not specified in XSC or in.conf files.\n";
       for(uint i = 0; i < 3; i++) {
         if(!sys.volume.readCellBasis[b][i]) {
           std::cout << "Error: CellBasisVector" << i + 1 << " for Box " << b <<

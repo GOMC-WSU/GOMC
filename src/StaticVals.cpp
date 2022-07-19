@@ -142,11 +142,7 @@ StaticVals::StaticVals(Setup & set) : intraMemcVal(set.config.sys.intraMemcVal),
 {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   isOrthogonal = true;
-  if(set.config.in.restart.enable) {
-    IsBoxOrthogonal(set.pdb.cryst.cellAngle);
-  } else {
-    IsBoxOrthogonal(set.config.sys.volume);
-  }
+  IsBoxOrthogonal(set.config.sys.volume);
 }
 
 

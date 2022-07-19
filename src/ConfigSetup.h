@@ -213,13 +213,14 @@ struct ElectroStatic {
 };
 
 struct Volume {
-  bool hasVolume, cstArea, cstVolBox0;
+  bool hasVolume[BOX_TOTAL], cstArea, cstVolBox0;
   bool readCellBasis[BOX_TOTAL][3];
   XYZArray axis[BOX_TOTAL];
-  Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false)
+  Volume(void) : cstArea(false), cstVolBox0(false)
   {
     for(uint b = 0; b < BOX_TOTAL; ++b) {
       axis[b] = XYZArray(3);
+      hasVolume[b] = false;
       std::fill_n(readCellBasis[b], 3, false);
     }
   }

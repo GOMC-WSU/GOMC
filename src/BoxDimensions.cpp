@@ -19,34 +19,9 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
     rCut[b] = std::max(ff.rCut, ff.rCutCoulomb[b]);
     rCutSq[b] = rCut[b] * rCut[b];
     minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
-    if(restart.enable && cryst.hasVolume[b]) {
-      axis = cryst.axis;
-      double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
-      double beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
-      double gamma = cos(cryst.cellAngle[b][2] * M_PI / 180.0);
-      if(float(cryst.cellAngle[b][0]) == 90.0)
-        alpha = 0.0;
-      if(float(cryst.cellAngle[b][1]) == 90.0)
-        beta = 0.0;
-      if(float(cryst.cellAngle[b][2]) == 90.0)
-        gamma = 0.0;
-      double cosBSq = beta * beta;
-      double cosGSq = gamma * gamma;
-      double temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
-      cellBasis[b].Set(0, 1.0, 0.0, 0.0);
-      cellBasis[b].Set(1, gamma, sqrt(1.0 - cosGSq), 0.0);
-      cellBasis[b].Set(2, beta, temp, sqrt(1.0 - cosBSq - temp * temp));
-      cellBasis[b].Scale(0, axis.Get(b).x);
-      cellBasis[b].Scale(1, axis.Get(b).y);
-      cellBasis[b].Scale(2, axis.Get(b).z);
-    } else if (restart.enable && cryst.hasCellBasis[b]) {
-      cryst.cellBasis[b].CopyRange(cellBasis[b], 0, 0, 3);
-    } else if(confVolume.hasVolume) {
+    // Did this box have cell vectors defined in the conf file?
+    if(confVolume.hasVolume[b]) {
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
-    } else {
-      fprintf(stderr,
-              "Error: Cell Basis not specified in XSC, PDB, or in.conf files.\n");
-      exit(EXIT_FAILURE);
     }
 
     //Print Box dimension info
