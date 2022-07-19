@@ -2386,7 +2386,7 @@ void ConfigSetup::verifyInputs(void)
   } 
   if((out.checkpoint.enable && out.restart.settings.enable) &&
     out.checkpoint.frequency % out.restart.settings.frequency != 0){
-    std::cout << "Error: Checkpoint frequency must be divisible by restart frequency!\n";
+    std::cout << "Error: Checkpoint frequency must equal restart frequency!\n";
     std::cout << "Example: RestartFreq 1000; CheckpointFreq 10000\n";
     exit(EXIT_FAILURE);
   } 
