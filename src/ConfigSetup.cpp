@@ -230,11 +230,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       } else if ("INTSEED" == line[1]){ 
         printf("%-40s %-s \n", "Info: Integer seed", "Active");
         in.prng.kind = line[1];
-      } else if ("RESTART" == line[1]) {
-        printf("%-40s %-s \n", "Info: Restart seed", "Active");
-        in.prng.kind = line[1];
       } else {
-        std::cout << "Error: PRNG can be one of three kinds (RANDOM/INTSEED/RESTART)!\n";
+        std::cout << "Error: PRNG can be one of three kinds (RANDOM/INTSEED)!\n";
         exit(EXIT_FAILURE);
       }
     } else if(CheckString(line[0], "PRNG_ParallelTempering")) {
@@ -2391,7 +2388,7 @@ void ConfigSetup::verifyInputs(void)
   } 
   
   if((out.checkpoint.enable && out.restart.settings.enable) &&
-    out.checkpoint.frequency % out.restart.settings.frequency != 0){
+    out.checkpoint.frequency != out.restart.settings.frequency){
     std::cout << "Error: Checkpoint frequency must equal restart frequency!\n";
     std::cout << "Example: RestartFreq 1000; CheckpointFreq 10000\n";
     exit(EXIT_FAILURE);
