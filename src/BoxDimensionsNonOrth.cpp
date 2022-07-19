@@ -21,9 +21,16 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     rCutSq[b] = rCut[b] * rCut[b];
     minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
     // Did this box have cell vectors defined in the conf file?
-    if(confVolume.hasVolume[b]) {
+    if (restart.restartFromXSCFile && cryst.hasCellBasis[b]) {
+      cryst.cellBasis[b].CopyRange(cellBasis[b], 0, 0, 3);
+    } else if (confVolume.hasVolume) {
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
+    } else {
+      fprintf(stderr,
+              "Error: Cell Basis not specified in XSC, PDB, or in.conf files.\n");
+      exit(EXIT_FAILURE);
     }
+    printf("Box is non-orthogonal\n");
 
     //Print Box dimension info
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",

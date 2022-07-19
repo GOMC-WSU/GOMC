@@ -2023,8 +2023,8 @@ void ConfigSetup::verifyInputs(void)
                     " is missing!" << std::endl;
         }
       }
+      exit(EXIT_FAILURE);
     }
-    exit(EXIT_FAILURE);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX) {
     std::cout << "Error: Switch distance is not specified!" << std::endl;
