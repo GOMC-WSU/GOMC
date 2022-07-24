@@ -18,7 +18,7 @@ class Writer
 {
 public:
   //Init later...
-  Writer() {}
+  Writer() {isOpen = false;}
   //Init now.
   Writer(std::string const& name, std::string const& alias,
          const bool crit = true, const bool note = true)

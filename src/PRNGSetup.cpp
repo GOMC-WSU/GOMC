@@ -69,10 +69,6 @@ void PRNGSetup::Init(config_setup::RestartSettings const& restart,
     prngMaker.Init();
   else if (genConf.IsSeed())
     prngMaker.Init(genConf.seed);
-  else if (genConf.IsRestart()) {
-    Reader prngSeedFile(name, seedFileAlias);
-    prngMaker.Init(prngSeedFile, restart.step);
-  }
 
   if (prngMaker.prng == NULL)
     prngMaker.HandleError(genConf.kind);
