@@ -10,7 +10,7 @@ namespace out
 {
 const std::string ENERGY_TOTAL = "TOT_EN";
 const std::string ENERGY_INTER = "EN_INTER";
-const std::string ENERGY_LRC = "EN_TAIL_CORRECTION";
+const std::string ENERGY_LRC = "EN_LRC";
 const std::string ENERGY_INTRA_B  = "EN_INTRA(B)";
 const std::string ENERGY_INTRA_NB = "EN_INTRA(NB)";
 const std::string ENERGY_ELECT = "EN_ELECT";
