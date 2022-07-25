@@ -68,7 +68,7 @@ public:
   virtual void DoOutput(const ulong step);
   virtual void DoOutputRestart(const ulong step);
 private:
-  const static int elementWidth = 16;
+  const static int elementWidth = 21;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
   bool enableSurfTension, enableStat;
   bool WriteConsoleHeaders;
@@ -80,7 +80,7 @@ private:
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();
-  void printElement(const double t, const int width, uint precision = 4) const;
+  void printElement(const double t, const int width, uint precision = 8) const;
   void printElement(const uint t, const int width) const;
   void printElement(const std::string t, const int width) const;
 
