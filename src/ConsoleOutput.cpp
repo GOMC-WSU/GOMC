@@ -307,8 +307,6 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
   printElement(en.recip, elementWidth);
   printElement(en.self, elementWidth);
   printElement(en.correction, elementWidth);
-  if (enablePressure)
-    printElement((en.total / var->numByBox[box] + var->pressure[box] * var->volumeRef[box] / var->numByBox[box]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL, elementWidth);
   std::cout << std::endl;
 }
 
@@ -331,8 +329,6 @@ void ConsoleOutput::PrintEnergyTitle()
   printElement("RECIP", elementWidth);
   printElement("SELF", elementWidth);
   printElement("CORR", elementWidth);
-  if (enablePressure)
-    printElement("ENTHALPY", elementWidth);
   std::cout << std::endl;
 }
 
