@@ -216,8 +216,8 @@ void Particle::Read(Reader & param, std::string const& firstVar)
 
   //Reset values and perform error checking for consistency.
   //If epsilon = 0 then the sigma and exponent values don't impact the computation.
-  //But need the exponents to be large enough that the arithmetic or geometric mean of any pair > 6.0.
-  //See FFParticle::Blend() for underlying math.
+  //But need the exponents to be large enough that the arithmetic or geometric mean
+  //of any pair > 6.0. See FFParticle::Blend() for underlying math.
   double smallVal = 1e-20;
   if (abs(e) < smallVal) {
     e = 0.0;
