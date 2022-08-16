@@ -2390,7 +2390,7 @@ void ConfigSetup::verifyInputs(void)
   if((out.checkpoint.enable && out.restart.settings.enable) &&
     out.checkpoint.frequency != out.restart.settings.frequency){
     std::cout << "Error: Checkpoint frequency must equal restart frequency!\n";
-    std::cout << "Example: RestartFreq 1000; CheckpointFreq 10000\n";
+    std::cout << "Example: RestartFreq 10000; CheckpointFreq 10000\n";
     exit(EXIT_FAILURE);
   } 
   if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX) {
