@@ -164,6 +164,9 @@ void FFParticle::Blend(ff_setup::Particle const& mie)
         n[idx] = num::MeanA(mie.n, mie.n, i, j);
         n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
       }
+
+      //Warning: Causes division by zero if n (or n_1_4) = 0 or 6.
+      //Handled through error checking in FFSetup::Read() to require n (and n_1_4) > 6.
       double cn = n[idx] / (n[idx] - 6.0) * pow(n[idx] / 6.0, (6.0 / (n[idx] - 6.0)));
       double cn_1_4 = n_1_4[idx] / (n_1_4[idx] - 6.0) *
                       pow(n_1_4[idx] / 6.0, (6.0 / (n_1_4[idx] - 6.0)));
