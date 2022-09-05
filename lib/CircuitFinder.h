@@ -19,10 +19,8 @@
 
 typedef std::list<int> NodeList;
 
-
-class CircuitFinder
-{
-  std::vector< std::vector<int> > uniqueCycles;
+class CircuitFinder {
+  std::vector<std::vector<int>> uniqueCycles;
 
   std::vector<NodeList> AK;
   std::vector<int> Stack;
@@ -40,14 +38,14 @@ class CircuitFinder
 public:
   void addEdge(int src, int dest);
 
-  CircuitFinder(int N)
-    : AK(N), Blocked(N), B(N) {
-        V = N;
-        E = 0;
+  CircuitFinder(int N) : AK(N), Blocked(N), B(N) {
+    V = N;
+    E = 0;
   }
   bool haveCommonElements(std::vector<int> first, std::vector<int> second);
-  std::vector<int> returnCombinedSet(std::vector<int> first, std::vector<int> second);
-  std::vector< std::vector<int> > GetAllCommonCycles();
+  std::vector<int> returnCombinedSet(std::vector<int> first,
+                                     std::vector<int> second);
+  std::vector<std::vector<int>> GetAllCommonCycles();
 };
 
 #endif // CIRCUIT_FINDER_H
