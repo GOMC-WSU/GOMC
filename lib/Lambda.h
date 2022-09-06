@@ -8,7 +8,10 @@ along with this program, also can be found at
 #ifndef LAMBDA_H
 #define LAMBDA_H
 
+#include <iostream>
+
 #include "BasicTypes.h" //For ulong, uint
+#include "EnsemblePreprocessor.h"
 
 #ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"

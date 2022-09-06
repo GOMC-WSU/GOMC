@@ -525,6 +525,7 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
     }
     return returnVal;
   }
+}
 
 #ifndef NDEBUG
   inline std::ostream &operator<<(std::ostream &out, Energy &en) {
