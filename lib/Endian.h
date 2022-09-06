@@ -37,6 +37,7 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #define bswap_64(x)                                                            \
   ((((x)&0xff00000000000000ull) >> 56) | (((x)&0x00ff000000000000ull) >> 40) | \

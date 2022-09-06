@@ -230,6 +230,31 @@ void Particle::Read(Reader &param, std::string const &firstVar) {
   if (isCHARMM() || values.fail()) {
     expN_1_4 = expN;
   }
+
+  // Reset values and perform error checking for consistency.
+  // If epsilon = 0 then the sigma and exponent values don't impact the
+  // computation. But need the exponents to be large enough that the arithmetic
+  // or geometric mean of any pair > 6.0. See FFParticle::Blend() for underlying
+  // math.
+  double smallVal = 1e-20;
+  if (abs(e) < smallVal) {
+    e = 0.0;
+    expN = 12.0; // Set to default (LJ) exponent.
+  }
+  if (abs(e_1_4) < smallVal) {
+    e_1_4 = 0.0;
+    expN_1_4 = 12.0; // Set to default (LJ) exponent.
+  }
+  if ((expN - 6.0) < smallVal) {
+    std::cout << "ERROR: Mie exponent must be > 6!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  if ((expN_1_4 - 6.0) < smallVal) {
+    std::cout << "ERROR: Mie exponent for 1-4 interactions must be > 6!"
+              << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
 }
 

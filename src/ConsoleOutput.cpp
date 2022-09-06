@@ -304,20 +304,17 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const &en,
 
   printElement(en.total, elementWidth);
   printElement(en.intraBond, elementWidth);
+  printElement(en.bond, elementWidth);
+  printElement(en.angle, elementWidth);
+  printElement(en.dihedral, elementWidth);
   printElement(en.intraNonbond, elementWidth);
   printElement(en.inter, elementWidth);
-  printElement(en.tc, elementWidth);
+  printElement(en.tailCorrection, elementWidth);
   printElement(en.totalElect, elementWidth);
   printElement(en.real, elementWidth);
   printElement(en.recip, elementWidth);
   printElement(en.self, elementWidth);
   printElement(en.correction, elementWidth);
-  if (enablePressure)
-    printElement(
-        (en.total / var->numByBox[box] +
-         var->pressure[box] * var->volumeRef[box] / var->numByBox[box]) *
-            UNIT_CONST_H::unit::K_TO_KJ_PER_MOL,
-        elementWidth);
   std::cout << std::endl;
 }
 
@@ -328,6 +325,9 @@ void ConsoleOutput::PrintEnergyTitle() {
 
   printElement("TOTAL", elementWidth);
   printElement("INTRA(B)", elementWidth);
+  printElement("BOND(B)", elementWidth);
+  printElement("ANGLE(B)", elementWidth);
+  printElement("DIHEDRAL(B)", elementWidth);
   printElement("INTRA(NB)", elementWidth);
   printElement("INTER(LJ)", elementWidth);
   printElement("LRC", elementWidth);
@@ -336,8 +336,6 @@ void ConsoleOutput::PrintEnergyTitle() {
   printElement("RECIP", elementWidth);
   printElement("SELF", elementWidth);
   printElement("CORR", elementWidth);
-  if (enablePressure)
-    printElement("ENTHALPY", elementWidth);
   std::cout << std::endl;
 }
 

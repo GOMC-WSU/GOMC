@@ -569,7 +569,7 @@ inline void MoleculeExchange1::CalcTc() {
         kCount[kindIndexB[0]] -= numInCavB;
       }
       tcNew[b].energy = calcEnRef.EnergyCorrection(b, kCount);
-      delTC += tcNew[b].energy - sysPotRef.boxEnergy[b].tc;
+      delTC += tcNew[b].energy - sysPotRef.boxEnergy[b].tailCorrection;
       delete[] kCount;
     }
     W_tc = exp(-1.0 * ffRef.beta * delTC);
@@ -743,8 +743,8 @@ inline void MoleculeExchange1::Accept(const uint rejectState,
 
     if (result) {
       // Add tail corrections
-      sysPotRef.boxEnergy[sourceBox].tc = tcNew[sourceBox].energy;
-      sysPotRef.boxEnergy[destBox].tc = tcNew[destBox].energy;
+      sysPotRef.boxEnergy[sourceBox].tailCorrection = tcNew[sourceBox].energy;
+      sysPotRef.boxEnergy[destBox].tailCorrection = tcNew[destBox].energy;
 
       // Add rest of energy.
       for (uint n = 0; n < numInCavB; n++) {

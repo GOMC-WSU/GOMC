@@ -50,7 +50,7 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    /* printOnFirstStep -- only true for PSFOutput */
+    /* printOnFirstStep -- only true for PSFOutput, WolfCalibration  */
     if ((printOnFirstStep && step == startStep) ||
         (enableOut && ((step + 1) % stepsPerOut == 0) || forceOutput)) {
       DoOutput(step);

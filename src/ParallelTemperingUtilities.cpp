@@ -685,15 +685,15 @@ void ParallelTemperingUtilities::exchangePotentials(
   }
 
   if (leader) {
-    MPI_Send(&buffer.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-    MPI_Recv(&mySystemPotential.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner,
-             0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Send(&buffer.totalEnergy.tailCorrection, 1, MPI_DOUBLE, exchangePartner,
+             0, MPI_COMM_WORLD);
+    MPI_Recv(&mySystemPotential.totalEnergy.tailCorrection, 1, MPI_DOUBLE,
+             exchangePartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   } else {
-    MPI_Recv(&mySystemPotential.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner,
-             0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send(&buffer.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
+    MPI_Recv(&mySystemPotential.totalEnergy.tailCorrection, 1, MPI_DOUBLE,
+             exchangePartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Send(&buffer.totalEnergy.tailCorrection, 1, MPI_DOUBLE, exchangePartner,
+             0, MPI_COMM_WORLD);
   }
   for (int b = 0; b < BOX_TOTAL; b++) {
     if (leader) {
@@ -805,15 +805,15 @@ void ParallelTemperingUtilities::exchangePotentials(
     }
 
     if (leader) {
-      MPI_Send(&buffer.boxEnergy[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
-               MPI_COMM_WORLD);
-      MPI_Recv(&mySystemPotential.boxEnergy[b].tc, 1, MPI_DOUBLE,
+      MPI_Send(&buffer.boxEnergy[b].tailCorrection, 1, MPI_DOUBLE,
+               exchangePartner, 0, MPI_COMM_WORLD);
+      MPI_Recv(&mySystemPotential.boxEnergy[b].tailCorrection, 1, MPI_DOUBLE,
                exchangePartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
-      MPI_Recv(&mySystemPotential.boxEnergy[b].tc, 1, MPI_DOUBLE,
+      MPI_Recv(&mySystemPotential.boxEnergy[b].tailCorrection, 1, MPI_DOUBLE,
                exchangePartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Send(&buffer.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner, 0,
-               MPI_COMM_WORLD);
+      MPI_Send(&buffer.totalEnergy.tailCorrection, 1, MPI_DOUBLE,
+               exchangePartner, 0, MPI_COMM_WORLD);
     }
   }
 }
@@ -910,15 +910,15 @@ void ParallelTemperingUtilities::exchangeVirials(
   }
 
   if (leader) {
-    MPI_Send(&buffer.totalVirial.tc, 1, MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-    MPI_Recv(&mySystemPotential.totalVirial.tc, 1, MPI_DOUBLE, exchangePartner,
-             0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Send(&buffer.totalVirial.tailCorrection, 1, MPI_DOUBLE, exchangePartner,
+             0, MPI_COMM_WORLD);
+    MPI_Recv(&mySystemPotential.totalVirial.tailCorrection, 1, MPI_DOUBLE,
+             exchangePartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   } else {
-    MPI_Recv(&mySystemPotential.totalVirial.tc, 1, MPI_DOUBLE, exchangePartner,
-             0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send(&buffer.totalVirial.tc, 1, MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
+    MPI_Recv(&mySystemPotential.totalVirial.tailCorrection, 1, MPI_DOUBLE,
+             exchangePartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Send(&buffer.totalVirial.tailCorrection, 1, MPI_DOUBLE, exchangePartner,
+             0, MPI_COMM_WORLD);
   }
 
   for (int i = 0; i < 3; i++) {
@@ -1071,15 +1071,15 @@ void ParallelTemperingUtilities::exchangeVirials(
     }
 
     if (leader) {
-      MPI_Send(&buffer.boxVirial[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
-               MPI_COMM_WORLD);
-      MPI_Recv(&mySystemPotential.boxVirial[b].tc, 1, MPI_DOUBLE,
+      MPI_Send(&buffer.boxVirial[b].tailCorrection, 1, MPI_DOUBLE,
+               exchangePartner, 0, MPI_COMM_WORLD);
+      MPI_Recv(&mySystemPotential.boxVirial[b].tailCorrection, 1, MPI_DOUBLE,
                exchangePartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
-      MPI_Recv(&mySystemPotential.boxVirial[b].tc, 1, MPI_DOUBLE,
+      MPI_Recv(&mySystemPotential.boxVirial[b].tailCorrection, 1, MPI_DOUBLE,
                exchangePartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Send(&buffer.boxVirial[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
-               MPI_COMM_WORLD);
+      MPI_Send(&buffer.boxVirial[b].tailCorrection, 1, MPI_DOUBLE,
+               exchangePartner, 0, MPI_COMM_WORLD);
     }
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {

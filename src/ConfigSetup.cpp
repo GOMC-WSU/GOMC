@@ -220,9 +220,16 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     } else if (CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
     } else if (CheckString(line[0], "PRNG")) {
-      in.prng.kind = line[1];
-      if ("RANDOM" == line[1])
+      if (line[1] == "RANDOM") {
         printf("%-40s %-s \n", "Info: Random seed", "Active");
+        in.prng.kind = line[1];
+      } else if (line[1] == "INTSEED") {
+        printf("%-40s %-s \n", "Info: Integer seed", "Active");
+        in.prng.kind = line[1];
+      } else {
+        std::cout << "Error: PRNG can only be \"RANDOM\" or \"INTSEED\"!\n";
+        exit(EXIT_FAILURE);
+      }
     } else if (CheckString(line[0], "PRNG_ParallelTempering")) {
       in.prngParallelTempering.kind = line[1];
       if ("RANDOM" == line[1])
@@ -1088,6 +1095,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     else if (CheckString(line[0], "ChemPot")) {
       if (line.size() > 3 && multisim != NULL) {
         std::string resName = line[1];
+        if (sys.chemPot.cp.count(resName) > 0) {
+          std::cout << "Error: Should specify either chemical potential or "
+                    << "fugacity at most once for resName " << resName
+                    << std::endl;
+          exit(EXIT_FAILURE);
+        }
         double val = stringtod(line[2 + multisim->worldRank]);
         sys.chemPot.cp[resName] = val;
         printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
@@ -1098,6 +1111,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         exit(EXIT_FAILURE);
       } else {
         std::string resName = line[1];
+        if (sys.chemPot.cp.count(resName) > 0) {
+          std::cout << "Error: Should specify either chemical potential or "
+                    << "fugacity at most once for resName " << resName
+                    << std::endl;
+          exit(EXIT_FAILURE);
+        }
         double val = stringtod(line[2]);
         sys.chemPot.cp[resName] = val;
         printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
@@ -1110,6 +1129,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       }
       sys.chemPot.isFugacity = true;
       std::string resName = line[1];
+      if (sys.chemPot.cp.count(resName) > 0) {
+        std::cout << "Error: Should specify either chemical potential or "
+                  << "fugacity at most once for resName " << resName
+                  << std::endl;
+        exit(EXIT_FAILURE);
+      }
       double val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
       printf("%-40s %-6s %-6.4f bar\n", "Info: Fugacity", resName.c_str(), val);
@@ -1243,6 +1268,17 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
                out.restart.settings.frequency);
       } else
         printf("%-40s %-s \n", "Info: Printing restart coordinate", "Inactive");
+    } else if (CheckString(line[0], "CheckpointFreq")) {
+      out.checkpoint.enable = checkBool(line[1]);
+      if (line.size() == 3) {
+        out.checkpoint.frequency = stringtoi(line[2]);
+      }
+      if (out.checkpoint.enable) {
+        printf("%-40s %-lu \n", "Info: Checkpoint frequency",
+               out.checkpoint.frequency);
+      } else {
+        printf("%-40s %-s \n", "Info: Saving checkpoint", "Inactive");
+      }
     } else if (CheckString(line[0], "DCDFreq")) {
       out.state_dcd.settings.enable = checkBool(line[1]);
       if (line.size() == 3)
@@ -1732,6 +1768,12 @@ void ConfigSetup::verifyInputs(void) {
         "Warning: Cell dimension set, but will be ignored in restart mode.\n");
   }
 
+  if (in.restart.restartFromCheckpoint && !in.restart.enable) {
+    std::cout << "Error: Checkpoint cannot be used without Restart true!"
+              << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   if (in.prng.kind == "RANDOM" && in.prng.seed != UINT_MAX) {
     printf("Warning: Seed value set, but will be ignored.\n");
   }
@@ -1873,6 +1915,12 @@ void ConfigSetup::verifyInputs(void) {
       !in.restart.recalcTrajectory) {
     std::cout << "Error: Move adjustment frequency cannot exceed "
               << "Equilibration steps!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  if (sys.step.equil > (sys.step.initStep + sys.step.total) &&
+      !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
+    std::cout << "Error: Equilibration steps cannot exceed "
+              << "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.step.equil > (sys.step.initStep + sys.step.total) &&
@@ -2411,9 +2459,17 @@ void ConfigSetup::verifyInputs(void) {
     std::cout << "Error: Restart coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if (in.restart.restartFromCheckpoint && in.files.checkpoint.name[0] == "") {
-    std::cout << "Error: Restart from checkpoint requested but checkpoint "
-                 "filename is not specified!\n";
+  // If both checkpoint and restart output are enabled,
+  // Checkpoint freq must be divisible by restart freq.
+  if (out.checkpoint.enable && !(out.restart.settings.enable)) {
+    std::cout << "Error: CheckpointFreq cannot be used without RestartFreq!\n";
+    exit(EXIT_FAILURE);
+  }
+
+  if ((out.checkpoint.enable && out.restart.settings.enable) &&
+      out.checkpoint.frequency != out.restart.settings.frequency) {
+    std::cout << "Error: Checkpoint frequency must equal restart frequency!\n";
+    std::cout << "Example: RestartFreq 10000; CheckpointFreq 10000\n";
     exit(EXIT_FAILURE);
   }
   if (out.state.settings.enable && out.state.settings.frequency == ULONG_MAX) {
@@ -2581,7 +2637,6 @@ void ConfigSetup::verifyInputs(void) {
 
 const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM";
 const std::string config_setup::PRNGKind::KIND_SEED = "INTSEED";
-const std::string config_setup::PRNGKind::KIND_RESTART = "RESTART";
 const std::string config_setup::FFKind::FF_CHARMM = "CHARMM";
 const std::string config_setup::FFKind::FF_EXOTIC = "EXOTIC";
 const std::string config_setup::FFKind::FF_MARTINI = "MARTINI";

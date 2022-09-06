@@ -90,8 +90,9 @@ SystemPotential CalculateEnergy::SystemTotal() {
   // system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTRA);
-    double bondEnergy[2] = {0};
-    double bondEn = 0.0, nonbondEn = 0.0, correction = 0.0;
+    double bondEnergy[4] = {0};
+    double bondEn = 0.0, anglEn = 0.0, diheEn = 0.0, nonbondEn = 0.0,
+           correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
     std::vector<uint> molID;
@@ -103,18 +104,23 @@ SystemPotential CalculateEnergy::SystemTotal() {
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none) private(bondEnergy) shared(b, molID) \
-    reduction(+:bondEn, nonbondEn, correction)
+    reduction(+:bondEn, anglEn, diheEn, nonbondEn, correction)
 #endif
     for (int i = 0; i < (int)molID.size(); i++) {
       // calculate nonbonded energy
       MoleculeIntra(molID[i], b, bondEnergy);
       bondEn += bondEnergy[0];
-      nonbondEn += bondEnergy[1];
+      anglEn += bondEnergy[1];
+      diheEn += bondEnergy[2];
+      nonbondEn += bondEnergy[3];
       // calculate correction term of electrostatic interaction
       correction += calcEwald->MolCorrection(molID[i], b);
     }
 
-    pot.boxEnergy[b].intraBond = bondEn;
+    pot.boxEnergy[b].intraBond = bondEn + anglEn + diheEn;
+    pot.boxEnergy[b].bond = bondEn;
+    pot.boxEnergy[b].angle = anglEn;
+    pot.boxEnergy[b].dihedral = diheEn;
     pot.boxEnergy[b].intraNonbond = nonbondEn;
     // calculate self term of electrostatic interaction
     pot.boxEnergy[b].self = calcEwald->BoxSelf(b);
@@ -863,7 +869,7 @@ Intermolecular CalculateEnergy::MoleculeTailVirChange(const uint box,
 void CalculateEnergy::MoleculeIntra(const uint molIndex, const uint box,
                                     double *bondEn) const {
   GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTRA);
-  bondEn[0] = 0.0, bondEn[1] = 0.0;
+  bondEn[0] = 0.0, bondEn[1] = 0.0, bondEn[2] = 0.0, bondEn[3] = 0.0;
 
   MoleculeKind &molKind = mols.kinds[mols.kIndex[molIndex]];
   // *2 because we'll be storing inverse bond vectors
@@ -871,18 +877,18 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex, const uint box,
 
   BondVectors(bondVec, molKind, molIndex, box);
   MolBond(bondEn[0], molKind, bondVec, molIndex, box);
-  MolAngle(bondEn[0], molKind, bondVec, box);
-  MolDihedral(bondEn[0], molKind, bondVec, box);
-  MolNonbond(bondEn[1], molKind, molIndex, box);
-  MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
-  MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
+  MolAngle(bondEn[1], molKind, bondVec, box);
+  MolDihedral(bondEn[2], molKind, bondVec, box);
+  MolNonbond(bondEn[3], molKind, molIndex, box);
+  MolNonbond_1_4(bondEn[3], molKind, molIndex, box);
+  MolNonbond_1_3(bondEn[3], molKind, molIndex, box);
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTRA);
 }
 
 // used in molecule exchange for calculating bonded and intraNonbonded energy
 Energy CalculateEnergy::MoleculeIntra(cbmc::TrialMol const &mol) const {
   GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTRA);
-  double bondEn = 0.0, intraNonbondEn = 0.0;
+  double bondEn = 0.0, anglEn = 0.0, diheEn = 0.0, intraNonbondEn = 0.0;
   // *2 because we'll be storing inverse bond vectors
   const MoleculeKind &molKind = mol.GetKind();
   uint count = molKind.bondList.count;
@@ -891,13 +897,35 @@ Energy CalculateEnergy::MoleculeIntra(cbmc::TrialMol const &mol) const {
 
   BondVectors(bondVec, mol, bondExist, molKind);
   MolBond(bondEn, mol, bondVec, bondExist, molKind);
-  MolAngle(bondEn, mol, bondVec, bondExist, molKind);
-  MolDihedral(bondEn, mol, bondVec, bondExist, molKind);
+  MolAngle(anglEn, mol, bondVec, bondExist, molKind);
+  MolDihedral(diheEn, mol, bondVec, bondExist, molKind);
   MolNonbond(intraNonbondEn, mol, molKind);
   MolNonbond_1_4(intraNonbondEn, mol, molKind);
   MolNonbond_1_3(intraNonbondEn, mol, molKind);
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTRA);
-  return Energy(bondEn, intraNonbondEn, 0.0, 0.0, 0.0, 0.0, 0.0);
+  return Energy(bondEn, anglEn, diheEn, bondEn + anglEn + diheEn,
+                intraNonbondEn, 0.0, 0.0, 0.0, 0.0, 0.0);
+}
+
+// used in molecule exchange for calculating bonded and intraNonbonded energy
+Energy CalculateEnergy::UpdateBondAngleDihe(cbmc::TrialMol const &mol) const {
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTRA);
+  double bondEn = 0.0, anglEn = 0.0, diheEn = 0.0, intraNonbondEn = 0.0;
+  // *2 because we'll be storing inverse bond vectors
+  const MoleculeKind &molKind = mol.GetKind();
+  uint count = molKind.bondList.count;
+  XYZArray bondVec(count * 2);
+  std::vector<bool> bondExist(count * 2, false);
+
+  BondVectors(bondVec, mol, bondExist, molKind);
+  MolBond(bondEn, mol, bondVec, bondExist, molKind);
+  MolAngle(anglEn, mol, bondVec, bondExist, molKind);
+  MolDihedral(diheEn, mol, bondVec, bondExist, molKind);
+  MolNonbond(intraNonbondEn, mol, molKind);
+  MolNonbond_1_4(intraNonbondEn, mol, molKind);
+  MolNonbond_1_3(intraNonbondEn, mol, molKind);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTRA);
+  return Energy(bondEn, anglEn, diheEn, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 }
 
 void CalculateEnergy::BondVectors(XYZArray &vecs, MoleculeKind const &molKind,
@@ -1298,7 +1326,7 @@ void CalculateEnergy::EnergyCorrection(SystemPotential &pot,
   }
 
   if (!forcefield.freeEnergy) {
-    pot.boxEnergy[box].tc = en;
+    pot.boxEnergy[box].tailCorrection = en;
   }
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   else {
@@ -1321,7 +1349,7 @@ void CalculateEnergy::EnergyCorrection(SystemPotential &pot,
     // We already calculated part of the change for this type in the loop
     en += lambdaVDW * mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
           currentAxes.volInv[box];
-    pot.boxEnergy[box].tc = en;
+    pot.boxEnergy[box].tailCorrection = en;
   }
 #endif
 }
@@ -1333,14 +1361,14 @@ double CalculateEnergy::EnergyCorrection(const uint box,
     return 0.0;
   }
 
-  double tc = 0.0;
+  double tailCorrection = 0.0;
   for (uint i = 0; i < mols.kindsCount; ++i) {
     for (uint j = 0; j < mols.kindsCount; ++j) {
-      tc += mols.pairEnCorrections[i * mols.kindsCount + j] * kCount[i] *
-            kCount[j] * currentAxes.volInv[box];
+      tailCorrection += mols.pairEnCorrections[i * mols.kindsCount + j] *
+                        kCount[i] * kCount[j] * currentAxes.volInv[box];
     }
   }
-  return tc;
+  return tailCorrection;
 }
 
 void CalculateEnergy::VirialCorrection(Virial &virial,
@@ -1361,7 +1389,7 @@ void CalculateEnergy::VirialCorrection(Virial &virial,
   }
 
   if (!forcefield.freeEnergy) {
-    virial.tc = vir;
+    virial.tailCorrection = vir;
   }
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   else {
@@ -1385,7 +1413,7 @@ void CalculateEnergy::VirialCorrection(Virial &virial,
     // We already calculated part of the change for this type in the loop
     vir += lambdaVDW * mols.pairVirCorrections[fk * mols.GetKindsCount() + fk] *
            currentAxes.volInv[box];
-    virial.tc = vir;
+    virial.tailCorrection = vir;
   }
 #endif
 }
@@ -1770,21 +1798,24 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum)*currentAxes.volInv[box];
-      energyDiff[s].tc +=
+      energyDiff[s].tailCorrection +=
           mols.pairEnCorrections[fk * mols.GetKindsCount() + i] * rhoDeltaIJ_2 *
           (lambdaVDW - lambda_istate);
       if (s == iState) {
         // Calculate du/dl in VDW LRC for current state
-        dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
-                       rhoDeltaIJ_2;
+        dUdL_VDW.tailCorrection +=
+            mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
+            rhoDeltaIJ_2;
       }
     }
-    energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
-                        currentAxes.volInv[box] * (lambdaVDW - lambda_istate);
+    energyDiff[s].tailCorrection +=
+        mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+        currentAxes.volInv[box] * (lambdaVDW - lambda_istate);
     if (s == iState) {
       // Calculate du/dl in VDW LRC for current state
-      dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
-                     currentAxes.volInv[box];
+      dUdL_VDW.tailCorrection +=
+          mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+          currentAxes.volInv[box];
     }
   }
 }

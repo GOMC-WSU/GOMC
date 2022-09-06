@@ -26,7 +26,6 @@ along with this program, also can be found at
 #if ENSEMBLE == GCMC || ENSEMBLE == NVT || ENSEMBLE == NPT
 #define BOXES_WITH_U_NB 1
 #elif ENSEMBLE == GEMC
-// case for NVT, GCMC
 #define BOXES_WITH_U_NB 2
 #endif
 #endif
@@ -78,18 +77,28 @@ struct Intermolecular {
 class Energy {
 public:
   Energy()
-      : intraBond(0.0), intraNonbond(0.0), inter(0.0), tc(0.0), total(0.0),
-        real(0.0), recip(0.0), self(0.0), correction(0.0), totalElect(0.0) {}
-  Energy(double bond, double nonbond, double inter, double real, double recip,
-         double self, double correc)
-      : intraBond(bond), intraNonbond(nonbond), inter(inter), tc(0.0),
-        total(0.0), real(real), recip(recip), self(self), correction(correc),
+      : bond(0.0), angle(0.0), dihedral(0.0), intraBond(0.0), intraNonbond(0.0),
+        inter(0.0), tailCorrection(0.0), total(0.0), real(0.0), recip(0.0),
+        self(0.0), correction(0.0), totalElect(0.0) {}
+  // For CBMC
+  Energy(double intraBond, double nonbond, double inter, double real,
+         double recip, double self, double correc)
+      : bond(0.0), angle(0.0), dihedral(0.0), intraBond(intraBond),
+        intraNonbond(nonbond), inter(inter), tailCorrection(0.0), total(0.0),
+        real(real), recip(recip), self(self), correction(correc),
+        totalElect(0.0) {}
+  Energy(double bond, double angle, double dihedral, double intraBond,
+         double nonbond, double inter, double real, double recip, double self,
+         double correc)
+      : bond(bond), angle(angle), dihedral(dihedral), intraBond(bond),
+        intraNonbond(nonbond), inter(inter), tailCorrection(0.0), total(0.0),
+        real(real), recip(recip), self(self), correction(correc),
         totalElect(0.0) {}
 
   // VALUE SETTERS
   double Total() {
-    total = intraBond + intraNonbond + inter + tc + real + recip + self +
-            correction;
+    total = intraBond + intraNonbond + inter + tailCorrection + real + recip +
+            self + correction;
     return total;
   }
 
@@ -99,10 +108,13 @@ public:
   }
 
   void Zero() {
+    bond = 0.0;
+    angle = 0.0;
+    dihedral = 0.0;
     intraBond = 0.0;
     intraNonbond = 0.0;
     inter = 0.0;
-    tc = 0.0;
+    tailCorrection = 0.0;
     real = 0.0;
     recip = 0.0;
     self = 0.0;
@@ -126,15 +138,18 @@ public:
 
   // private:
   // MEMBERS
-  double intraBond, intraNonbond, inter, tc, total, real, recip, self,
-      correction, totalElect;
+  double bond, angle, dihedral, intraBond, intraNonbond, inter, tailCorrection,
+      total, real, recip, self, correction, totalElect;
 };
 
 inline Energy &Energy::operator-=(Energy const &rhs) {
   inter -= rhs.inter;
+  bond -= rhs.bond;
+  angle -= rhs.angle;
+  dihedral -= rhs.dihedral;
   intraBond -= rhs.intraBond;
   intraNonbond -= rhs.intraNonbond;
-  tc -= rhs.tc;
+  tailCorrection -= rhs.tailCorrection;
   real -= rhs.real;
   recip -= rhs.recip;
   self -= rhs.self;
@@ -147,9 +162,12 @@ inline Energy &Energy::operator-=(Energy const &rhs) {
 
 inline Energy &Energy::operator+=(Energy const &rhs) {
   inter += rhs.inter;
+  bond += rhs.bond;
+  angle += rhs.angle;
+  dihedral += rhs.dihedral;
   intraBond += rhs.intraBond;
   intraNonbond += rhs.intraNonbond;
-  tc += rhs.tc;
+  tailCorrection += rhs.tailCorrection;
   real += rhs.real;
   recip += rhs.recip;
   self += rhs.self;
@@ -162,9 +180,12 @@ inline Energy &Energy::operator+=(Energy const &rhs) {
 
 inline Energy &Energy::operator*=(double const &rhs) {
   inter *= rhs;
+  bond *= rhs;
+  angle *= rhs;
+  dihedral *= rhs;
   intraBond *= rhs;
   intraNonbond *= rhs;
-  tc *= rhs;
+  tailCorrection *= rhs;
   real *= rhs;
   recip *= rhs;
   self *= rhs;
@@ -182,7 +203,7 @@ public:
   // VALUE SETTERS
   double Total() {
     TotalElect();
-    total = inter + tc + real + recip + self + correction;
+    total = inter + tailCorrection + real + recip + self + correction;
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         totalTens[i][j] =
@@ -199,7 +220,7 @@ public:
 
   void Zero() {
     inter = 0.0;
-    tc = 0.0;
+    tailCorrection = 0.0;
     real = 0.0;
     recip = 0.0;
     self = 0.0;
@@ -220,7 +241,7 @@ public:
   // OPERATORS
   Virial &operator-=(Virial const &rhs) {
     inter -= rhs.inter;
-    tc -= rhs.tc;
+    tailCorrection -= rhs.tailCorrection;
     real -= rhs.real;
     recip -= rhs.recip;
     self -= rhs.self;
@@ -243,7 +264,7 @@ public:
 
   Virial &operator+=(Virial const &rhs) {
     inter += rhs.inter;
-    tc += rhs.tc;
+    tailCorrection += rhs.tailCorrection;
     real += rhs.real;
     recip += rhs.recip;
     self += rhs.self;
@@ -275,7 +296,7 @@ public:
   // For accounting for dimensionality
   Virial &operator=(Virial const &rhs) {
     inter = rhs.inter;
-    tc = rhs.tc;
+    tailCorrection = rhs.tailCorrection;
     real = rhs.real;
     recip = rhs.recip;
     self = rhs.self;
@@ -298,7 +319,7 @@ public:
 
   Virial &operator/=(const double rhs) {
     inter /= rhs;
-    tc /= rhs;
+    tailCorrection /= rhs;
     real /= rhs;
     recip /= rhs;
     self /= rhs;
@@ -321,7 +342,8 @@ public:
 
   // private:
   // MEMBERS
-  double inter, tc, real, recip, self, correction, totalElect, total;
+  double inter, tailCorrection, real, recip, self, correction, totalElect,
+      total;
   // Store the pressure tensor
   double interTens[3][3], realTens[3][3], recipTens[3][3], totalTens[3][3],
       corrTens[3][3];
@@ -414,98 +436,124 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
     std::cout << "difference: "
               << totalEnergy.intraBond - other.totalEnergy.intraBond
               << std::endl;
-    returnVal = false;
+    if (totalEnergy.bond != other.totalEnergy.bond) {
+      std::cout << "my bond: " << totalEnergy.bond
+                << "  other bond: " << other.totalEnergy.bond << std::endl;
+      std::cout << "difference: " << totalEnergy.bond - other.totalEnergy.bond
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.angle != other.totalEnergy.angle) {
+      std::cout << "my angle: " << totalEnergy.angle
+                << "  other angle: " << other.totalEnergy.angle << std::endl;
+      std::cout << "difference: " << totalEnergy.angle - other.totalEnergy.angle
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.dihedral != other.totalEnergy.dihedral) {
+      std::cout << "my dihedral: " << totalEnergy.dihedral
+                << "  other dihedral: " << other.totalEnergy.dihedral
+                << std::endl;
+      std::cout << "difference: "
+                << totalEnergy.dihedral - other.totalEnergy.dihedral
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.intraNonbond != other.totalEnergy.intraNonbond) {
+      std::cout << "my intraNonbond: " << totalEnergy.intraNonbond
+                << "  other intraNonbond: " << other.totalEnergy.intraNonbond
+                << std::endl;
+      std::cout << "difference: "
+                << totalEnergy.intraNonbond - other.totalEnergy.intraNonbond
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.tailCorrection != other.totalEnergy.tailCorrection) {
+      std::cout << "my LRC: " << totalEnergy.tailCorrection
+                << "  other LRC: " << other.totalEnergy.tailCorrection
+                << std::endl;
+      std::cout << "difference: "
+                << totalEnergy.tailCorrection - other.totalEnergy.tailCorrection
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.real != other.totalEnergy.real) {
+      std::cout << "my real: " << totalEnergy.real
+                << "  other real: " << other.totalEnergy.real << std::endl;
+      std::cout << "difference: " << totalEnergy.real - other.totalEnergy.real
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.recip != other.totalEnergy.recip) {
+      std::cout << "my recip: " << totalEnergy.recip
+                << "  other recip: " << other.totalEnergy.recip << std::endl;
+      std::cout << "difference: " << totalEnergy.recip - other.totalEnergy.recip
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.self != other.totalEnergy.self) {
+      std::cout << "my self: " << totalEnergy.self
+                << "  other self: " << other.totalEnergy.self << std::endl;
+      std::cout << "difference: " << totalEnergy.self - other.totalEnergy.self
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.correction != other.totalEnergy.correction) {
+      std::cout << "my correction: " << totalEnergy.correction
+                << "  other correction: " << other.totalEnergy.correction
+                << std::endl;
+      std::cout << "difference: "
+                << totalEnergy.correction - other.totalEnergy.correction
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.totalElect != other.totalEnergy.totalElect) {
+      std::cout << "my totalElect: " << totalEnergy.totalElect
+                << "  other totalElect: " << other.totalEnergy.totalElect
+                << std::endl;
+      std::cout << "difference: "
+                << totalEnergy.totalElect - other.totalEnergy.totalElect
+                << std::endl;
+      returnVal = false;
+    }
+    if (totalEnergy.total != other.totalEnergy.total) {
+      std::cout << "my total: " << totalEnergy.total
+                << "  other total: " << other.totalEnergy.total << std::endl;
+      std::cout << "difference: " << totalEnergy.total - other.totalEnergy.total
+                << std::endl;
+      returnVal = false;
+    }
+    return returnVal;
   }
-  if (totalEnergy.intraNonbond != other.totalEnergy.intraNonbond) {
-    std::cout << "my intraNonbond: " << totalEnergy.intraNonbond
-              << "  other intraNonbond: " << other.totalEnergy.intraNonbond
-              << std::endl;
-    std::cout << "difference: "
-              << totalEnergy.intraNonbond - other.totalEnergy.intraNonbond
-              << std::endl;
-    returnVal = false;
-  }
-  if (totalEnergy.tc != other.totalEnergy.tc) {
-    std::cout << "my tc: " << totalEnergy.tc
-              << "  other tc: " << other.totalEnergy.tc << std::endl;
-    std::cout << "difference: " << totalEnergy.tc - other.totalEnergy.tc
-              << std::endl;
-    returnVal = false;
-  }
-  if (totalEnergy.real != other.totalEnergy.real) {
-    std::cout << "my real: " << totalEnergy.real
-              << "  other real: " << other.totalEnergy.real << std::endl;
-    std::cout << "difference: " << totalEnergy.real - other.totalEnergy.real
-              << std::endl;
-    returnVal = false;
-  }
-  if (totalEnergy.recip != other.totalEnergy.recip) {
-    std::cout << "my recip: " << totalEnergy.recip
-              << "  other recip: " << other.totalEnergy.recip << std::endl;
-    std::cout << "difference: " << totalEnergy.recip - other.totalEnergy.recip
-              << std::endl;
-    returnVal = false;
-  }
-  if (totalEnergy.self != other.totalEnergy.self) {
-    std::cout << "my self: " << totalEnergy.self
-              << "  other self: " << other.totalEnergy.self << std::endl;
-    std::cout << "difference: " << totalEnergy.self - other.totalEnergy.self
-              << std::endl;
-    returnVal = false;
-  }
-  if (totalEnergy.correction != other.totalEnergy.correction) {
-    std::cout << "my correction: " << totalEnergy.correction
-              << "  other correction: " << other.totalEnergy.correction
-              << std::endl;
-    std::cout << "difference: "
-              << totalEnergy.correction - other.totalEnergy.correction
-              << std::endl;
-    returnVal = false;
-  }
-  if (totalEnergy.totalElect != other.totalEnergy.totalElect) {
-    std::cout << "my totalElect: " << totalEnergy.totalElect
-              << "  other totalElect: " << other.totalEnergy.totalElect
-              << std::endl;
-    std::cout << "difference: "
-              << totalEnergy.totalElect - other.totalEnergy.totalElect
-              << std::endl;
-    returnVal = false;
-  }
-  if (totalEnergy.total != other.totalEnergy.total) {
-    std::cout << "my total: " << totalEnergy.total
-              << "  other total: " << other.totalEnergy.total << std::endl;
-    std::cout << "difference: " << totalEnergy.total - other.totalEnergy.total
-              << std::endl;
-    returnVal = false;
-  }
-  return returnVal;
-}
 
 #ifndef NDEBUG
-inline std::ostream &operator<<(std::ostream &out, Energy &en) {
-  // Save existing settings for the ostream
-  std::streamsize ss = out.precision();
-  std::ios_base::fmtflags ff = out.flags();
+  inline std::ostream &operator<<(std::ostream &out, Energy &en) {
+    // Save existing settings for the ostream
+    std::streamsize ss = out.precision();
+    std::ios_base::fmtflags ff = out.flags();
 
-  en.Total();
-  en.TotalElect();
+    en.Total();
+    en.TotalElect();
 
-  out << std::setprecision(6) << std::fixed;
-  out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond
-      << "  IntraNB: " << en.intraNonbond << "  Inter: " << en.inter
-      << "  Tc: " << en.tc;
-  if (en.totalElect != 0.0) {
-    out << std::endl
-        << "\tTotal Electric: " << en.totalElect << "  Real: " << en.real
-        << "  Recip: " << en.recip << "  Self: " << en.self
-        << "  Correction: " << en.correction;
+    out << std::setprecision(6) << std::fixed;
+    out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond
+        << "  Bond: " << en.bond << "  Angle: " << en.angle
+        << "  Dihedral: " << en.dihedral << "  IntraNB: " << en.intraNonbond
+        << "  Inter: " << en.inter
+        << "  Tail Correction: " << en.tailCorrection;
 
-    // Restore ostream settings to prior value
-    out << std::setprecision(ss);
-    out.flags(ff);
+    if (en.totalElect != 0.0) {
+      out << std::endl
+          << "\tTotal Electric: " << en.totalElect << "  Real: " << en.real
+          << "  Recip: " << en.recip << "  Self: " << en.self
+          << "  Correction: " << en.correction;
+
+      // Restore ostream settings to prior value
+      out << std::setprecision(ss);
+      out.flags(ff);
+    }
+    return out;
   }
-  return out;
-}
 #endif
 
 #endif
