@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
 #include "Endian.h"
+#include <gtest/gtest.h>
 
 TEST(EndianTest, TestBitSwap) {
   uint64_t x = 0x0123456789abcdefull;
