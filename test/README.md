@@ -5,7 +5,7 @@
 ### This script will compile the current branch and then
 ### will checkout the most likely branch you want to merge into.
 ### If you are on development when you run the script,
-### the this will be the main branch.
+### this will be the main branch.
 ###
 ### If you are on a new feature branch, 
 ### this will be the development branch
