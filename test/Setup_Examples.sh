@@ -9,6 +9,7 @@ rm -frd GOMC_Examples/NVT
 rm -frd GOMC_Examples/GCMC
 rm -frd GOMC_Examples/NPT_GEMC
 rm -frd GOMC_Examples/NVT_GEMC
+rm -frd GOMC_Examples/MoSDef-GOMC
 mkdir integration
 
 mkdir integration/new_cpu
