@@ -2,7 +2,7 @@
 git clone https://github.com/GOMC-WSU/GOMC_Examples.git
 cd GOMC_Examples
 ## TO DO- make this a command line option once new tests are done.
-git checkout quick_testing
+#git checkout quick_testing
 cd ..
 rm -frd GOMC_Examples/NPT/water_580_00_K
 rm -frd GOMC_Examples/NVT
