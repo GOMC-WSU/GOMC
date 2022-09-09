@@ -2,7 +2,7 @@
 
 ### Clones GOMC_Examples repo and creates 4 copies 
 ### CPU_Ref, GPU_Ref, CPU_New, GPU_Ref
-### Then is will checkout the mosy likely branch to merge into
+### Then is will checkout the most likely branch to merge into
 ### If you are on development when you run the script,
 ### the this will be the main branch.
 ###
