@@ -10,6 +10,12 @@ rm -frd GOMC_Examples/GCMC
 rm -frd GOMC_Examples/NPT_GEMC
 rm -frd GOMC_Examples/NVT_GEMC
 rm -frd GOMC_Examples/MoSDef-GOMC
+
+# Modify this file 
+#/home/greg/Documents/GOMC/test/GOMC_Examples/NPT/DME_constArea_340_00_K/in.conf
+# TO DO
+# awk ....
+
 mkdir integration
 
 mkdir integration/new_cpu
