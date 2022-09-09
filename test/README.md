@@ -2,11 +2,12 @@
 
 ### Clones GOMC_Examples repo and creates 4 copies 
 ### CPU_Ref, GPU_Ref, CPU_New, GPU_Ref
-### Then is will checkout the most likely branch to merge into
+### This script will compile the current branch and then
+### will checkout the most likely branch you want to merge into.
 ### If you are on development when you run the script,
 ### the this will be the main branch.
 ###
-### If you are a new feature branch, 
+### If you are on a new feature branch, 
 ### this will be the development branch
 ###
 ### The current branch is compiled and the binaries put into new_binaries 
