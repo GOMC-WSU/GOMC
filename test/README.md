@@ -6,7 +6,7 @@
 ### If you are on development when you run the script,
 ### the this will be the main branch.
 ###
-### If you are non a feature branch, 
+### If you are a new feature branch, 
 ### this will be the development branch
 ###
 ### The current branch is compiled and the binaries put into new_binaries 
