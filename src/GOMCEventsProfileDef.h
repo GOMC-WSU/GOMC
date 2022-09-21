@@ -46,7 +46,7 @@ GOMC_PROFILE_EVENT(PREP_VOL_TRANSFER, "prepare_volumeChange_move")
 GOMC_PROFILE_EVENT(PREP_TARGETED_SWAP, "prepare_targetedSwap_move")
 GOMC_PROFILE_EVENT(PREP_INTRA_TARGETED_SWAP, "prepare_intraTargetedSwap_move")
 GOMC_PROFILE_EVENT(PREP_NEMTMC, "prepare_NEMTMC_move")
-//transform MC moves
+// transform MC moves
 GOMC_PROFILE_EVENT(TRANS_DISPLACE, "transform_translate_move")
 GOMC_PROFILE_EVENT(TRANS_ROTATE, "transform_rotate_move")
 GOMC_PROFILE_EVENT(TRANS_MULTIPARTICLE, "transform_multiParticle_move")
@@ -59,9 +59,10 @@ GOMC_PROFILE_EVENT(TRANS_SWAP, "transform_swap_move")
 GOMC_PROFILE_EVENT(TRANS_MEMC, "transform_MEMC_move")
 GOMC_PROFILE_EVENT(TRANS_VOL_TRANSFER, "transform_volumeChange_move")
 GOMC_PROFILE_EVENT(TRANS_TARGETED_SWAP, "transform_targetedSwap_move")
-GOMC_PROFILE_EVENT(TRANS_INTRA_TARGETED_SWAP, "transform_intraTargetedSwap_move")
+GOMC_PROFILE_EVENT(TRANS_INTRA_TARGETED_SWAP,
+                   "transform_intraTargetedSwap_move")
 GOMC_PROFILE_EVENT(TRANS_NEMTMC, "transform_NEMTMC_move")
-//calcEn MC moves
+// calcEn MC moves
 GOMC_PROFILE_EVENT(CALC_EN_DISPLACE, "cal_energy_translate_move")
 GOMC_PROFILE_EVENT(CALC_EN_ROTATE, "cal_energy_rotate_move")
 GOMC_PROFILE_EVENT(CALC_EN_MULTIPARTICLE, "cal_energy_multiParticle_move")
@@ -74,9 +75,10 @@ GOMC_PROFILE_EVENT(CALC_EN_SWAP, "cal_energy_swap_move")
 GOMC_PROFILE_EVENT(CALC_EN_MEMC, "cal_energy_MEMC_move")
 GOMC_PROFILE_EVENT(CALC_EN_VOL_TRANSFER, "cal_energy_volumeChange_move")
 GOMC_PROFILE_EVENT(CALC_EN_TARGETED_SWAP, "cal_energy_targetedSwap_move")
-GOMC_PROFILE_EVENT(CALC_EN_INTRA_TARGETED_SWAP, "cal_energy_intraTargetedSwap_move")
+GOMC_PROFILE_EVENT(CALC_EN_INTRA_TARGETED_SWAP,
+                   "cal_energy_intraTargetedSwap_move")
 GOMC_PROFILE_EVENT(CALC_EN_NEMTMC, "cal_energy_NEMTMC_move")
-//accept MC moves
+// accept MC moves
 GOMC_PROFILE_EVENT(ACC_DISPLACE, "accept_translate_move")
 GOMC_PROFILE_EVENT(ACC_ROTATE, "accept_rotate_move")
 GOMC_PROFILE_EVENT(ACC_MULTIPARTICLE, "accept_multiParticle_move")
@@ -92,7 +94,8 @@ GOMC_PROFILE_EVENT(ACC_TARGETED_SWAP, "accept_targetedSwap_move")
 GOMC_PROFILE_EVENT(ACC_INTRA_TARGETED_SWAP, "accept_intraTargetedSwap_move")
 GOMC_PROFILE_EVENT(ACC_NEMTMC, "accept_NEMTMC_move")
 // energy, virial, force term for LJ and real part of Ewald
-GOMC_PROFILE_EVENT(EN_SYSTEM_TOTAL, "energy_system_total(intra,inter,self,corr)")
+GOMC_PROFILE_EVENT(EN_SYSTEM_TOTAL,
+                   "energy_system_total(intra,inter,self,corr)")
 GOMC_PROFILE_EVENT(EN_BOX_INTRA, "energy_box_intra(intra,self,corr)")
 GOMC_PROFILE_EVENT(EN_BOX_INTER, "energy_box_inter")
 GOMC_PROFILE_EVENT(EN_BOX_FORCE, "energy_box_force")
@@ -142,7 +145,3 @@ GOMC_PROFILE_EVENT(DUMMY_EVENT19, "Dummy Event19")
 GOMC_PROFILE_EVENT(DUMMY_EVENT20, "Dummy Event20")
 GOMC_PROFILE_EVENT(DUMMY_EVENT21, "Dummy Event21")
 GOMC_PROFILE_EVENT(DUMMY_EVENT22, "Dummy Event22")
-
-
-
-
