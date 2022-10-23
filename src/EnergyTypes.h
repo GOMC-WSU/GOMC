@@ -436,7 +436,6 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
     std::cout << "difference: "
               << totalEnergy.intraBond - other.totalEnergy.intraBond
               << std::endl;
-    returnVal = false;
     if (totalEnergy.bond != other.totalEnergy.bond) {
       std::cout << "my bond: " << totalEnergy.bond
                 << "  other bond: " << other.totalEnergy.bond << std::endl;
@@ -457,6 +456,7 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
                 << totalEnergy.dihedral - other.totalEnergy.dihedral
                 << std::endl;
     }
+    returnVal = false;
   }
   if (totalEnergy.intraNonbond != other.totalEnergy.intraNonbond) {
     std::cout << "my intraNonbond: " << totalEnergy.intraNonbond
@@ -483,7 +483,6 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
     std::cout << "difference: "
               << totalEnergy.totalElect - other.totalEnergy.totalElect
               << std::endl;
-    returnVal = false;
     if (totalEnergy.real != other.totalEnergy.real) {
       std::cout << "my real: " << totalEnergy.real
                 << "  other real: " << other.totalEnergy.real << std::endl;
@@ -510,6 +509,7 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
                 << totalEnergy.correction - other.totalEnergy.correction
                 << std::endl;
     }
+    returnVal = false;
   }
   if (totalEnergy.total != other.totalEnergy.total) {
     std::cout << "my total: " << totalEnergy.total
