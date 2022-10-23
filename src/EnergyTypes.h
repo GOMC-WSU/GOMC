@@ -441,14 +441,12 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
                 << "  other bond: " << other.totalEnergy.bond << std::endl;
       std::cout << "difference: " << totalEnergy.bond - other.totalEnergy.bond
                 << std::endl;
-      returnVal = false;
     }
     if (totalEnergy.angle != other.totalEnergy.angle) {
       std::cout << "my angle: " << totalEnergy.angle
                 << "  other angle: " << other.totalEnergy.angle << std::endl;
       std::cout << "difference: " << totalEnergy.angle - other.totalEnergy.angle
                 << std::endl;
-      returnVal = false;
     }
     if (totalEnergy.dihedral != other.totalEnergy.dihedral) {
       std::cout << "my dihedral: " << totalEnergy.dihedral
@@ -457,46 +455,51 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
       std::cout << "difference: "
                 << totalEnergy.dihedral - other.totalEnergy.dihedral
                 << std::endl;
-      returnVal = false;
     }
-    if (totalEnergy.intraNonbond != other.totalEnergy.intraNonbond) {
-      std::cout << "my intraNonbond: " << totalEnergy.intraNonbond
-                << "  other intraNonbond: " << other.totalEnergy.intraNonbond
-                << std::endl;
-      std::cout << "difference: "
-                << totalEnergy.intraNonbond - other.totalEnergy.intraNonbond
-                << std::endl;
-      returnVal = false;
-    }
-    if (totalEnergy.tailCorrection != other.totalEnergy.tailCorrection) {
-      std::cout << "my LRC: " << totalEnergy.tailCorrection
-                << "  other LRC: " << other.totalEnergy.tailCorrection
-                << std::endl;
-      std::cout << "difference: "
-                << totalEnergy.tailCorrection - other.totalEnergy.tailCorrection
-                << std::endl;
-      returnVal = false;
-    }
+    returnVal = false;
+  }
+  if (totalEnergy.intraNonbond != other.totalEnergy.intraNonbond) {
+    std::cout << "my intraNonbond: " << totalEnergy.intraNonbond
+              << "  other intraNonbond: " << other.totalEnergy.intraNonbond
+              << std::endl;
+    std::cout << "difference: "
+              << totalEnergy.intraNonbond - other.totalEnergy.intraNonbond
+              << std::endl;
+    returnVal = false;
+  }
+  if (totalEnergy.tailCorrection != other.totalEnergy.tailCorrection) {
+    std::cout << "my LRC: " << totalEnergy.tailCorrection
+              << "  other LRC: " << other.totalEnergy.tailCorrection
+              << std::endl;
+    std::cout << "difference: "
+              << totalEnergy.tailCorrection - other.totalEnergy.tailCorrection
+              << std::endl;
+    returnVal = false;
+  }
+  if (totalEnergy.totalElect != other.totalEnergy.totalElect) {
+    std::cout << "my totalElect: " << totalEnergy.totalElect
+              << "  other totalElect: " << other.totalEnergy.totalElect
+              << std::endl;
+    std::cout << "difference: "
+              << totalEnergy.totalElect - other.totalEnergy.totalElect
+              << std::endl;
     if (totalEnergy.real != other.totalEnergy.real) {
       std::cout << "my real: " << totalEnergy.real
                 << "  other real: " << other.totalEnergy.real << std::endl;
       std::cout << "difference: " << totalEnergy.real - other.totalEnergy.real
                 << std::endl;
-      returnVal = false;
     }
     if (totalEnergy.recip != other.totalEnergy.recip) {
       std::cout << "my recip: " << totalEnergy.recip
                 << "  other recip: " << other.totalEnergy.recip << std::endl;
       std::cout << "difference: " << totalEnergy.recip - other.totalEnergy.recip
                 << std::endl;
-      returnVal = false;
     }
     if (totalEnergy.self != other.totalEnergy.self) {
       std::cout << "my self: " << totalEnergy.self
                 << "  other self: " << other.totalEnergy.self << std::endl;
       std::cout << "difference: " << totalEnergy.self - other.totalEnergy.self
                 << std::endl;
-      returnVal = false;
     }
     if (totalEnergy.correction != other.totalEnergy.correction) {
       std::cout << "my correction: " << totalEnergy.correction
@@ -505,26 +508,17 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
       std::cout << "difference: "
                 << totalEnergy.correction - other.totalEnergy.correction
                 << std::endl;
-      returnVal = false;
     }
-    if (totalEnergy.totalElect != other.totalEnergy.totalElect) {
-      std::cout << "my totalElect: " << totalEnergy.totalElect
-                << "  other totalElect: " << other.totalEnergy.totalElect
-                << std::endl;
-      std::cout << "difference: "
-                << totalEnergy.totalElect - other.totalEnergy.totalElect
-                << std::endl;
-      returnVal = false;
-    }
-    if (totalEnergy.total != other.totalEnergy.total) {
-      std::cout << "my total: " << totalEnergy.total
-                << "  other total: " << other.totalEnergy.total << std::endl;
-      std::cout << "difference: " << totalEnergy.total - other.totalEnergy.total
-                << std::endl;
-      returnVal = false;
-    }
-    return returnVal;
+    returnVal = false;
   }
+  if (totalEnergy.total != other.totalEnergy.total) {
+    std::cout << "my total: " << totalEnergy.total
+              << "  other total: " << other.totalEnergy.total << std::endl;
+    std::cout << "difference: " << totalEnergy.total - other.totalEnergy.total
+              << std::endl;
+    returnVal = false;
+  }
+  return returnVal;
 }
 
 #ifndef NDEBUG
