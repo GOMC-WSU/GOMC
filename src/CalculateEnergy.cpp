@@ -102,7 +102,7 @@ SystemPotential CalculateEnergy::SystemTotal() {
     }
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(none) private(bondEnergy) shared(b, molID) \
+#pragma omp parallel for default(none) private(bondEnergy) shared(b, molID) \
     reduction(+:bondEn, nonbondEn, correction)
 #endif
     for (int i = 0; i < (int)molID.size(); i++) {
@@ -110,7 +110,7 @@ SystemPotential CalculateEnergy::SystemTotal() {
       MoleculeIntra(molID[i], b, bondEnergy);
       bondEn += bondEnergy[0];
       nonbondEn += bondEnergy[1];
-      //calculate correction term of electrostatic interaction
+      // calculate correction term of electrostatic interaction
       correction += calcEwald->MolCorrection(molID[i], b);
     }
 

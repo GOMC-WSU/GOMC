@@ -168,38 +168,47 @@ bool Simulation::RecalculateAndCheck(void) {
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   bool compare = true;
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraBond, pot.totalEnergy.intraBond, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraNonbond, pot.totalEnergy.intraNonbond, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.inter, pot.totalEnergy.inter, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.tailCorrection, pot.totalEnergy.tailCorrection, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.real, pot.totalEnergy.real, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.self, pot.totalEnergy.self, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.correction, pot.totalEnergy.correction, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.recip, pot.totalEnergy.recip, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraBond,
+                                     pot.totalEnergy.intraBond, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraNonbond,
+                                     pot.totalEnergy.intraNonbond, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.inter,
+                                     pot.totalEnergy.inter, EPSILON);
+  compare &=
+      num::approximatelyEqual(system->potential.totalEnergy.tailCorrection,
+                              pot.totalEnergy.tailCorrection, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.real,
+                                     pot.totalEnergy.real, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.self,
+                                     pot.totalEnergy.self, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.correction,
+                                     pot.totalEnergy.correction, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.recip,
+                                     pot.totalEnergy.recip, EPSILON);
 
-  if(!compare) {
+  if (!compare) {
     std::cout
         << "=================================================================\n"
-        << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+        << "Energy       INTRA B |     INTRA NB |        INTER |           TC "
+           "|         REAL |         SELF |   CORRECTION |        RECIP"
         << std::endl
-        << "System: "
-        << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
-        << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
-        << std::setw(12) << system->potential.totalEnergy.inter << " | "
-        << std::setw(12) << system->potential.totalEnergy.tailCorrection << " | "
+        << "System: " << std::setw(12)
+        << system->potential.totalEnergy.intraBond << " | " << std::setw(12)
+        << system->potential.totalEnergy.intraNonbond << " | " << std::setw(12)
+        << system->potential.totalEnergy.inter << " | " << std::setw(12)
+        << system->potential.totalEnergy.tailCorrection << " | "
         << std::setw(12) << system->potential.totalEnergy.real << " | "
         << std::setw(12) << system->potential.totalEnergy.self << " | "
         << std::setw(12) << system->potential.totalEnergy.correction << " | "
         << std::setw(12) << system->potential.totalEnergy.recip << std::endl
-        << "Recalc: "
-        << std::setw(12) << pot.totalEnergy.intraBond << " | "
+        << "Recalc: " << std::setw(12) << pot.totalEnergy.intraBond << " | "
         << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
-        << std::setw(12) << pot.totalEnergy.inter << " | "
-        << std::setw(12) << pot.totalEnergy.tailCorrection << " | "
-        << std::setw(12) << pot.totalEnergy.real << " | "
-        << std::setw(12) << pot.totalEnergy.self << " | "
-        << std::setw(12) << pot.totalEnergy.correction << " | "
-        << std::setw(12) << pot.totalEnergy.recip << std::endl
+        << std::setw(12) << pot.totalEnergy.inter << " | " << std::setw(12)
+        << pot.totalEnergy.tailCorrection << " | " << std::setw(12)
+        << pot.totalEnergy.real << " | " << std::setw(12)
+        << pot.totalEnergy.self << " | " << std::setw(12)
+        << pot.totalEnergy.correction << " | " << std::setw(12)
+        << pot.totalEnergy.recip << std::endl
         << "================================================================"
         << std::endl
         << std::endl;
