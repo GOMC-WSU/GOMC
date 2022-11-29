@@ -27,6 +27,7 @@
 
 // same as write, only does error checking internally
 void NAMD_write(int fd, const char *buf, size_t count, const char *errmsg) {
+  int bad_cntr = 0;
   while (count) {
 #if defined(WIN32) && !defined(__CYGWIN__)
     long retval = _write(fd, buf, count);
@@ -36,7 +37,16 @@ void NAMD_write(int fd, const char *buf, size_t count, const char *errmsg) {
     if (retval < 0 && errno == EINTR)
       retval = 0;
     if (retval < 0) {
-      NAMD_err(errmsg);
+      // include the error description in the message
+      std::string s(errmsg);
+      s += ": ";
+      s += strerror(retval);
+      // handle transient errors by retrying a few times
+      if (bad_cntr < 5) {
+        NAMD_warn(s.c_str());
+        bad_cntr++;
+      } else
+        NAMD_err(s.c_str());
     }
     if (retval > (long)count)
       NAMD_bug("extra bytes written in NAMD_write()");
