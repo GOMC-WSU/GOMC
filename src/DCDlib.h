@@ -16,9 +16,10 @@
 //#include "largefiles.h"  // must be first!
 //#include "common.h" // for int32 definition
 //#include "Vector.h"
+#include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 
 #include <iostream>
 
