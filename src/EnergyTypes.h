@@ -77,23 +77,14 @@ struct Intermolecular {
 class Energy {
 public:
   Energy()
-      : bond(0.0), angle(0.0), dihedral(0.0), intraBond(0.0), intraNonbond(0.0),
-        inter(0.0), tailCorrection(0.0), total(0.0), real(0.0), recip(0.0),
-        self(0.0), correction(0.0), totalElect(0.0) {}
-  // For CBMC
-  Energy(double intraBond, double nonbond, double inter, double real,
-         double recip, double self, double correc)
-      : bond(0.0), angle(0.0), dihedral(0.0), intraBond(intraBond),
-        intraNonbond(nonbond), inter(inter), tailCorrection(0.0), total(0.0),
-        real(real), recip(recip), self(self), correction(correc),
+      : intraBond(0.0), intraNonbond(0.0), inter(0.0), tailCorrection(0.0),
+        total(0.0), real(0.0), recip(0.0), self(0.0), correction(0.0),
         totalElect(0.0) {}
-  Energy(double bond, double angle, double dihedral, double intraBond,
-         double nonbond, double inter, double real, double recip, double self,
-         double correc)
-      : bond(bond), angle(angle), dihedral(dihedral), intraBond(bond),
-        intraNonbond(nonbond), inter(inter), tailCorrection(0.0), total(0.0),
-        real(real), recip(recip), self(self), correction(correc),
-        totalElect(0.0) {}
+  Energy(double bond, double nonbond, double inter, double real, double recip,
+         double self, double correc)
+      : intraBond(bond), intraNonbond(nonbond), inter(inter),
+        tailCorrection(0.0), total(0.0), real(real), recip(recip), self(self),
+        correction(correc), totalElect(0.0) {}
 
   // VALUE SETTERS
   double Total() {
@@ -108,9 +99,6 @@ public:
   }
 
   void Zero() {
-    bond = 0.0;
-    angle = 0.0;
-    dihedral = 0.0;
     intraBond = 0.0;
     intraNonbond = 0.0;
     inter = 0.0;
@@ -138,15 +126,12 @@ public:
 
   // private:
   // MEMBERS
-  double bond, angle, dihedral, intraBond, intraNonbond, inter, tailCorrection,
-      total, real, recip, self, correction, totalElect;
+  double intraBond, intraNonbond, inter, tailCorrection, total, real, recip,
+      self, correction, totalElect;
 };
 
 inline Energy &Energy::operator-=(Energy const &rhs) {
   inter -= rhs.inter;
-  bond -= rhs.bond;
-  angle -= rhs.angle;
-  dihedral -= rhs.dihedral;
   intraBond -= rhs.intraBond;
   intraNonbond -= rhs.intraNonbond;
   tailCorrection -= rhs.tailCorrection;
@@ -162,9 +147,6 @@ inline Energy &Energy::operator-=(Energy const &rhs) {
 
 inline Energy &Energy::operator+=(Energy const &rhs) {
   inter += rhs.inter;
-  bond += rhs.bond;
-  angle += rhs.angle;
-  dihedral += rhs.dihedral;
   intraBond += rhs.intraBond;
   intraNonbond += rhs.intraNonbond;
   tailCorrection += rhs.tailCorrection;
@@ -180,9 +162,6 @@ inline Energy &Energy::operator+=(Energy const &rhs) {
 
 inline Energy &Energy::operator*=(double const &rhs) {
   inter *= rhs;
-  bond *= rhs;
-  angle *= rhs;
-  dihedral *= rhs;
   intraBond *= rhs;
   intraNonbond *= rhs;
   tailCorrection *= rhs;
@@ -436,26 +415,38 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
     std::cout << "difference: "
               << totalEnergy.intraBond - other.totalEnergy.intraBond
               << std::endl;
-    if (totalEnergy.bond != other.totalEnergy.bond) {
-      std::cout << "my bond: " << totalEnergy.bond
-                << "  other bond: " << other.totalEnergy.bond << std::endl;
-      std::cout << "difference: " << totalEnergy.bond - other.totalEnergy.bond
-                << std::endl;
-    }
-    if (totalEnergy.angle != other.totalEnergy.angle) {
-      std::cout << "my angle: " << totalEnergy.angle
-                << "  other angle: " << other.totalEnergy.angle << std::endl;
-      std::cout << "difference: " << totalEnergy.angle - other.totalEnergy.angle
-                << std::endl;
-    }
-    if (totalEnergy.dihedral != other.totalEnergy.dihedral) {
-      std::cout << "my dihedral: " << totalEnergy.dihedral
-                << "  other dihedral: " << other.totalEnergy.dihedral
-                << std::endl;
-      std::cout << "difference: "
-                << totalEnergy.dihedral - other.totalEnergy.dihedral
-                << std::endl;
-    }
+    returnVal = false;
+  }
+  if (totalEnergy.intraNonbond != other.totalEnergy.intraNonbond) {
+    std::cout << "my intraNonbond: " << totalEnergy.intraNonbond
+              << "  other intraNonbond: " << other.totalEnergy.intraNonbond
+              << std::endl;
+    std::cout << "difference: "
+              << totalEnergy.intraNonbond - other.totalEnergy.intraNonbond
+              << std::endl;
+    returnVal = false;
+  }
+  if (totalEnergy.tailCorrection != other.totalEnergy.tailCorrection) {
+    std::cout << "my LRC: " << totalEnergy.tailCorrection
+              << "  other LRC: " << other.totalEnergy.tailCorrection
+              << std::endl;
+    std::cout << "difference: "
+              << totalEnergy.tailCorrection - other.totalEnergy.tailCorrection
+              << std::endl;
+    returnVal = false;
+  }
+  if (totalEnergy.real != other.totalEnergy.real) {
+    std::cout << "my real: " << totalEnergy.real
+              << "  other real: " << other.totalEnergy.real << std::endl;
+    std::cout << "difference: " << totalEnergy.real - other.totalEnergy.real
+              << std::endl;
+    returnVal = false;
+  }
+  if (totalEnergy.recip != other.totalEnergy.recip) {
+    std::cout << "my recip: " << totalEnergy.recip
+              << "  other recip: " << other.totalEnergy.recip << std::endl;
+    std::cout << "difference: " << totalEnergy.recip - other.totalEnergy.recip
+              << std::endl;
     returnVal = false;
   }
   if (totalEnergy.intraNonbond != other.totalEnergy.intraNonbond) {
@@ -522,33 +513,30 @@ inline bool SystemPotential::ComparePotentials(SystemPotential &other) {
 }
 
 #ifndef NDEBUG
-  inline std::ostream &operator<<(std::ostream &out, Energy &en) {
-    // Save existing settings for the ostream
-    std::streamsize ss = out.precision();
-    std::ios_base::fmtflags ff = out.flags();
+inline std::ostream &operator<<(std::ostream &out, Energy &en) {
+  // Save existing settings for the ostream
+  std::streamsize ss = out.precision();
+  std::ios_base::fmtflags ff = out.flags();
 
-    en.Total();
-    en.TotalElect();
+  en.Total();
+  en.TotalElect();
 
-    out << std::setprecision(6) << std::fixed;
-    out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond
-        << "  Bond: " << en.bond << "  Angle: " << en.angle
-        << "  Dihedral: " << en.dihedral << "  IntraNB: " << en.intraNonbond
-        << "  Inter: " << en.inter
-        << "  Tail Correction: " << en.tailCorrection;
+  out << std::setprecision(6) << std::fixed;
+  out << "\tTotal: " << en.total << "  IntraB: " << en.intraBond
+      << "  IntraNB: " << en.intraNonbond << "  Inter: " << en.inter
+      << "  LRC: " << en.tailCorrection;
+  if (en.totalElect != 0.0) {
+    out << std::endl
+        << "\tTotal Electric: " << en.totalElect << "  Real: " << en.real
+        << "  Recip: " << en.recip << "  Self: " << en.self
+        << "  Correction: " << en.correction;
 
-    if (en.totalElect != 0.0) {
-      out << std::endl
-          << "\tTotal Electric: " << en.totalElect << "  Real: " << en.real
-          << "  Recip: " << en.recip << "  Self: " << en.self
-          << "  Correction: " << en.correction;
-
-      // Restore ostream settings to prior value
-      out << std::setprecision(ss);
-      out.flags(ff);
-    }
-    return out;
+    // Restore ostream settings to prior value
+    out << std::setprecision(ss);
+    out.flags(ff);
   }
+  return out;
+}
 #endif
 
 #endif

@@ -143,9 +143,6 @@ public:
   // used in molecule exchange for calculating bonded and intraNonbonded energy
   Energy MoleculeIntra(cbmc::TrialMol const &mol) const;
 
-  // used in molecule exchange for calculating bonded and intraNonbonded energy
-  Energy UpdateBondAngleDihe(cbmc::TrialMol const &mol) const;
-
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   // for Martini forcefield
   double IntraEnergy_1_3(const double distSq, const uint atom1,

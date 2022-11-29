@@ -22,8 +22,8 @@ along with this program, also can be found at
 #endif
 
 struct Clock {
-  Clock() : lastTime(0.0), stepsPerOut(0), prevStep(0), firstStep(0),
-      lastStep(0) {}
+  Clock()
+      : lastTime(0.0), stepsPerOut(0), prevStep(0), firstStep(0), lastStep(0) {}
   void Init(const ulong steps, const ulong totSt, const ulong startStep) {
     stepsPerOut = steps;
     prevStep = startStep;
@@ -119,7 +119,8 @@ inline void Clock::CompletionTime(uint &day, uint &hr, uint &min) {
 #if defined(__linux__) || defined(__APPLE__)
   speed = (double)(prevStep - firstStep) / (lastTime - strt);
 #elif (_WIN32) || (__CYGWIN__)
-  speed = (double)(prevStep - firstStep) / ((double)(lastTime - strt) / CLOCKS_PER_SEC);
+  speed = (double)(prevStep - firstStep) /
+          ((double)(lastTime - strt) / CLOCKS_PER_SEC);
 #endif
   ulong rem = lastStep - prevStep;
   ulong sec = rem / speed;
