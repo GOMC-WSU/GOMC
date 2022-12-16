@@ -10,6 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install clang-openmp
-      run: apt install libomp-14-dev
+      run: sudo apt install -y libomp-14-dev
     - name: metamake
       run: ./metamake.sh
