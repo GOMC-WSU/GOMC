@@ -27,9 +27,9 @@
  * used:
  *
  * // converts host integer to file integer
- * uint64_t htof64(uint64_t host_integer)
+ * u_int64_t htof64(u_int64_t host_integer)
  * // converts host integer to file integer
- * uint64_t ftoh64(uint64_t file_integer)
+ * u_int64_t ftoh64(u_int64_t file_integer)
  *
  * Before writing to file, make sure you use htof64() and after reading use
  * ftoh64()!
@@ -57,7 +57,7 @@ inline ENDIANNESS GetEndian() {
   return (*(char *)&endian == 0x01) ? LT_ENDIAN : BG_ENDIAN;
 }
 
-inline uint64_t htof64(uint64_t host_integer) {
+inline u_int64_t htof64(u_int64_t host_integer) {
   if (GetEndian() == LT_ENDIAN) {
     // Same endianness, so just return the same integer
     return host_integer;
@@ -67,7 +67,7 @@ inline uint64_t htof64(uint64_t host_integer) {
   }
 }
 
-inline uint64_t ftoh64(uint64_t file_integer) {
+inline u_int64_t ftoh64(u_int64_t file_integer) {
   if (GetEndian() == LT_ENDIAN) {
     // Same endianness, so just return the same integer
     return file_integer;
@@ -77,7 +77,7 @@ inline uint64_t ftoh64(uint64_t file_integer) {
   }
 }
 
-inline uint32_t htof32(uint32_t host_integer) {
+inline u_int32_t htof32(u_int32_t host_integer) {
   if (GetEndian() == LT_ENDIAN) {
     return host_integer;
   } else {
@@ -85,7 +85,7 @@ inline uint32_t htof32(uint32_t host_integer) {
   }
 }
 
-inline uint32_t ftoh32(uint32_t file_integer) {
+inline u_int32_t ftoh32(u_int32_t file_integer) {
   if (GetEndian() == LT_ENDIAN) {
     return file_integer;
   } else {
@@ -93,7 +93,7 @@ inline uint32_t ftoh32(uint32_t file_integer) {
   }
 }
 
-inline uint16_t htof16(uint32_t host_integer) {
+inline u_int16_t htof16(u_int32_t host_integer) {
   if (GetEndian() == LT_ENDIAN) {
     return host_integer;
   } else {
@@ -101,7 +101,7 @@ inline uint16_t htof16(uint32_t host_integer) {
   }
 }
 
-inline uint16_t ftoh16(uint16_t file_integer) {
+inline u_int16_t ftoh16(u_int16_t file_integer) {
   if (GetEndian() == LT_ENDIAN) {
     return file_integer;
   } else {
