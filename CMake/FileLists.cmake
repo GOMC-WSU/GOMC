@@ -87,6 +87,7 @@ set(headers
    src/CoordinateSetup.h
    src/CPUSide.h
    src/DCDlib.h
+   src/ElectrostaticBase.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
