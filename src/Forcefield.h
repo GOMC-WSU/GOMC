@@ -33,7 +33,8 @@ public:
   ~Forcefield();
   // Initialize contained FFxxxx structs from setup data
   void Init(const Setup &set);
-
+  uint GetWolfKind(void);
+  uint GetCoulKind(void); 
   FFParticle *particles; //!< For LJ/Mie energy between unbonded atoms
   // for LJ, shift and switch type
   FFBonds bonds;             //!< For bond stretching energy
@@ -74,6 +75,12 @@ public:
 
 private:
   // Initialize primitive member variables from setup data
+  bool wolf;
+  double wolfAlpha[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
+  double wolfFactor1[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
+  double wolfFactor2[BOX_TOTAL];  //alpha term for Wolf Electrostatic and constant factors
+  double wolfFactor3[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
+  uint coulKind, wolfKind;        //To define Coul type (if Wolf), dampened shift potential or dampened shift force
 
   void InitBasicVals(config_setup::SystemVals const &val,
                      config_setup::FFKind const &ffKind);
