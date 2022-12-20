@@ -8,6 +8,7 @@ along with this program, also can be found at
 #ifndef TRANSFORMABLE_BASE_H
 #define TRANSFORMABLE_BASE_H
 
+#include "ElectrostaticBase.h"    //For uint.
 #include "BasicTypes.h"    //For uint.
 #include "BoxDimensions.h" //For pbc wrapping
 #include "BoxDimensionsNonOrth.h"
@@ -83,7 +84,7 @@ protected:
   Coordinates &coordCurrRef;
   COM &comCurrRef;
   CalculateEnergy &calcEnRef;
-  Ewald *calcEwald;
+  ElectrostaticBase *calcEwald;
   XYZArray &atomForceRef;
   XYZArray atomForceNew;
   XYZArray &molForceRef;

@@ -27,11 +27,10 @@ along with this program, also can be found at
 #include <omp.h>
 #endif
 //
-//    Calculating Electrostatic calculation without caching Fourier terms.
-//    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocal part of ewald
+//    Calculating Wolf Approximation of the Electrostatic
+//    functions for self and correction terms.
 //
-//    Developed by Y. Li and Mohammad S. Barhaghi
+//    Developed by G. Schwing and Mohammad S. Barhaghi
 //
 //
 
@@ -62,49 +61,49 @@ public:
   virtual void RecipInit(uint box, BoxDimensions const &boxAxes) {}
 
   // initialize wave vector for orthogonal box
-  virtual void RecipInitOrth(uint box, BoxDimensions const &boxAxes)  {}
+  virtual void RecipInitOrth(uint box, BoxDimensions const &boxAxes) {}
 
   // initialize wave vector for non-orthogonal box
   virtual void RecipInitNonOrth(uint box, BoxDimensions const &boxAxes) {}
 
   // Get initial estimate of memory required
-  void RecipCountInit(uint box, BoxDimensions const &boxAxes)  {}
+  virtual void RecipCountInit(uint box, BoxDimensions const &boxAxes) {}
 
   // compute reciprocal term for a box with a new volume
   virtual void BoxReciprocalSetup(uint box, XYZArray const &molCoords) {}
 
   // compute reciprocal term for a box when not testing a volume change
-  virtual void BoxReciprocalSums(uint box, XYZArray const &molCoords)  {}
+  virtual void BoxReciprocalSums(uint box, XYZArray const &molCoords) {}
 
   // calculate reciprocal energy term for a box
-  virtual double BoxReciprocal(uint box, bool isNewVolume) const  {return 0.0;}
+  virtual double BoxReciprocal(uint box, bool isNewVolume) const { return 0.0; }
 
   // calculate self term for a box
   virtual double BoxSelf(uint box) const;
 
   // calculate reciprocal force term for a box
-  virtual Virial VirialReciprocal(Virial &virial, uint box) const  {return Virial();}
+  virtual Virial VirialReciprocal(Virial &virial, uint box) const { return Virial(); }
 
   // calculate reciprocal term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const &molCoords, const uint molIndex,
-                               const uint box)  {return 0.0;}
+                               const uint box) { return 0.0; }
 
   // calculate reciprocal term for lambdaNew and Old with same coordinates
   virtual double ChangeLambdaRecip(XYZArray const &molCoords,
                                    const double lambdaOld,
                                    const double lambdaNew, const uint molIndex,
-                                   const uint box)  {return 0.0;}
+                                   const uint box) { return 0.0; }
 
   // calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box) const;
 
   // calculate reciprocal term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
-                               const int molIndex)  {return 0.0;}
+                               const int molIndex) { return 0.0; }
 
   // calculate reciprocal term in source box for swap move
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
-                                 const int molIndex)  {return 0.0;}
+                                 const int molIndex) { return 0.0; }
 
   // calculate reciprocal term for inserting some molecules (kindA) in
   // destination box and removing a molecule (kindB) from destination box
@@ -112,7 +111,7 @@ public:
   MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                         const std::vector<cbmc::TrialMol> &oldMol,
                         const std::vector<uint> &molIndexNew,
-                        const std::vector<uint> &molIndexOld, bool first_call) {return 0.0;}
+                        const std::vector<uint> &molIndexOld, bool first_call) { return 0.0; }
 
   // calculate correction term after swap move, with lambda = 1
   virtual double SwapCorrection(const cbmc::TrialMol &trialMol) const;
@@ -140,10 +139,10 @@ public:
   virtual void RestoreMol(int molIndex) {}
 
   // Find the largest kvector
-  uint findLargeImage() {return 0;}
+  virtual uint findLargeImage() { return 0;}
 
   // update sinMol and cosMol
-  virtual void exgMolCache() {};
+  virtual void exgMolCache() {}
 
   // backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
   virtual void backupMolCache() {}
@@ -158,7 +157,7 @@ public:
   // calculate reciprocal force term for a box with molCoords
   virtual void BoxForceReciprocal(XYZArray const &molCoords,
                                   XYZArray &atomForceRec, XYZArray &molForceRec,
-                                  uint box)  {}
+                                  uint box) {}
 
   double GetLambdaCoef(uint molA, uint box) const;
 
@@ -181,7 +180,7 @@ public:
   virtual void ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
                            const std::vector<double> &lambda_Coul,
                            const uint iState, const uint molIndex,
-                           const uint box) const  {}
+                           const uint box) const {}
 
 private:
 

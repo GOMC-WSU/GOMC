@@ -61,7 +61,7 @@ public:
   void PrintAcceptance();
 
   // return ewald
-  Ewald *GetEwald() { return calcEwald; }
+  ElectrostaticBase *GetEwald() { return calcEwald; }
 
   // Return the pointer to specific move
   MoveBase *GetMoveObject(const uint moveIndex) { return moves[moveIndex]; }
@@ -116,8 +116,8 @@ public:
   Velocity vel;
 
   CalculateEnergy calcEnergy;
-  Ewald *calcEwald;
-  Wolf *calcWolf;
+  ElectrostaticBase *calcEwald;
+  //Wolf *calcWolf;
 
   /* For checkpoint restoration */
   CheckpointSetup checkpointSet;

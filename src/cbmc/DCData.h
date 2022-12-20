@@ -29,7 +29,7 @@ public:
 
   const CalculateEnergy &calc;
 
-  const Ewald *calcEwald;
+  const ElectrostaticBase *calcEwald;
 
   const Forcefield &ff;
   const BoxDimensions &axes;

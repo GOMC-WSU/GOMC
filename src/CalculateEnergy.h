@@ -274,7 +274,7 @@ private:
   const Molecules &mols;
   const Coordinates &currentCoords;
   const COM &currentCOM;
-  const Ewald *calcEwald;
+  const ElectrostaticBase *calcEwald;
   const Lambda &lambdaRef;
   XYZArray &atomForceRef;
   XYZArray &molForceRef;

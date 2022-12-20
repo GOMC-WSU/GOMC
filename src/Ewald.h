@@ -14,6 +14,9 @@ along with this program, also can be found at
 #include <cstring>
 #include <vector>
 
+#include "ElectrostaticBase.h"
+
+
 #include "BasicTypes.h"
 #include "EnergyTypes.h"
 #include "Forcefield.h"
@@ -45,7 +48,7 @@ class BoxDimensions;
 class CalculateEnergy;
 class Lambda;
 
-class Ewald {
+class Ewald : public ElectrostaticBase{
   // friend class CalculateEnergy;
 public:
   Ewald(StaticVals &stat, System &sys);
@@ -193,9 +196,6 @@ protected:
   const SystemPotential &sysPotRef;
   const Lambda &lambdaRef;
 
-  bool electrostatic, ewald, multiParticleEnabled;
-  double alpha;
-  double recip_rcut, recip_rcut_Sq;
   uint *imageSize;
   uint *imageSizeRef;
   // const uint imageTotal = GetImageSize();
@@ -212,21 +212,6 @@ protected:
   double **hsqr, **hsqrRef;
   double **prefact, **prefactRef;
 
-  std::vector<int> particleKind;
-  std::vector<int> particleMol;
-
-  // starting index of molecule
-  std::vector<int> startMol;
-  // length of each molecule
-  std::vector<int> lengthMol;
-  // starting atom index of each box
-  int boxStart[BOX_TOTAL];
-  // ending atom index of each box
-  int boxEnd[BOX_TOTAL];
-  // atom charges
-  std::vector<double> particleCharge;
-  // which atoms don't have charge
-  std::vector<bool> particleHasNoCharge;
 };
 
 #endif /*EWALD_H*/
