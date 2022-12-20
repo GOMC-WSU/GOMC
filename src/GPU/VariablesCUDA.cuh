@@ -84,6 +84,14 @@ public:
     gpu_lambdaVDW = NULL;
     gpu_lambdaCoulomb = NULL;
     gpu_isFraction = NULL;
+
+    // set wolf variables to null
+    gpu_wolf = NULL;
+    gpu_coulKind = NULL;
+    gpu_wolfAlpha = NULL;
+    gpu_wolfFactor1 = NULL;
+    gpu_wolfFactor2 = NULL;
+    gpu_wolfFactor3 = NULL;
   }
   double *gpu_sigmaSq;
   double *gpu_epsilon_Cn;
@@ -133,5 +141,13 @@ public:
 
   // new pair interaction calculation done on GPU
   int *gpu_cellVector, *gpu_mapParticleToCell;
+
+  // Wolf Variables
+  int *gpu_wolf;
+  int *gpu_coulKind;
+  double * gpu_wolfAlpha;
+  double * gpu_wolfFactor1;
+  double * gpu_wolfFactor2;
+  double * gpu_wolfFactor3;
 };
 #endif
