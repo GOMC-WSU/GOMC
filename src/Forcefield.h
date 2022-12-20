@@ -25,6 +25,8 @@ class Setup;
 class FFPrintout;
 struct FFParticle;
 
+typedef double BOX_SIZE_DOUBLE_ARRAY[BOX_TOTAL];
+
 class Forcefield {
 public:
   friend class FFPrintout;
@@ -35,6 +37,13 @@ public:
   void Init(const Setup &set);
   uint GetWolfKind(void);
   uint GetCoulKind(void); 
+  BOX_SIZE_DOUBLE_ARRAY& GetWolfAlpha(void);
+  BOX_SIZE_DOUBLE_ARRAY& GetWolfFactor1(void);
+  BOX_SIZE_DOUBLE_ARRAY& GetWolfFactor2(void);
+  BOX_SIZE_DOUBLE_ARRAY& GetWolfFactor3(void);
+  BOX_SIZE_DOUBLE_ARRAY& GetRCutCoulomb(void);
+  BOX_SIZE_DOUBLE_ARRAY& GetRCutCoulombSq(void);
+
   FFParticle *particles; //!< For LJ/Mie energy between unbonded atoms
   // for LJ, shift and switch type
   FFBonds bonds;             //!< For bond stretching energy

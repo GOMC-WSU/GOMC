@@ -140,3 +140,12 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
     exit(EXIT_FAILURE);
   }
 }
+
+uint Forcefield::GetWolfKind(void) {return wolfKind;}
+uint Forcefield::GetCoulKind(void) {return coulKind;} 
+BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfAlpha(void) {return wolfAlpha;} 
+BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfFactor1(void) {return wolfFactor1;} 
+BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfFactor2(void) {return wolfFactor2;} 
+BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfFactor3(void) {return wolfFactor3;} 
+BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetRCutCoulomb(void) {return rCutCoulomb;} 
+BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetRCutCoulombSq(void) {return rCutCoulombSq;} 

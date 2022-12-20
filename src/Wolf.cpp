@@ -43,18 +43,29 @@ using namespace geom;
 Wolf::Wolf(StaticVals &stat, System &sys)
     : ff(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
 #ifdef VARIABLE_PARTICLE_NUMBER
-      molLookup(sys.molLookup),
+      molLookup(sys.molLookup),  
 #else
       molLookup(stat.molLookup),
 #endif
       currentAxes(sys.boxDimRef), currentCOM(sys.com), sysPotRef(sys.potential),
-      lambdaRef(sys.lambdaRef) {
+      lambdaRef(sys.lambdaRef),
+      wolfKind(stat.forcefield.GetWolfKind()),
+      coulKind(stat.forcefield.GetCoulKind()),
+      wolfAlpha(stat.forcefield.GetWolfAlpha()),
+      wolfFactor1(stat.forcefield.GetWolfFactor1()),      
+      wolfFactor2(stat.forcefield.GetWolfFactor2()),
+      wolfFactor3(stat.forcefield.GetWolfFactor3()),
+      rCutCoulomb(stat.forcefield.GetRCutCoulomb()),
+      rCutCoulombSq(stat.forcefield.GetRCutCoulombSq())  {
   ewald = false;
   electrostatic = false;
   alpha = 0.0;
   recip_rcut = 0.0;
   recip_rcut_Sq = 0.0;
   multiParticleEnabled = stat.multiParticleEnabled;
+  oneThree = stat.forcefield.OneThree;
+  oneFour = stat.forcefield.OneFour;
+  scaling_14 = stat.forcefield.scaling_14;
 }
 
 void Wolf::Init() {
@@ -90,7 +101,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const {
 
   GOMC_EVENT_START(1, GomcProfileEvent::CORR_MOL);
   double dist, distSq;
-  double correction = 0.0;
+  double correction = 0.0, dampenedCorr = 0.0, undampenedCorr = 0.0;
   XYZ virComponents;
 
   MoleculeKind &thisKind = mols.kinds[mols.kIndex[molIndex]];
@@ -98,21 +109,35 @@ double Wolf::MolCorrection(uint molIndex, uint box) const {
   uint start = mols.MolStart(molIndex);
   double lambdaCoef = GetLambdaCoef(molIndex, box);
 
-  for (uint i = 0; i < atomSize; i++) {
-    if (particleHasNoCharge[start + i]) {
-      continue;
-    }
-    for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, currentCoords, start + i,
-                         start + j, box);
-      dist = sqrt(distSq);
-      correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(ff.alpha[box] * dist) / dist);
-    }
+  switch(wolfKind) {
+    case WOLF_RAHBARI_KIND  :
+      correction = RahbariCorrection(thisKind,
+                              box,
+                              virComponents,
+                              atomSize,
+                              start);
+      break; 
+    case WOLF_WAIBEL2018_KIND  :
+      correction = Waibel2018Correction(thisKind,
+                              box,
+                              virComponents,
+                              atomSize,
+                              start); 
+      break; 
+    case WOLF_WAIBEL2019_KIND :
+      correction = Waibel2019Correction(thisKind,
+                        box,
+                        virComponents,
+                        atomSize,
+                        start);
+      break;
+    // you can have any number of case statements.
+    default : //Optional
+      exit(1);
   }
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_MOL);
-  return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
+  return correction * lambdaCoef * lambdaCoef;
 }
 
 // It's called in free energy calculation to calculate the change in
@@ -126,23 +151,33 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
   uint lambdaSize = lambda_Coul.size();
   double coefDiff, distSq, dist, correction = 0.0;
   XYZ virComponents;
-
-  // Calculate the correction energy with lambda = 1
-  for (uint i = 0; i < atomSize; i++) {
-    if (particleHasNoCharge[start + i]) {
-      continue;
-    }
-
-    for (uint j = i + 1; j < atomSize; j++) {
-      distSq = 0.0;
-      currentAxes.InRcut(distSq, virComponents, currentCoords, start + i,
-                         start + j, box);
-      dist = sqrt(distSq);
-      correction += (particleCharge[i + start] * particleCharge[j + start] *
-                     erf(ff.alpha[box] * dist) / dist);
-    }
+  MoleculeKind& thisKind = mols.kinds[mols.kIndex[molIndex]];
+  switch(wolfKind) {
+    case WOLF_RAHBARI_KIND  :
+      correction = RahbariCorrection(thisKind,
+                              box,
+                              virComponents,
+                              atomSize,
+                              start);
+      break; 
+    case WOLF_WAIBEL2018_KIND  :
+      correction = Waibel2018Correction(thisKind,
+                              box,
+                              virComponents,
+                              atomSize,
+                              start); 
+      break; 
+    case WOLF_WAIBEL2019_KIND :
+      correction = Waibel2019Correction(thisKind,
+                        box,
+                        virComponents,
+                        atomSize,
+                        start);
+      break;
+    // you can have any number of case statements.
+    default : //Optional
+      exit(1);  
   }
-  correction *= -1.0 * num::qqFact;
   // Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
     coefDiff = lambda_Coul[s] - lambda_Coul[iState];
@@ -186,11 +221,23 @@ double Wolf::BoxSelf(uint box) const {
     }
   }
 
-  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-  self *= -1.0 * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5;
-
+  switch(wolfKind) {
+    case WOLF_RAHBARI_KIND  :
+      self *= -0.5 * ((wolfAlpha[box] * M_2_SQRTPI) + wolfFactor1[box]);
+      break; 
+    case WOLF_WAIBEL2018_KIND  :
+      // we eliminate the alpha/root(pi) using Wolf,mod from WAIBEL2018 et al
+      self *= -0.5 * wolfFactor1[box];
+      break; 
+    case WOLF_WAIBEL2019_KIND :
+      self *= -0.5 * ((wolfAlpha[box] * M_2_SQRTPI) + wolfFactor1[box]);
+      break;
+    // you can have any number of case statements.
+    default : //Optional
+      exit(1);
+  }
   GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
-  return self;
+  return self * num::qqFact;
 }
 
 
@@ -204,24 +251,24 @@ double Wolf::SwapCorrection(const cbmc::TrialMol &trialMol) const {
     return 0.0;
 
   GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
-  double dist, distSq;
   double correction = 0.0;
-  XYZ virComponents;
-  const MoleculeKind &thisKind = trialMol.GetKind();
-  uint atomSize = thisKind.NumAtoms();
 
-  for (uint i = 0; i < atomSize; i++) {
-    for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, j,
-                         box);
-
-      dist = sqrt(distSq);
-      correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(ff.alpha[box] * dist) / dist);
-    }
+  switch(wolfKind) {
+    case WOLF_RAHBARI_KIND  :
+      correction = RahbariCorrection(trialMol);
+      break; 
+    case WOLF_WAIBEL2018_KIND  :
+      correction = Waibel2018Correction(trialMol);
+      break; 
+    case WOLF_WAIBEL2019_KIND :
+      correction = Waibel2019Correction(trialMol);
+      break;
+    // you can have any number of case statements.
+    default : //Optional
+      exit(1);  
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
-  return num::qqFact * correction;
+  return correction;
 }
 
 // calculate correction term for a molecule with system lambda
@@ -234,29 +281,25 @@ double Wolf::SwapCorrection(const cbmc::TrialMol &trialMol,
     return 0.0;
 
   GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
-  double dist, distSq;
-  double correction = 0.0;
-  XYZ virComponents;
-  const MoleculeKind &thisKind = trialMol.GetKind();
-  uint atomSize = thisKind.NumAtoms();
-  uint start = mols.MolStart(molIndex);
   double lambdaCoef = GetLambdaCoef(molIndex, box);
+  double correction = 0.0;
 
-  for (uint i = 0; i < atomSize; i++) {
-    if (particleHasNoCharge[start + i]) {
-      continue;
-    }
-    for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, j,
-                         box);
-
-      dist = sqrt(distSq);
-      correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(ff.alpha[box] * dist) / dist);
-    }
+  switch(wolfKind) {
+    case WOLF_RAHBARI_KIND  :
+      correction = RahbariCorrection(trialMol);
+      break; 
+    case WOLF_WAIBEL2018_KIND  :
+      correction = Waibel2018Correction(trialMol);
+      break; 
+    case WOLF_WAIBEL2019_KIND :
+      correction = Waibel2019Correction(trialMol);
+      break;
+    // you can have any number of case statements.
+    default : //Optional
+      exit(1);  
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
-  return num::qqFact * correction * lambdaCoef * lambdaCoef;
+  return correction * lambdaCoef * lambdaCoef;
 }
 
 // It's called if we transfer one molecule from one box to another
@@ -273,11 +316,26 @@ double Wolf::SwapSelf(const cbmc::TrialMol &trialMol) const {
   double en_self = 0.0;
 
   for (uint i = 0; i < atomSize; i++) {
-    en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
+    en_self += (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
+  }
+
+  switch(wolfKind) {
+    case WOLF_RAHBARI_KIND  :
+      en_self *= -0.5 * ((wolfAlpha[box] * M_2_SQRTPI) + wolfFactor1[box]);
+      break; 
+    case WOLF_WAIBEL2018_KIND  :
+      // we eliminate the alpha/root(pi) using Wolf,mod from WAIBEL2018 et al
+      en_self *= -0.5 * wolfFactor1[box];
+      break; 
+    case WOLF_WAIBEL2019_KIND :
+      en_self *= -0.5 * ((wolfAlpha[box] * M_2_SQRTPI) + wolfFactor1[box]);
+      break;
+    // you can have any number of case statements.
+    default : //Optional
+      exit(1);
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
-  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-  return (en_self * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5);
+  return en_self * num::qqFact;
 }
 
 // It's called in free energy calculation to calculate the change in
@@ -294,9 +352,24 @@ void Wolf::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
   for (uint i = 0; i < atomSize; i++) {
     en_self += (particleCharge[i + start] * particleCharge[i + start]);
   }
-  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-  en_self *= -1.0 * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5;
 
+  switch(wolfKind) {
+    case WOLF_RAHBARI_KIND  :
+      en_self *= -0.5 * ((wolfAlpha[box] * M_2_SQRTPI) + wolfFactor1[box]);
+      break; 
+    case WOLF_WAIBEL2018_KIND  :
+      // we eliminate the alpha/root(pi) using Wolf,mod from WAIBEL2018 et al
+      en_self *= -0.5 * wolfFactor1[box];
+      break; 
+    case WOLF_WAIBEL2019_KIND :
+      en_self *= -0.5 * ((wolfAlpha[box] * M_2_SQRTPI) + wolfFactor1[box]);
+      break;
+    // you can have any number of case statements.
+    default : //Optional
+      exit(1);
+  }
+  en_self *= num::qqFact;
+  
   // Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
     coefDiff = lambda_Coul[s] - lambda_Coul[iState];
@@ -311,4 +384,256 @@ double Wolf::GetLambdaCoef(uint molA, uint box) const {
   double lambda = lambdaRef.GetLambdaCoulomb(molA, box);
   // Each charge gets sq root of it.
   return sqrt(lambda);
+}
+
+double Wolf::RahbariCorrection(MoleculeKind &thisKind,
+                                    uint box,
+                                    XYZ virComponents,
+                                    uint atomSize,
+                                    uint start) const{
+  double correction = 0.0, dampenedCorr = 0.0;
+  double dist, distSq;
+  for (uint i = 0; i < atomSize; i++) {
+    if (particleHasNoCharge[start + i]) {
+      continue;
+    }
+    for (uint j = i + 1; j < atomSize; j++) {
+      currentAxes.InRcut(distSq, virComponents, currentCoords, start + i,
+                        start + j, box);
+      dist = sqrt(distSq);
+      dampenedCorr = 0.0;
+      if(distSq < rCutCoulombSq[box]){
+        // All methods have this constant term.
+        dampenedCorr -= erf(wolfAlpha[box] * dist)/dist;   
+        dampenedCorr -= wolfFactor1[box];
+        // Rahbari doesn't include this term
+        //if(coulKind){
+        //  double distDiff = dist-rCutCoulomb[box];
+        //  dampenedCorr += wolfFactor2[box]*distDiff;
+        //} 
+        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
+        //correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+        //              erf(ff.alpha[box] * dist) / dist);
+      }
+    }
+  }
+  return correction * num::qqFact;
+}
+
+
+double Wolf::Waibel2018Correction(MoleculeKind &thisKind,
+                                    uint box,
+                                    XYZ virComponents,
+                                    uint atomSize,
+                                    uint start) const{
+  double correction = 0.0, dampenedCorr = 0.0;
+  double dist, distSq;
+  for (uint i = 0; i < atomSize; i++) {
+    if (particleHasNoCharge[start + i]) {
+      continue;
+    }
+    for (uint j = i + 1; j < atomSize; j++) {
+      correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];
+    }
+    if(oneThree){
+      //loop over all 1-3 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_3.Begin(i);
+      const uint* end = thisKind.sortedNB_1_3.End(i);
+      while (partner != end) {
+        // Need to check for cutoff for all kinds
+        currentAxes.InRcut(distSq, virComponents, currentCoords,
+                          start + i, start + (*partner), box); 
+        if(distSq < rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+          dampenedCorr *= scaling_14;
+          correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+        }
+        ++partner;
+      }
+    }
+    if(oneFour){
+      //loop over all 1-4 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_4.Begin(i);
+      const uint* end = thisKind.sortedNB_1_4.End(i);
+      while (partner != end) {
+        // Need to check for cutoff for all kinds
+        currentAxes.InRcut(distSq, virComponents, currentCoords,
+                          start + i, start + (*partner), box); 
+        if(distSq < rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+          dampenedCorr *= scaling_14;
+          correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+        }
+        ++partner;
+      }
+    }
+    //loop over all 1-N partners of the particle
+    const uint* partner = thisKind.sortedNB.Begin(i);
+    const uint* end = thisKind.sortedNB.End(i);
+    while (partner != end) {
+        // Need to check for cutoff for all kinds
+        currentAxes.InRcut(distSq, virComponents, currentCoords,
+                          start + i, start + (*partner), box); 
+        if(distSq < rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+          correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+      }
+      ++partner;
+    }      
+  }
+  return correction * num::qqFact;
+}
+
+double Wolf::Waibel2019Correction(MoleculeKind &thisKind,
+                                    uint box,
+                                    XYZ virComponents,
+                                    uint atomSize,
+                                    uint start) const{
+  double correction = 0.0, dampenedCorr = 0.0;
+  double dist, distSq;
+  for (uint i = 0; i < atomSize; i++) {
+    if (particleHasNoCharge[start + i]) {
+      continue;
+    }
+    for (uint j = i + 1; j < atomSize; j++) {
+      currentAxes.InRcut(distSq, virComponents, currentCoords, start + i,
+                        start + j, box);
+      dist = sqrt(distSq);
+      dampenedCorr = 0.0;
+      if(distSq < rCutCoulombSq[box]){
+        // All methods have this constant term.
+        dampenedCorr -= erf(wolfAlpha[box] * dist)/dist;   
+        dampenedCorr -= wolfFactor1[box];
+        if(coulKind){
+          double distDiff = dist-rCutCoulomb[box];
+          dampenedCorr += wolfFactor2[box]*distDiff;
+        } 
+        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
+        //correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+        //              erf(ff.alpha[box] * dist) / dist);
+      }
+    }
+  }
+  return correction * num::qqFact;
+}
+
+
+double Wolf::RahbariCorrection(const cbmc::TrialMol &trialMol) const{
+  uint box = trialMol.GetBox();
+  MoleculeKind const& thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  XYZ virComponents;
+  double correction = 0.0, dampenedCorr = 0.0;
+  double dist, distSq;
+  for (uint i = 0; i < atomSize; i++) {
+    for (uint j = i + 1; j < atomSize; j++) {
+      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box);
+      dampenedCorr = 0.0;
+      if(distSq < rCutCoulombSq[box]){
+        // All methods have this constant term.
+        dampenedCorr -= wolfFactor1[box];
+        dist = sqrt(distSq);
+        dampenedCorr += -1.0*erf(wolfAlpha[box] * dist)/dist;   
+        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
+      }
+    }
+  }
+  return correction * num::qqFact;
+}
+
+
+double Wolf::Waibel2018Correction(const cbmc::TrialMol &trialMol) const{
+  uint box = trialMol.GetBox();
+  MoleculeKind const& thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  XYZ virComponents;
+  double correction = 0.0, dampenedCorr = 0.0;
+  double dist, distSq;
+  for (uint i = 0; i < atomSize; i++) {
+    for (uint j = i + 1; j < atomSize; j++) {
+      correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];
+    }
+    if(oneThree){
+      //loop over all 1-3 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_3.Begin(i);
+      const uint* end = thisKind.sortedNB_1_3.End(i);
+      while (partner != end) {
+        // Need to check for cutoff for all kinds
+        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                        i, *partner, box); 
+        if(distSq < rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+          dampenedCorr *= scaling_14;
+          correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+        }
+        ++partner;
+      }
+    }
+    if(oneFour){
+      //loop over all 1-4 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_4.Begin(i);
+      const uint* end = thisKind.sortedNB_1_4.End(i);
+      while (partner != end) {
+        // Need to check for cutoff for all kinds
+        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                        i, *partner, box); 
+        if(distSq < rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+          dampenedCorr *= scaling_14;
+          correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+        }
+        ++partner;
+      }
+    }
+    //loop over all 1-N partners of the particle
+    const uint* partner = thisKind.sortedNB.Begin(i);
+    const uint* end = thisKind.sortedNB.End(i);
+    while (partner != end) {
+      // Need to check for cutoff for all kinds
+      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                      i, *partner, box); 
+      if(distSq < rCutCoulombSq[box]){
+        dist = sqrt(distSq);
+        dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+      }
+      ++partner;
+    }      
+  }
+  return correction * num::qqFact;
+}
+
+double Wolf::Waibel2019Correction(const cbmc::TrialMol &trialMol) const{
+  uint box = trialMol.GetBox();
+  MoleculeKind const& thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  XYZ virComponents;
+  double correction = 0.0, dampenedCorr = 0.0;
+  double dist, distSq;
+
+  for (uint i = 0; i < atomSize; i++) {
+    for (uint j = i + 1; j < atomSize; j++) {
+      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box);
+      dampenedCorr = 0.0;
+      if(distSq < rCutCoulombSq[box]){
+        // All methods have this constant term.
+        dampenedCorr -= wolfFactor1[box];
+        dist = sqrt(distSq);
+        dampenedCorr += -1.0*erf(wolfAlpha[box] * dist)/dist;   
+        if(coulKind){
+          double distDiff = dist-rCutCoulomb[box];
+          dampenedCorr += wolfFactor2[box]*distDiff;
+        }
+        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
+      }
+    }
+  }
+  return correction * num::qqFact;
 }

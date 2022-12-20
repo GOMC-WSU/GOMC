@@ -33,6 +33,7 @@ along with this program, also can be found at
 //    Developed by G. Schwing and Mohammad S. Barhaghi
 //
 //
+typedef double BOX_SIZE_DOUBLE_ARRAY[BOX_TOTAL];
 
 class StaticVals;
 class System;
@@ -46,6 +47,8 @@ class XYZArray;
 class BoxDimensions;
 class CalculateEnergy;
 class Lambda;
+
+enum wolfKind { WOLF_RAHBARI_KIND, WOLF_WAIBEL2018_KIND, WOLF_WAIBEL2019_KIND };
 
 class Wolf : public ElectrostaticBase{
   // friend class CalculateEnergy;
@@ -183,6 +186,34 @@ public:
                            const uint box) const {}
 
 private:
+  const uint wolfKind, coulKind;
+  const BOX_SIZE_DOUBLE_ARRAY& wolfAlpha; //alpha term for Wolf Electrostatic and constant factors
+  const BOX_SIZE_DOUBLE_ARRAY& wolfFactor1; //alpha term for Wolf Electrostatic and constant factors
+  const BOX_SIZE_DOUBLE_ARRAY& wolfFactor2;  //alpha term for Wolf Electrostatic and constant factors
+  const BOX_SIZE_DOUBLE_ARRAY& wolfFactor3; //alpha term for Wolf Electrostatic and constant factors  
+  const BOX_SIZE_DOUBLE_ARRAY& rCutCoulomb;  //alpha term for Wolf Electrostatic and constant factors
+  const BOX_SIZE_DOUBLE_ARRAY& rCutCoulombSq; //alpha term for Wolf Electrostatic and constant factors  
+  bool oneThree, oneFour;
+  double scaling_14;
+  double RahbariCorrection(MoleculeKind &thisKind,
+                                uint box,
+                                XYZ virComponents,
+                                uint atomSize,
+                                uint start) const;
+  double Waibel2018Correction(MoleculeKind &thisKind,
+                                uint box,
+                                XYZ virComponents,
+                                uint atomSize,
+                                uint start) const;
+  double Waibel2019Correction(MoleculeKind &thisKind,
+                                uint box,
+                                XYZ virComponents,
+                                uint atomSize,
+                                uint start) const;
+
+  double RahbariCorrection(const cbmc::TrialMol &trialMol) const;
+  double Waibel2018Correction(const cbmc::TrialMol &trialMol) const;
+  double Waibel2019Correction(const cbmc::TrialMol &trialMol) const;
 
 protected:
   const Forcefield &ff;
