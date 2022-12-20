@@ -81,8 +81,6 @@ public:
   bool isFugacity; // To check if we are using fugacity instead of chemical
                    // potential
 #endif
-
-private:
   // Initialize primitive member variables from setup data
   bool wolf;
   double wolfAlpha[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
@@ -90,6 +88,9 @@ private:
   double wolfFactor2[BOX_TOTAL];  //alpha term for Wolf Electrostatic and constant factors
   double wolfFactor3[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
   uint coulKind, wolfKind;        //To define Coul type (if Wolf), dampened shift potential or dampened shift force
+
+
+private:
 
   void InitBasicVals(config_setup::SystemVals const &val,
                      config_setup::FFKind const &ffKind);

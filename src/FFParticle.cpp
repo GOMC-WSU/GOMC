@@ -393,6 +393,18 @@ inline double FFParticle::CalcCoulomb(const double distSq,
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
     return qi_qj_Fact * erfc(val) / dist;
+  } else if (forcefield.wolf){
+    double dist = sqrt(distSq);
+    // V_DSP -- (16) from Gezelter 2006
+    double wolf_electrostatic = erfc(forcefield.wolfAlpha[b] * dist)/dist;
+    wolf_electrostatic -= forcefield.wolfFactor1[b];
+    // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
+    if(forcefield.coulKind){
+      double distDiff = dist-forcefield.rCutCoulomb[b];
+      wolf_electrostatic += forcefield.wolfFactor2[b]*distDiff;
+    } 
+    wolf_electrostatic *= qi_qj_Fact;
+    return wolf_electrostatic; 
   } else {
     double dist = sqrt(distSq);
     return qi_qj_Fact / dist;
@@ -432,13 +444,28 @@ inline double FFParticle::CalcCoulombVir(const double distSq, const uint kind1,
 inline double FFParticle::CalcCoulombVir(const double distSq,
                                          const double qi_qj,
                                          const uint b) const {
-  if (forcefield.ewald) {
+  if (forcefield.ewald) {  
     double dist = sqrt(distSq);
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = forcefield.alpha[b] * M_2_SQRTPI;
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = 1.0 - erf(forcefield.alpha[b] * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (forcefield.wolf){
+    double dist = sqrt(distSq);
+    // F_DSP -- (17) from Gezelter 2006
+    double wolf_electrostatic_force = erfc(forcefield.wolfAlpha[b] * dist)/distSq;
+    // M_2_SQRTPI is 2/sqrt(PI)
+    wolf_electrostatic_force += forcefield.wolfFactor3[b]*exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*distSq)/dist;
+    // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
+    if(forcefield.coulKind){
+      wolf_electrostatic_force -= forcefield.wolfFactor2[b];
+    } 
+    wolf_electrostatic_force *= qi_qj;
+    // return wolf_electrostatic_force; 
+    // Since GOMC converts the force vectors to unit vectors
+    // Divide by the magnitude
+    return wolf_electrostatic_force/dist; 
   } else {
     double dist = sqrt(distSq);
     double result = qi_qj / (distSq * dist);
