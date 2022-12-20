@@ -10,6 +10,7 @@ along with this program, also can be found at
 
 #include "CalculateEnergy.h"
 #include "EnsemblePreprocessor.h" //For VARIABLE_<QUANTITY> conditional defines
+#include "Wolf.h"
 #include "Ewald.h"
 #include "EwaldCached.h"
 #include "NoEwald.h"
@@ -116,6 +117,7 @@ public:
 
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;
+  Wolf *calcWolf;
 
   /* For checkpoint restoration */
   CheckpointSetup checkpointSet;
