@@ -31,10 +31,10 @@ along with this program, also can be found at
 
 //
 //
-//    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocal part of ewald
+//    Energy Calculation functions for Wolf approximation method
+//    Calculating self and correction terms.
 //
-//    Developed by Y. Li and Mohammad S. Barhaghi
+//    Developed by G. Schwing and Mohammad S. Barhaghi
 //
 //
 

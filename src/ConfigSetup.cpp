@@ -32,11 +32,20 @@ ConfigSetup::ConfigSetup(void) {
   sys.elect.readElect = false;
   sys.elect.readCache = false;
   sys.elect.ewald = false;
+  sys.elect.wolf = false;
+  sys.ff.WOLF_KIND = UINT_MAX;
+  sys.ff.COUL_KIND = UINT_MAX;
   sys.elect.enable = false;
   sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
+  for(i = 0; i < BOX_TOTAL; i++) {
+    sys.elect.wolfAlpha[i] = DBL_MAX;
+    sys.elect.readWolfAlpha[i] = false;
+  }
+  sys.elect.readWolfType = false;
+  sys.elect.readWolfKind = false;
   sys.memcVal.enable = false;
   sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
@@ -694,6 +703,72 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     } else if (CheckString(line[0], "ElectroStatic")) {
       sys.elect.enable = checkBool(line[1]);
       sys.elect.readElect = true;
+    } else if (CheckString(line[0], "Wolf")){
+          sys.elect.wolf = checkBool(line[1]);
+          printf("%-40s %-s \n", "Info: Wolf Electrostatic", sys.elect.wolf ? "Active" : "Inactive");
+    } else if (CheckString(line[0], "WolfKind")){
+      if (line.size() >= 2){
+        if (CheckString(line[1], "WAIBEL2018")){    
+          sys.ff.WOLF_KIND = sys.ff.WOLF_WAIBEL2018_KIND;
+          printf("%-40s %-s \n", "Info: Wolf WAIBEL2018 Implementation", "Active");
+          sys.elect.readWolfKind = true;
+        } else if (CheckString(line[1], "WAIBEL2019")) {
+          sys.ff.WOLF_KIND = sys.ff.WOLF_WAIBEL2019_KIND;
+          printf("%-40s %-s \n", "Info: Wolf WAIBEL2019 Implementation", "Active");
+          sys.elect.readWolfKind = true;
+        } else if (CheckString(line[1], "RAHBARI")) {
+          sys.ff.WOLF_KIND = sys.ff.WOLF_RAHBARI_KIND;
+          printf("%-40s %-s \n", "Info: Wolf RAHBARI Implementation", "Active");
+          sys.elect.readWolfKind = true;
+        } else {
+          std::cout <<  "Error: Wolf Kind incorrectly specified!" << std::endl <<
+                        "Usage : WolfKind\tWAIBEL2018/WAIBEL2019/RAHBARI" << std::endl <<
+                        "Example : WolfKind\tGross" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      } else {
+          std::cout <<  "Error: Wolf Kind incorrectly specified!" << std::endl <<
+                        "Usage : WolfKind\tWAIBEL2018/WAIBEL2019/RAHBARI" << std::endl <<
+                        "Example : WolfKind\tWAIBEL2018" << std::endl;
+          exit(EXIT_FAILURE);
+      }
+    } else if (CheckString(line[0], "WolfPotential")){
+      if (line.size() >= 2){
+        if (CheckString(line[1], "DSP")){
+          sys.ff.COUL_KIND = sys.ff.COUL_DSP_KIND;
+          printf("%-40s %-s \n", "Info: Wolf Dampened Shifted Potential", "Active");
+          sys.elect.readWolfType = true;
+        } else if (CheckString(line[1], "DSF")){              
+          sys.ff.COUL_KIND = sys.ff.COUL_DSF_KIND;
+          printf("%-40s %-s \n", "Info: Wolf Dampened Shifted Force", "Active");
+          sys.elect.readWolfType = true;
+        } else {
+          std::cout <<  "Error: WolfPotential incorrectly specified!" << std::endl <<
+                        "Usage : WolfPotential\t(DSP/DSF)" << std::endl <<
+                        "Example : WolfPotential\tDSP" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      }
+    } else if (CheckString(line[0], "WolfAlpha")) {
+      if (line.size() != 3){
+          std::cout <<  "Error: Wolf Alpha incorrectly specified!" << std::endl <<
+                        "Usage : WolfAlpha\tBox(0,1)\tvalue" << std::endl <<
+                        "Example : WolfAlpha\t0\t1.0" << std::endl;
+          exit(EXIT_FAILURE);
+      } else {
+        int b = stringtoi(line[1]); 
+        sys.elect.readWolfAlpha[b] = true;
+        sys.elect.wolfAlpha[b] = stringtod(line[2]);       
+        if (b == 0)
+          printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 0", sys.elect.wolfAlpha[b]);
+        else if (b == 1)
+          printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 1", sys.elect.wolfAlpha[b]);
+        else{
+          std::cout <<  "Error: Only (0/1) for box is supported!" << std::endl <<
+          "You entered : WolfAlpha\t" << b << "\tvalue" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      }
     } else if (CheckString(line[0], "Tolerance")) {
       sys.elect.tolerance = stringtod(line[1]);
       printf("%-40s %-1.3E \n", "Info: Ewald Summation Tolerance",
@@ -1424,6 +1499,10 @@ void ConfigSetup::fillDefaults(void) {
     sys.elect.enable = true;
   }
 
+  if(sys.elect.wolf == true) {
+    sys.elect.enable = true;
+  }
+
   if (sys.moves.rotate == DBL_MAX) {
     sys.moves.rotate = 0.0;
     printf("%-40s %-4.4f \n", "Default: Rotation move frequency",
@@ -1674,6 +1753,38 @@ void ConfigSetup::fillDefaults(void) {
     }
   }
 
+  // Adapted from Cassandra
+  if (sys.elect.enable && sys.elect.wolf){
+    if (!sys.elect.readWolfType){
+      sys.elect.readWolfType = true;
+      if (sys.moves.multiParticleEnabled){
+        printf("%-40s %-40s \n", "Default: Wolf with multiparticle enabled: ", sys.ff.COUL_DSF.c_str());
+        sys.ff.COUL_KIND = sys.ff.COUL_DSF_KIND;
+      } else {
+        printf("%-40s %-40s \n", "Default: Wolf without multiparticle enabled: ", sys.ff.COUL_DSP.c_str());
+        sys.ff.COUL_KIND = sys.ff.COUL_DSP_KIND;
+      }
+    }
+    if (!sys.elect.readWolfType){
+      sys.ff.WOLF_KIND = sys.ff.WOLF_WAIBEL2019_KIND;
+    }
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(!sys.elect.readWolfAlpha[b]) {
+        if (sys.elect.cutoffCoulomb[b] == DBL_MAX){
+          std::cout << "Error: Coulombic Cutoff & Cutoff are not specified!  One is needed to automatically set WolfAlpha." << std::endl;
+          exit(EXIT_FAILURE);
+        } else {
+          printf("%s%d%s\n", "No damping alpha was specified for box ", b, ". Assume depends linearly with Coulomb cutoff.");
+          sys.elect.wolfAlpha[b] = ((double)0.425) - (sys.elect.cutoffCoulomb[b]*((double)0.02));
+          if (sys.elect.wolfAlpha[b] < 0.0)
+            sys.elect.wolfAlpha[b] = ((double)3.3930702)/sys.elect.cutoffCoulomb[b];
+          sys.elect.readWolfAlpha[b] = true;
+          printf("%s %-d %-24s %4.4f A\n", "Default: Box ", b, " WolfAlpha", sys.elect.wolfAlpha[b]);
+        }
+      }
+    }
+  }
+
   if (sys.ff.cutoffLow == DBL_MAX) {
     sys.ff.cutoffLow = 0.0;
     printf("%-40s %-4.4lf \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
@@ -1751,6 +1862,17 @@ void ConfigSetup::verifyInputs(void) {
     std::cout << "Error: Both multi-Particle and multi-Particle Brownian! "
               << " cannot be used at the same time!" << std::endl;
     exit(EXIT_FAILURE);
+  }
+
+  if(sys.elect.wolf && sys.elect.ewald){
+    std::cout << "Error: Wolf Electrostatic and Ewald cannot both be used to approximate reciprocal space!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if(sys.elect.wolf && sys.ff.COUL_KIND == sys.ff.COUL_DSP_KIND && sys.moves.multiParticleEnabled){
+    printf("Warning: Wolf Damped Shifted Potential (DSP) set with Multiparticle enabled.");
+    printf("The force using DSP is discontinuous at the cutoff.  We recommend DSF with MP enabled.\n");
+    //exit(EXIT_FAILURE);
   }
 
   if (!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
@@ -2647,6 +2769,11 @@ const std::string config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH";
 const std::string config_setup::Exclude::EXC_ONETWO = "1-2";
 const std::string config_setup::Exclude::EXC_ONETHREE = "1-3";
 const std::string config_setup::Exclude::EXC_ONEFOUR = "1-4";
+const std::string config_setup::FFValues::COUL_DSP = "DSP";
+const std::string config_setup::FFValues::COUL_DSF = "DSF";
+const std::string config_setup::FFValues::WOLF_RAHBARI = "RAHBARI";
+const std::string config_setup::FFValues::WOLF_WAIBEL2018 = "WAIBEL2018";
+const std::string config_setup::FFValues::WOLF_WAIBEL2019 = "WAIBEL2019";
 
 const uint config_setup::FFValues::VDW_STD_KIND = 0;
 const uint config_setup::FFValues::VDW_SHIFT_KIND = 1;
@@ -2655,3 +2782,9 @@ const uint config_setup::FFValues::VDW_EXP6_KIND = 3;
 const uint config_setup::Exclude::EXC_ONETWO_KIND = 0;
 const uint config_setup::Exclude::EXC_ONETHREE_KIND = 1;
 const uint config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
+
+const uint config_setup::FFValues::COUL_DSP_KIND = 0;
+const uint config_setup::FFValues::COUL_DSF_KIND = 1;
+const uint config_setup::FFValues::WOLF_RAHBARI_KIND = 0;
+const uint config_setup::FFValues::WOLF_WAIBEL2018_KIND = 1;
+const uint config_setup::FFValues::WOLF_WAIBEL2019_KIND = 2;
