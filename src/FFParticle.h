@@ -15,6 +15,7 @@ along with this program, also can be found at
 #include "Setup.h"
 #ifdef GOMC_CUDA
 #include "VariablesCUDA.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
 // Virial and LJ potential calculation:
@@ -99,6 +100,7 @@ public:
   double GetMass(const uint kind) const { return mass[kind]; }
 
 #ifdef GOMC_CUDA
+  void updateWolfEwald();
   VariablesCUDA *getCUDAVars() { return varCUDA; }
 #endif
 

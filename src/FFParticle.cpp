@@ -51,6 +51,19 @@ FFParticle::~FFParticle(void) {
 #endif
 }
 
+#ifdef GOMC_CUDA
+  void FFParticle::updateWolfEwald() {
+    UpdateGPUWolfEwald(*(getCUDAVars()),
+                        forcefield.ewald,
+                        forcefield.wolf, 
+                        forcefield.coulKind,
+                        forcefield.wolfAlpha,
+                        forcefield.wolfFactor1, 
+                        forcefield.wolfFactor2, 
+                        forcefield.wolfFactor3);
+  }
+#endif
+
 void FFParticle::Init(ff_setup::Particle const &mie,
                       ff_setup::NBfix const &nbfix) {
 #ifdef GOMC_CUDA

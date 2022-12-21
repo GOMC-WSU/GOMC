@@ -135,8 +135,10 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                               // r = 0, a = 0
                               // So there are no duplicate columns.
                               for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
-                                    statValRef.forcefield.SetWolfAlpha(a, b);
-                                    
+                                    statValRef.forcefield.SetWolfAlphaAndWolfFactors(a, b);
+                                    #ifdef GOMC_CUDA
+                                    statValRef.forcefield.particles->updateWolfEwald();
+                                    #endif
                               }
                               outF << firstRow;
                               outF << std::endl;

@@ -167,6 +167,29 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
+void UpdateGPUWolfEwald(VariablesCUDA &vars, 
+                       int ewald,
+                       int wolf, 
+                       int coulKind,
+                       double const * wolfAlpha,
+                       double const * wolfFactor1, 
+                       double const * wolfFactor2, 
+                       double const * wolfFactor3){
+
+  cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_wolf, &wolf, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_coulKind, &coulKind, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_wolfAlpha, wolfAlpha, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_wolfFactor1, wolfFactor1, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_wolfFactor2, wolfFactor2, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice); 
+  cudaMemcpy(vars.gpu_wolfFactor3, wolfFactor3, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);  
+  checkLastErrorCUDA(__FILE__, __LINE__);
+}
+
 void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
                        double *rMaxSq, uint size) {
   CUMALLOC((void **)&vars->gpu_rMin, size * sizeof(double));

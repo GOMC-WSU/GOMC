@@ -155,7 +155,7 @@ void Forcefield::SetWolfKind(uint wk){
 void Forcefield::SetCoulKind(uint ck){
   coulKind = ck;
 }
-void Forcefield::SetWolfAlpha(double wa, uint b){
+void Forcefield::SetWolfAlphaAndWolfFactors(double wa, uint b){
     wolfAlpha[b] = wa;
     wolfFactor1[b] = erfc(wolfAlpha[b]*rCutCoulomb[b])/rCutCoulomb[b];
     wolfFactor2[b] = wolfFactor1[b]/rCutCoulomb[b];

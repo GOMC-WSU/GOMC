@@ -34,6 +34,14 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const * wolfFactor1, 
                        double const * wolfFactor2, 
                        double const * wolfFactor3);
+void UpdateGPUWolfEwald(VariablesCUDA &vars, 
+                       int ewald,
+                       int wolf, 
+                       int coulKind,
+                       double const * wolfAlpha,
+                       double const * wolfFactor1, 
+                       double const * wolfFactor2, 
+                       double const * wolfFactor3);
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
                          uint maxAtomsInMol, uint maxMolNumber);
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);

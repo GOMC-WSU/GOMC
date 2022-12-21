@@ -14,7 +14,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "CalculateEnergy.h"
 #include <string.h>
-
+#ifdef GOMC_CUDA
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#endif
 const std::string COUL_DSP_STRING = "DSP";
 const std::string COUL_DSF_STRING = "DSF";
 const std::string WOLF_RAHBARI_STRING = "RAHBARI";

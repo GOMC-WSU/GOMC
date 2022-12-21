@@ -50,6 +50,7 @@ class TrialMol;
 class CalculateEnergy {
 public:
   CalculateEnergy(StaticVals &stat, System &sys);
+  void SetElectrostaticPointer(ElectrostaticBase * eptr);
 
   void Init(System &sys);
 

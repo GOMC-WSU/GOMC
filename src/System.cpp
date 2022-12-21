@@ -88,6 +88,8 @@ System::~System() {
     delete boxDimensions;
   if (calcEwald != NULL)
     delete calcEwald;
+  if (calcWolf != NULL)
+    delete calcWolf;
   for (int m = 0; m < mv::MOVE_KINDS_TOTAL; ++m) {
     delete moves[m];
   }
@@ -123,20 +125,32 @@ void System::Init(Setup &set) {
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
-  // check if we have to use cached version of Ewald or not.
-  bool ewald = set.config.sys.elect.ewald;
+  ewald = set.config.sys.elect.ewald;
+  wolf = set.config.sys.elect.wolf;
+  wolfCalibration = set.config.out.wolfCalibration.settings.enable;
 
 #ifdef GOMC_CUDA
-  if (ewald)
+  if (wolfCalibration){
     calcEwald = new Ewald(statV, *this);
-  else
+    calcWolf = new Wolf(statV, *this);
+  } else if(ewald) {
+    calcEwald = new Ewald(statV, *this);
+   } else if (wolf) {
+    calcEwald = new Wolf(statV, *this);
+  } else
     calcEwald = new NoEwald(statV, *this);
-#else
+#else  
+  // check if we have to use cached version of Ewald or not.
   bool cached = set.config.sys.elect.cache;
-  if (ewald && cached)
+  if (wolfCalibration){
+      calcEwald  = new Ewald(statV, *this);
+      calcWolf =  new Wolf(statV, *this);
+  } else if (ewald && cached)
     calcEwald = new EwaldCached(statV, *this);
   else if (ewald && !cached)
     calcEwald = new Ewald(statV, *this);
+  else if (wolf)
+    calcEwald = new Wolf(statV, *this);
   else
     calcEwald = new NoEwald(statV, *this);
 #endif
@@ -145,6 +159,9 @@ void System::Init(Setup &set) {
   InitLambda();
   calcEnergy.Init(*this);
   calcEwald->Init();
+  if (wolfCalibration){ 
+    calcWolf->Init();
+  }
   potential = calcEnergy.SystemTotal();
   InitMoves(set);
   for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
@@ -331,4 +348,11 @@ void System::PrintTime() {
     printf("%-36s %10.4f    sec.\n", moveName.c_str(), moveTime[m]);
   }
   std::cout << std::endl;
+}
+
+// Swap classes to calc Self, correction, 
+// reciprocal (Ewald-only) terms.
+void System::SwapWolfAndEwaldPointers(){
+  std::swap(calcEwald, calcWolf);
+  calcEnergy.SetElectrostaticPointer(calcEwald);
 }

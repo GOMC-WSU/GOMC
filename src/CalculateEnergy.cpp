@@ -82,6 +82,10 @@ void CalculateEnergy::Init(System &sys) {
 #endif
 }
 
+void CalculateEnergy::SetElectrostaticPointer(ElectrostaticBase * eptr){
+  calcEwald = eptr; 
+}
+
 SystemPotential CalculateEnergy::SystemTotal() {
   GOMC_EVENT_START(1, GomcProfileEvent::EN_SYSTEM_TOTAL);
   SystemPotential pot =

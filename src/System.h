@@ -62,7 +62,7 @@ public:
 
   // return ewald
   ElectrostaticBase *GetEwald() { return calcEwald; }
-
+  void SwapWolfAndEwaldPointers();
   // Return the pointer to specific move
   MoveBase *GetMoveObject(const uint moveIndex) { return moves[moveIndex]; }
 
@@ -80,7 +80,7 @@ public:
   // This must also come first... as subsequent values depend on obj.
   // That may be in here, i.e. Box Dimensions
   StaticVals &statV;
-
+  bool ewald, wolf, wolfCalibration;
   // NOTE:
   // Important! These must come first, as other objects may depend
   // on their val for init!
@@ -115,9 +115,11 @@ public:
   ExtendedSystem xsc;
   Velocity vel;
 
+  // Can be either wolf or ewald
   CalculateEnergy calcEnergy;
   ElectrostaticBase *calcEwald;
-  //Wolf *calcWolf;
+  // Only used for calibration.
+  ElectrostaticBase *calcWolf;
 
   /* For checkpoint restoration */
   CheckpointSetup checkpointSet;
