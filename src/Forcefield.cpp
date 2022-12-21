@@ -148,4 +148,19 @@ BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfFactor1(void) {return wolfFactor1;}
 BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfFactor2(void) {return wolfFactor2;} 
 BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfFactor3(void) {return wolfFactor3;} 
 BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetRCutCoulomb(void) {return rCutCoulomb;} 
-BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetRCutCoulombSq(void) {return rCutCoulombSq;} 
+BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetRCutCoulombSq(void) {return rCutCoulombSq;}   
+void Forcefield::SetWolfKind(uint wk){
+  wolfKind = wk;
+}
+void Forcefield::SetCoulKind(uint ck){
+  coulKind = ck;
+}
+void Forcefield::SetWolfAlpha(double wa, uint b){
+    wolfAlpha[b] = wa;
+    wolfFactor1[b] = erfc(wolfAlpha[b]*rCutCoulomb[b])/rCutCoulomb[b];
+    wolfFactor2[b] = wolfFactor1[b]/rCutCoulomb[b];
+    wolfFactor2[b] += wolfAlpha[b] *  M_2_SQRTPI * 
+                      exp(-1.0*wolfAlpha[b]*wolfAlpha[b]*rCutCoulombSq[b])
+                      /rCutCoulomb[b];
+    wolfFactor3[b] = wolfAlpha[b] *  M_2_SQRTPI;
+}

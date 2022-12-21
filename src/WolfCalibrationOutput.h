@@ -46,7 +46,7 @@ public:
 private:
   std::string getFileName(int b, int wolfKind, int coulKind, std::string uniqueName);
 
-  void WriteHeader(uint b, uint wolfKind, uint coulKind);
+  void WriteHeader();
   void WriteGraceParFile(uint b, uint wolfKind, uint coulKind);
 
   std::string GetString(double a, uint p);

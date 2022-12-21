@@ -34,14 +34,8 @@ void WolfCalibrationOutput::Init(pdb_setup::Atoms const& atoms,
       stepsPerOut = output.wolfCalibration.settings.frequency;
       enableOut = output.wolfCalibration.settings.enable;
       if(enableOut) {
-            for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-                  for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
-                        for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
-                              WriteHeader(b, wolfKind, coulKind);
-                              WriteGraceParFile(b, wolfKind, coulKind);
-                        }
-                  }
-            }
+            WriteHeader();
+            //WriteGraceParFile(b, wolfKind, coulKind);
       }
 }
 
@@ -66,26 +60,32 @@ std::string WolfCalibrationOutput::getFileName(int b, int wolfKind, int coulKind
       return name;
 }
 
-void WolfCalibrationOutput::WriteHeader(uint b, uint wolfKind, uint coulKind)
+void WolfCalibrationOutput::WriteHeader()
 {
-      outF.open(getFileName(b, wolfKind, coulKind, uniqueName).c_str(), std::ofstream::out);
-      if (outF.is_open()) {
-            std::string firstRow = "";
-            firstRow += "Step#\t";
-            // We skip the reference r cut with reference alpha.
-            // r = 0, a = 0
-            // So there are no duplicate columns.
-            for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
-                  firstRow += std::to_string(a);
-                  firstRow += " ";
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+            for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
+                        outF.open(getFileName(b, wolfKind, coulKind, uniqueName).c_str(), std::ofstream::out);
+                        if (outF.is_open()) {
+                              std::string firstRow = "";
+                              firstRow += "Step#\t";
+                              // We skip the reference r cut with reference alpha.
+                              // r = 0, a = 0
+                              // So there are no duplicate columns.
+                              for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
+                                    firstRow += std::to_string(a);
+                                    firstRow += " ";
+                              }
+                              outF << firstRow;
+                              outF << std::endl;
+                        } else {
+                              std::cerr << "Unable to write to file \"" <<  name << "\" "
+                                          << "(Wolf Calibration file)" << std::endl;
+                        }
+                        outF.close();
+                  }
             }
-            outF << firstRow;
-            outF << std::endl;
-      } else {
-            std::cerr << "Unable to write to file \"" <<  name << "\" "
-                        << "(Wolf Calibration file)" << std::endl;
       }
-      outF.close();
 }
 
 
@@ -121,92 +121,120 @@ void WolfCalibrationOutput::WriteGraceParFile(uint b, uint wolfKind, uint coulKi
 }
 
 void WolfCalibrationOutput::DoOutput(const ulong step) {
-      // Wolf driven GOMC cal
-      // Buggy for NPT
-      /*
-      uint wolfKindOrig = sysRef.calcEwald->GetWolfKind();
-      uint coulKindOrig = sysRef.calcEwald->GetCoulKind();
-      calcEn.WolfCalibrationEnergy(&electrostaticEnergies[0]);
 
-      // Calc reference epot
-      sysRef.SwapWolfAndEwaldPointers();
-      
-      bool tmp = statValRef.forcefield.ewald;
-      statValRef.forcefield.ewald = statValRef.forcefield.wolf;
-      statValRef.forcefield.wolf = tmp;
-      //statValRef.forcefield.ewald != statValRef.forcefield.ewald;
-      //statValRef.forcefield.wolf != statValRef.forcefield.wolf;
-      
-      // Set isVlugtWolf == false
-      // Since ewald and wolf share a ff object
-      statValRef.forcefield.SetWolfKind(0);
-      // Ewald K Vectors may be not up to date with box dims
-      // Since Wolf drives the simulation.
-      //calcEn.ReInitKVectors();
-      SystemPotential ewaldRef = calcEn.SystemTotal();
-      ewaldRef.Total();
-      sysRef.SwapWolfAndEwaldPointers();
-
-      // Restore original wolf settings
-      tmp = statValRef.forcefield.ewald;
-      statValRef.forcefield.ewald = statValRef.forcefield.wolf;
-      statValRef.forcefield.wolf = tmp;
-
-      // Restore inter wolf settings
-      statValRef.forcefield.SetWolfKind(wolfKindOrig);
-      statValRef.forcefield.SetCoulKind(coulKindOrig);
-
-      // Restore intra wolf settings
-      sysRef.calcEwald->SetWolfKind(wolfKindOrig);
-      sysRef.calcEwald->SetCoulKind(coulKindOrig);
-
-      */
-
-      // Ewald driven GOMC cal
-      /*
-      SystemPotential ewaldRef = calcEn.SystemTotal();
-      ewaldRef.Total();
-
-      // Calc wolfcal epots
-      sysRef.SwapWolfAndEwaldPointers();
-      bool tmp = statValRef.forcefield.ewald;
-      statValRef.forcefield.ewald = statValRef.forcefield.wolf;
-      statValRef.forcefield.wolf = tmp;
-
-      calcEn.WolfCalibrationEnergy(&electrostaticEnergies[0]);
-
-      sysRef.SwapWolfAndEwaldPointers();
-      tmp = statValRef.forcefield.ewald;
-      statValRef.forcefield.ewald = statValRef.forcefield.wolf;
-      statValRef.forcefield.wolf = tmp;
-    
-      std::string row = "";
-      row += GetString(step);
-      row += "\t";
-      
-      for (uint box = 0; box < BOXES_WITH_U_NB; ++box) {       
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
-                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){  
-                        std::string row = "";
-                        row += GetString(step);
-                        row += "\t";
-                        // We skip the reference r cut with reference alpha.
-                        // r = 0, a = 0
-                        // So there are no duplicate columns.
-                        for (int r = 0; r < wolfCalRef.numberOfRCuts[box]; ++r){
-                              for (int a = 0; a < wolfCalRef.numberOfAlphas[box]; ++a){
-                                    // If you dont use std::abs, double is converted to int 
-                                    row += GetString((std::abs(ewaldRef.boxEnergy[box].TotalElect()) -  std::abs(electrostaticEnergies[wolfCalRef.GetIndex(box, wolfKind, coulKind, r, a)]))/ std::abs(ewaldRef.boxEnergy[box].TotalElect()), 16);
-                                    row += "\t";
+                  statValRef.forcefield.SetWolfKind(wolfKind);
+                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
+                        statValRef.forcefield.SetCoulKind(coulKind);
+                        outF.open(getFileName(b, wolfKind, coulKind, uniqueName).c_str(), std::ios_base::app);
+                        if (outF.is_open()) {
+                              std::string firstRow = "";
+                              firstRow += std::to_string(step) + "\t";
+                              // We skip the reference r cut with reference alpha.
+                              // r = 0, a = 0
+                              // So there are no duplicate columns.
+                              for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
+                                    statValRef.forcefield.SetWolfAlpha(a, b);
+                                    
                               }
+                              outF << firstRow;
+                              outF << std::endl;
+                        } else {
+                              std::cerr << "Unable to write to file \"" <<  name << "\" "
+                                          << "(Wolf Calibration file)" << std::endl;
                         }
-                        outF[box][wolfKind][coulKind] << row;
-                        outF[box][wolfKind][coulKind] << std::endl;
+                        outF.close();
                   }
             }
       }
-      */
 }
+                        // Wolf driven GOMC cal
+                        // Buggy for NPT
+                        /*
+                        uint wolfKindOrig = sysRef.calcEwald->GetWolfKind();
+                        uint coulKindOrig = sysRef.calcEwald->GetCoulKind();
+                        calcEn.WolfCalibrationEnergy(&electrostaticEnergies[0]);
+
+                        // Calc reference epot
+                        sysRef.SwapWolfAndEwaldPointers();
+                        
+                        bool tmp = statValRef.forcefield.ewald;
+                        statValRef.forcefield.ewald = statValRef.forcefield.wolf;
+                        statValRef.forcefield.wolf = tmp;
+                        //statValRef.forcefield.ewald != statValRef.forcefield.ewald;
+                        //statValRef.forcefield.wolf != statValRef.forcefield.wolf;
+                        
+                        // Set isVlugtWolf == false
+                        // Since ewald and wolf share a ff object
+                        statValRef.forcefield.SetWolfKind(0);
+                        // Ewald K Vectors may be not up to date with box dims
+                        // Since Wolf drives the simulation.
+                        //calcEn.ReInitKVectors();
+                        SystemPotential ewaldRef = calcEn.SystemTotal();
+                        ewaldRef.Total();
+                        sysRef.SwapWolfAndEwaldPointers();
+
+                        // Restore original wolf settings
+                        tmp = statValRef.forcefield.ewald;
+                        statValRef.forcefield.ewald = statValRef.forcefield.wolf;
+                        statValRef.forcefield.wolf = tmp;
+
+                        // Restore inter wolf settings
+                        statValRef.forcefield.SetWolfKind(wolfKindOrig);
+                        statValRef.forcefield.SetCoulKind(coulKindOrig);
+
+                        // Restore intra wolf settings
+                        sysRef.calcEwald->SetWolfKind(wolfKindOrig);
+                        sysRef.calcEwald->SetCoulKind(coulKindOrig);
+
+                        */
+
+                        // Ewald driven GOMC cal
+                        /*
+                        SystemPotential ewaldRef = calcEn.SystemTotal();
+                        ewaldRef.Total();
+
+                        // Calc wolfcal epots
+                        sysRef.SwapWolfAndEwaldPointers();
+                        bool tmp = statValRef.forcefield.ewald;
+                        statValRef.forcefield.ewald = statValRef.forcefield.wolf;
+                        statValRef.forcefield.wolf = tmp;
+
+                        calcEn.WolfCalibrationEnergy(&electrostaticEnergies[0]);
+
+                        sysRef.SwapWolfAndEwaldPointers();
+                        tmp = statValRef.forcefield.ewald;
+                        statValRef.forcefield.ewald = statValRef.forcefield.wolf;
+                        statValRef.forcefield.wolf = tmp;
+                  
+                        std::string row = "";
+                        row += GetString(step);
+                        row += "\t";
+                        
+                        for (uint box = 0; box < BOXES_WITH_U_NB; ++box) {       
+                              for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                                    for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){  
+                                          std::string row = "";
+                                          row += GetString(step);
+                                          row += "\t";
+                                          // We skip the reference r cut with reference alpha.
+                                          // r = 0, a = 0
+                                          // So there are no duplicate columns.
+                                          for (int r = 0; r < wolfCalRef.numberOfRCuts[box]; ++r){
+                                                for (int a = 0; a < wolfCalRef.numberOfAlphas[box]; ++a){
+                                                      // If you dont use std::abs, double is converted to int 
+                                                      row += GetString((std::abs(ewaldRef.boxEnergy[box].TotalElect()) -  std::abs(electrostaticEnergies[wolfCalRef.GetIndex(box, wolfKind, coulKind, r, a)]))/ std::abs(ewaldRef.boxEnergy[box].TotalElect()), 16);
+                                                      row += "\t";
+                                                }
+                                          }
+                                          outF[box][wolfKind][coulKind] << row;
+                                          outF[box][wolfKind][coulKind] << std::endl;
+                                    }
+                              }
+                        }
+                        */
+
 
 std::string WolfCalibrationOutput::GetString(double a, uint p)
 {
