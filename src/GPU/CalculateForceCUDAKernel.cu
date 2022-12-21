@@ -960,6 +960,20 @@ __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
     double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
     double temp = 1.0 - erf(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (gpu_wolf){
+    // F_DSP -- (17) from Gezelter 2006
+    double wolf_electrostatic_force = erfc(gpu_alpha * dist)/distSq;
+    // M_2_SQRTPI is 2/sqrt(PI)
+    wolf_electrostatic_force += gpu_wolfFactor3*exp(-1.0*pow(gpu_wolfAlpha, 2.0)*distSq)/dist;
+    // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
+    if(gpu_coulKind){
+      wolf_electrostatic_force -= gpu_wolfFactor2;
+    } 
+    wolf_electrostatic_force *= qi_qj;
+    // return wolf_electrostatic_force; 
+    // Since GOMC converts the force vectors to unit vectors
+    // Divide by the magnitude
+    return wolf_electrostatic_force/dist; 
   } else {
     double result = qi_qj / (distSq * dist);
     return result;
@@ -1020,6 +1034,20 @@ __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
     double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
     double temp = 1.0 - erf(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (gpu_wolf){
+    // F_DSP -- (17) from Gezelter 2006
+    double wolf_electrostatic_force = erfc(gpu_alpha * dist)/distSq;
+    // M_2_SQRTPI is 2/sqrt(PI)
+    wolf_electrostatic_force += gpu_wolfFactor3*exp(-1.0*pow(gpu_wolfAlpha, 2.0)*distSq)/dist;
+    // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
+    if(gpu_coulKind){
+      wolf_electrostatic_force -= gpu_wolfFactor2;
+    } 
+    wolf_electrostatic_force *= qi_qj;
+    // return wolf_electrostatic_force; 
+    // Since GOMC converts the force vectors to unit vectors
+    // Divide by the magnitude
+    return wolf_electrostatic_force/dist; 
   } else {
     return qi_qj / (distSq * dist);
   }
@@ -1078,6 +1106,20 @@ __device__ double CalcCoulombVirExp6GPU(double distSq, double qi_qj,
     double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
     double temp = erfc(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (gpu_wolf){
+    // F_DSP -- (17) from Gezelter 2006
+    double wolf_electrostatic_force = erfc(gpu_alpha * dist)/distSq;
+    // M_2_SQRTPI is 2/sqrt(PI)
+    wolf_electrostatic_force += gpu_wolfFactor3*exp(-1.0*pow(gpu_wolfAlpha, 2.0)*distSq)/dist;
+    // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
+    if(gpu_coulKind){
+      wolf_electrostatic_force -= gpu_wolfFactor2;
+    } 
+    wolf_electrostatic_force *= qi_qj;
+    // return wolf_electrostatic_force; 
+    // Since GOMC converts the force vectors to unit vectors
+    // Divide by the magnitude
+    return wolf_electrostatic_force/dist; 
   } else {
     return qi_qj / (distSq * dist);
   }
@@ -1142,6 +1184,20 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
     double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
     double temp = 1.0 - erf(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (gpu_wolf){
+    // F_DSP -- (17) from Gezelter 2006
+    double wolf_electrostatic_force = erfc(gpu_alpha * dist)/distSq;
+    // M_2_SQRTPI is 2/sqrt(PI)
+    wolf_electrostatic_force += gpu_wolfFactor3*exp(-1.0*pow(gpu_wolfAlpha, 2.0)*distSq)/dist;
+    // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
+    if(gpu_coulKind){
+      wolf_electrostatic_force -= gpu_wolfFactor2;
+    } 
+    wolf_electrostatic_force *= qi_qj;
+    // return wolf_electrostatic_force; 
+    // Since GOMC converts the force vectors to unit vectors
+    // Divide by the magnitude
+    return wolf_electrostatic_force/dist;   
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
@@ -1222,6 +1278,20 @@ __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
     double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
     double temp = 1.0 - erf(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (gpu_wolf){
+    // F_DSP -- (17) from Gezelter 2006
+    double wolf_electrostatic_force = erfc(gpu_alpha * dist)/distSq;
+    // M_2_SQRTPI is 2/sqrt(PI)
+    wolf_electrostatic_force += gpu_wolfFactor3*exp(-1.0*pow(gpu_wolfAlpha, 2.0)*distSq)/dist;
+    // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
+    if(gpu_coulKind){
+      wolf_electrostatic_force -= gpu_wolfFactor2;
+    } 
+    wolf_electrostatic_force *= qi_qj;
+    // return wolf_electrostatic_force; 
+    // Since GOMC converts the force vectors to unit vectors
+    // Divide by the magnitude
+    return wolf_electrostatic_force/dist; 
   } else {
     double rCutSq = gpu_rCut * gpu_rCut;
     double switchVal = distSq / rCutSq - 1.0;
