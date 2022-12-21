@@ -115,6 +115,8 @@ ConfigSetup::ConfigSetup(void) {
 #endif
   out.checkpoint.enable = false;
   out.checkpoint.frequency = ULONG_MAX;
+  out.wolfCalibration.settings.enable = false;
+  out.wolfCalibration.settings.frequency = false;
   out.statistics.settings.uniqueStr.val = "";
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
@@ -769,6 +771,21 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
           exit(EXIT_FAILURE);
         }
       }
+    } else if (CheckString(line[0], "WolfAlphaRange")){
+        if(line.size() == 5) {
+          uint b = stringtoi(line[1]);
+          sys.wolfCal.wolfAlphaRangeRead[b] = true;
+          sys.wolfCal.wolfAlphaStart[b] = stringtod(line[2]);
+          sys.wolfCal.wolfAlphaEnd[b] = stringtod(line[3]);
+          sys.wolfCal.wolfAlphaDelta[b] = stringtod(line[4]);
+          printf("%-40s %d %-8s %-1.3E %-8s %-1.3E %-8s %-1.3E\n", "Info: Wolf Alpha Range Box", b, "START", sys.wolfCal.wolfAlphaStart[b],
+           "END", sys.wolfCal.wolfAlphaEnd[b],  "DELTA", sys.wolfCal.wolfAlphaDelta[b]);
+        } else {
+          std::cout <<  "Error: WolfAlphaRange requires 4 arguments!" << std::endl <<
+          "Usage: WolfAlphaRange\tBOX\tSTART\tEND\tDELTA" << std::endl;
+          exit(EXIT_FAILURE);
+
+        }      
     } else if (CheckString(line[0], "Tolerance")) {
       sys.elect.tolerance = stringtod(line[1]);
       printf("%-40s %-1.3E \n", "Info: Ewald Summation Tolerance",
@@ -1397,6 +1414,17 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
                out.statistics.settings.block.frequency);
       } else
         printf("%-40s %-s \n", "Info: Average output", "Inactive");
+    } else if(CheckString(line[0], "WolfCalibrationFreq")) {
+      if(line.size() == 3){
+        out.wolfCalibration.settings.enable = checkBool(line[1]);
+        out.wolfCalibration.settings.frequency = stringtoi(line[2]);
+      }
+      if(out.wolfCalibration.settings.enable){
+        printf("%-40s %-lu \n", "Info: Wolf Calibration output frequency",
+          out.wolfCalibration.settings.frequency);
+      } else {
+        printf("%-40s %-s \n", "Info: Wolf Calibration output", "Inactive");
+      }
     }
 #if ENSEMBLE == GCMC
     else if (CheckString(line[0], "HistogramFreq")) {
@@ -1873,6 +1901,21 @@ void ConfigSetup::verifyInputs(void) {
     printf("Warning: Wolf Damped Shifted Potential (DSP) set with Multiparticle enabled.");
     printf("The force using DSP is discontinuous at the cutoff.  We recommend DSF with MP enabled.\n");
     //exit(EXIT_FAILURE);
+  }
+
+  if(out.wolfCalibration.settings.enable){
+    bool readAllRequired = true;
+    for(i = 0 ; i < BOXES_WITH_U_NB ; i++) {
+      readAllRequired &= sys.wolfCal.wolfAlphaRangeRead[i];
+    }
+    if(!readAllRequired){
+      printf("Error: Wolf Calibration alpha range is not set for all boxes!");
+      exit(EXIT_FAILURE);
+    }
+    if (sys.elect.ewald == false){
+      printf("Error: Wolf Calibration requires Ewald be true!");
+      exit(EXIT_FAILURE);
+    }
   }
 
   if (!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {

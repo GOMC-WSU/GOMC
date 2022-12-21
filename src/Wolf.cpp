@@ -49,14 +49,14 @@ Wolf::Wolf(StaticVals &stat, System &sys)
 #endif
       currentAxes(sys.boxDimRef), currentCOM(sys.com), sysPotRef(sys.potential),
       lambdaRef(sys.lambdaRef),
-      wolfKind(stat.forcefield.GetWolfKind()),
-      coulKind(stat.forcefield.GetCoulKind()),
-      wolfAlpha(stat.forcefield.GetWolfAlpha()),
-      wolfFactor1(stat.forcefield.GetWolfFactor1()),      
-      wolfFactor2(stat.forcefield.GetWolfFactor2()),
-      wolfFactor3(stat.forcefield.GetWolfFactor3()),
-      rCutCoulomb(stat.forcefield.GetRCutCoulomb()),
-      rCutCoulombSq(stat.forcefield.GetRCutCoulombSq())  {
+      wolfKind(stat.forcefield.wolfKind),
+      coulKind(stat.forcefield.coulKind),
+      wolfAlpha(stat.forcefield.wolfAlpha),
+      wolfFactor1(stat.forcefield.wolfFactor1),      
+      wolfFactor2(stat.forcefield.wolfFactor2),
+      wolfFactor3(stat.forcefield.wolfFactor3),
+      rCutCoulomb(stat.forcefield.rCutCoulomb),
+      rCutCoulombSq(stat.forcefield.rCutCoulombSq)  {
   ewald = false;
   electrostatic = false;
   alpha = 0.0;

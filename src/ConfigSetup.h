@@ -820,6 +820,22 @@ struct FreeEnergy {
   }
 };
 
+struct WolfCalibration {
+  bool wolfAlphaRangeRead[BOX_TOTAL];
+  double wolfAlphaStart[BOX_TOTAL];
+  double wolfAlphaEnd[BOX_TOTAL];
+  double wolfAlphaDelta[BOX_TOTAL];
+  WolfCalibration(void)
+  {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      wolfAlphaRangeRead[b] = false;
+      wolfAlphaStart[b] = 0.0;
+      wolfAlphaEnd[b] = 0.0;
+      wolfAlphaDelta[b] = 0.0;
+    }
+  }
+};
+
 struct SystemVals {
   ElectroStatic elect;
   Temperature T;
@@ -832,6 +848,7 @@ struct SystemVals {
   MEMCVal memcVal, intraMemcVal;
   NEMTMCVal neMTMCVal;
   FreeEnergy freeEn;
+  WolfCalibration wolfCal;
   TargetSwapCollection targetedSwapCollection;
   TargetSwapCollection intraTargetedSwapCollection;
 #if ENSEMBLE == GCMC
@@ -862,7 +879,7 @@ struct HistFiles { /* : ReadableBase*/
 // Files for output.
 struct OutFiles {
   /* For split pdb, psf, and dcd files , BOX 0 and BOX 1 */
-  FileNames<BOX_TOTAL> pdb, splitPSF, dcd;
+  FileNames<BOX_TOTAL> pdb, splitPSF, dcd, wolfCalibration;
 
   /* For merged PSF */
   FileName psf, seed;
@@ -899,7 +916,7 @@ struct Statistics {
   TrackedVars vars;
 };
 struct Output {
-  SysState state, restart, state_dcd, restart_dcd;
+  SysState state, restart, state_dcd, restart_dcd, wolfCalibration;
   SysState restart_vel;
   Statistics statistics;
   EventSettings console, checkpoint;
