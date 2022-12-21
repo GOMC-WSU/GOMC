@@ -700,12 +700,13 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
             qi_qj_fact *= qqFactGPU;
             double lambdaCoulomb = DeviceGetLambdaCoulomb(
                 mA, mB, box, gpu_isFraction, gpu_molIndex, gpu_lambdaCoulomb);
+            /*
             REn += CalcCoulombGPU(
                 distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0], gpu_ewald[0],
                 gpu_VDW_Kind[0], gpu_alpha[box], gpu_rCutCoulomb[box],
                 gpu_isMartini[0], gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
                 sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq, gpu_count[0]);
-
+            */
             forces += CalcCoulombForceGPU(
                 distSq, qi_qj_fact, gpu_VDW_Kind[0], gpu_ewald[0],
                 gpu_isMartini[0], gpu_alpha[box], gpu_rCutCoulomb[box],
