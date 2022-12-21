@@ -725,7 +725,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         } else {
           std::cout <<  "Error: Wolf Kind incorrectly specified!" << std::endl <<
                         "Usage : WolfKind\tWAIBEL2018/WAIBEL2019/RAHBARI" << std::endl <<
-                        "Example : WolfKind\tGross" << std::endl;
+                        "Example : WolfKind\tWAIBEL2018" << std::endl;
           exit(EXIT_FAILURE);
         }
       } else {
