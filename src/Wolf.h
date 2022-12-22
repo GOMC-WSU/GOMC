@@ -186,7 +186,7 @@ public:
                            const uint box) const {}
 
 private:
-  const uint wolfKind, coulKind;
+  const uint &wolfKind, &coulKind;
   const BOX_SIZE_DOUBLE_ARRAY& wolfAlpha; //alpha term for Wolf Electrostatic and constant factors
   const BOX_SIZE_DOUBLE_ARRAY& wolfFactor1; //alpha term for Wolf Electrostatic and constant factors
   const BOX_SIZE_DOUBLE_ARRAY& wolfFactor2;  //alpha term for Wolf Electrostatic and constant factors
