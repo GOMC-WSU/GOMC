@@ -43,11 +43,6 @@ along with this program, also can be found at
 #define BOX_TOTAL 1
 #endif
 
-// Get GCC version
-// 9.3.0 will become 90300 here
-#define GCC_VERSION                                                            \
-  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-
 // Error flags
 namespace errors {
 const int READ_ERROR = -1;
