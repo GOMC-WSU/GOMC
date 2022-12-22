@@ -140,17 +140,39 @@ __device__ double CalcCoulombShiftGPU(double distSq, int index, double qi_qj_fac
                                       double gpu_rCut, double gpu_lambdaCoulomb,
                                       bool sc_coul, double sc_sigma_6,
                                       double sc_alpha, uint sc_power,
-                                      double *gpu_sigmaSq);
+                                      double *gpu_sigmaSq,
+                                      int gpu_wolf,
+                                        int gpu_coulKind,
+                                        double  gpu_wolfAlpha,
+                                        double  gpu_wolfFactor1,
+                                        double  gpu_wolfFactor2);
 __device__ double CalcCoulombShiftGPUNoLambda(double distSq, double qi_qj_fact,
-    int gpu_ewald, double gpu_alpha,
-    double gpu_rCut);
+                                                int gpu_ewald, double gpu_alpha,
+                                                double gpu_rCut,
+                                                int gpu_wolf,
+                                                int gpu_coulKind,
+                                                double  gpu_wolfAlpha,
+                                                double  gpu_wolfFactor1,
+                                                double  gpu_wolfFactor2);
 __device__ double CalcCoulombExp6GPU(double distSq, int index, double qi_qj_fact,
                                      int gpu_ewald, double gpu_alpha,
                                      double gpu_lambdaCoulomb, bool sc_coul,
                                      double sc_sigma_6, double sc_alpha,
-                                     uint sc_power, double *gpu_sigmaSq);
+                                     uint sc_power, double *gpu_sigmaSq,
+                                     double gpu_rCutCoulomb, 
+                                         int gpu_wolf,
+                                          int gpu_coulKind,
+                                          double  gpu_wolfAlpha,
+                                          double  gpu_wolfFactor1,
+                                          double  gpu_wolfFactor2);
 __device__ double CalcCoulombExp6GPUNoLambda(double distSq, double qi_qj_fact,
-    int gpu_ewald, double gpu_alpha);
+                                            int gpu_ewald, double gpu_alpha,
+                                            double gpu_rCutCoulomb, 
+                                            int gpu_wolf,
+                                            int gpu_coulKind,
+                                            double  gpu_wolfAlpha,
+                                            double  gpu_wolfFactor1,
+                                            double  gpu_wolfFactor2);
 __device__ double CalcCoulombSwitchMartiniGPU(double distSq, int index, double qi_qj_fact,
     int gpu_ewald, double gpu_alpha,
     double gpu_rCut,
@@ -158,21 +180,41 @@ __device__ double CalcCoulombSwitchMartiniGPU(double distSq, int index, double q
     double gpu_lambdaCoulomb,
     bool sc_coul, double sc_sigma_6,
     double sc_alpha, uint sc_power,
-    double *gpu_sigmaSq);
+    double *gpu_sigmaSq,
+    int gpu_wolf,
+    int gpu_coulKind,
+    double gpu_wolfAlpha,
+    double gpu_wolfFactor1,
+    double gpu_wolfFactor2);
 __device__ double CalcCoulombSwitchMartiniGPUNoLambda(double distSq,
     double qi_qj_fact,
     int gpu_ewald,
     double gpu_alpha,
     double gpu_rCut,
-    double gpu_diElectric_1);
+    double gpu_diElectric_1,
+    int gpu_wolf,
+    int gpu_coulKind,
+    double  gpu_wolfAlpha,
+    double  gpu_wolfFactor1,
+    double  gpu_wolfFactor2);
 __device__ double CalcCoulombSwitchGPU(double distSq, int index, double qi_qj_fact,
                                        double gpu_alpha, int gpu_ewald,
                                        double gpu_rCut,
                                        double gpu_lambdaCoulomb, bool sc_coul,
                                        double sc_sigma_6, double sc_alpha,
-                                       uint sc_power, double *gpu_sigmaSq);
+                                       uint sc_power, double *gpu_sigmaSq,
+                                       int gpu_wolf,
+                                        int gpu_coulKind,
+                                        double  gpu_wolfAlpha,
+                                        double  gpu_wolfFactor1,
+                                        double  gpu_wolfFactor2);
 __device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact,
-    int gpu_ewald, double gpu_alpha, double gpu_rCut);
+    int gpu_ewald, double gpu_alpha, double gpu_rCut,
+                                        int gpu_wolf,
+                                      int gpu_coulKind,
+                                      double  gpu_wolfAlpha,
+                                      double  gpu_wolfFactor1,
+                                      double  gpu_wolfFactor2);
 
 
 //VDW Calculation
