@@ -111,42 +111,61 @@ void WolfCalibrationOutput::WriteHeader()
 void WolfCalibrationOutput::WriteGraceParFile()
 {
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-            for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
-                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
-                        outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".par").c_str(), std::ofstream::out);
-                        if (outF.is_open()) {
-                              int counter = 0;
-                              std::string firstRow = "";
-                              std::string title = WOLF_KINDS[wolfKind] + " " + COUL_KINDS[coulKind] + " BOX " + std::to_string(b);
-                              firstRow += "title \"" + title + "\"\n";
-                              firstRow += "xaxis label \"Alpha\"\n";
-                              firstRow += "yaxis label \"Relative Error\"\n";
-                              firstRow += "with g0\n";
-                              // We skip the reference r cut with reference alpha.
-                              // r = 0, a = 0
-                              // So there are no duplicate columns.
-                              /*
-                              for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
-                                    firstRow += "\ts";
-                                    firstRow += GetString(counter);
-                                    firstRow += " legend \"(";
-                                    firstRow += std::to_string(a);
-                                    firstRow += ")\"\n";
-                                    ++counter;
-                              }
-                              */
-                              outF << firstRow;
-                              outF << std::endl;
-                        } else {
-                              std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
-                                          << "(Wolf Calibration file)" << std::endl;
+            outF.open(("WOLF_CALIBRATION_BOX_" + std::to_string(b) + ".par").c_str(), std::ofstream::out);
+            if (outF.is_open()) {
+                  int counter = 0;
+                  std::string firstRow = "";
+                  firstRow += "title \"Comparing Wolf Models\"\n";
+                  firstRow += "xaxis label \"Alpha\"\n";
+                  firstRow += "yaxis label \"Relative Error\"\n";
+                  firstRow += "with g0\n";
+                  for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                        for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
+                              std::string title = WOLF_KINDS[wolfKind] + " " + COUL_KINDS[coulKind];
+                              firstRow += "\ts";
+                              firstRow += GetString(counter);
+                              firstRow += " legend \"" + title + "\"\n";
+
+                              counter += 1;
                         }
-                        outF.close();
                   }
+                  outF << firstRow;
+                  outF << std::endl;
+            } else {
+                  std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
+                              << "(Wolf Calibration file)" << std::endl;
             }
+            outF.close();
       }
 }
 
+void WolfCalibrationOutput::DoOutput(const ulong step) {
+
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+            outF.open(("WOLF_CALIBRATION_BOX_" + std::to_string(b) + ".dat").c_str(), std::ofstream::out);
+            if (outF.is_open()) {
+                  for (uint i = 0; i < alphaSize[b]; ++i) {
+                        double a = wolfAlphaStart[b] + i*wolfAlphaDelta[b];
+                        std::string firstRow = "";
+                        firstRow += std::to_string(a) + "\t";
+                        for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                              for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){ 
+                                    firstRow += std::to_string(sumRelativeError[b][wolfKind][coulKind][i]/numSamples) + "\t";
+                              }
+                        }
+                        firstRow += "\n";
+                        outF << firstRow;
+                  }
+                  outF << std::endl;
+            } else {
+                  std::cerr << "Unable to write to file \"" <<  name << "\" "
+                              << "(Wolf Calibration file)" << std::endl;
+            }
+            outF.close();
+      }
+}
+
+/*
 void WolfCalibrationOutput::DoOutput(const ulong step) {
 
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
@@ -172,9 +191,11 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
             }
       }
 }
+*/
  
 void WolfCalibrationOutput::Sample(const ulong step) {
-      if (!(enableOut && ((step + 1) % stepsPerOut == 0)))
+      if (!((printOnFirstStep && step == startStep) ||
+        (enableOut && ((step + 1) % stepsPerOut == 0) || forceOutput)))
             return;
       ++numSamples;
       SystemPotential ewaldRef = calcEn.SystemTotal();
