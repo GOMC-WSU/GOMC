@@ -43,7 +43,7 @@ public:
   virtual void DoOutputRestart(const ulong step) {}  
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
-  virtual void Sample(const ulong step) {}
+  virtual void Sample(const ulong step);
 
 private:
   std::string getFileName(int b, int wolfKind, int coulKind, std::string uniqueName);
@@ -67,7 +67,8 @@ private:
   double wolfAlphaEnd[BOX_TOTAL];
   double wolfAlphaDelta[BOX_TOTAL];
   int alphaSize[BOX_TOTAL];
-  double *averageRelativeError[BOX_TOTAL][WOLF_TOTAL_KINDS][COUL_TOTAL_KINDS];
+  double *sumRelativeError[BOX_TOTAL][WOLF_TOTAL_KINDS][COUL_TOTAL_KINDS];
+  int numSamples;
 
 };
 

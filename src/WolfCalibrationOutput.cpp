@@ -15,6 +15,7 @@ sysRef(sys), calcEn(sys.calcEnergy), statValRef(statV)
 {
       // This is neccessary to check for correctness of single point energy calculations.
       printOnFirstStep = true;
+      numSamples = 0;
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             wolfAlphaStart[b] = sysVals.wolfCal.wolfAlphaStart[b];
             wolfAlphaEnd[b] = sysVals.wolfCal.wolfAlphaEnd[b];
@@ -27,9 +28,9 @@ sysRef(sys), calcEn(sys.calcEnergy), statValRef(statV)
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
-                        averageRelativeError[b][wolfKind][coulKind]  = new double[alphaSize[b]];
+                        sumRelativeError[b][wolfKind][coulKind]  = new double[alphaSize[b]];
                         for (uint i = 0; i < alphaSize[b]; ++i) {
-                              averageRelativeError[b][wolfKind][coulKind][i] = 0.0;
+                              sumRelativeError[b][wolfKind][coulKind][i] = 0.0;
                         }
                   }
             }
@@ -41,7 +42,7 @@ WolfCalibrationOutput::~WolfCalibrationOutput()
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) 
             for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind)
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind)
-                        delete averageRelativeError[b][wolfKind][coulKind];
+                        delete sumRelativeError[b][wolfKind][coulKind];
       
 }
 
@@ -146,6 +147,34 @@ void WolfCalibrationOutput::WriteGraceParFile()
 
 void WolfCalibrationOutput::DoOutput(const ulong step) {
 
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+            for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                  statValRef.forcefield.SetWolfKind(wolfKind);
+                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
+                        statValRef.forcefield.SetCoulKind(coulKind);
+                        outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".dat").c_str(), std::ofstream::out);
+                        if (outF.is_open()) {
+                              for (uint i = 0; i < alphaSize[b]; ++i) {
+                                    double a = wolfAlphaStart[b] + i*wolfAlphaDelta[b];
+                                    std::string firstRow = "";
+                                    firstRow += std::to_string(a) + "\t" + std::to_string(sumRelativeError[b][wolfKind][coulKind][i]/numSamples) + "\n";
+                                    outF << firstRow;
+                              }
+                              outF << std::endl;
+                        } else {
+                              std::cerr << "Unable to write to file \"" <<  name << "\" "
+                                          << "(Wolf Calibration file)" << std::endl;
+                        }
+                        outF.close();
+                  }
+            }
+      }
+}
+ 
+void WolfCalibrationOutput::Sample(const ulong step) {
+      if (!(enableOut && ((step + 1) % stepsPerOut == 0)))
+            return;
+      ++numSamples;
       SystemPotential ewaldRef = calcEn.SystemTotal();
       ewaldRef.Total();
 
@@ -160,31 +189,16 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                   statValRef.forcefield.SetWolfKind(wolfKind);
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
                         statValRef.forcefield.SetCoulKind(coulKind);
-                        outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".dat").c_str(), std::ios_base::app);
-                        if (outF.is_open()) {
-                              std::string firstRow = "";
-                              firstRow += std::to_string(step) + "\t";
-                              // We skip the reference r cut with reference alpha.
-                              // r = 0, a = 0
-                              // So there are no duplicate columns.
-                              for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
-                                    // Wolf class has references to these forcefield values
-                                    statValRef.forcefield.SetWolfAlphaAndWolfFactors(a, b);
-                                    #ifdef GOMC_CUDA
-                                    statValRef.forcefield.particles->updateWolfEwald();
-                                    #endif
-                                    SystemPotential wolfTot = calcEn.SystemTotal();
-                                    firstRow += std::to_string((wolfTot.boxEnergy[b].totalElect-ewaldRef.boxEnergy[b].totalElect)/ewaldRef.boxEnergy[b].totalElect);
-                                    printf("Wolf En %f Ewald En %f\n", wolfTot.boxEnergy[b].totalElect,ewaldRef.boxEnergy[b].totalElect);
-                                    firstRow += " ";
-                              }
-                              outF << firstRow;
-                              outF << std::endl;
-                        } else {
-                              std::cerr << "Unable to write to file \"" <<  name << "\" "
-                                          << "(Wolf Calibration file)" << std::endl;
+                        for (uint i = 0; i < alphaSize[b]; ++i) {
+                              double a = wolfAlphaStart[b] + i*wolfAlphaDelta[b];
+                              // Wolf class has references to these forcefield values
+                              statValRef.forcefield.SetWolfAlphaAndWolfFactors(a, b);
+                              #ifdef GOMC_CUDA
+                              statValRef.forcefield.particles->updateWolfEwald();
+                              #endif
+                              SystemPotential wolfTot = calcEn.SystemTotal();
+                              sumRelativeError[b][wolfKind][coulKind][i] += (wolfTot.boxEnergy[b].totalElect-ewaldRef.boxEnergy[b].totalElect)/ewaldRef.boxEnergy[b].totalElect;
                         }
-                        outF.close();
                   }
             }
       }
@@ -196,7 +210,8 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
       statValRef.forcefield.particles->updateWolfEwald();
       #endif
 }
- 
+
+
 std::string WolfCalibrationOutput::GetString(double a, uint p)
 {
       std::stringstream sstrm;
