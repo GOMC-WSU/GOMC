@@ -34,8 +34,8 @@ void WolfCalibrationOutput::Init(pdb_setup::Atoms const& atoms,
       stepsPerOut = output.wolfCalibration.settings.frequency;
       enableOut = output.wolfCalibration.settings.enable;
       if(enableOut) {
-            WriteHeader();
-            //WriteGraceParFile(b, wolfKind, coulKind);
+            //WriteHeader();
+            WriteGraceParFile();
       }
 }
 
@@ -65,7 +65,7 @@ void WolfCalibrationOutput::WriteHeader()
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
-                        outF.open(getFileName(b, wolfKind, coulKind, uniqueName).c_str(), std::ofstream::out);
+                        outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".dat").c_str(), std::ofstream::out);
                         if (outF.is_open()) {
                               std::string firstRow = "";
                               firstRow += "Step#\t";
@@ -89,8 +89,42 @@ void WolfCalibrationOutput::WriteHeader()
 }
 
 
-void WolfCalibrationOutput::WriteGraceParFile(uint b, uint wolfKind, uint coulKind)
+void WolfCalibrationOutput::WriteGraceParFile()
 {
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+            for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
+                        outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".par").c_str(), std::ofstream::out);
+                        if (outF.is_open()) {
+                              int counter = 0;
+                              std::string firstRow = "";
+                              std::string title = WOLF_KINDS[wolfKind] + " " + COUL_KINDS[coulKind];
+                              firstRow += "title \"" + title + "\"\n";
+                              firstRow += "xaxis label \"Steps\"\n";
+                              firstRow += "yaxis label \"Relative Error\"\n";
+                              firstRow += "with g0\n";
+                              // We skip the reference r cut with reference alpha.
+                              // r = 0, a = 0
+                              // So there are no duplicate columns.
+                              for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
+                                    firstRow += "\ts";
+                                    firstRow += GetString(counter);
+                                    firstRow += " legend \"(";
+                                    firstRow += std::to_string(a);
+                                    firstRow += ")\"\n";
+                                    ++counter;
+                              }
+                              outF << firstRow;
+                              outF << std::endl;
+                        } else {
+                              std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
+                                          << "(Wolf Calibration file)" << std::endl;
+                        }
+                        outF.close();
+                  }
+            }
+      }
+
       /*
       if (outFPar.is_open()) {
             int counter = 0;
@@ -136,7 +170,7 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                   statValRef.forcefield.SetWolfKind(wolfKind);
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
                         statValRef.forcefield.SetCoulKind(coulKind);
-                        outF.open(getFileName(b, wolfKind, coulKind, uniqueName).c_str(), std::ios_base::app);
+                        outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".dat").c_str(), std::ios_base::app);
                         if (outF.is_open()) {
                               std::string firstRow = "";
                               firstRow += std::to_string(step) + "\t";

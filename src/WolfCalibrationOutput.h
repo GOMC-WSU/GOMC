@@ -49,7 +49,7 @@ private:
   std::string getFileName(int b, int wolfKind, int coulKind, std::string uniqueName);
 
   void WriteHeader();
-  void WriteGraceParFile(uint b, uint wolfKind, uint coulKind);
+  void WriteGraceParFile();
 
   std::string GetString(double a, uint p);
   std::string GetString(ulong step);
