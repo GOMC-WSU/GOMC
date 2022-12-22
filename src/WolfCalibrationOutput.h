@@ -66,6 +66,9 @@ private:
   double wolfAlphaStart[BOX_TOTAL];
   double wolfAlphaEnd[BOX_TOTAL];
   double wolfAlphaDelta[BOX_TOTAL];
+  int alphaSize[BOX_TOTAL];
+  double *averageRelativeError[BOX_TOTAL][WOLF_TOTAL_KINDS][COUL_TOTAL_KINDS];
+
 };
 
 #endif

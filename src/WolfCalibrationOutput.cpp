@@ -19,12 +19,30 @@ sysRef(sys), calcEn(sys.calcEnergy), statValRef(statV)
             wolfAlphaStart[b] = sysVals.wolfCal.wolfAlphaStart[b];
             wolfAlphaEnd[b] = sysVals.wolfCal.wolfAlphaEnd[b];
             wolfAlphaDelta[b] = sysVals.wolfCal.wolfAlphaDelta[b];
+            alphaSize[b] = 0;
+            for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
+                  alphaSize[b] += 1;
+            }
+      }
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+            for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
+                        averageRelativeError[b][wolfKind][coulKind]  = new double[alphaSize[b]];
+                        for (uint i = 0; i < alphaSize[b]; ++i) {
+                              averageRelativeError[b][wolfKind][coulKind][i] = 0.0;
+                        }
+                  }
+            }
       }
 }
 
 WolfCalibrationOutput::~WolfCalibrationOutput()
 {
-
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) 
+            for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind)
+                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind)
+                        delete averageRelativeError[b][wolfKind][coulKind];
+      
 }
 
 void WolfCalibrationOutput::Init(pdb_setup::Atoms const& atoms,
@@ -124,34 +142,6 @@ void WolfCalibrationOutput::WriteGraceParFile()
                   }
             }
       }
-
-      /*
-      if (outFPar.is_open()) {
-            int counter = 0;
-            std::string firstRow = "";
-            firstRow += "with g0\n";
-            // We skip the reference r cut with reference alpha.
-            // r = 0, a = 0
-            // So there are no duplicate columns.
-            for (int r = 0; r < wolfCalRef.numberOfRCuts[b]; ++r){
-                  for (int a = 0; a < wolfCalRef.numberOfAlphas[b]; ++a){
-                        firstRow += "\ts";
-                        firstRow += GetString(counter);
-                        firstRow += " legend \"(";
-                        firstRow += GetString(wolfCalRef.rCutCoulomb[wolfCalRef.startOfNumRCuts[b]+r], 4);
-                        firstRow += ", ";
-                        firstRow += GetString(wolfCalRef.wolfAlpha[wolfCalRef.startOfNumAlphas[b]+a], 4);
-                        firstRow += ")\"\n";
-                        ++counter;
-                  }
-            }
-            outFPar << firstRow;
-            outFPar << std::endl;
-      } else {
-            std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
-                        << "(Wolf Calibration file)" << std::endl;
-      }
-      */
 }
 
 void WolfCalibrationOutput::DoOutput(const ulong step) {
