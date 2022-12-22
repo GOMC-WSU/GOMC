@@ -117,14 +117,15 @@ void WolfCalibrationOutput::WriteGraceParFile()
                         if (outF.is_open()) {
                               int counter = 0;
                               std::string firstRow = "";
-                              std::string title = WOLF_KINDS[wolfKind] + " " + COUL_KINDS[coulKind];
+                              std::string title = WOLF_KINDS[wolfKind] + " " + COUL_KINDS[coulKind] + " BOX " + std::to_string(b);
                               firstRow += "title \"" + title + "\"\n";
-                              firstRow += "xaxis label \"Steps\"\n";
+                              firstRow += "xaxis label \"Alpha\"\n";
                               firstRow += "yaxis label \"Relative Error\"\n";
                               firstRow += "with g0\n";
                               // We skip the reference r cut with reference alpha.
                               // r = 0, a = 0
                               // So there are no duplicate columns.
+                              /*
                               for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
                                     firstRow += "\ts";
                                     firstRow += GetString(counter);
@@ -133,6 +134,7 @@ void WolfCalibrationOutput::WriteGraceParFile()
                                     firstRow += ")\"\n";
                                     ++counter;
                               }
+                              */
                               outF << firstRow;
                               outF << std::endl;
                         } else {
