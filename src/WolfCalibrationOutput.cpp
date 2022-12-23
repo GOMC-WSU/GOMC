@@ -119,6 +119,7 @@ void WolfCalibrationOutput::WriteGraceParFile()
                   firstRow += "xaxis label \"Alpha\"\n";
                   firstRow += "yaxis label \"Relative Error\"\n";
                   firstRow += "TITLE SIZE 2 \n";
+                  firstRow += "LEGEND .8,.45\n";
                   firstRow += "with g0\n";
                   for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                         for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
