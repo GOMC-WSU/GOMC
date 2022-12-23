@@ -8,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include "WolfCalibrationOutput.h"
 #include "GOMC_Config.h"
-
+#include <limits>
 
 WolfCalibrationOutput::WolfCalibrationOutput(System & sys, StaticVals & statV, config_setup::SystemVals const &sysVals):
 sysRef(sys), calcEn(sys.calcEnergy), statValRef(statV)
@@ -118,6 +118,7 @@ void WolfCalibrationOutput::WriteGraceParFile()
                   firstRow += "title \"Comparing Wolf Models\"\n";
                   firstRow += "xaxis label \"Alpha\"\n";
                   firstRow += "yaxis label \"Relative Error\"\n";
+                  firstRow += "TITLE SIZE 2 \n";
                   firstRow += "with g0\n";
                   for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                         for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
@@ -125,7 +126,6 @@ void WolfCalibrationOutput::WriteGraceParFile()
                               firstRow += "\ts";
                               firstRow += GetString(counter);
                               firstRow += " legend \"" + title + "\"\n";
-
                               counter += 1;
                         }
                   }
@@ -156,6 +156,34 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                         firstRow += "\n";
                         outF << firstRow;
                   }
+                  outF << std::endl;
+            } else {
+                  std::cerr << "Unable to write to file \"" <<  name << "\" "
+                              << "(Wolf Calibration file)" << std::endl;
+            }
+            outF.close();
+      }
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+            outF.open(("WOLF_CALIBRATION_BOX_" + std::to_string(b) + "_BEST_ALPHAS.csv").c_str(), std::ofstream::out);
+            if (outF.is_open()) {
+                  std::string firstRow = "";
+                  for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                        for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){ 
+                              int min_i = 0;
+                              double min_err = std::numeric_limits<double>::max();
+                              for (uint i = 0; i < alphaSize[b]; ++i) {
+                                    if (std::abs(sumRelativeError[b][wolfKind][coulKind][i]/numSamples) < min_err){
+                                          min_err = std::abs(sumRelativeError[b][wolfKind][coulKind][i]/numSamples);
+                                          min_i = i;
+                                    }
+                              }
+                              double best_a = wolfAlphaStart[b] + min_i*wolfAlphaDelta[b];
+                              std::string title = WOLF_KINDS[wolfKind] + " " + COUL_KINDS[coulKind];
+                              firstRow += title + "\t" + std::to_string(best_a) + "\n";
+                        }
+                  }
+                  firstRow += "\n";
+                  outF << firstRow;
                   outF << std::endl;
             } else {
                   std::cerr << "Unable to write to file \"" <<  name << "\" "
