@@ -19,18 +19,20 @@ set(NVT_name "GOMC_CPU_NVT")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
+set(LIBRARIES_TO_LINK "${GLOG_DEPENDENCY}")
+if(WIN32)
+   set(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK} ws2_32")
+endif()
+if(MPI_FOUND)
+   set(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK} ${MPI_LIBRARIES}")
+endif()
+
 if(ENSEMBLE_NVT)
    add_executable(NVT ${sources} ${headers} ${libHeaders} ${libSources})
    set_target_properties(NVT PROPERTIES 
       OUTPUT_NAME ${NVT_name}
       COMPILE_FLAGS "${NVT_flags}")
-   if(WIN32)
-      #needed for hostname
-      target_link_libraries(NVT ws2_32)
-   endif()
-   if(MPI_FOUND)
-      target_link_libraries(NVT ${MPI_LIBRARIES})
-   endif()
+   target_link_libraries(NVT ${LIBRARIES_TO_LINK})
 endif()
 
 if(ENSEMBLE_GEMC)
@@ -38,13 +40,7 @@ if(ENSEMBLE_GEMC)
    set_target_properties(GEMC PROPERTIES 
       OUTPUT_NAME ${GE_name}
       COMPILE_FLAGS "${GE_flags}")
-   if(WIN32)
-      #needed for hostname
-      target_link_libraries(GEMC ws2_32)
-   endif()
-   if(MPI_FOUND)
-      target_link_libraries(GEMC ${MPI_LIBRARIES})
-   endif()
+   target_link_libraries(GEMC ${LIBRARIES_TO_LINK})
 endif()
 
 if(ENSEMBLE_GCMC)
@@ -52,13 +48,7 @@ if(ENSEMBLE_GCMC)
    set_target_properties(GCMC PROPERTIES 
       OUTPUT_NAME ${GC_name}
       COMPILE_FLAGS "${GC_flags}")
-   if(WIN32)
-      #needed for hostname
-      target_link_libraries(GCMC ws2_32)
-   endif()
-   if(MPI_FOUND)
-      target_link_libraries(GCMC ${MPI_LIBRARIES})
-   endif()
+   target_link_libraries(GCMC ${LIBRARIES_TO_LINK})
 endif()
 
 if(ENSEMBLE_NPT)
@@ -66,12 +56,6 @@ if(ENSEMBLE_NPT)
    set_target_properties(NPT PROPERTIES 
       OUTPUT_NAME ${NPT_name}
       COMPILE_FLAGS "${NPT_flags}")
-   if(WIN32)
-      #needed for hostname
-      target_link_libraries(NPT ws2_32)
-   endif()
-   if(MPI_FOUND)
-      target_link_libraries(NPT ${MPI_LIBRARIES})
-   endif()
+   target_link_libraries(NPT ${LIBRARIES_TO_LINK})
 endif()
 

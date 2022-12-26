@@ -40,7 +40,7 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 function(add_GPU_NVT_test name)
     add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
         ${TestHeaders} ${TestSources})
-    target_link_libraries(${name} gtest_main)
+    target_link_libraries(${name} gtest_main ${GLOG_DEPENDENCY})
     set_target_properties(${name} PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${name}
@@ -61,7 +61,7 @@ endfunction(add_GPU_NVT_test)
 function(add_GPU_NPT_test name)
     add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
         ${TestHeaders} ${TestSources})
-    target_link_libraries(${name} gtest_main)
+    target_link_libraries(${name} gtest_main ${GLOG_DEPENDENCY})
     set_target_properties(${name} PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${name}
@@ -82,7 +82,7 @@ endfunction(add_GPU_NPT_test)
 function(add_GPU_GCMC_test name)
     add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
         ${TestHeaders} ${TestSources})
-    target_link_libraries(${name} gtest_main)
+    target_link_libraries(${name} gtest_main ${GLOG_DEPENDENCY})
     set_target_properties(${name} PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${name}
@@ -103,7 +103,7 @@ endfunction(add_GPU_GCMC_test)
 function(add_GPU_GEMC_test name)
     add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
         ${TestHeaders} ${TestSources})
-    target_link_libraries(${name} gtest_main)
+    target_link_libraries(${name} gtest_main ${GLOG_DEPENDENCY})
     set_target_properties(${name} PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${name}

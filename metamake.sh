@@ -195,5 +195,13 @@ if (( use_debug )); then
 	CMAKEARGS+="-DCMAKE_BUILD_TYPE=Debug "
 fi
 
+if [ ! -d "lib/glog" ]
+then
+	echo "Adding submodules..."
+	git submodule init
+	git submodule update
+	echo "Adding submodules. Done."
+fi
+
 cmake .. $CMAKEARGS
 make -j8 $ENSEMBLES

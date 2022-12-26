@@ -22,8 +22,9 @@ along with this program, also can be found at
 #endif
 #include <ctime>
 #include <iostream>
+#include "glog/logging.h"
 
-// find and include appropriate files for getHostname
+// Find and include appropriate files for getHostname.
 #ifdef _WIN32
 #include <Winsock2.h>
 #define HOSTNAME
@@ -51,6 +52,7 @@ void PrintGPUHardwareInfo();
 #endif
 
 int main(int argc, char *argv[]) {
+  google::InitGoogleLogging(argv[0]);
 #ifdef RECORD_DEBUG
 #ifdef GOMC_CUDA
   remove("gpu.debug");
