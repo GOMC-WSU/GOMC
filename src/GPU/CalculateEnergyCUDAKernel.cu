@@ -422,8 +422,10 @@ __device__ double CalcCoulombParticleGPUNoLambda(double distSq,
   double dist = sqrt(distSq);
   double value = 1.0;
   if (gpu_ewald) {
+    printf("EWALD\n");
     value = erfc(gpu_alpha * dist);
   } else if (gpu_wolf) {
+    printf("WOLF\n");
     // V_DSP -- (16) from Gezelter 2006
     value = erfc(gpu_wolfAlpha * dist)/dist;
     value -= gpu_wolfFactor1;

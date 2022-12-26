@@ -163,14 +163,23 @@ void System::Init(Setup &set) {
   // Initialize lambda before calling SystemTotal
   InitLambda();
   calcEnergy.Init(*this);
+  printf("STarted initting ewald class\n");
   calcEwald->Init();
+  printf("ended initting ewald class\n");
+
+
   if (wolfCalibration){ 
+      printf("started initting wolf class\n");
+
     calcWolf->Init();
+        printf("ended initting wolf class\n");
+
   }
   potential = calcEnergy.SystemTotal();
   InitMoves(set);
   for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
     moveTime[m] = 0.0;
+  printf("Finished system class\n");
 }
 
 void System::InitOver(Setup &set, Molecules &molRef) {
