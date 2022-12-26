@@ -17,20 +17,24 @@ sysRef(sys), calcEn(sys.calcEnergy), statValRef(statV)
       printOnFirstStep = true;
       numSamples = 0;
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-            wolfAlphaStart[b] = sysVals.wolfCal.wolfAlphaStart[b];
-            wolfAlphaEnd[b] = sysVals.wolfCal.wolfAlphaEnd[b];
-            wolfAlphaDelta[b] = sysVals.wolfCal.wolfAlphaDelta[b];
-            alphaSize[b] = 0;
-            for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
-                  alphaSize[b] += 1;
+            if(sysVals.wolfCal.wolfAlphaRangeRead[b]){
+                  wolfAlphaStart[b] = sysVals.wolfCal.wolfAlphaStart[b];
+                  wolfAlphaEnd[b] = sysVals.wolfCal.wolfAlphaEnd[b];
+                  wolfAlphaDelta[b] = sysVals.wolfCal.wolfAlphaDelta[b];
+                  alphaSize[b] = 0;
+                  for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
+                        alphaSize[b] += 1;
+                  }
             }
       }
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-            for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
-                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
-                        sumRelativeError[b][wolfKind][coulKind]  = new double[alphaSize[b]];
-                        for (uint i = 0; i < alphaSize[b]; ++i) {
-                              sumRelativeError[b][wolfKind][coulKind][i] = 0.0;
+            if(sysVals.wolfCal.wolfAlphaRangeRead[b]){
+                  for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
+                        for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
+                              sumRelativeError[b][wolfKind][coulKind]  = new double[alphaSize[b]];
+                              for (uint i = 0; i < alphaSize[b]; ++i) {
+                                    sumRelativeError[b][wolfKind][coulKind][i] = 0.0;
+                              }
                         }
                   }
             }
