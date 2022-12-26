@@ -61,6 +61,8 @@ System::System(StaticVals &statics, Setup &set, ulong &startStep,
       restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
       startStepRef(startStep), trueStep(0) {
   calcEwald = NULL;
+  calcWolf = NULL;
+
 #if GOMC_LIB_MPI
   if (ms->parallelTemperingEnabled)
     prngParallelTemp = new PRNG(molLookupRef);
@@ -147,9 +149,12 @@ void System::Init(Setup &set) {
       calcWolf =  new Wolf(statV, *this);
   } else if (ewald && cached)
     calcEwald = new EwaldCached(statV, *this);
-  else if (ewald && !cached)
+  else if (ewald && !cached){
+    printf("STarted creating ewald class\n");
     calcEwald = new Ewald(statV, *this);
-  else if (wolf)
+    printf("ended creating ewald class\n");
+
+  } else if (wolf)
     calcEwald = new Wolf(statV, *this);
   else
     calcEwald = new NoEwald(statV, *this);
