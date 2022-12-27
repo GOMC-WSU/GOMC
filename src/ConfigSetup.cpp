@@ -2087,8 +2087,8 @@ void ConfigSetup::verifyInputs(void) {
   }
 
   if (!sys.volume.hasVolume && !in.restart.enable) {
-    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL
-              << " Cell Basis vectors!" << std::endl;
+    std::cout << "Error: This simulation requires the user define "
+              << 3 * BOX_TOTAL << " Cell Basis vectors!" << std::endl;
     for (uint b = 0; b < BOX_TOTAL; b++) {
       for (uint i = 0; i < 3; i++) {
         if (!sys.volume.readCellBasis[b][i]) {
