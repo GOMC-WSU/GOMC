@@ -96,6 +96,11 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
                         exp(-1.0*wolfAlpha[b]*wolfAlpha[b]*rCutCoulombSq[b])
                         /rCutCoulomb[b];
       wolfFactor3[b] = wolfAlpha[b] *  M_2_SQRTPI;
+    } else {
+      wolfAlpha[b] = 0.0;
+      wolfFactor1[b] = 0.0;
+      wolfFactor2[b] = 0.0;
+      wolfFactor3[b] = 0.0;   
     }
   }
 
