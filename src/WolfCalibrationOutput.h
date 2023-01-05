@@ -13,6 +13,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GOMC_Config.h"
 #include "System.h"
 #include "CalculateEnergy.h"
+#include "Welford.h"
+
 #include <string.h>
 #ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
@@ -67,7 +69,8 @@ private:
   double wolfAlphaEnd[BOX_TOTAL];
   double wolfAlphaDelta[BOX_TOTAL];
   int alphaSize[BOX_TOTAL];
-  double *sumRelativeError[BOX_TOTAL][WOLF_TOTAL_KINDS][COUL_TOTAL_KINDS];
+  std::vector<Welford<double>> sumRelativeErrorVec[BOX_TOTAL][WOLF_TOTAL_KINDS][COUL_TOTAL_KINDS];
+  Welford<double> ewaldAvg[BOX_TOTAL];
   int numSamples;
 
 };

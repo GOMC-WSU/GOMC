@@ -31,10 +31,7 @@ sysRef(sys), calcEn(sys.calcEnergy), statValRef(statV)
             if(sysVals.wolfCal.wolfAlphaRangeRead[b]){
                   for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                         for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
-                              sumRelativeError[b][wolfKind][coulKind]  = new double[alphaSize[b]];
-                              for (uint i = 0; i < alphaSize[b]; ++i) {
-                                    sumRelativeError[b][wolfKind][coulKind][i] = 0.0;
-                              }
+                              sumRelativeErrorVec[b][wolfKind][coulKind].resize(alphaSize[b]);
                         }
                   }
             }
@@ -43,10 +40,6 @@ sysRef(sys), calcEn(sys.calcEnergy), statValRef(statV)
 
 WolfCalibrationOutput::~WolfCalibrationOutput()
 {
-      for (uint b = 0; b < BOXES_WITH_U_NB; ++b) 
-            for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind)
-                  for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind)
-                        delete sumRelativeError[b][wolfKind][coulKind];
       
 }
 
@@ -111,6 +104,29 @@ void WolfCalibrationOutput::WriteHeader()
       }
 }
 
+template<typename T>
+double getAverage(std::vector<T> const& v) {
+      if (v.empty()) {
+            return 0;
+      }
+      return std::accumulate(v.begin(), v.end(), 0.0) / v.size();
+}
+
+template<typename T>
+double getSTD(std::vector<T> const& v) {
+      if (v.empty()) {
+            return 0;
+      }
+      double sum = std::accumulate(v.begin(), v.end(), 0.0);
+      double mean = sum / v.size();
+
+      std::vector<double> diff(v.size());
+      std::transform(v.begin(), v.end(), diff.begin(),
+                  std::bind2nd(std::minus<double>(), mean));
+      double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+      double stdev = std::sqrt(sq_sum / v.size());
+      return stdev;
+}
 
 void WolfCalibrationOutput::WriteGraceParFile()
 {
@@ -155,7 +171,9 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                         firstRow += std::to_string(a) + "\t";
                         for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                               for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){ 
-                                    firstRow += std::to_string(sumRelativeError[b][wolfKind][coulKind][i]/numSamples) + "\t";
+                                    double min_err = std::abs((sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()-ewaldAvg[b].mean())/ewaldAvg[b].mean());
+                                    firstRow += std::to_string(min_err) + "\t";
+                                    //firstRow += std::to_string(sumRelativeError[b][wolfKind][coulKind][i]/numSamples) + "\t";
                               }
                         }
                         firstRow += "\n";
@@ -177,8 +195,20 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                               int min_i = 0;
                               double min_err = std::numeric_limits<double>::max();
                               for (uint i = 0; i < alphaSize[b]; ++i) {
-                                    if (std::abs(sumRelativeError[b][wolfKind][coulKind][i]/numSamples) < min_err){
-                                          min_err = std::abs(sumRelativeError[b][wolfKind][coulKind][i]/numSamples);
+                                    //printf("vec avg %f std %f z %f\n", sumRelativeErrorVec[b][wolfKind][coulKind][i].mean(), sumRelativeErrorVec[b][wolfKind][coulKind][i].sd(), std::abs(sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()/sumRelativeErrorVec[b][wolfKind][coulKind][i].sd()));
+                                    //double err = std::abs(sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()/sumRelativeErrorVec[b][wolfKind][coulKind][i].sd());
+                                    //double err = std::abs(sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()-ewaldAvg[b].mean());
+                                    double mean1 = ewaldAvg[b].mean();
+                                    double sd1 = ewaldAvg[b].sd();
+                                    double n = ewaldAvg[b].count();
+
+                                    double mean2 = sumRelativeErrorVec[b][wolfKind][coulKind][i].mean();
+                                    double sd2 = sumRelativeErrorVec[b][wolfKind][coulKind][i].sd();
+                                    double m = sumRelativeErrorVec[b][wolfKind][coulKind][i].count();
+
+                                    double t_test = (mean1 - mean2) / sqrt((sd1 * sd1) / n + (sd2 * sd2) / m);
+                                    if (std::abs(t_test) < min_err){
+                                          min_err = std::abs(t_test);
                                           min_i = i;
                                     }
                               }
@@ -225,7 +255,8 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
       }
 }
 */
- 
+#include <float.h>
+
 void WolfCalibrationOutput::Sample(const ulong step) {
       if (!((printOnFirstStep && step == startStep) ||
         (enableOut && ((step + 1) % stepsPerOut == 0) || forceOutput)))
@@ -233,11 +264,13 @@ void WolfCalibrationOutput::Sample(const ulong step) {
       ++numSamples;
       SystemPotential ewaldRef = calcEn.SystemTotal();
       ewaldRef.Total();
-
+      int Digs = DECIMAL_DIG;
       // Swap wolf and ewald
       std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
 
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+            //printf("EwAtStep %lu %.*e\n", step, Digs, ewaldRef.boxEnergy[b].totalElect);
+            ewaldAvg[b].add_value(ewaldRef.boxEnergy[b].totalElect);
             for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                   statValRef.forcefield.SetWolfKind(wolfKind);
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
@@ -250,7 +283,8 @@ void WolfCalibrationOutput::Sample(const ulong step) {
                               statValRef.forcefield.particles->updateWolfEwald();
                               #endif
                               SystemPotential wolfTot = calcEn.WolfCalSystemTotal();
-                              sumRelativeError[b][wolfKind][coulKind][i] += (wolfTot.boxEnergy[b].totalElect-ewaldRef.boxEnergy[b].totalElect)/ewaldRef.boxEnergy[b].totalElect;
+                              //printf("WoAtStep %lu %d %d %f %.*e\n", step, wolfKind, coulKind, a, Digs, wolfTot.boxEnergy[b].totalElect);
+                              sumRelativeErrorVec[b][wolfKind][coulKind][i].add_value(wolfTot.boxEnergy[b].totalElect);
                         }
                   }
             }
