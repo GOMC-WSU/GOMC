@@ -7,6 +7,7 @@ set(TestSources
     #test/src/PSFParserTest.cpp
     test/src/ConsistentTrajectoryTest.cpp
     test/src/CheckpointTest.cpp
+    test/src/WolfCalibrationTest.cpp
 )
 
 set(TestHeaders
@@ -63,6 +64,8 @@ set(GOMCSources
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
+   src/Wolf.cpp
+   src/WolfCalibrationOutput.cpp
    src/cbmc/DCCrankShaftAng.cpp
    src/cbmc/DCCrankShaftDih.cpp
    src/cbmc/DCCyclic.cpp
@@ -102,6 +105,7 @@ set(GOMCHeaders
    src/CoordinateSetup.h
    src/CPUSide.h
    src/DCDlib.h
+   src/ElectrostaticBase.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
@@ -161,6 +165,8 @@ set(GOMCHeaders
    src/TransformMatrix.h
    src/Velocity.h
    src/Writer.h
+   src/Wolf.h
+   src/WolfCalibrationOutput.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
    src/cbmc/DCCrankShaftAng.h
