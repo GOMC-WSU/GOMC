@@ -36,6 +36,8 @@ public:
   SystemPotential &GetSystemEnergy(void);
   PRNG &GetPRNG();
   Molecules &GetMolecules();
+  void RunSimulation(uint);
+
 #endif
 private:
   StaticVals *staticValues;

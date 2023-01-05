@@ -239,4 +239,95 @@ BoxDimensions &Simulation::GetBoxDim() { return system->boxDimRef; }
 ulong Simulation::GetTrueStep() { return system->trueStep; }
 
 ulong Simulation::GetRunSteps() { return totalSteps - startStep; }
+
+void Simulation::RunSimulation(uint totalSteps) {
+  double startEnergy = system->potential.totalEnergy.total;
+  if (totalSteps == 0) {
+    for (int i = 0; i < (int)frameSteps.size(); i++) {
+      if (i == 0) {
+        cpu->Output(frameSteps[0] - 1);
+        continue;
+      }
+      system->RecalculateTrajectory(set, i + 1);
+      cpu->Output(frameSteps[i] - 1);
+    }
+  }
+  for (ulong step = startStep; step < totalSteps; step++) {
+    system->moveSettings.AdjustMoves(step);
+    system->ChooseAndRunMove(step);
+    cpu->Output(step);
+
+#ifndef NDEBUG
+    Energy en0 = system->potential.boxEnergy[0];
+    std::cout << "Step " << step + 1 << std::fixed << std::setprecision(7)
+              << ": Box 0 Energies" << std::endl;
+    std::cout << en0 << std::endl;
+    if (BOXES_WITH_U_NB > 1) {
+      Energy en1 = system->potential.boxEnergy[1];
+      std::cout << "Step " << step + 1 << std::fixed << std::setprecision(7)
+                << ": Box 1 Energies" << std::endl;
+      std::cout << en1 << std::endl;
+    }
+#endif
+
+    if ((step + 1) == cpu->equilSteps) {
+      double currEnergy = system->potential.totalEnergy.total;
+      if (std::abs(currEnergy - startEnergy) > 1.0e+10) {
+        printf("Info: Recalculating the total energies to insure the accuracy"
+               " of the computed \n"
+               "      running energies.\n\n");
+        system->calcEwald->UpdateVectorsAndRecipTerms(true);
+        system->potential = system->calcEnergy.SystemTotal();
+      }
+    }
+
+#if GOMC_LIB_MPI
+    //
+    if (staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps &&
+        step % staticValues->simEventFreq.parallelTempFreq == 0) {
+      int maxSwap = 0;
+      /* Number of rounds of exchanges needed to deal with any multiple
+       * exchanges. */
+      /* Where each replica ends up after the exchange attempt(s). */
+      /* The order in which multiple exchanges will occur. */
+      bool bThisReplicaExchanged = false;
+
+      system->potential = system->calcEnergy.SystemTotal();
+      PTUtils->evaluateExchangeCriteria(step);
+      PTUtils->prepareToDoExchange(ms->worldRank, &maxSwap,
+                                   &bThisReplicaExchanged);
+      PTUtils->conductExchanges(system->coordinates, system->com, ms, maxSwap,
+                                bThisReplicaExchanged);
+      system->cellList.GridAll(system->boxDimRef, system->coordinates,
+                               system->molLookup);
+      if (staticValues->forcefield.ewald) {
+        for (int box = 0; box < BOX_TOTAL; box++) {
+          system->calcEwald->BoxReciprocalSums(box, system->coordinates, false);
+          system->potential.boxEnergy[box].recip =
+              system->calcEwald->BoxReciprocal(box, false);
+          system->calcEwald->UpdateRecip(box);
+        }
+      }
+      system->potential = system->calcEnergy.SystemTotal();
+    }
+
+#endif
+
+#ifndef NDEBUG
+    if ((step + 1) % 1000 == 0)
+      RecalculateAndCheck();
+#endif
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::MC_RUN);
+  if (!RecalculateAndCheck()) {
+    std::cerr << "Warning: Updated energy differs from Recalculated Energy!\n";
+  }
+  system->PrintAcceptance();
+  system->PrintTime();
+#if GOMC_LIB_MPI
+  if (staticValues->simEventFreq.parallelTemp)
+    PTUtils->print_replica_exchange_statistics(ms->fplog);
+#endif
+}
+
 #endif
