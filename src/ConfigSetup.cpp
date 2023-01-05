@@ -1793,7 +1793,8 @@ void ConfigSetup::fillDefaults(void) {
         sys.ff.COUL_KIND = sys.ff.COUL_DSP_KIND;
       }
     }
-    if (!sys.elect.readWolfType){
+    if (!sys.elect.readWolfKind){
+      printf("%-40s %-40s \n", "Default: Wolf WAIBEL2019 enabled: ", sys.ff.COUL_DSP.c_str());
       sys.ff.WOLF_KIND = sys.ff.WOLF_WAIBEL2019_KIND;
     }
     for(uint b = 0; b < BOX_TOTAL; b++) {
