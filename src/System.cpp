@@ -351,10 +351,3 @@ void System::PrintTime() {
   }
   std::cout << std::endl;
 }
-
-// Swap classes to calc Self, correction, 
-// reciprocal (Ewald-only) terms.
-void System::SwapWolfAndEwaldPointers(){
-  std::swap(calcEwald, calcWolf);
-  calcEnergy.SetElectrostaticPointer(calcEwald);
-}
