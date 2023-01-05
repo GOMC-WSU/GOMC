@@ -433,7 +433,10 @@ double Wolf::Waibel2018Correction(MoleculeKind &thisKind,
       continue;
     }
     for (uint j = i + 1; j < atomSize; j++) {
-      correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];
+      currentAxes.InRcut(distSq, virComponents, currentCoords,
+                        start + i, start + j, box); 
+      if(distSq < rCutCoulombSq[box])
+        correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];   
     }
     if(oneThree){
       //loop over all 1-3 partners of the particle
@@ -555,7 +558,10 @@ double Wolf::Waibel2018Correction(const cbmc::TrialMol &trialMol) const{
   double dist, distSq;
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
-      correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];
+        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                        i, j, box); 
+        if(distSq < rCutCoulombSq[box])
+          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];    
     }
     if(oneThree){
       //loop over all 1-3 partners of the particle
