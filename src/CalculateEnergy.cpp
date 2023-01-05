@@ -62,6 +62,8 @@ CalculateEnergy::CalculateEnergy(StaticVals &stat, System &sys)
 void CalculateEnergy::Init(System &sys) {
   uint maxAtomInMol = 0;
   calcEwald = sys.GetEwald();
+  if (sys.wolfCalibration)
+    calcWolfCal = sys.GetWolfCal();
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
   multiParticleEnabled = sys.statV.multiParticleEnabled;
@@ -143,6 +145,64 @@ SystemPotential CalculateEnergy::SystemTotal() {
   return pot;
 }
 
+
+SystemPotential CalculateEnergy::WolfCalSystemTotal() {
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_SYSTEM_TOTAL);
+  SystemPotential pot =
+      WolfCalSystemInter(SystemPotential(), currentCoords, currentAxes);
+
+  // system intra
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTRA);
+    double bondEnergy[2] = {0};
+    double bondEn = 0.0, nonbondEn = 0.0, correction = 0.0;
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
+    std::vector<uint> molID;
+
+    while (thisMol != end) {
+      molID.push_back(*thisMol);
+      ++thisMol;
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel for default(none) private(bondEnergy) shared(b, molID) \
+    reduction(+:bondEn, nonbondEn, correction)
+#endif
+    for (int i = 0; i < (int)molID.size(); i++) {
+      // calculate nonbonded energy
+      MoleculeIntra(molID[i], b, bondEnergy);
+      bondEn += bondEnergy[0];
+      nonbondEn += bondEnergy[1];
+      // calculate correction term of electrostatic interaction
+      correction += calcWolfCal->MolCorrection(molID[i], b);
+    }
+
+    pot.boxEnergy[b].intraBond = bondEn;
+    pot.boxEnergy[b].intraNonbond = nonbondEn;
+    // calculate self term of electrostatic interaction
+    pot.boxEnergy[b].self = calcWolfCal->BoxSelf(b);
+    pot.boxEnergy[b].correction = correction;
+
+    GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_INTRA);
+    // Calculate Virial
+    pot.boxVirial[b] = WolfCalVirialCalc(b);
+  }
+
+  pot.Total();
+
+  if (pot.totalEnergy.total > 1.0e12) {
+    std::cout << "\nWarning: Large energy detected due to the overlap in "
+                 "initial configuration.\n"
+                 "         The total energy will be recalculated at EqStep to "
+                 "ensure the accuracy \n"
+                 "         of the computed running energies.\n";
+  }
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_SYSTEM_TOTAL);
+  return pot;
+}
+
 SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
                                              XYZArray const &coords,
                                              BoxDimensions const &boxAxes) {
@@ -151,6 +211,21 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
     potential = BoxInter(potential, coords, boxAxes, b);
     // calculate reciprocal term of electrostatic interaction
     potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b, false);
+  }
+
+  potential.Total();
+
+  return potential;
+}
+
+SystemPotential CalculateEnergy::WolfCalSystemInter(SystemPotential potential,
+                                             XYZArray const &coords,
+                                             BoxDimensions const &boxAxes) {
+  for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+    // calculate LJ interaction and real term of electrostatic interaction
+    potential = BoxInter(potential, coords, boxAxes, b);
+    // calculate reciprocal term of electrostatic interaction
+    potential.boxEnergy[b].recip = calcWolfCal->BoxReciprocal(b, false);
   }
 
   potential.Total();
@@ -592,6 +667,185 @@ reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT
 
   // calculate reciprocal term of force
   tempVir = calcEwald->VirialReciprocal(tempVir, box);
+
+  tempVir.Total();
+  return tempVir;
+}
+
+
+// NOTE: The calculation of W12, W13, and W23 is expensive and would not be
+// required for pressure and surface tension calculation. So, they have been
+// commented out. If you need to calculate them, uncomment them.
+Virial CalculateEnergy::WolfCalVirialCalc(const uint box) {
+  // store virial and energy of reference and modify the virial
+  Virial tempVir;
+  // no need to calculate the virial for reservoir
+  if (box >= BOXES_WITH_U_NB)
+    return tempVir;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_VIRIAL);
+
+  // tensors for VDW and real part of electrostatic
+  double vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
+  double vT22 = 0.0, vT23 = 0.0, vT33 = 0.0;
+  double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
+  double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
+
+  std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
+  std::vector<std::vector<int>> neighborList;
+  cellList.GetCellListNeighbor(box, currentCoords.Count(), cellVector,
+                               cellStartIndex, mapParticleToCell);
+  neighborList = cellList.GetNeighborList(box);
+
+#ifdef GOMC_CUDA
+  // update unitcell in GPU
+  UpdateCellBasisCUDA(
+      forcefield.particles->getCUDAVars(), box, currentAxes.cellBasis[box].x,
+      currentAxes.cellBasis[box].y, currentAxes.cellBasis[box].z);
+
+  if (!currentAxes.orthogonal[box]) {
+    // In this case, currentAxes is really an object of type
+    // BoxDimensionsNonOrth,
+    // so cast and copy the additional data to the GPU
+    const BoxDimensionsNonOrth *NonOrthAxes =
+        static_cast<const BoxDimensionsNonOrth *>(&currentAxes);
+    UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                           NonOrthAxes->cellBasis_Inv[box].x,
+                           NonOrthAxes->cellBasis_Inv[box].y,
+                           NonOrthAxes->cellBasis_Inv[box].z);
+  }
+
+  CallBoxInterForceGPU(forcefield.particles->getCUDAVars(), cellVector,
+                       cellStartIndex, neighborList, mapParticleToCell,
+                       currentCoords, currentCOM, currentAxes, electrostatic,
+                       particleCharge, particleKind, particleMol, rT11, rT12,
+                       rT13, rT22, rT23, rT33, vT11, vT12, vT13, vT22, vT23,
+                       vT33, forcefield.sc_coul, forcefield.sc_sigma_6,
+                       forcefield.sc_alpha, forcefield.sc_power, box);
+#else
+#ifdef _OPENMP
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(cellStartIndex, cellVector, \
+  mapParticleToCell, neighborList, box) \
+reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
+#else
+#pragma omp parallel for default(none) shared(cellStartIndex, cellVector, \
+  mapParticleToCell, neighborList) \
+reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
+#endif
+#endif
+  for (int currParticleIdx = 0; currParticleIdx < (int)cellVector.size();
+       currParticleIdx++) {
+    int currParticle = cellVector[currParticleIdx];
+    int currCell = mapParticleToCell[currParticle];
+
+    for (int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL;
+         nCellIndex++) {
+      int neighborCell = neighborList[currCell][nCellIndex];
+
+      int endIndex = cellStartIndex[neighborCell + 1];
+      for (int nParticleIndex = cellStartIndex[neighborCell];
+           nParticleIndex < endIndex; nParticleIndex++) {
+        int nParticle = cellVector[nParticleIndex];
+
+        // make sure the pairs are unique and they belong to different molecules
+        if (currParticle < nParticle &&
+            particleMol[currParticle] != particleMol[nParticle]) {
+          double distSq;
+          XYZ virC;
+          if (currentAxes.InRcut(distSq, virC, currentCoords, currParticle,
+                                 nParticle, box)) {
+            // calculate the distance between com of two molecules
+            XYZ comC = currentCOM.Difference(particleMol[currParticle],
+                                             particleMol[nParticle]);
+            // calculate the minimum image between com of two molecules
+            comC = currentAxes.MinImage(comC, box);
+            double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
+                                            particleMol[nParticle], box);
+
+            if (electrostatic) {
+              double lambdaCoulomb = GetLambdaCoulomb(
+                  particleMol[currParticle], particleMol[nParticle], box);
+              double qi_qj =
+                  particleCharge[currParticle] * particleCharge[nParticle];
+
+              // skip particle pairs with no charge
+              if (qi_qj != 0.0) {
+                double pRF = forcefield.particles->CalcCoulombVir(
+                    distSq, particleKind[currParticle], particleKind[nParticle],
+                    qi_qj, lambdaCoulomb, box);
+                // calculate the top diagonal of pressure tensor
+                rT11 += pRF * (virC.x * comC.x);
+                // rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
+                // rT13 += pRF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
+
+                rT22 += pRF * (virC.y * comC.y);
+                // rT23 += pRF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
+
+                rT33 += pRF * (virC.z * comC.z);
+              }
+            }
+
+            double pVF = forcefield.particles->CalcVir(
+                distSq, particleKind[currParticle], particleKind[nParticle],
+                lambdaVDW);
+            // calculate the top diagonal of pressure tensor
+            vT11 += pVF * (virC.x * comC.x);
+            // vT12 += pVF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
+            // vT13 += pVF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
+
+            vT22 += pVF * (virC.y * comC.y);
+            // vT23 += pVF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
+
+            vT33 += pVF * (virC.z * comC.z);
+          }
+        }
+      }
+    }
+  }
+#endif
+
+  // set the all tensor values
+  tempVir.interTens[0][0] = vT11;
+  tempVir.interTens[0][1] = vT12;
+  tempVir.interTens[0][2] = vT13;
+
+  tempVir.interTens[1][0] = vT12;
+  tempVir.interTens[1][1] = vT22;
+  tempVir.interTens[1][2] = vT23;
+
+  tempVir.interTens[2][0] = vT13;
+  tempVir.interTens[2][1] = vT23;
+  tempVir.interTens[2][2] = vT33;
+
+  if (electrostatic) {
+    // real part of electrostatic
+    tempVir.realTens[0][0] = rT11 * num::qqFact;
+    tempVir.realTens[0][1] = rT12 * num::qqFact;
+    tempVir.realTens[0][2] = rT13 * num::qqFact;
+
+    tempVir.realTens[1][0] = rT12 * num::qqFact;
+    tempVir.realTens[1][1] = rT22 * num::qqFact;
+    tempVir.realTens[1][2] = rT23 * num::qqFact;
+
+    tempVir.realTens[2][0] = rT13 * num::qqFact;
+    tempVir.realTens[2][1] = rT23 * num::qqFact;
+    tempVir.realTens[2][2] = rT33 * num::qqFact;
+  }
+
+  // setting virial of LJ
+  tempVir.inter = vT11 + vT22 + vT33;
+  // setting virial of coulomb
+  tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_VIRIAL);
+
+  if (forcefield.useLRC || forcefield.useIPC) {
+    VirialCorrection(tempVir, currentAxes, box);
+  }
+
+  // calculate reciprocal term of force
+  tempVir = calcWolfCal->VirialReciprocal(tempVir, box);
 
   tempVir.Total();
   return tempVir;

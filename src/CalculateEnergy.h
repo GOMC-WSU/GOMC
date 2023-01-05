@@ -56,7 +56,6 @@ public:
 
   //! Calculates total energy/virial of all boxes in the system
   SystemPotential SystemTotal();
-
   //! Calculates total energy/virial of a single box in the system
   SystemPotential BoxInter(SystemPotential potential, XYZArray const &coords,
                            BoxDimensions const &boxAxes, const uint box);
@@ -181,7 +180,15 @@ public:
                     const std::vector<double> &lambda_Coul, const uint iState,
                     const uint molIndex, const uint box) const;
 
+  SystemPotential WolfCalSystemTotal();
+
 private:
+  // Only used internally by wolf calibration
+  SystemPotential WolfCalSystemInter(SystemPotential potential,
+                                             XYZArray const &coords,
+                                             BoxDimensions const &boxAxes);
+  Virial WolfCalVirialCalc(const uint box);
+
   //! Calculates full TC energy for one box in current system
   void EnergyCorrection(SystemPotential &pot, BoxDimensions const &boxAxes,
                         const uint box) const;
@@ -276,6 +283,7 @@ private:
   const Coordinates &currentCoords;
   const COM &currentCOM;
   const ElectrostaticBase *calcEwald;
+  const ElectrostaticBase *calcWolfCal;
   const Lambda &lambdaRef;
   XYZArray &atomForceRef;
   XYZArray &molForceRef;
