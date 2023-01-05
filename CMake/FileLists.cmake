@@ -148,6 +148,7 @@ set(headers
    src/System.h
    src/TransformMatrix.h
    src/Velocity.h
+   src/Welford.h
    src/Writer.h
    src/Wolf.h
    src/WolfCalibrationOutput.h
