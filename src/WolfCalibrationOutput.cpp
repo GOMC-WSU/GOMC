@@ -235,10 +235,7 @@ void WolfCalibrationOutput::Sample(const ulong step) {
       ewaldRef.Total();
 
       // Swap wolf and ewald
-      //sysRef.SwapWolfAndEwaldPointers();
-      bool tmp = statValRef.forcefield.ewald;
-      statValRef.forcefield.ewald = statValRef.forcefield.wolf;
-      statValRef.forcefield.wolf = tmp;
+      std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
 
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
@@ -258,10 +255,7 @@ void WolfCalibrationOutput::Sample(const ulong step) {
                   }
             }
       }
-      //sysRef.SwapWolfAndEwaldPointers();
-      tmp = statValRef.forcefield.ewald;
-      statValRef.forcefield.ewald = statValRef.forcefield.wolf;
-      statValRef.forcefield.wolf = tmp;
+      std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
       #ifdef GOMC_CUDA
       statValRef.forcefield.particles->updateWolfEwald();
       #endif
