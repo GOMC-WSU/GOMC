@@ -317,7 +317,9 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const &en,
 
 void ConsoleOutput::PrintEnergyTitle() {
   std::string title = "ETITLE:";
-  title += "     STEP";
+  size_t loc = title.length();
+  title += "STEP";
+  title.insert(loc, elementWidth-title.length(), ' ');
   printElement(title, elementWidth);
 
   printElement("TOTAL", elementWidth);
@@ -337,7 +339,9 @@ void ConsoleOutput::PrintStatisticTitle() {
   // uint offset = box * var->numKinds;
   if (enableStat) {
     std::string title = "STITLE:";
-    title += "     STEP";
+    size_t loc = title.length();
+    title += "STEP";
+    title.insert(loc, elementWidth-title.length(), ' ');
     printElement(title, elementWidth);
   }
 
@@ -380,7 +384,9 @@ void ConsoleOutput::PrintStatisticTitle() {
 
 void ConsoleOutput::PrintMoveTitle() {
   std::string title = "MTITLE:";
-  title += "     STEP";
+  size_t loc = title.length();
+  title += "STEP";
+  title.insert(loc, elementWidth-title.length(), ' ');
   printElement(title, elementWidth);
   if (var->Performed(mv::DISPLACE)) {
     printElement("DISTRY", elementWidth);
