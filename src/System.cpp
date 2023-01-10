@@ -133,7 +133,7 @@ void System::Init(Setup &set) {
 
 #ifdef GOMC_CUDA
   if (wolfCalibration){
-    if (set.config.sys.wolfCal.driver){
+    if (ewald){
       // Ewald-driven
       calcEwald = new Ewald(statV, *this);
       calcWolf = new Wolf(statV, *this);
