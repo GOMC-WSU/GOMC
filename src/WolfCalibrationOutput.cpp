@@ -16,7 +16,9 @@ sysRef(sys), calcEn(sys.calcEnergy), statValRef(statV)
       // This is neccessary to check for correctness of single point energy calculations.
       printOnFirstStep = true;
       numSamples = 0;
+      ewaldDriven = statV.forcefield.ewald;
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+            orignalWolfAlpha[b] = statV.forcefield.GetWolfAlpha(b);
             if(sysVals.wolfCal.wolfAlphaRangeRead[b]){
                   wolfAlphaStart[b] = sysVals.wolfCal.wolfAlphaStart[b];
                   wolfAlphaEnd[b] = sysVals.wolfCal.wolfAlphaEnd[b];
@@ -262,11 +264,18 @@ void WolfCalibrationOutput::Sample(const ulong step) {
         (enableOut && ((step + 1) % stepsPerOut == 0) || forceOutput)))
             return;
       ++numSamples;
-      SystemPotential ewaldRef = calcEn.SystemTotal();
-      ewaldRef.Total();
-      int Digs = DECIMAL_DIG;
-      // Swap wolf and ewald
-      std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
+
+      SystemPotential ewaldRef;
+      if (ewaldDriven) {
+            ewaldRef = calcEn.SystemTotal();
+            ewaldRef.Total();
+            int Digs = DECIMAL_DIG;
+            // Swap wolf and ewald
+            std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
+      } else {
+            ewaldRef = calcEn.WolfCalSystemTotal();
+            ewaldRef.Total();
+      }
 
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             //printf("EwAtStep %lu %.*e\n", step, Digs, ewaldRef.boxEnergy[b].totalElect);
@@ -282,17 +291,31 @@ void WolfCalibrationOutput::Sample(const ulong step) {
                               #ifdef GOMC_CUDA
                               statValRef.forcefield.particles->updateWolfEwald();
                               #endif
-                              SystemPotential wolfTot = calcEn.WolfCalSystemTotal();
+                              SystemPotential wolfTot;
+                              if (ewaldDriven) {
+                                    wolfTot = calcEn.WolfCalSystemTotal();
+                              } else {
+                                    wolfTot = calcEn.SystemTotal();
+                              }
                               //printf("WoAtStep %lu %d %d %f %.*e\n", step, wolfKind, coulKind, a, Digs, wolfTot.boxEnergy[b].totalElect);
                               sumRelativeErrorVec[b][wolfKind][coulKind][i].add_value(wolfTot.boxEnergy[b].totalElect);
                         }
                   }
             }
       }
-      std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
-      #ifdef GOMC_CUDA
-      statValRef.forcefield.particles->updateWolfEwald();
-      #endif
+      if (ewaldDriven){
+            std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
+            #ifdef GOMC_CUDA
+            statValRef.forcefield.particles->updateWolfEwald();
+            #endif
+      } else {
+            for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+                  statValRef.forcefield.SetWolfAlphaAndWolfFactors(orignalWolfAlpha[b], b);
+            }
+            #ifdef GOMC_CUDA
+            statValRef.forcefield.particles->updateWolfEwald();
+            #endif
+      }
 }
 
 

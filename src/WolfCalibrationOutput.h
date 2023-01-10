@@ -72,7 +72,8 @@ private:
   std::vector<Welford<double>> sumRelativeErrorVec[BOX_TOTAL][WOLF_TOTAL_KINDS][COUL_TOTAL_KINDS];
   Welford<double> ewaldAvg[BOX_TOTAL];
   int numSamples;
-
+  bool ewaldDriven;
+  double orignalWolfAlpha[BOX_TOTAL];
 };
 
 #endif

@@ -40,6 +40,7 @@ public:
   void SetWolfKind(uint);
   void SetCoulKind(uint); 
   void SetWolfAlphaAndWolfFactors(double, uint);
+  double GetWolfAlpha(uint);
   BOX_SIZE_DOUBLE_ARRAY& GetWolfAlpha(void);
   BOX_SIZE_DOUBLE_ARRAY& GetWolfFactor1(void);
   BOX_SIZE_DOUBLE_ARRAY& GetWolfFactor2(void);

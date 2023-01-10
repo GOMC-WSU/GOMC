@@ -1913,10 +1913,10 @@ void ConfigSetup::verifyInputs(void) {
       printf("Error: Wolf Calibration alpha range is not set for all boxes!");
       exit(EXIT_FAILURE);
     }
-    if (sys.elect.ewald == false){
-      printf("Error: Wolf Calibration requires Ewald be true!");
-      exit(EXIT_FAILURE);
-    }
+    //if (sys.elect.ewald == false){
+    //  printf("Error: Wolf Calibration requires Ewald be true!");
+    //  exit(EXIT_FAILURE);
+    //}
   }
 
   if (!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
