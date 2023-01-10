@@ -152,8 +152,15 @@ void System::Init(Setup &set) {
   // check if we have to use cached version of Ewald or not.
   bool cached = set.config.sys.elect.cache;
   if (wolfCalibration){
-      calcEwald  = new Ewald(statV, *this);
-      calcWolf =  new Wolf(statV, *this);
+    if (ewald){
+      // Ewald-driven
+      calcEwald = new Ewald(statV, *this);
+      calcWolf = new Wolf(statV, *this);
+    } else {
+      // Wolf-driven
+      calcEwald = new  Wolf(statV, *this);
+      calcWolf = new Ewald(statV, *this);
+    }
   } else if (ewald && cached)
     calcEwald = new EwaldCached(statV, *this);
   else if (ewald && !cached){
