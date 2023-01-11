@@ -98,6 +98,7 @@ void WolfCalibrationOutput::WriteHeader()
                         outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".dat").c_str(), std::ofstream::out);
                         if (outF.is_open()) {
                               std::string firstRow = "";
+                              /*
                               firstRow += "Step#\t";
                               // We skip the reference r cut with reference alpha.
                               // r = 0, a = 0
@@ -107,6 +108,7 @@ void WolfCalibrationOutput::WriteHeader()
                                     firstRow += " ";
                               }
                               outF << firstRow;
+                              */
                               outF << std::endl;
                         } else {
                               std::cerr << "Unable to write to file \"" <<  name << "\" "
