@@ -148,6 +148,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
 
 uint Forcefield::GetWolfKind(void) {return wolfKind;}
 uint Forcefield::GetCoulKind(void) {return coulKind;} 
+double Forcefield::GetWolfAlpha(uint b) {return wolfAlpha[b];} 
 BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfAlpha(void) {return wolfAlpha;} 
 BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfFactor1(void) {return wolfFactor1;} 
 BOX_SIZE_DOUBLE_ARRAY& Forcefield::GetWolfFactor2(void) {return wolfFactor2;} 

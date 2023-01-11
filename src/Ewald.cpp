@@ -58,7 +58,8 @@ Ewald::Ewald(StaticVals &stat, System &sys)
 }
 
 Ewald::~Ewald() {
-  if (ff.ewald) {
+  if (kx != NULL) {
+  //if (ff.ewald) {
 #ifdef GOMC_CUDA
     DestroyEwaldCUDAVars(ff.particles->getCUDAVars());
 #endif
