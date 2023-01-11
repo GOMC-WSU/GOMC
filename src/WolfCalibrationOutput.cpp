@@ -187,7 +187,7 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                         firstRow += std::to_string(a) + "\t";
                         for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                               for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){ 
-                                    double min_err = std::abs((sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()-ewaldAvg[b].mean())/ewaldAvg[b].mean());
+                                    double min_err = 100.00*((sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()-ewaldAvg[b].mean())/ewaldAvg[b].mean());
                                     firstRow += std::to_string(min_err) + "\t";
                                     //firstRow += std::to_string(sumRelativeError[b][wolfKind][coulKind][i]/numSamples) + "\t";
                               }
@@ -212,7 +212,7 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                               row += GetString(step);
                               row += "\t";
                               for (uint i = 0; i < alphaSize[b]; ++i) {
-                                    row += std::to_string(relativeError[b][wolfKind][coulKind][i]);
+                                    row += std::to_string(100.00*relativeError[b][wolfKind][coulKind][i]);
                                     row += "\t";
                               }
                               outF << row << std::endl;
