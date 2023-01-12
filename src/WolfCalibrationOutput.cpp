@@ -307,7 +307,6 @@ void WolfCalibrationOutput::Sample(const ulong step) {
       if (ewaldDriven) {
             ewaldRef = calcEn.SystemTotal();
             ewaldRef.Total();
-            int Digs = DECIMAL_DIG;
             // Swap wolf and ewald
             std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
       } else {
