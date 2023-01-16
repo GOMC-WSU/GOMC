@@ -530,11 +530,11 @@ inline std::ostream &operator<<(std::ostream &out, Energy &en) {
         << "\tTotal Electric: " << en.totalElect << "  Real: " << en.real
         << "  Recip: " << en.recip << "  Self: " << en.self
         << "  Correction: " << en.correction;
-
-    // Restore ostream settings to prior value
-    out << std::setprecision(ss);
-    out.flags(ff);
   }
+
+  // Restore ostream settings to prior value
+  out << std::setprecision(ss);
+  out.flags(ff);
   return out;
 }
 #endif
