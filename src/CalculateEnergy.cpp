@@ -217,6 +217,18 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
 SystemPotential CalculateEnergy::WolfCalSystemInter(SystemPotential potential,
                                              XYZArray const &coords,
                                              BoxDimensions const &boxAxes) {
+  
+  // initialize K vectors and reciprocal terms
+  // Note that since the calibration is wolf driven
+  // when volume or molexchange moves are accepted, 
+  // the kvectors arent updated in the calibration calcWolfCal object.
+
+  // NVT doesnt allow for molecule transfer or volume changes.
+  // Making this method call unneccessary.
+  #if ENSEMBLE != NVT
+  calcWolfCal->UpdateVectorsAndRecipTerms(true);
+  #endif
+
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     // calculate LJ interaction and real term of electrostatic interaction
     potential = BoxInter(potential, coords, boxAxes, b);

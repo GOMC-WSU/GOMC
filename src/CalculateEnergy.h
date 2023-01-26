@@ -282,7 +282,8 @@ private:
   const Coordinates &currentCoords;
   const COM &currentCOM;
   const ElectrostaticBase *calcEwald;
-  const ElectrostaticBase *calcWolfCal;
+  // Cant be const, I need to be able to update the kvectors from outside.
+  ElectrostaticBase *calcWolfCal;
   const Lambda &lambdaRef;
   XYZArray &atomForceRef;
   XYZArray &molForceRef;
