@@ -147,7 +147,7 @@ double getSTD(std::vector<T> const& v) {
 void WolfCalibrationOutput::WriteGraceParFile()
 {
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-            outF.open(("WOLF_CALIBRATION_BOX_" + std::to_string(b) + ".par").c_str(), std::ofstream::out);
+            outF.open((uniqueName + "_WOLF_CALIBRATION_BOX_" + std::to_string(b) + ".par").c_str(), std::ofstream::out);
             if (outF.is_open()) {
                   int counter = 0;
                   std::string firstRow = "";
@@ -179,7 +179,7 @@ void WolfCalibrationOutput::WriteGraceParFile()
 void WolfCalibrationOutput::DoOutput(const ulong step) {
 
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-            outF.open(("WOLF_CALIBRATION_BOX_" + std::to_string(b) + ".dat").c_str(), std::ofstream::out);
+            outF.open((uniqueName + "_WOLF_CALIBRATION_BOX_" + std::to_string(b) + ".dat").c_str(), std::ofstream::out);
             if (outF.is_open()) {
                   for (uint i = 0; i < alphaSize[b]; ++i) {
                         double a = wolfAlphaStart[b] + i*wolfAlphaDelta[b];
@@ -206,7 +206,7 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
-                        outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".dat").c_str(), std::ofstream::app);            
+                        outF.open((uniqueName + "_" + getFileName(b, wolfKind, coulKind, uniqueName)+".dat").c_str(), std::ofstream::app);            
                         if (outF.is_open()) {
                               std::string row = "";
                               row += GetString(step);
@@ -225,7 +225,7 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
             }
       }
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-            outF.open(("WOLF_CALIBRATION_BOX_" + std::to_string(b) + "_BEST_ALPHAS.csv").c_str(), std::ofstream::out);
+            outF.open((uniqueName + "_WOLF_CALIBRATION_BOX_" + std::to_string(b) + "_BEST_ALPHAS.csv").c_str(), std::ofstream::out);
             if (outF.is_open()) {
                   std::string firstRow = "";
                   for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
