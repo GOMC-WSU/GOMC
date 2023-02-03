@@ -177,7 +177,7 @@ void WolfCalibrationOutput::WriteGraceParFile()
 }
 
 void WolfCalibrationOutput::DoOutput(const ulong step) {
-      if ((step) < stepsTillEquil)
+      if (((step+1) < stepsTillEquil) || !(enableOut && ((step + 1) % stepsPerOut == 0)))
             return;
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             outF.open((uniqueName + "_WOLF_CALIBRATION_BOX_" + std::to_string(b) + ".dat").c_str(), std::ofstream::out);
@@ -299,7 +299,7 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
 
 void WolfCalibrationOutput::Sample(const ulong step) {
       // Don't sample until equilibrated.
-      if ((step) < stepsTillEquil)
+      if (((step+1) < stepsTillEquil) || !(enableOut && ((step + 1) % stepsPerOut == 0)))
             return;
       ++numSamples;
 
