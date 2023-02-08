@@ -120,7 +120,8 @@ public:
                   molIdx) -
         molLookup;
 
-    return ((molLookup[index] == molIdx));
+    // std::find returns the last value if not found, so then return false
+    return (index < boxAndKindStart[box * numKinds + kindIdx + 1]);
   }
 
   // determine if atom is in this box or not// uses global atom index
