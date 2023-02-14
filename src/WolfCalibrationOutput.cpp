@@ -237,7 +237,6 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                                     //printf("vec avg %f std %f z %f\n", sumRelativeErrorVec[b][wolfKind][coulKind][i].mean(), sumRelativeErrorVec[b][wolfKind][coulKind][i].sd(), std::abs(sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()/sumRelativeErrorVec[b][wolfKind][coulKind][i].sd()));
                                     //double err = std::abs(sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()/sumRelativeErrorVec[b][wolfKind][coulKind][i].sd());
                                     //double err = std::abs(sumRelativeErrorVec[b][wolfKind][coulKind][i].mean()-ewaldAvg[b].mean());
-                                    /*
                                     double mean1 = ewaldAvg[b].mean();
                                     double sd1 = ewaldAvg[b].sd();
                                     double n = ewaldAvg[b].count();
@@ -249,12 +248,6 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                                     double t_test = (mean1 - mean2) / sqrt((sd1 * sd1) / n + (sd2 * sd2) / m);
                                     if (std::abs(t_test) < min_err){
                                           min_err = std::abs(t_test);
-                                          min_i = i;
-                                    }
-                                    */
-                                    // Use instantaneous rel err.  Maybe I can use the running average to autodetect when to stop calibration run.
-                                    if (std::abs(relativeError[b][wolfKind][coulKind][i]) < min_err){
-                                          min_err = std::abs(relativeError[b][wolfKind][coulKind][i]);
                                           min_i = i;
                                     }
                               }
