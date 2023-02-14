@@ -1,0 +1,40 @@
+# Starter pipeline
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- development
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**/*.src'
+    feedsToUse: 'select'
+    vstsFeed: '7212217e-ddc3-4db0-ba05-e61e58e931b8'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/*.src'
+- task: CMake@1
+  inputs:
+    cmakeArgs: 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: '**/*.test'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory) GOMC-WSU/GOMC/bin'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
