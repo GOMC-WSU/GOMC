@@ -2,7 +2,7 @@ trigger:
 - none
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 
 steps:
