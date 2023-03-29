@@ -194,7 +194,7 @@ R123_STATIC_INLINE r123m128i& operator++(r123m128i& v){
     // The low two bits of mask are 11 iff the low 64 bits of
     // c are zero.
     if( R123_BUILTIN_EXPECT((mask&0x3) == 0x3, 0) ){
-        __m128i onezero = _mm_set_epi64x(1,0);
+        __m128i onezero = _mm_set_epi64x((uint64_t)1,(uint64_t)0);
         c = _mm_add_epi64(c, onezero);
     }
 #endif
@@ -209,7 +209,7 @@ R123_STATIC_INLINE r123m128i& operator+=(r123m128i& lhs, R123_ULONG_LONG n){
 
     int64_t lo64 = _mm_extract_lo64(c);
     if((uint64_t)lo64 < n)
-        c = _mm_add_epi64(c, _mm_set_epi64x(1,0));
+        c = _mm_add_epi64(c, _mm_set_epi64x((uint64_t)1, (uint64_t)0));
     lhs.m = c;
     return lhs; 
 }

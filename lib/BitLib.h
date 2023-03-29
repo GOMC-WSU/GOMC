@@ -1,23 +1,21 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef BIT_LIB_H
 #define BIT_LIB_H
 
-#include <vector> //for mask list
 #include "BasicTypes.h"
+#include <vector> //for mask list
 
-namespace bits
-{
-static inline uint Check(const uint v, const uint pos)
-{
+namespace bits {
+static inline uint Check(const uint v, const uint pos) {
   return (v & (1 << (pos)));
 }
-static inline uint CountSet(const uint v)
-{
+static inline uint CountSet(const uint v) {
   uint count = 0;
   for (uint i = 0; i < 32; i++)
     if (Check(v, i))
@@ -25,14 +23,13 @@ static inline uint CountSet(const uint v)
   return count;
 }
 
-inline std::vector< std::vector<uint> > GetMasks(uint N)
-{
-  std::vector< std::vector<uint> > mask;
+inline std::vector<std::vector<uint>> GetMasks(uint N) {
+  std::vector<std::vector<uint>> mask;
   mask.resize(N);
   for (uint i = 0; i < (uint)(1 << N) - 1; i++)
     mask[CountSet(i)].push_back(i);
   return mask;
 }
-}
+} // namespace bits
 
 #endif /*BIT_LIB_H*/

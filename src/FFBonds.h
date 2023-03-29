@@ -1,48 +1,43 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef FF_BONDS_H
 #define FF_BONDS_H
 
-#include "FFSetup.h" //For initialization data
 #include "BasicTypes.h" //For "uint"
-#include "VectorLib.h" //For transfer vect --> array function
-#include "NumLib.h" //For "Sq" function
+#include "FFSetup.h"    //For initialization data
+#include "NumLib.h"     //For "Sq" function
+#include "VectorLib.h"  //For transfer vect --> array function
 
-class FFBonds
-{
+class FFBonds {
 public:
   FFBonds(void) : Kb(NULL), b0(NULL), fixed(NULL) {}
-  ~FFBonds(void)
-  {
+  ~FFBonds(void) {
     delete[] Kb;
     delete[] b0;
     delete[] fixed;
   }
 
-  double Calc(const uint kind, const double dist) const
-  {
+  double Calc(const uint kind, const double dist) const {
     return (fixed[kind] ? 0.0 : Kb[kind] * num::Sq(dist - b0[kind]));
   }
 
-  double Length(const uint kind) const
-  {
-    return b0[kind];
-  }
+  double Length(const uint kind) const { return b0[kind]; }
 
-  void Init(ff_setup::Bond const& bond)
-  {
+  void Init(ff_setup::Bond const &bond) {
     count = bond.getKbcnt();
     Kb = bond.CopyKb();
     b0 = bond.Copyb0();
     fixed = bond.Copyfixed();
   }
+
 private:
-  double * Kb, * b0;
-  bool * fixed;
+  double *Kb, *b0;
+  bool *fixed;
   uint count;
 };
 

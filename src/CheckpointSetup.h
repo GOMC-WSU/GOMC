@@ -1,98 +1,100 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#pragma once
 
-#include "OutputAbstracts.h"
-#include "MoveSettings.h"
-#include "Coordinates.h"
+#ifndef CHECKPOINT_SETUP_H
+#define CHECKPOINT_SETUP_H
+
 #include <iostream>
 
-class CheckpointSetup
-{
+#include "Checkpoint.h"
+#include "FFSetup.h"
+#include "MoleculeLookup.h"
+#include "Molecules.h"
+#include "MoveSettings.h"
+#include "PRNG.h"
+#include "Random123Wrapper.h"
+#include "VectorLib.h" //for transfer.
+
+class CheckpointSetup {
 public:
-  CheckpointSetup(System & sys, StaticVals const& statV);
-
-  ~CheckpointSetup()
-  {
-    if(inputFile != NULL) {
-      fclose(inputFile);
-      inputFile = NULL;
-    }
-    if(saveArray != NULL) {
-      delete [] saveArray;
-      saveArray = NULL;
-    }
-  }
-
-  void ReadAll();
-  void SetStepNumber(ulong & startStep);
-  void SetPRNGVariables(PRNG & prng);
-  bool CheckIfParallelTemperingWasEnabled();
+  CheckpointSetup(ulong &startStep, ulong &trueStep, MoleculeLookup &molLookup,
+                  MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
+                  Random123Wrapper &r123, Setup &set);
 #if GOMC_LIB_MPI
-  void SetPRNGVariablesPT(PRNG & prng);
+
+  CheckpointSetup(ulong &startStep, ulong &trueStep, MoleculeLookup &molLookup,
+                  MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
+                  Random123Wrapper &r123, Setup &set,
+                  bool &parallelTemperingEnabled, PRNG &prngPT);
 #endif
-  void SetBoxDimensions(BoxDimensions & boxDimRef);
-  void SetCoordinates(Coordinates & coordinates);
-  void SetMoleculeLookup(MoleculeLookup & molLookupRef);
-  void SetMoveSettings(MoveSettings & moveSettings);
+
+  ~CheckpointSetup();
+
+  void loadCheckpointFile();
+  void InitOver();
 
 private:
-  MoveSettings & moveSetRef;
-  MoleculeLookup & molLookupRef;
-  BoxDimensions & boxDimRef;
-  Molecules const & molRef;
-  Coordinates & coordCurrRef;
-  PRNG & prngRef;
+  void SetCheckpointData();
+
+#if GOMC_LIB_MPI
+  void SetCheckpointData(bool &parallelTemperingEnabled, PRNG &prngPT);
+#endif
+
+  std::string getFileName();
+  void SetStepNumber();
+  void SetTrueStepNumber();
+  void SetMolecules(Molecules &mols);
+  void SetMoveSettings();
+  void SetPRNGVariables();
+  void SetR123Variables();
+  void SetMolecules();
+  void SetMoleculeLookup();
+  void SetMoleculeSetup();
+  void SetPDBSetupAtoms();
+#if GOMC_LIB_MPI
+  void SetParallelTemperingWasEnabled();
+  void SetPRNGVariablesPT(PRNG &prng);
+#endif
+
+  void GetOriginalRangeStartStop(uint &_start, uint &stop, const uint m) const;
+  void GetRestartRangeStartStop(uint &_start, uint &stop, const uint m) const;
+
+#if GOMC_GTEST
+
+#endif
 
   std::string filename;
-  FILE* inputFile;
+  // To avoid repeating Random numbers
+  // on the GPU, when InitStep is set to 0
+  // we maintain the true step had it not
+  // been overwritten by InitStep
+  // If init step isn't used
+  // trueStep == step
+  ulong &startStepRef;
+  ulong &trueStepRef;
+  MoveSettings &moveSetRef;
+  PRNG &prngRef;
+  Random123Wrapper &r123Ref;
+  Molecules &molRef;
+  MoleculeLookup &molLookupRef;
+  MolSetup &molSetRef; // 5
+  FFSetup &ffSetupRef;
+  pdb_setup::Atoms &pdbAtomsRef;
 
-  // the following variables will hold the data read from checkpoint
-  // and will be passed to the rest of the code via Get functions
-  int8_t parallelTemperingWasEnabled;
-  ulong stepNumber;
-  uint32_t totalBoxes;
-  std::vector<std::vector<double> > axis;
-  std::vector<std::vector<double> > cosAngle;
-  uint32_t* saveArray;
-  uint32_t seedLocation, seedLeft, seedValue;
-  uint32_t coordLength;
-  XYZArray coords;
-  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedAtomVec;
-  uint32_t numKinds;
-  std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
-  std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
-      tempTriesVec;
-  std::vector< std::vector< uint > > mp_acceptedVec, mp_triesVec;
-  std::vector< double > mp_r_maxVec;
-  std::vector< double > mp_t_maxVec;
+  std::vector<uint> startIdxMolecules;
 
-  // private functions used by ReadAll and Get functions
-  void openInputFile();
-  void readParallelTemperingBoolean();
-  void readStepNumber();
-  void readRandomNumbers();
 #if GOMC_LIB_MPI
-  void readRandomNumbersParallelTempering();
-  uint32_t* saveArrayPT;
-  uint32_t seedLocationPT, seedLeftPT, seedValuePT;
+  bool parallelTemperingWasEnabled;
+  bool &parallelTemperingIsEnabled;
+  PRNG &prngPT;
 #endif
-  void readCoordinates();
-  void readMoleculeLookupData();
-  void readMoveSettingsData();
-  void readBoxDimensionsData();
-  void closeInputFile();
-
-  void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);
-  void readVector3DUint(std::vector< std::vector< std::vector <uint> > > & data);
-  void readVector2DUint(std::vector< std::vector< uint > > & data);
-  void readVector1DDouble(std::vector< double > & data);
-  double readDoubleIn8Chars();
-  uint32_t readUintIn8Chars();
-  int8_t readIntIn1Char();
-
+  Checkpoint chkObj;
+  friend class CheckpointOutput;
 };
+
+#endif

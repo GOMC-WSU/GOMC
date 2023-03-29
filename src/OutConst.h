@@ -1,25 +1,25 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef OUT_CONST_H
 #define OUT_CONST_H
 
 #include <string>
 
+#include "BasicTypes.h"           //For uint
 #include "EnsemblePreprocessor.h" //For VARIABLE_x, etc.
-#include "BasicTypes.h" //For uint
 
-namespace out
-{
+namespace out {
 extern const std::string ENERGY_TOTAL;
 static const uint ENERGY_TOTAL_IDX = 0;
 extern const std::string ENERGY_INTER;
 static const uint ENERGY_INTER_IDX = 1;
-extern const std::string ENERGY_TC;
-static const uint ENERGY_TC_IDX = 2;
+extern const std::string ENERGY_LRC;
+static const uint ENERGY_LRC_IDX = 2;
 extern const std::string ENERGY_INTRA_B;
 static const uint ENERGY_INTRA_B_IDX = 3;
 extern const std::string ENERGY_INTRA_NB;
@@ -38,28 +38,32 @@ extern const std::string MOL_NUM;
 static const uint MOL_NUM_IDX = 10;
 extern const std::string DENSITY;
 static const uint DENSITY_IDX = 11;
+extern const std::string COMPRESSIBILITY;
+static const uint COMPRESSIBILITY_IDX = 12;
 extern const std::string SURF_TENSION;
-static const uint SURF_TENSION_IDX = 12;
+static const uint SURF_TENSION_IDX = 13;
+static const uint ENTHALPY_IDX = 14;
+extern const std::string ENTHALPY;
 #if ENSEMBLE == NVT || ENSEMBLE == GCMC
-static const uint TOTAL_SINGLE = 13;
+static const uint TOTAL_SINGLE = 18;
 #elif ENSEMBLE == NPT
 extern const std::string VOLUME;
-static const uint VOLUME_IDX = 13;
-static const uint TOTAL_SINGLE = 14;
+static const uint VOLUME_IDX = 15;
+static const uint TOTAL_SINGLE = 16;
 #else
 extern const std::string VOLUME;
 extern const std::string HEAT_OF_VAP;
-static const uint VOLUME_IDX = 13;
-static const uint HEAT_OF_VAP_IDX = 14;
-static const uint TOTAL_SINGLE = 15;
+static const uint VOLUME_IDX = 15;
+static const uint HEAT_OF_VAP_IDX = 16;
+static const uint TOTAL_SINGLE = 17;
 #endif
 
-//MULTI
+// MULTI
 extern const std::string MOL_FRACTION;
 extern const std::string MOL_DENSITY;
 static const uint MOL_FRACTION_IDX = 0;
 static const uint MOL_DENSITY_IDX = 1;
 static const uint TOTAL_K = 2;
-}
+} // namespace out
 
 #endif /*OUT_CONST_H*/

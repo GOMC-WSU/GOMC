@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef CALCULATE_FORCE_CUDA_KERNEL
 #define CALCULATE_FORCE_CUDA_KERNEL
@@ -16,16 +16,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CalculateMinImageCUDAKernel.cuh"
 
 void CallBoxForceGPU(VariablesCUDA *vars,
-                     std::vector<int> &cellVector,
-                     std::vector<int> &cellStartIndex,
-                     std::vector <std::vector<int> > &neighborList,
-                     std::vector<int> &mapParticleToCell,
+                     const std::vector<int> &cellVector,
+                     const std::vector<int> &cellStartIndex,
+                     const std::vector <std::vector<int> > &neighborList,
+                     const std::vector<int> &mapParticleToCell,
                      XYZArray const &coords,
                      BoxDimensions const &boxAxes,
                      bool electrostatic,
-                     std::vector<double> particleCharge,
-                     std::vector<int> particleKind,
-                     std::vector<int> particleMol,
+                     const std::vector<double> &particleCharge,
+                     const std::vector<int> &particleKind,
+                     const std::vector<int> &particleMol,
                      double &REn,
                      double &LJEn,
                      double *aForcex,
@@ -43,17 +43,17 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                      uint const box);
 
 void CallBoxInterForceGPU(VariablesCUDA *vars,
-                          std::vector<int> &cellVector,
-                          std::vector<int> &cellStartIndex,
-                          std::vector<std::vector<int> > &neighborList,
-                          std::vector<int> &mapParticleToCell,
+                          const std::vector<int> &cellVector,
+                          const std::vector<int> &cellStartIndex,
+                          const std::vector<std::vector<int> > &neighborList,
+                          const std::vector<int> &mapParticleToCell,
                           XYZArray const &currentCoords,
                           XYZArray const &currentCOM,
                           BoxDimensions const& boxAxes,
                           bool electrostatic,
-                          std::vector<double> &particleCharge,
-                          std::vector<int> &particleKind,
-                          std::vector<int> &particleMol,
+                          const std::vector<double> &particleCharge,
+                          const std::vector<int> &particleKind,
+                          const std::vector<int> &particleMol,
                           double &rT11,
                           double &rT12,
                           double &rT13,
@@ -75,7 +75,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
 void CallVirialReciprocalGPU(VariablesCUDA *vars,
                              XYZArray const &currentCoords,
                              XYZArray const &currentCOMDiff,
-                             std::vector<double> &particleCharge,
+                             const std::vector<double> &particleCharge,
                              double &rT11,
                              double &rT12,
                              double &rT13,
@@ -137,7 +137,6 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
                             int *gpu_molIndex,
-                            int *gpu_kindIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
@@ -201,7 +200,6 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
                                  double *gpu_rMaxSq,
                                  double *gpu_expConst,
                                  int *gpu_molIndex,
-                                 int *gpu_kindIndex,
                                  double *gpu_lambdaVDW,
                                  double *gpu_lambdaCoulomb,
                                  bool *gpu_isFraction,

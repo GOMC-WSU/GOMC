@@ -1,8 +1,8 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #pragma once
 #ifdef GOMC_CUDA
@@ -11,6 +11,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include "EnsemblePreprocessor.h"
+#include "NumLib.h"
+
+//Need a separate float constant for device code with the MSVC compiler
+//See CUDA Programming Guide section I.4.13 for details 
+static const __device__ double qqFactGPU = num::qqFact;
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
@@ -72,10 +77,10 @@ public:
     gpu_mForcex = NULL;
     gpu_mForcey = NULL;
     gpu_mForcez = NULL;
+    gpu_startAtomIdx = NULL;
 
     // setting lambda values to null
     gpu_molIndex = NULL;
-    gpu_kindIndex = NULL;
     gpu_lambdaVDW = NULL;
     gpu_lambdaCoulomb = NULL;
     gpu_isFraction = NULL;
@@ -86,6 +91,7 @@ public:
   int *gpu_VDW_Kind;
   int *gpu_isMartini;
   int *gpu_count;
+  int *gpu_startAtomIdx; //start atom index of the molecule
   double *gpu_rCut;
   double *gpu_rCutCoulomb;
   double *gpu_rCutLow;
@@ -112,6 +118,7 @@ public:
   double *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
   double *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
   double *gpu_mTorquex, *gpu_mTorquey, *gpu_mTorquez;
+  int *gpu_inForceRange;
   double *gpu_aForceRecx, *gpu_aForceRecy, *gpu_aForceRecz;
   double *gpu_mForceRecx, *gpu_mForceRecy, *gpu_mForceRecz;
   double *gpu_rMin, *gpu_expConst, *gpu_rMaxSq;
@@ -120,7 +127,7 @@ public:
   double *gpu_t_k_x, *gpu_t_k_y, *gpu_t_k_z;
 
   // lambda structure
-  int *gpu_molIndex, *gpu_kindIndex;
+  int *gpu_molIndex;
   double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
   bool *gpu_isFraction;
 
