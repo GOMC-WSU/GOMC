@@ -99,9 +99,10 @@ const uint BOX1 = 1;
 // AUTO REJECTION OR ACCEPTANCE FLAGS
 
 namespace fail_state {
-const uint NO_FAIL = 1;
-const uint ROTATE_ON_SINGLE_ATOM = 2;
-const uint NO_MOL_OF_KIND_IN_BOX = 3;
+const uint NO_FAIL = 0;
+const uint ROTATE_ON_SINGLE_ATOM = 1;
+const uint NO_MOL_OF_KIND_IN_BOX = 2;
+const uint INVALID_MP_MOVE_DIST = 3;
 } // namespace fail_state
 
 } // end namespace mv

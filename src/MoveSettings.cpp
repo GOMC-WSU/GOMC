@@ -75,8 +75,16 @@ void MoveSettings::Init(StaticVals const &statV,
 
     // Initialize MultiParticle settings
     for (int b = 0; b < BOX_TOTAL; b++) {
-      mp_r_max[b] = 0.01 * M_PI;
-      mp_t_max[b] = 0.02;
+      // Start with smaller maximum adjustments for Brownian Motion MP
+      // Also need to check for NeMTMC move using Brownian Motion Multiparticle.
+      if (statV.movePerc[mv::MULTIPARTICLE_BM] > TINY_AMOUNT ||
+          (statV.neMTMCVal.enable && statV.neMTMCVal.MPBEnable)) {
+        mp_r_max[b] = 0.0005 * M_PI;
+        mp_t_max[b] = 0.002;
+      } else {
+        mp_r_max[b] = 0.01 * M_PI;
+        mp_t_max[b] = 0.02;
+      }
       for (int m = 0; m < mp::MPTOTALTYPES; m++) {
         mp_tries[b][m] = 0;
         mp_accepted[b][m] = 0;
