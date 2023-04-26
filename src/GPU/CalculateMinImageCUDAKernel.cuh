@@ -11,7 +11,7 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #include <cuda_runtime.h>
 #include "ConstantDefinitionsCUDAKernel.cuh"
 
-__device__ inline double3 Difference(const double *x, const double *y, const double *z,
+__device__ inline double3 Difference3(const double *x, const double *y, const double *z,
                                      uint i, uint j)
 {
   return make_double3(x[i] - x[j], y[i] - y[j], z[i] - z[j]);
@@ -165,7 +165,7 @@ __device__ inline bool InRcutGPU(double &distSq, const double *x, const double *
                                  const double *gpu_Invcell_y, const double *gpu_Invcell_z)
 {
   double3 dist;
-  dist = Difference(x, y, z, i, j);
+  dist = Difference3(x, y, z, i, j);
   // Do a binary print here of dist
   if(gpu_nonOrth) {
     dist = MinImageNonOrthGPU(dist, axis, halfAx, gpu_cell_x, gpu_cell_y, gpu_cell_z,
@@ -188,7 +188,7 @@ __device__ inline bool InRcutGPU(double &distSq, double3 &dist,
                                  const double *gpu_cell_z, const double *gpu_Invcell_x,
                                  const double *gpu_Invcell_y, const double *gpu_Invcell_z)
 {
-  dist = Difference(x, y, z, i, j);
+  dist = Difference3(x, y, z, i, j);
   if(gpu_nonOrth) {
     dist = MinImageNonOrthGPU(dist, axis, halfAx, gpu_cell_x, gpu_cell_y, gpu_cell_z,
                               gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);

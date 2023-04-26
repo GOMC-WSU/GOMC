@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.18)
 
 project(GOMC)
 
@@ -8,21 +8,49 @@ include_directories(src/cbmc)
 include_directories(src/moves)
 include_directories(src/GPU)
 
+#Versioning
+set(GOMC_VERSION_MAJOR 2)
+set(GOMC_VERSION_MINOR 75)
+
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-# clang-tidy
-set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,mpi-*,openmp-*)
+#clang-tidy
+if(GOMC_TIDY)
+   set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,mpi-*,openmp-*)
+endif()
 
-#Versioning
-set (GOMC_VERSION_MAJOR 2)
-set (GOMC_VERSION_MINOR 75)
-
-IF(NOT CMAKE_BUILD_TYPE)
-   SET(CMAKE_BUILD_TYPE Release CACHE STRING
+if(NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE Release CACHE STRING
       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
-ENDIF(NOT CMAKE_BUILD_TYPE)
+endif(NOT CMAKE_BUILD_TYPE)
+
+#Set compile and link flags. Need to do it this way so that we can pass
+#the flags to NVCC properly.
+if(GOMC_OPT)
+   set(CMAKE_INTEL_COMP_FLAGS -Ofast -ipo -xHost)
+   set(CMAKE_INTEL_LINK_FLAGS -Ofast -ipo -xHost)
+   set(CMAKE_GNU_COMP_FLAGS -flto -O3 -march=native)
+   set(CMAKE_GNU_LINK_FLAGS -flto -O3 -march=native)
+endif()
+
+if(GOMC_ASAN)
+   set(CMAKE_GNU_COMP_FLAGS ${CMAKE_GNU_COMP_FLAGS} --param=max-vartrack-size=100000000 -fsanitize=address -fno-omit-frame-pointer)
+   set(CMAKE_GNU_LINK_FLAGS ${CMAKE_GNU_LINK_FLAGS} --param=max-vartrack-size=100000000 -fsanitize=address -fno-omit-frame-pointer)
+endif()
+
+# find OpenMP and set it up
+# Don't use OpenMP if using address sanitizer
+if(NOT GOMC_ASAN)
+    find_package(OpenMP)
+    if(OPENMP_FOUND)
+       set(CMAKE_GNU_COMP_FLAGS ${CMAKE_GNU_COMP_FLAGS} ${OpenMP_CXX_FLAGS})
+       set(CMAKE_GNU_LINK_FLAGS ${CMAKE_GNU_LINK_FLAGS} ${OpenMP_CXX_FLAGS})
+       set(CMAKE_INTEL_COMP_FLAGS ${CMAKE_INTEL_COMP_FLAGS} ${OpenMP_CXX_FLAGS})
+       set(CMAKE_INTEL_LINK_FLAGS ${CMAKE_INTEL_LINK_FLAGS} ${OpenMP_CXX_FLAGS})
+    endif()
+endif()
 
 set(ENSEMBLE_NVT ON CACHE BOOL "Build NVT version")
 set(ENSEMBLE_GEMC ON CACHE BOOL "Build GEMC version")
@@ -37,14 +65,10 @@ include(${PROJECT_SOURCE_DIR}/CMake/GOMCMPI.cmake)
 
 include_directories("${PROJECT_BINARY_DIR}")
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -stdlib=libc++") 
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -stdlib=libc++")
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}") 
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+# Additional flags for GNU and Intel compilers set elsewhere
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -stdlib=libc++") 
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -stdlib=libc++")
 elseif(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
     set(CMAKE_CXX_FLAGS_DEBUG_INIT "${CMAKE_CXX_FLAGS_DEBUG_INIT} /D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
@@ -70,26 +94,20 @@ configure_file(
 )
 
 # Enable google test
-# for now we will disable testing for intel compiler
+# for now we will disable testing for Intel compiler
 if(GOMC_GTEST OR GOMC_GTEST_MPI)
   enable_testing()
   include(test/GoogleTest.cmake)
 endif()
 
-# Find if CUDA exists and what is the version number
+# Check if CUDA exists and, if so, set the host compiler and enable CUDA
 include(CheckLanguage)
 check_language(CUDA)
-if (CMAKE_CUDA_COMPILER)
+if(CMAKE_CUDA_COMPILER)
+    set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     enable_language(CUDA)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
 endif()
 
 # Setup Serial version
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
-
-# find OpenMP and set it up
-find_package(OpenMP)
-if (OPENMP_FOUND)
-	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()

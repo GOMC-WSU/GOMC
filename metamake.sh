@@ -5,6 +5,9 @@ use_profiler=0
 use_gtest=0
 use_gcc=0
 use_mpi=0
+use_asan=0
+use_opt=1
+use_tidy=0
 use_debug=0
 ENSEMBLES=""
 CMAKEARGS=""
@@ -66,26 +69,38 @@ then
 	fi
 fi
 
-while getopts 'mptgd' opt; do
+while getopts 'acdgmnpt' opt; do
     case "$opt" in
-        p)
-            use_profiler=1;;
+        a)
+            use_asan=1;;
+        c)
+            use_tidy=1
+            CMAKEARGS+="-DGOMC_TIDY=on ";;
+        d)
+            use_debug=1;;
+        g)
+            use_gcc=1;;
         m)
             use_mpi=1
             CMAKEARGS+="-DGOMC_MPI=on ";;
-        g)
-            use_gcc=1;;
+        n)
+            use_opt=0;;
+        p)
+            use_profiler=1;;
         t)
-            use_gtest=1;;
-        d)
-            use_debug=1;;
+            use_gtest=1
+            use_gcc=1;;
         *)  echo 'Error in command line options' >&2
             echo "Available options are: "
-            echo "-p (NVTX tags),"
-            echo "-t (disables Intel compiler to allow GTests to compile),"
-            echo "-m, enables MPI support (Required for Parallel Tempering)"
+            echo "-a, enables address sanitizer runtime checking"
+            echo "-c, enables clang-tidy source code checks"
             echo "-d, enables Debug Mode compilation"
-            echo "For combined usage: -ptmg"
+            echo "-g, use the gcc compiler"
+            echo "-m, enables MPI support (Required for Parallel Tempering)"
+            echo "-n, disables most optimizing compiler flags"
+            echo "-p enables GPU code profiling (NVTX tags)"
+            echo "-t disables Intel compiler to allow GTests to compile"
+            echo "For combined usage, concatenate flags, e.g.: -ptmg"
             exit 1
     esac
 done
@@ -122,13 +137,22 @@ cd bin
 if (( !use_gtest )); then
     if (( !use_gcc )); 
     then
-        ICC_PATH="$(which icc 2> /dev/null)"
-        ICPC_PATH="$(which icpc 2> /dev/null)"
+        ICC_PATH="$(which icx 2> /dev/null)"
+        ICPC_PATH="$(which icpx 2> /dev/null)"
+        if [ -z "$ICC_PATH" ]
+        then
+            ICC_PATH="$(which icc 2> /dev/null)"
+            ICPC_PATH="$(which icpc 2> /dev/null)"
+		fi
         if [ -z "$ICC_PATH" ]
         then
             export CC="$(which gcc 2> /dev/null)"
             export CXX="$(which g++ 2> /dev/null)"
         else
+            if (( use_asan )); then
+				echo "Warning: Address sanitizer unset. Not compatible with the Intel compiler."
+				use_asan=0
+			fi
             export CC=${ICC_PATH}
             export CXX=${ICPC_PATH}
         fi
@@ -143,7 +167,7 @@ else
 		ENSEMBLES+="GOMC_NPT_MPI_Test "
 		ENSEMBLES+="GOMC_GCMC_MPI_Test "
 		ENSEMBLES+="GOMC_GEMC_MPI_Test "
-		if(( use_cuda ))
+		if (( use_cuda ))
 		then
         	ENSEMBLES+="GOMC_GPU_NVT_MPI_Test "
         	ENSEMBLES+="GOMC_GPU_NPT_MPI_Test "
@@ -156,7 +180,7 @@ else
         ENSEMBLES+="GOMC_NPT_Test "
         ENSEMBLES+="GOMC_GCMC_Test "
         ENSEMBLES+="GOMC_GEMC_Test "
-		if(( use_cuda ))
+		if (( use_cuda ))
 		then
         	ENSEMBLES+="GOMC_GPU_NVT_Test "
         	ENSEMBLES+="GOMC_GPU_NPT_Test "
@@ -184,10 +208,19 @@ echo "Ensembles To Compile: $ENSEMBLES"
 if (( use_profiler )); then
     if (( use_cuda )); then
       	echo "Enabling NVTX profiling for CUDA "
-	    CMAKEARGS+="-DGOMC_NVTX_ENABLED=1 "
+	    CMAKEARGS+="-DGOMC_NVTX_ENABLED=on "
     else
       	echo "Warning: Cannot enable NVTX profiling without CUDA enabled."
     fi
+fi
+
+if (( use_asan )); then
+    use_debug=1
+    CMAKEARGS+="-DGOMC_ASAN=on "
+fi
+
+if (( use_opt )); then
+    CMAKEARGS+="-DGOMC_OPT=on "
 fi
 
 if (( use_debug )); then

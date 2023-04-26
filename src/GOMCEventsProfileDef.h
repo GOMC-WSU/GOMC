@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
+********************************************************************************/
 GOMC_PROFILE_EVENT(INITIALIZE, "initialization")
 GOMC_PROFILE_EVENT(MC_RUN, "MC_run")
 GOMC_PROFILE_EVENT(DESTRUCTION, "destruction")
