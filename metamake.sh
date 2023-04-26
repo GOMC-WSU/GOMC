@@ -1,5 +1,6 @@
 #!/bin/bash
-# Check if nvcc is available
+
+# Initialize the commandline options and flags
 use_cuda=0
 use_profiler=0
 use_gtest=0

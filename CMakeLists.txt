@@ -27,7 +27,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 #Set compile and link flags. Need to do it this way so that we can pass
-#the flags to NVCC properly.
+#the source compiler flags to NVCC properly.
 if(GOMC_OPT)
    set(CMAKE_INTEL_COMP_FLAGS -Ofast -ipo -xHost)
    set(CMAKE_INTEL_LINK_FLAGS -Ofast -ipo -xHost)

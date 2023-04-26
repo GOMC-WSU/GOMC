@@ -41,7 +41,7 @@ set(CMAKE_CUDA_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
-# Turn off warning that CUDA code was not compiled with the -ipo flag
+# Turn off warning that CUDA files were not compiled with the -ipo flag
 if(GOMC_OPT)
    set(CMAKE_INTEL_LINK_FLAGS ${CMAKE_INTEL_LINK_FLAGS} -diag-disable=11003)
 endif()
