@@ -66,7 +66,7 @@ __device__ inline void WrapPBCNonOrth3(double3 &v, const double3 &ax,
 __device__ inline void  UnwrapPBC(double &v, const double &ref, const double &ax,
                                   const double &halfax)
 {
-  if(abs(ref - v) > halfax) {
+  if(std::fabs(ref - v) > halfax) {
     if(ref < halfax)
       v -= ax;
     else

@@ -275,7 +275,7 @@ double BoxDimensions::WrapPBC(double &v, const double ax) const {
   if (
     bool negate = (v > ax);
     double vNeg = v + (ax ^ -negate) + negate;
-    return (fabs(v - halfAx) > halfAx) ? v : vNeg;
+    return (std::fabs(v - halfAx) > halfAx) ? v : vNeg;
 #else
   // Note: testing shows that it's most efficient to negate if true.
   // Source:
@@ -297,9 +297,9 @@ double BoxDimensions::UnwrapPBC(double &v, const double ref, const double ax,
 #ifdef NO_BRANCHING_UNWRAP
   bool negate = (ref > halfAx);
   double vDiff = v + (ax ^ -negate) + negate;
-  return (fabs(ref - v) > halfAx) ? v : vDiff;
+  return (std::fabs(ref - v) > halfAx) ? v : vDiff;
 #else
-  if (fabs(ref - v) > halfAx) {
+  if (std::fabs(ref - v) > halfAx) {
     // Note: testing shows that it's most efficient to negate if true.
     // Source:
     // http://jacksondunstan.com/articles/2052
@@ -341,7 +341,7 @@ XYZ BoxDimensions::MinImage_Z(XYZ rawVec, const uint b) const {
 //
 double BoxDimensions::MinImage(double &raw, const double ax,
                                const double halfAx) const {
-  raw = fabs(raw);
+  raw = std::fabs(raw);
   // If shorter over periodic boundary, get that dist.
 #ifdef NO_BRANCHING_MIN_IMAGE
   rawDiff = ax - raw;

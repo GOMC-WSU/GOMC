@@ -183,7 +183,7 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick) {
     if (typePick == mp::MPDISPLACE) {
       if (fractOfIntervalAccept == 0.0) {
         mp_t_max[box] *= 0.5;
-      } else if (fabs(fractOfIntervalAccept - mp::TARGET_ACCEPT_FRACT) >
+      } else if (std::fabs(fractOfIntervalAccept - mp::TARGET_ACCEPT_FRACT) >
                  mp_accept_tol) {
         mp_t_max[box] *= ((1.0 - t_alpha) * fractOfTotalAccept +
                           t_alpha * fractOfIntervalAccept);
@@ -193,7 +193,7 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick) {
     } else {
       if (fractOfIntervalAccept == 0.0) {
         mp_r_max[box] *= 0.5;
-      } else if (fabs(fractOfIntervalAccept - mp::TARGET_ACCEPT_FRACT) >
+      } else if (std::fabs(fractOfIntervalAccept - mp::TARGET_ACCEPT_FRACT) >
                  mp_accept_tol) {
         mp_r_max[box] *= ((1.0 - r_alpha) * fractOfTotalAccept +
                           r_alpha * fractOfIntervalAccept);
