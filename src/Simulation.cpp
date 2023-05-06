@@ -105,7 +105,7 @@ void Simulation::RunSimulation(void) {
 
     if ((step + 1) == cpu->equilSteps) {
       double currEnergy = system->potential.totalEnergy.total;
-      if (std::abs(currEnergy - startEnergy) > 1.0e+10) {
+      if (std::fabs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Recalculating the total energies to insure the accuracy"
                " of the computed \n"
                "      running energies.\n\n");
