@@ -237,11 +237,11 @@ void Particle::Read(Reader &param, std::string const &firstVar) {
   // or geometric mean of any pair > 6.0. See FFParticle::Blend() for underlying
   // math.
   double smallVal = 1e-20;
-  if (abs(e) < smallVal) {
+  if (std::fabs(e) < smallVal) {
     e = 0.0;
     expN = 12.0; // Set to default (LJ) exponent.
   }
-  if (abs(e_1_4) < smallVal) {
+  if (std::fabs(e_1_4) < smallVal) {
     e_1_4 = 0.0;
     expN_1_4 = 12.0; // Set to default (LJ) exponent.
   }
