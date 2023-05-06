@@ -282,9 +282,10 @@ void PrintHardwareInfo() {
               << mem.totalram / megabyte - mem.freeram / megabyte << "MB"
               << std::endl;
   }
-  std::cout << "Info: Working in the current directory: "
-            << get_current_dir_name();
+  char *pathname = get_current_dir_name();
+  std::cout << "Info: Working in the current directory: " << pathname;
   std::cout << std::endl;
+  free(pathname);
 #endif
 }
 
