@@ -108,8 +108,12 @@ void Coordinates::RotateRand(XYZArray &dest, uint &pStart, uint &pLen,
                              const uint m, const uint b, const double max) {
   // Rotate (-max, max) radians about a uniformly random vector
   // Not uniformly random, but symmetrical wrt detailed balance
-  RotationMatrix matrix = RotationMatrix::FromAxisAngle(
-      prngRef.Sym(max), prngRef.PickOnUnitSphere());
+  // Note: In order for gcc to produce the same results as the Intel compiler,
+  //       we need to create variables instead of generating these random
+  //       function calls as parameters to the function call.
+  double theta = prngRef.Sym(max);
+  XYZ axis = prngRef.PickOnUnitSphere();
+  RotationMatrix matrix = RotationMatrix::FromAxisAngle(theta, axis);
 
   XYZ center = comRef.Get(m);
   uint stop = 0;
