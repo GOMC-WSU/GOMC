@@ -1,4 +1,3 @@
-
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
 Copyright (C) 2022 GOMC Group
@@ -46,11 +45,11 @@ public:
   // Standard double generation on [0,1.0]
   double operator()() { return (*gen)(); }
 
-  // Generate a double on a [0,b]
-  double rand(double const bound) { return gen->rand(bound); }
+  // Generate a double on [0,bound]
+  double rand(const double bound) { return gen->rand(bound); }
 
-  // Generate a double on a [0,b)
-  double randExc(double const bound) { return gen->randExc(bound); }
+  // Generate a double on [0,bound)
+  double randExc(const double bound) { return gen->randExc(bound); }
 
   // Generate an unsigned int on [0,bound]
   uint randInt(const uint bound) { return (uint)(gen->randInt(bound)); }
@@ -58,15 +57,15 @@ public:
   // Generate an unsigned int on [0,bound)
   uint randIntExc(const uint bound) { return (uint)(gen->randInt(bound - 1)); }
 
-  // Generates number on (-bound,bound)
-  double Sym(double bound) { return 2 * bound * gen->rand() - bound; }
+  // Generates a double on [-bound,bound]
+  double Sym(const double bound) { return gen->rand(2.0 * bound) - bound; }
 
   /////////////////////////////
   //   GENERATION FUNCTIONS  //
   /////////////////////////////
 
-  XYZ SymXYZ(double bound) {
-    double bound2 = 2 * bound;
+  XYZ SymXYZ(const double bound) {
+    double bound2 = 2.0 * bound;
     return XYZ(gen->rand(bound2) - bound, gen->rand(bound2) - bound,
                gen->rand(bound2) - bound);
   }
@@ -148,8 +147,7 @@ public:
   XYZ PickOnUnitSphere() {
     // picking phi uniformly will cluster points at poles
     // pick u = cos(phi) uniformly instead
-    double u = gen->rand(2.0);
-    u -= 1.0;
+    double u = Sym(1.0);
     double theta = gen->randExc(2.0 * M_PI);
     double rootTerm = sqrt(1.0 - u * u);
     return XYZ(rootTerm * cos(theta), rootTerm * sin(theta), u);
@@ -159,8 +157,7 @@ public:
   void PickArbDist(uint &pick, double &subDraw, double const *const w,
                    const double Wt, const uint len) {
     double sum = 0.0, prevSum = 0.0, draw = rand(Wt);
-    pick = 0;
-    for (; pick < len && sum < draw; ++pick) {
+    for (pick = 0; pick < len && sum < draw; ++pick) {
       prevSum = sum;
       sum += w[pick];
     }
@@ -171,7 +168,8 @@ public:
 
   // Pick an integer in range 0, n given a list of weights, and their sum
   // totalWeight
-  uint PickWeighted(const double *weights, const uint n, double totalWeight) {
+  uint PickWeighted(const double *weights, const uint n,
+                    const double totalWeight) {
     double draw = rand(totalWeight);
     double sum = 0.0;
     for (uint i = 0; i < n; ++i) {
@@ -185,7 +183,7 @@ public:
       lastZero = i;
     }
     lastZero--;
-    if (std::abs(draw - totalWeight) < 0.001) {
+    if (std::fabs(draw - totalWeight) < 0.001) {
       return lastZero;
     }
 
