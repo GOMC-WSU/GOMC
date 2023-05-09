@@ -140,7 +140,8 @@ inline uint MoleculeExchange2::PickMolInCav() {
     center = comCurrRef.Get(pickedS);
     // If we want to orient the cavity with backbone of picked small mol
     if (molRef.NumAtoms(kindS) == 1) {
-      SetBasis(cavA, prng.RandomUnitVect());
+      XYZ cavVect = prng.RandomUnitVect();
+      SetBasis(cavA, cavVect);
     } else {
       uint start = molRef.MolStart(pickedS) + smallBB[0];
       uint end = molRef.MolStart(pickedS) + smallBB[1];
@@ -203,7 +204,8 @@ inline uint MoleculeExchange2::ReplaceMolecule() {
   if (state == mv::fail_state::NO_FAIL) {
     // Set the V1 to the backbone of the large molecule
     if (molRef.NumAtoms(kindL) == 1) {
-      SetBasis(cavA, prng.RandomUnitVect());
+      XYZ cavVect = prng.RandomUnitVect();
+      SetBasis(cavA, cavVect());
     } else {
       uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
       uint end = molRef.MolStart(molIndexA[0]) + largeBB[1];

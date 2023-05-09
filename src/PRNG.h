@@ -27,6 +27,15 @@ along with this program, also can be found at
 #include "XYZArray.h"
 
 // Wrapper class for our random numbers
+//
+// NOTE: gcc is not generating correct code when we call a Mersenne Twister
+// function inside a function call. In other words, when the values is used
+// directly as a function parameter. So, many of the functions were rewritten
+// to assign the results to a variable. This looks cumbersome, but it at least
+// produces correct results. This is the case with some older versions of
+// gcc, such as gcc 7.3. It's possible that newer versions of gcc don't have
+// this issue, but we need to support older compilers, too, so...
+//
 class PRNG {
 public:
   PRNG(MoleculeLookup &molLook)
@@ -60,28 +69,25 @@ public:
   // Generates a double on [-bound,bound]
   double Sym(const double bound) { return gen->rand(2.0 * bound) - bound; }
 
+  // return between (-bound, bound)
+  double SymExc(double bound) { return gen->randExc(2.0 * bound) - bound; }
+
   /////////////////////////////
   //   GENERATION FUNCTIONS  //
   /////////////////////////////
 
   XYZ SymXYZ(const double bound) {
     double bound2 = 2.0 * bound;
-    return XYZ(gen->rand(bound2) - bound, gen->rand(bound2) - bound,
-               gen->rand(bound2) - bound);
+    double x = gen->rand(bound2) - bound;
+    double y = gen->rand(bound2) - bound;
+    double z = gen->rand(bound2) - bound;
+    return XYZ(x, y, z);
   }
-
-  // return between [-bound, bound]
-  double SymExc(double bound) { return 2 * gen->rand(bound) - bound; }
 
   // Used to pick first position of
   void FillWithRandom(XYZArray &loc, const uint len, BoxDimensions const &dims,
                       const uint b) {
     for (uint i = 0; i < len; ++i) {
-      // We trip over a gcc compiler optimization bug if we put all three of
-      // these calls to randExc() in a single function call. Verified for
-      // gcc 7.3 and gcc 8.6, so better to avoid even if fixed in newer
-      // releases. loc.Set(i, randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-      //         randExc(dims.axis.z[b]));
       double x = randExc(dims.axis.x[b]);
       double y = randExc(dims.axis.y[b]);
       double z = randExc(dims.axis.z[b]);
@@ -91,12 +97,6 @@ public:
   }
 
   void FillWithRandom(XYZ &loc, BoxDimensions const &dims, const uint b) {
-    // We trip over a gcc compiler optimization bug if we put all three of these
-    // calls to randExc() in a single function call. At least, we did in the
-    // version above where a loop is being used. Verified for gcc 7.3 and
-    // gcc 8.6, so better to avoid even if fixed in newer releases. XYZ
-    // temp(randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-    //          randExc(dims.axis.z[b]));
     double x = randExc(dims.axis.x[b]);
     double y = randExc(dims.axis.y[b]);
     double z = randExc(dims.axis.z[b]);
@@ -105,8 +105,10 @@ public:
   }
 
   void FillWithRandomInCavity(XYZ &loc, XYZ const &cavDim) {
-    XYZ temp(SymExc(cavDim.x / 2.0), SymExc(cavDim.y / 2.0),
-             SymExc(cavDim.z / 2.0));
+    double x = SymExc(cavDim.x / 2.0);
+    double y = SymExc(cavDim.y / 2.0);
+    double z = SymExc(cavDim.z / 2.0);
+    XYZ temp(x, y, z);
     loc = temp;
   }
 
@@ -114,10 +116,12 @@ public:
   // of cavCenter
   void FillWithRandomInCavity(XYZArray &loc, const uint len, XYZ const &cavDim,
                               XYZ const &cavCenter) {
-    // generate random trial in range of [-cavDim/2, +cavDim/2]
+    // generate random trial in range of (-cavDim/2, +cavDim/2)
     for (uint i = 0; i < len; ++i) {
-      loc.Set(i, SymExc(cavDim.x / 2.0), SymExc(cavDim.y / 2.0),
-              SymExc(cavDim.z / 2.0));
+      double x = SymExc(cavDim.x / 2.0);
+      double y = SymExc(cavDim.y / 2.0);
+      double z = SymExc(cavDim.z / 2.0);
+      loc.Set(i, x, y, z);
     }
     // Shift by center
     loc.AddRange(0, len, cavCenter);
@@ -125,13 +129,11 @@ public:
 
   // using UniformRandom algorithm in TransformMatrix.h
   XYZ RandomUnitVect() {
-    double u2 = gen->rand();
-    double u3 = gen->rand();
-    u2 *= 2.0 * M_PI;
-    u3 *= 2.0;
-    double r = sqrt(u3);
-    double root = sqrt(2.0 - u3);
-    XYZ temp(sin(u2) * r * root, cos(u2) * r * root, 1.0 - u3);
+    double u2 = gen->rand(2.0 * M_PI);
+    double u3 = gen->rand(2.0);
+    double r = std::sqrt(u3);
+    double root = std::sqrt(2.0 - u3);
+    XYZ temp(std::sin(u2) * r * root, std::cos(u2) * r * root, 1.0 - u3);
     return temp;
   }
 
@@ -139,7 +141,8 @@ public:
                               const double rAttach, const XYZ &center) {
     // Pick on cos(phi) - this was faster and always uses 2 rand calls
     for (uint i = 0; i < len; ++i) {
-      loc.Set(i, PickOnUnitSphere() * rAttach + center);
+      XYZ sphere_val = PickOnUnitSphere();
+      loc.Set(i, sphere_val * rAttach + center);
     }
   }
 
@@ -149,8 +152,8 @@ public:
     // pick u = cos(phi) uniformly instead
     double u = Sym(1.0);
     double theta = gen->randExc(2.0 * M_PI);
-    double rootTerm = sqrt(1.0 - u * u);
-    return XYZ(rootTerm * cos(theta), rootTerm * sin(theta), u);
+    double rootTerm = std::sqrt(1.0 - u * u);
+    return XYZ(rootTerm * std::cos(theta), rootTerm * std::sin(theta), u);
   }
 
   // Pick using array of prob. -- used to pick move, weighted selection, etc.
@@ -477,12 +480,12 @@ public:
     } else {
       double r, v1, v2, factor;
       do {
-        v1 = Sym(1.0);
-        v2 = Sym(1.0);
+        v1 = SymExc(1.0);
+        v2 = SymExc(1.0);
         r = v1 * v1 + v2 * v2;
       } while (r >= 1.0 || r < 1.523e-8);
 
-      factor = sqrt(-2.0 * log(r) / r);
+      factor = std::sqrt(-2.0 * std::log(r) / r);
       hasSecondGaussian = true;
       secondGaussian = v1 * factor;
       return (mean + v2 * factor * stdDev);
@@ -491,11 +494,7 @@ public:
 
   MTRand *GetGenerator() { return gen; }
 
-  bool operator==(const PRNG &other) {
-    bool result = true;
-    result &= (*gen == *other.gen);
-    return result;
-  }
+  bool operator==(const PRNG &other) { return (*gen == *other.gen); }
 
 private:
   MTRand *gen;

@@ -271,11 +271,16 @@ inline uint IntraMoleculeExchange1::PickMolInCav() {
   uint state = mv::fail_state::NO_FAIL;
   // pick a random location in source box
   XYZ axis = boxDimRef.GetAxis(sourceBox);
-  XYZ temp(prng.randExc(axis.x), prng.randExc(axis.y), prng.randExc(axis.z));
+  // Doing the rand calls outside the function call avoids a gcc compiler issue
+  double x = prng.randExc(axis.x);
+  double y = prng.randExc(axis.y);
+  double z = prng.randExc(axis.z);
+  XYZ temp(x, y, z);
   // Use to find small molecule
   centerA = temp;
   // Pick random vector and find two vectors that are perpendicular to V1
-  SetBasis(cavA, prng.RandomUnitVect());
+  XYZ cavVect = prng.RandomUnitVect();
+  SetBasis(cavA, cavVect);
   // Calculate inverse matrix for cavity, here Inverse = transpose
   TransposeMatrix(invCavA, cavA);
   // Find the small molecule kind in the cavityA
@@ -311,7 +316,8 @@ inline uint IntraMoleculeExchange1::PickMolInCav() {
     centerB = comCurrRef.Get(molIndexB[0]);
     // Set the V1 to the the backbone of the large molecule
     if (molRef.NumAtoms(kindL) == 1) {
-      SetBasis(cavB, prng.RandomUnitVect());
+      cavVect = prng.RandomUnitVect();
+      SetBasis(cavB, cavVect);
     } else {
       uint start = molRef.MolStart(molIndexB[0]) + largeBB[0];
       uint end = molRef.MolStart(molIndexB[0]) + largeBB[1];
