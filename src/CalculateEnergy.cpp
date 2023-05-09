@@ -640,8 +640,7 @@ firstprivate(atom, box, molIndex, num::qqFact) reduction(+:tempREn, tempLJEn)
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(molCoords, nIndex, overlap) \
-reduction(+:tempREn, tempLJEn) firstprivate(atom, molIndex, p, box, num::qqFact)
+#pragma omp parallel for default(none) shared(molCoords, nIndex, overlap) \firstprivate(atom, box, molIndex, p, num::qqFact) reduction(+:tempREn, tempLJEn)
 #endif
       for (int i = 0; i < (int)nIndex.size(); i++) {
         double distSq = 0.0;
@@ -670,7 +669,7 @@ reduction(+:tempREn, tempLJEn) firstprivate(atom, molIndex, p, box, num::qqFact)
 
           tempLJEn += forcefield.particles->CalcEn(
               distSq, particleKind[atom], particleKind[nIndex[i]], lambdaVDW);
-        }
+         }
       }
     }
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
@@ -1372,9 +1371,9 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
     double *torquez = molTorque.z;
 
 #if defined _OPENMP
-#pragma omp parallel for default(none) \
-shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex, torquey, torquez) \
-firstprivate(box)
+#pragma omp parallel for default(none)                                         \
+    shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  \
+           torquey, torquez) firstprivate(box)
 #endif
     for (int m = 0; m < (int)moleculeIndex.size(); m++) {
       int mIndex = moleculeIndex[m];
