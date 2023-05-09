@@ -205,7 +205,7 @@ inline uint MoleculeExchange2::ReplaceMolecule() {
     // Set the V1 to the backbone of the large molecule
     if (molRef.NumAtoms(kindL) == 1) {
       XYZ cavVect = prng.RandomUnitVect();
-      SetBasis(cavA, cavVect());
+      SetBasis(cavA, cavVect);
     } else {
       uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
       uint end = molRef.MolStart(molIndexA[0]) + largeBB[1];
