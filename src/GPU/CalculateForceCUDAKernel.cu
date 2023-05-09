@@ -664,9 +664,9 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
         gpu_cellVector[shr_neighborCellStartIndex + neighborParticleIndex];
 
     // We don't process the same pair of cells twice, so we just need to check
-	// to be sure we have different molecules. The exception is when the two
-	// cells are the same, then we need to skip some pairs of molecules so we
-	// don't double count any pairs.
+    // to be sure we have different molecules. The exception is when the two
+    // cells are the same, then we need to skip some pairs of molecules so we
+    // don't double count any pairs.
     int mA = gpu_particleMol[currentParticle];
     int mB = gpu_particleMol[neighborParticle];
     bool skip = mA == mB || (shr_sameCell && mA > mB);

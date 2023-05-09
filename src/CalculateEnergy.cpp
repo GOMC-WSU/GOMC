@@ -1372,9 +1372,9 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
     double *torquez = molTorque.z;
 
 #if defined _OPENMP
-#pragma omp parallel for default(none) \
-shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex, torquey, torquez) \
-firstprivate(box)
+#pragma omp parallel for default(none)                                         \
+    shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  \
+           torquey, torquez) firstprivate(box)
 #endif
     for (int m = 0; m < (int)moleculeIndex.size(); m++) {
       int mIndex = moleculeIndex[m];
