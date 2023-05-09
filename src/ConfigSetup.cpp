@@ -1746,8 +1746,8 @@ void ConfigSetup::verifyInputs(void) {
     }
   }
 
-  if (abs(sys.moves.multiParticle) > 0.0000001 &&
-      abs(sys.moves.multiParticleBrownian) > 0.0000001) {
+  if (std::abs(sys.moves.multiParticle) > 0.0000001 &&
+      std::abs(sys.moves.multiParticleBrownian) > 0.0000001) {
     std::cout << "Error: Both multi-Particle and multi-Particle Brownian! "
               << " cannot be used at the same time!" << std::endl;
     exit(EXIT_FAILURE);

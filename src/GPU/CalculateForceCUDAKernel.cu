@@ -542,7 +542,7 @@ __global__ void BoxInterForceGPU(
         double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
                                               gpu_molIndex, gpu_lambdaVDW);
 
-        diff_com = Difference(gpu_comx, gpu_comy, gpu_comz, mA, mB);
+        diff_com = Difference3(gpu_comx, gpu_comy, gpu_comz, mA, mB);
         if (gpu_nonOrth[0])
           diff_com = MinImageNonOrthGPU(diff_com, axis, halfAx, gpu_cell_x,
                                         gpu_cell_y, gpu_cell_z, gpu_Invcell_x,
