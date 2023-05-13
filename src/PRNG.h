@@ -105,9 +105,9 @@ public:
   }
 
   void FillWithRandomInCavity(XYZ &loc, XYZ const &cavDim) {
-    double x = SymExc(cavDim.x / 2.0);
-    double y = SymExc(cavDim.y / 2.0);
-    double z = SymExc(cavDim.z / 2.0);
+    double x = Sym(cavDim.x / 2.0);
+    double y = Sym(cavDim.y / 2.0);
+    double z = Sym(cavDim.z / 2.0);
     XYZ temp(x, y, z);
     loc = temp;
   }
@@ -116,11 +116,11 @@ public:
   // of cavCenter
   void FillWithRandomInCavity(XYZArray &loc, const uint len, XYZ const &cavDim,
                               XYZ const &cavCenter) {
-    // generate random trial in range of (-cavDim/2, +cavDim/2)
+    // generate random trial in range of [-cavDim/2, +cavDim/2]
     for (uint i = 0; i < len; ++i) {
-      double x = SymExc(cavDim.x / 2.0);
-      double y = SymExc(cavDim.y / 2.0);
-      double z = SymExc(cavDim.z / 2.0);
+      double x = Sym(cavDim.x / 2.0);
+      double y = Sym(cavDim.y / 2.0);
+      double z = Sym(cavDim.z / 2.0);
       loc.Set(i, x, y, z);
     }
     // Shift by center
