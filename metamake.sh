@@ -5,6 +5,7 @@ use_cuda=0
 use_profiler=0
 use_gtest=0
 use_gcc=0
+use_clang=0
 use_mpi=0
 use_asan=0
 use_opt=1
@@ -70,7 +71,7 @@ then
 	fi
 fi
 
-while getopts 'acdgmnpt' opt; do
+while getopts 'acdglmnpt' opt; do
     case "$opt" in
         a)
             use_asan=1;;
@@ -81,6 +82,8 @@ while getopts 'acdgmnpt' opt; do
             use_debug=1;;
         g)
             use_gcc=1;;
+        l)
+            use_clang=1;;
         m)
             use_mpi=1
             CMAKEARGS+="-DGOMC_MPI=on ";;
@@ -96,7 +99,8 @@ while getopts 'acdgmnpt' opt; do
             echo "-a, enables address sanitizer runtime checking"
             echo "-c, enables clang-tidy source code checks"
             echo "-d, enables Debug Mode compilation"
-            echo "-g, use the gcc compiler"
+            echo "-g, use the GNU compiler"
+			echo "-l, use the Clang compiler"
             echo "-m, enables MPI support (Required for Parallel Tempering)"
             echo "-n, disables most optimizing compiler flags"
             echo "-p enables GPU code profiling (NVTX tags)"
@@ -136,8 +140,7 @@ mkdir -p bin
 cd bin
 
 if (( !use_gtest )); then
-    if (( !use_gcc )); 
-    then
+    if (( !use_gcc && !use_clang )); then
         ICC_PATH="$(which icx 2> /dev/null)"
         ICPC_PATH="$(which icpx 2> /dev/null)"
         if [ -z "$ICC_PATH" ]
@@ -157,10 +160,21 @@ if (( !use_gtest )); then
             export CC=${ICC_PATH}
             export CXX=${ICPC_PATH}
         fi
+	elif (( use_clang )); then
+        CLANG_PATH="$(which clang 2> /dev/null)"
+        CLANGXX_PATH="$(which clang++ 2> /dev/null)"
+        if [ -z "$CLANG_PATH" ]
+        then
+            export CC="$(which gcc 2> /dev/null)"
+            export CXX="$(which g++ 2> /dev/null)"
+	    else
+            export CC=${CLANG_PATH}
+            export CXX=${CLANGXX_PATH}
+		fi
     else
         export CC="$(which gcc 2> /dev/null)"
         export CXX="$(which g++ 2> /dev/null)"
-    fi
+	fi
 else
     if (( use_mpi )); 
     then

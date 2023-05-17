@@ -24,10 +24,12 @@ if(ENSEMBLE_NVT)
    # Set Compiler and linker flags for each compiler
    target_compile_options(NVT
       PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>)
+             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
+             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>)
    target_link_options(NVT
       PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>)
+             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
+             $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>)
    set_target_properties(NVT PROPERTIES 
       OUTPUT_NAME ${NVT_name}
       COMPILE_FLAGS "${NVT_flags}")
@@ -45,10 +47,12 @@ if(ENSEMBLE_GEMC)
    # Set Compiler and linker flags for each compiler
    target_compile_options(GEMC
       PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>)
+             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
+             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>)
    target_link_options(GEMC
       PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>)
+             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
+             $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>)
    set_target_properties(GEMC PROPERTIES 
       OUTPUT_NAME ${GE_name}
       COMPILE_FLAGS "${GE_flags}")
@@ -66,10 +70,12 @@ if(ENSEMBLE_GCMC)
    # Set Compiler and linker flags for each compiler
    target_compile_options(GCMC
       PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>)
+             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
+             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>)
    target_link_options(GCMC
       PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>)
+             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
+             $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>)
    set_target_properties(GCMC PROPERTIES 
       OUTPUT_NAME ${GC_name}
       COMPILE_FLAGS "${GC_flags}")
@@ -87,10 +93,12 @@ if(ENSEMBLE_NPT)
    # Set Compiler and linker flags for each compiler
    target_compile_options(NPT
       PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>)
+             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
+             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>)
    target_link_options(NPT
       PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>)
+             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
+             $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>)
    set_target_properties(NPT PROPERTIES 
       OUTPUT_NAME ${NPT_name}
       COMPILE_FLAGS "${NPT_flags}")

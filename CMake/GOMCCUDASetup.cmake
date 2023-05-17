@@ -60,10 +60,12 @@ if(ENSEMBLE_GPU_NVT)
     target_compile_options(GPU_NVT
        PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
               $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
+             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
     target_link_options(GPU_NVT
        PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
               $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
+              $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>
               $<$<LINK_LANGUAGE:CUDA>:${CMAKE_CUDA_LINK_FLAGS}>)
     set_target_properties(GPU_NVT PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
@@ -88,10 +90,12 @@ if(ENSEMBLE_GPU_GEMC)
     target_compile_options(GPU_GEMC
        PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
               $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
+              $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
     target_link_options(GPU_GEMC
        PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
               $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
+              $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>
               $<$<LINK_LANGUAGE:CUDA>:${CMAKE_CUDA_LINK_FLAGS}>)
     set_target_properties(GPU_GEMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
@@ -116,10 +120,12 @@ if(ENSEMBLE_GPU_GCMC)
     target_compile_options(GPU_GCMC
        PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
               $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
+              $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
     target_link_options(GPU_GCMC
        PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
               $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
+              $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>
               $<$<LINK_LANGUAGE:CUDA>:${CMAKE_CUDA_LINK_FLAGS}>)
     set_target_properties(GPU_GCMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
@@ -144,10 +150,12 @@ if(ENSEMBLE_GPU_NPT)
     target_compile_options(GPU_NPT
        PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
               $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
+              $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
     target_link_options(GPU_NPT
        PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
               $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
+              $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>
               $<$<LINK_LANGUAGE:CUDA>:${CMAKE_CUDA_LINK_FLAGS}>)
     set_target_properties(GPU_NPT PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
