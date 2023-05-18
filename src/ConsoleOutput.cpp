@@ -319,7 +319,7 @@ void ConsoleOutput::PrintEnergyTitle() {
   std::string title = "ETITLE:";
   size_t loc = title.length();
   title += "STEP";
-  title.insert(loc, elementWidth-title.length(), ' ');
+  title.insert(loc, elementWidth - title.length(), ' ');
   printElement(title, elementWidth);
 
   printElement("TOTAL", elementWidth);
@@ -341,7 +341,7 @@ void ConsoleOutput::PrintStatisticTitle() {
     std::string title = "STITLE:";
     size_t loc = title.length();
     title += "STEP";
-    title.insert(loc, elementWidth-title.length(), ' ');
+    title.insert(loc, elementWidth - title.length(), ' ');
     printElement(title, elementWidth);
   }
 
@@ -386,7 +386,7 @@ void ConsoleOutput::PrintMoveTitle() {
   std::string title = "MTITLE:";
   size_t loc = title.length();
   title += "STEP";
-  title.insert(loc, elementWidth-title.length(), ' ');
+  title.insert(loc, elementWidth - title.length(), ' ');
   printElement(title, elementWidth);
   if (var->Performed(mv::DISPLACE)) {
     printElement("DISTRY", elementWidth);

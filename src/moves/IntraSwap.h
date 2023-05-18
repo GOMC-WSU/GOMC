@@ -155,7 +155,7 @@ inline void IntraSwap::Accept(const uint rejectState, const ulong step) {
       // Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-      //Add Reciprocal energy difference
+      // Add Reciprocal energy difference
       sysPotRef.boxEnergy[destBox].recip += recipDiff.energy;
       // Add correction energy
       sysPotRef.boxEnergy[sourceBox].correction -= correct_old;

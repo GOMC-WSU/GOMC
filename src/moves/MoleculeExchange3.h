@@ -105,7 +105,8 @@ inline uint MoleculeExchange3::PickMolInCav() {
   if (state == mv::fail_state::NO_FAIL) {
     center = comCurrRef.Get(pickedS);
     // Pick random vector and find two vectors that are perpendicular to V1
-    SetBasis(cavA, prng.RandomUnitVect());
+    XYZ cavVect = prng.RandomUnitVect();
+    SetBasis(cavA, cavVect);
     // Calculate inverse matrix for cav here Inv = transpose
     TransposeMatrix(invCavA, cavA);
 
@@ -160,7 +161,8 @@ inline uint MoleculeExchange3::ReplaceMolecule() {
 
   if (state == mv::fail_state::NO_FAIL) {
     // Set V1 to a random vector and calculate two vector perpendicular to V1
-    SetBasis(cavA, prng.RandomUnitVect());
+    XYZ cavVect = prng.RandomUnitVect();
+    SetBasis(cavA, cavVect);
     // Calculate inverse matrix for cav. Here Inv = Transpose
     TransposeMatrix(invCavA, cavA);
     // use the predefine atom in kindL as the center
