@@ -571,7 +571,7 @@ inline void IntraTargetedSwap::Accept(const uint rejectState,
       // Add rest of energy.
       sysPotRef.boxEnergy[box] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[box] += newMol.GetEnergy();
-      //Add Reciprocal energy
+      // Add Reciprocal energy
       sysPotRef.boxEnergy[box].recip += recipDiff.energy;
       // Add correction energy
       sysPotRef.boxEnergy[box].correction -= correct_old;

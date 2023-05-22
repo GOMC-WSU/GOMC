@@ -292,11 +292,16 @@ inline uint MoleculeExchange1::PickMolInCav() {
   uint state = mv::fail_state::NO_FAIL;
   // pick a random location in dense phase
   XYZ axis = boxDimRef.GetAxis(sourceBox);
-  XYZ temp(prng.randExc(axis.x), prng.randExc(axis.y), prng.randExc(axis.z));
+  // Doing the rand calls outside the function call avoids a gcc compiler issue
+  double x = prng.randExc(axis.x);
+  double y = prng.randExc(axis.y);
+  double z = prng.randExc(axis.z);
+  XYZ temp(x, y, z);
   // Use to shift the new inserted molecule
   center = temp;
   // Pick random vector and find two vectors that are perpendicular to V1
-  SetBasis(cavA, prng.RandomUnitVect());
+  XYZ cavVect = prng.RandomUnitVect();
+  SetBasis(cavA, cavVect);
   // Calculate inverse matrix for cav here Inv = transpose
   TransposeMatrix(invCavA, cavA);
 
@@ -338,7 +343,8 @@ inline uint MoleculeExchange1::ReplaceMolecule() {
   if (state == mv::fail_state::NO_FAIL) {
     // Set the V1 to the backbone of the large molecule
     if (molRef.NumAtoms(kindL) == 1) {
-      SetBasis(cavA, prng.RandomUnitVect());
+      XYZ cavVect = prng.RandomUnitVect();
+      SetBasis(cavA, cavVect);
     } else {
       uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
       uint end = molRef.MolStart(molIndexA[0]) + largeBB[1];

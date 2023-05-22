@@ -103,13 +103,17 @@ void Coordinates::TranslateRand(XYZArray &dest, XYZ &newCOM, uint &pStart,
   newCOM = boxDimRef.WrapPBC(newCOM, b);
 }
 
-// Rotate by a random amount.
+// Rotate by a random amount
 void Coordinates::RotateRand(XYZArray &dest, uint &pStart, uint &pLen,
                              const uint m, const uint b, const double max) {
   // Rotate (-max, max) radians about a uniformly random vector
   // Not uniformly random, but symmetrical wrt detailed balance
-  RotationMatrix matrix = RotationMatrix::FromAxisAngle(
-      prngRef.Sym(max), prngRef.PickOnUnitSphere());
+  // Note: In order for gcc to produce the same results as the Intel compiler,
+  //       we need to create variables instead of using these calls to random
+  //       functions as parameters to the FromAxisAngle function call.
+  double theta = prngRef.Sym(max);
+  XYZ axis = prngRef.PickOnUnitSphere();
+  RotationMatrix matrix = RotationMatrix::FromAxisAngle(theta, axis);
 
   XYZ center = comRef.Get(m);
   uint stop = 0;

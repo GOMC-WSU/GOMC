@@ -483,7 +483,8 @@ inline void XYZArray::ScaleAll(const double val) { ScaleRange(0, count, val); }
 inline void XYZArray::CopyRange(XYZArray &dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const {
 #ifdef _OPENMP
-#pragma omp parallel default(none) firstprivate(srcIndex, destIndex, len) shared(dest)
+#pragma omp parallel default(none) firstprivate(srcIndex, destIndex, len)      \
+    shared(dest)
 #endif
   {
     memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));

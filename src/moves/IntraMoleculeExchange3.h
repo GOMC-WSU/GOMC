@@ -106,7 +106,8 @@ inline uint IntraMoleculeExchange3::PickMolInCav() {
   if (state == mv::fail_state::NO_FAIL) {
     centerA = comCurrRef.Get(pickedS);
     // Pick random vector and find two vectors that are perpendicular to V1
-    SetBasis(cavA, prng.RandomUnitVect());
+    XYZ cavVect = prng.RandomUnitVect();
+    SetBasis(cavA, cavVect);
     // Calculate inverse matrix for cav here Inv = transpose
     TransposeMatrix(invCavA, cavA);
 
@@ -157,7 +158,8 @@ inline uint IntraMoleculeExchange3::PickMolInCav() {
     uint start = molRef.MolStart(molIndexB[0]) + largeBB[0];
     centerB = coordCurrRef.Get(start);
     // Set V1 to a random vector and calculate two vector perpendicular to V1
-    SetBasis(cavB, prng.RandomUnitVect());
+    XYZ cavVect = prng.RandomUnitVect();
+    SetBasis(cavB, cavVect);
     // Calculate inverse matrix for cav. Here Inv = Transpose
     TransposeMatrix(invCavB, cavB);
     if (exchangeRatio == 1) {
