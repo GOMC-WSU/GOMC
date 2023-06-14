@@ -1769,8 +1769,26 @@ void ConfigSetup::verifyInputs(void) {
   }
 
   if (in.restart.restartFromCheckpoint && !in.restart.enable) {
-    std::cout << "Error: Checkpoint cannot be used without Restart true!"
-              << std::endl;
+    std::cout << "Error: Restarting from checkpoint file requires"
+              << " Restart true!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if (in.restart.restartFromBinaryCoorFile && !in.restart.enable) {
+    std::cout << "Error: Restarting from binary coordinate file(s) requires"
+              << " Restart true!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if (in.restart.restartFromBinaryVelFile && !in.restart.enable) {
+    std::cout << "Error: Restarting from binary velocity file(s) requires"
+              << " Restart true!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if (in.restart.restartFromXSCFile && !in.restart.enable) {
+    std::cout << "Error: Restarting from extended system file(s) requires"
+              << " Restart true!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
