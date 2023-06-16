@@ -12,7 +12,7 @@ include_directories(src/GPU)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # clang-tidy
-set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,mpi-*,openmp-*)
+#set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,mpi-*,openmp-*)
 
 #Versioning
 set (GOMC_VERSION_MAJOR 2)
