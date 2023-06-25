@@ -370,13 +370,20 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
 
 inline void XYZArray::ResetRange(const uint val, const uint stop) {
 #ifdef _OPENMP
-#pragma omp parallel default(none) firstprivate(val, stop)
-#endif
+#pragma omp parallel sections default(none) firstprivate(val, stop)
   {
+#pragma omp section
     memset(this->x, val, stop * sizeof(double));
+#pragma omp section
     memset(this->y, val, stop * sizeof(double));
+#pragma omp section
     memset(this->z, val, stop * sizeof(double));
   }
+#else
+  memset(this->x, val, stop * sizeof(double));
+  memset(this->y, val, stop * sizeof(double));
+  memset(this->z, val, stop * sizeof(double));
+#endif
 }
 
 inline void XYZArray::Reset() { ResetRange(0, count); }
@@ -483,14 +490,21 @@ inline void XYZArray::ScaleAll(const double val) { ScaleRange(0, count, val); }
 inline void XYZArray::CopyRange(XYZArray &dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const {
 #ifdef _OPENMP
-#pragma omp parallel default(none) firstprivate(srcIndex, destIndex, len)      \
-    shared(dest)
-#endif
+#pragma omp parallel sections default(none)                                    \
+    firstprivate(srcIndex, destIndex, len) shared(dest)
   {
+#pragma omp section
     memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));
+#pragma omp section
     memcpy(dest.y + destIndex, y + srcIndex, len * sizeof(double));
+#pragma omp section
     memcpy(dest.z + destIndex, z + srcIndex, len * sizeof(double));
   }
+#else
+  memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));
+  memcpy(dest.y + destIndex, y + srcIndex, len * sizeof(double));
+  memcpy(dest.z + destIndex, z + srcIndex, len * sizeof(double));
+#endif
 }
 
 inline double XYZArray::AdjointMatrix(XYZArray &Inv) {

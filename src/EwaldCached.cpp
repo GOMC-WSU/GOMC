@@ -98,12 +98,17 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
 #ifdef _OPENMP
-#pragma omp parallel default(none) shared(box)
-#endif
+#pragma omp parallel sections default(none) shared(box)
     {
+#pragma omp section
       std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
+#pragma omp section
       std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
     }
+#else
+    std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
+    std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
+#endif
 
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
@@ -151,12 +156,17 @@ void EwaldCached::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
 #ifdef _OPENMP
-#pragma omp parallel default(none) shared(box)
-#endif
+#pragma omp parallel sections default(none) shared(box)
     {
+#pragma omp section
       std::memset(sumRnew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+#pragma omp section
       std::memset(sumInew[box], 0.0, sizeof(double) * imageSizeRef[box]);
     }
+#else
+    std::memset(sumRnew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+    std::memset(sumInew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+#endif
 
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
@@ -295,14 +305,19 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
   double energyRecipOld = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel default(none) firstprivate(molIndex)
-#endif
+#pragma omp parallel sections default(none) firstprivate(molIndex)
   {
+#pragma omp section
     std::memcpy(cosMolRestore, cosMolRef[molIndex],
                 sizeof(double) * imageTotal);
+#pragma omp section
     std::memcpy(sinMolRestore, sinMolRef[molIndex],
                 sizeof(double) * imageTotal);
   }
+#else
+  std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double) * imageTotal);
+  std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double) * imageTotal);
+#endif
 
   if (box < BOXES_WITH_U_NB) {
     MoleculeKind const &thisKind = newMol.GetKind();
