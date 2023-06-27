@@ -225,12 +225,17 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         hsqr[box], currentEnergyRecip[box], box);
 #else
 #ifdef _OPENMP
-#pragma omp parallel default(none) shared(box)
-#endif
+#pragma omp parallel sections default(none) shared(box)
     {
+#pragma omp section
       std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
+#pragma omp section
       std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
     }
+#else
+    std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
+    std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
+#endif
 
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
@@ -307,12 +312,17 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
                              sumInew[box], currentEnergyRecip[box], box);
 #else
 #ifdef _OPENMP
-#pragma omp parallel default(none) shared(box)
-#endif
+#pragma omp parallel sections default(none) shared(box)
     {
+#pragma omp section
       std::memset(sumRnew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+#pragma omp section
       std::memset(sumInew[box], 0.0, sizeof(double) * imageSizeRef[box]);
     }
+#else
+    std::memset(sumRnew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+    std::memset(sumInew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+#endif
 
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
@@ -1011,17 +1021,32 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const &boxAxes) {
 // back up reciprocal value to Ref (will be called during initialization)
 void Ewald::SetRecipRef(uint box) {
 #ifdef _OPENMP
-#pragma omp parallel default(none) shared(box)
-#endif
+#pragma omp parallel sections default(none) shared(box)
   {
+#pragma omp section
     std::memcpy(sumRref[box], sumRnew[box], sizeof(double) * imageSize[box]);
+#pragma omp section
     std::memcpy(sumIref[box], sumInew[box], sizeof(double) * imageSize[box]);
+#pragma omp section
     std::memcpy(kxRef[box], kx[box], sizeof(double) * imageSize[box]);
+#pragma omp section
     std::memcpy(kyRef[box], ky[box], sizeof(double) * imageSize[box]);
+#pragma omp section
     std::memcpy(kzRef[box], kz[box], sizeof(double) * imageSize[box]);
+#pragma omp section
     std::memcpy(hsqrRef[box], hsqr[box], sizeof(double) * imageSize[box]);
+#pragma omp section
     std::memcpy(prefactRef[box], prefact[box], sizeof(double) * imageSize[box]);
   }
+#else
+  std::memcpy(sumRref[box], sumRnew[box], sizeof(double) * imageSize[box]);
+  std::memcpy(sumIref[box], sumInew[box], sizeof(double) * imageSize[box]);
+  std::memcpy(kxRef[box], kx[box], sizeof(double) * imageSize[box]);
+  std::memcpy(kyRef[box], ky[box], sizeof(double) * imageSize[box]);
+  std::memcpy(kzRef[box], kz[box], sizeof(double) * imageSize[box]);
+  std::memcpy(hsqrRef[box], hsqr[box], sizeof(double) * imageSize[box]);
+  std::memcpy(prefactRef[box], prefact[box], sizeof(double) * imageSize[box]);
+#endif
 #ifdef GOMC_CUDA
   CopyCurrentToRefCUDA(ff.particles->getCUDAVars(), box, imageSize[box]);
 #endif
@@ -1417,12 +1442,17 @@ void Ewald::CopyRecip(uint box) {
     return;
 
 #ifdef _OPENMP
-#pragma omp parallel default(none) shared(box)
-#endif
+#pragma omp parallel sections default(none) shared(box)
   {
+#pragma omp section
     std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSizeRef[box]);
+#pragma omp section
     std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSizeRef[box]);
   }
+#else
+  std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSizeRef[box]);
+  std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSizeRef[box]);
+#endif
 #ifdef GOMC_CUDA
   CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
 #endif
