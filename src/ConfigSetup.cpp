@@ -157,7 +157,7 @@ double ConfigSetup::stringtod(const std::string &s) {
 bool ConfigSetup::checkBool(std::string str) {
   // short circuit for long strings
   if (str.length() > 5) {
-    std::cout << "Error: " << str << "couldn't be recognized!" << std::endl;
+    std::cout << "ERROR: " << str << "couldn't be recognized!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -170,11 +170,11 @@ bool ConfigSetup::checkBool(std::string str) {
     return true;
   else if (str == "OFF" || str == "FALSE" || str == "NO")
     return false;
-  std::cout << "Error: " << str << "couldn't be recognized!" << std::endl;
+  std::cout << "ERROR: " << str << "couldn't be recognized!" << std::endl;
   exit(EXIT_FAILURE);
 }
 
-// Same as checkBool but doesn't exit with an error if the string doesn't
+// Same as checkBool but doesn't exit with an ERROR if the string doesn't
 // represent a boolean value. Use for cases where we aren't sure the argument
 // string should be a boolean.
 bool ConfigSetup::isBool(std::string str) {
@@ -227,7 +227,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         printf("%-40s %-s \n", "Info: Integer seed", "Active");
         in.prng.kind = line[1];
       } else {
-        std::cout << "Error: PRNG can only be \"RANDOM\" or \"INTSEED\"!\n";
+        std::cout << "ERROR: PRNG can only be \"RANDOM\" or \"INTSEED\"!\n";
         exit(EXIT_FAILURE);
       }
     } else if (CheckString(line[0], "PRNG_ParallelTempering")) {
@@ -240,7 +240,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isCHARMM = true;
-        printf("%-40s %-s \n", "Info: PARAMETER file", "CHARMM format!");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "CHARMM format");
       }
     } else if (CheckString(line[0], "ParaTypeEXOTIC")) {
       if (checkBool(line[1])) {
@@ -248,7 +248,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.ffKind.isCHARMM = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isEXOTIC = true;
-        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format!");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format");
       }
     } else if (CheckString(line[0], "ParaTypeMIE")) {
       if (checkBool(line[1])) {
@@ -256,7 +256,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.ffKind.isCHARMM = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isEXOTIC = true;
-        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format!");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format");
       }
     } else if (CheckString(line[0], "ParaTypeMARTINI")) {
       if (checkBool(line[1])) {
@@ -265,7 +265,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.ffKind.isMARTINI = true;
         in.ffKind.isCHARMM = true;
         printf("%-40s %-s \n", "Info: PARAMETER file",
-               "MARTINI using CHARMM format!");
+               "MARTINI using CHARMM format");
       }
     } else if (CheckString(line[0], "Parameters")) {
       if (line.size() > 1) {
@@ -274,7 +274,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     } else if (CheckString(line[0], "Coordinates")) {
       uint boxnum = stringtoi(line[1]);
       if (boxnum >= BOX_TOTAL) {
-        std::cout << "Error: Simulation requires " << BOX_TOTAL
+        std::cout << "ERROR: Simulation requires " << BOX_TOTAL
                   << " PDB file(s)!\n";
         exit(EXIT_FAILURE);
       }
@@ -288,7 +288,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     } else if (CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if (boxnum >= BOX_TOTAL) {
-        std::cout << "Error: Simulation requires " << BOX_TOTAL
+        std::cout << "ERROR: Simulation requires " << BOX_TOTAL
                   << " PSF file(s)!\n";
         exit(EXIT_FAILURE);
       }
@@ -302,7 +302,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     } else if (CheckString(line[0], "binCoordinates")) {
       uint boxnum = stringtoi(line[1]);
       if (boxnum >= BOX_TOTAL) {
-        std::cout << "Error: Simulation requires " << BOX_TOTAL
+        std::cout << "ERROR: Simulation requires " << BOX_TOTAL
                   << " binary coordinate file(s)!\n";
         exit(EXIT_FAILURE);
       }
@@ -317,7 +317,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     } else if (CheckString(line[0], "binVelocities")) {
       uint boxnum = stringtoi(line[1]);
       if (boxnum >= BOX_TOTAL) {
-        std::cout << "Error: Simulation requires " << BOX_TOTAL
+        std::cout << "ERROR: Simulation requires " << BOX_TOTAL
                   << " binary velocity file(s)!\n";
         exit(EXIT_FAILURE);
       }
@@ -335,7 +335,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     } else if (CheckString(line[0], "extendedSystem")) {
       uint boxnum = stringtoi(line[1]);
       if (boxnum >= BOX_TOTAL) {
-        std::cout << "Error: Simulation requires " << BOX_TOTAL
+        std::cout << "ERROR: Simulation requires " << BOX_TOTAL
                   << " extended system file(s)!\n";
         exit(EXIT_FAILURE);
       }
@@ -441,7 +441,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.intraTargetedSwapCollection.AddsubVolumeBox(idx, b);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected 2 values for SubVolumeBox, but received",
+               "ERROR: Expected 2 values for SubVolumeBox, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
       }
@@ -456,7 +456,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.intraTargetedSwapCollection.AddsubVolumeCenter(idx, temp);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected 4 values for SubVolumeCenter, but received",
+               "ERROR: Expected 4 values for SubVolumeCenter, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
       }
@@ -467,7 +467,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.intraTargetedSwapCollection.AddsubVolumePBC(idx, line[2]);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected 2 values for SubVolumePBC, but received",
+               "ERROR: Expected 2 values for SubVolumePBC, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
       }
@@ -482,7 +482,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.intraTargetedSwapCollection.AddsubVolumeAtomList(idx, temp);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected atleast 3 values for SubVolumeCenterList, but "
+               "ERROR: Expected atleast 3 values for SubVolumeCenterList, but "
                "received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -498,7 +498,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.intraTargetedSwapCollection.AddsubVolumeDimension(idx, temp);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected 4 values for SubVolumeDim, but received",
+               "ERROR: Expected 4 values for SubVolumeDim, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
       }
@@ -514,7 +514,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.intraTargetedSwapCollection.AddsubVolumeResKind(idx, temp);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected atleast 2 values for SubVolumeResidueKind, but "
+               "ERROR: Expected atleast 2 values for SubVolumeResidueKind, but "
                "received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -527,7 +527,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.intraTargetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected 2 values for SubVolumeRigidSwap, but received",
+               "ERROR: Expected 2 values for SubVolumeRigidSwap, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
       }
@@ -543,7 +543,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
                                                        isFugacity);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected 3 values for SubVolumeChemPot, but received",
+               "ERROR: Expected 3 values for SubVolumeChemPot, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
       }
@@ -557,7 +557,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
                                                        isFugacity);
       } else {
         printf("%-40s %-lu !\n",
-               "Error: Expected 3 values for SubVolumeFugacity, but received",
+               "ERROR: Expected 3 values for SubVolumeFugacity, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
       }
@@ -617,7 +617,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       }
     } else if (CheckString(line[0], "SmallKindBackBone")) {
       if ((line.size() % 2) == 0) {
-        std::cout << "Error: Two atom names must be defined for the backbone "
+        std::cout << "ERROR: Two atom names must be defined for the backbone "
                      "of each small molecule kind!\n";
         exit(EXIT_FAILURE);
       }
@@ -641,7 +641,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       }
     } else if (CheckString(line[0], "LargeKindBackBone")) {
       if ((line.size() % 2) == 0) {
-        std::cout << "Error: Two atom names must be defined for the backbone "
+        std::cout << "ERROR: Two atom names must be defined for the backbone "
                      "of each large molecule kind!\n";
         exit(EXIT_FAILURE);
       }
@@ -707,7 +707,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
           printf("%s %-d %-27s %4.4f A\n", "Info: Box ", b, " CutoffCoulomb",
                  sys.elect.cutoffCoulomb[b]);
         } else {
-          std::cout << "Error: This simulation requires only " << BOX_TOTAL
+          std::cout << "ERROR: This simulation requires only " << BOX_TOTAL
                     << " sets of Coulomb Cutoff!" << std::endl;
           exit(EXIT_FAILURE);
         }
@@ -732,7 +732,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.restart.recalcTrajectory = true;
         printf("%-40s %-s \n", "Info: Recalculate Trajectory", "Active");
         std::cout
-            << "Error: Recalculate Trajectory is not currently supported!\n";
+            << "ERROR: Recalculate Trajectory is not currently supported!\n";
         exit(EXIT_FAILURE);
       }
     } else if (CheckString(line[0], "EqSteps")) {
@@ -754,7 +754,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
 
       if (sys.step.pressureCalc && (line.size() == 2)) {
         std::cout
-            << "Error: Pressure calculation frequency is not specified!\n";
+            << "ERROR: Pressure calculation frequency is not specified!\n";
         exit(EXIT_FAILURE);
       }
       if (!sys.step.pressureCalc)
@@ -769,7 +769,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.step.parallelTempFreq = stringtoi(line[2]);
 
       if (sys.step.parallelTemp && (line.size() == 2)) {
-        std::cout << "Error: Parallel Tempering frequency is not specified!\n";
+        std::cout << "ERROR: Parallel Tempering frequency is not specified!\n";
         exit(EXIT_FAILURE);
       }
       if (!sys.step.parallelTemp)
@@ -1033,7 +1033,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
           sys.volume.hasVolume = sys.volume.ReadCellBasis();
         }
       } else {
-        std::cout << "Error: This simulation requires only " << BOX_TOTAL
+        std::cout << "ERROR: This simulation requires only " << BOX_TOTAL
                   << " sets of Cell Basis Vector!" << std::endl;
         exit(EXIT_FAILURE);
       }
@@ -1050,7 +1050,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
           sys.volume.hasVolume = sys.volume.ReadCellBasis();
         }
       } else {
-        std::cout << "Error: This simulation requires only " << BOX_TOTAL
+        std::cout << "ERROR: This simulation requires only " << BOX_TOTAL
                   << " sets of Cell Basis Vector!" << std::endl;
         exit(EXIT_FAILURE);
       }
@@ -1067,7 +1067,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
           sys.volume.hasVolume = sys.volume.ReadCellBasis();
         }
       } else {
-        std::cout << "Error: This simulation requires only " << BOX_TOTAL
+        std::cout << "ERROR: This simulation requires only " << BOX_TOTAL
                   << " sets of Cell Basis Vector!" << std::endl;
         exit(EXIT_FAILURE);
       }
@@ -1096,7 +1096,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       if (line.size() > 3 && multisim != NULL) {
         std::string resName = line[1];
         if (sys.chemPot.cp.count(resName) > 0) {
-          std::cout << "Error: Should specify either chemical potential or "
+          std::cout << "ERROR: Should specify either chemical potential or "
                     << "fugacity at most once for resName " << resName
                     << std::endl;
           exit(EXIT_FAILURE);
@@ -1107,12 +1107,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
                resName.c_str(), val);
       } else if (line.size() != 3) {
         std::cout
-            << "Error: Chemical potential parameters are not specified!\n";
+            << "ERROR: Chemical potential parameters are not specified!\n";
         exit(EXIT_FAILURE);
       } else {
         std::string resName = line[1];
         if (sys.chemPot.cp.count(resName) > 0) {
-          std::cout << "Error: Should specify either chemical potential or "
+          std::cout << "ERROR: Should specify either chemical potential or "
                     << "fugacity at most once for resName " << resName
                     << std::endl;
           exit(EXIT_FAILURE);
@@ -1124,13 +1124,13 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       }
     } else if (CheckString(line[0], "Fugacity")) {
       if (line.size() != 3) {
-        std::cout << "Error: Fugacity parameters are not specified!\n";
+        std::cout << "ERROR: Fugacity parameters are not specified!\n";
         exit(EXIT_FAILURE);
       }
       sys.chemPot.isFugacity = true;
       std::string resName = line[1];
       if (sys.chemPot.cp.count(resName) > 0) {
-        std::cout << "Error: Should specify either chemical potential or "
+        std::cout << "ERROR: Should specify either chemical potential or "
                   << "fugacity at most once for resName " << resName
                   << std::endl;
         exit(EXIT_FAILURE);
@@ -1748,7 +1748,7 @@ void ConfigSetup::verifyInputs(void) {
 
   if (std::abs(sys.moves.multiParticle) > 0.0000001 &&
       std::abs(sys.moves.multiParticleBrownian) > 0.0000001) {
-    std::cout << "Error: Both multi-Particle and multi-Particle Brownian! "
+    std::cout << "ERROR: Both multi-Particle and multi-Particle Brownian! "
               << " cannot be used at the same time!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1769,25 +1769,25 @@ void ConfigSetup::verifyInputs(void) {
   }
 
   if (in.restart.restartFromCheckpoint && !in.restart.enable) {
-    std::cout << "Error: Restarting from checkpoint file requires"
+    std::cout << "ERROR: Restarting from checkpoint file requires"
               << " Restart true!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   if (in.restart.restartFromBinaryCoorFile && !in.restart.enable) {
-    std::cout << "Error: Restarting from binary coordinate file(s) requires"
+    std::cout << "ERROR: Restarting from binary coordinate file(s) requires"
               << " Restart true!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   if (in.restart.restartFromBinaryVelFile && !in.restart.enable) {
-    std::cout << "Error: Restarting from binary velocity file(s) requires"
+    std::cout << "ERROR: Restarting from binary velocity file(s) requires"
               << " Restart true!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   if (in.restart.restartFromXSCFile && !in.restart.enable) {
-    std::cout << "Error: Restarting from extended system file(s) requires"
+    std::cout << "ERROR: Restarting from extended system file(s) requires"
               << " Restart true!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1798,13 +1798,13 @@ void ConfigSetup::verifyInputs(void) {
 
   // Set output files
   if (out.statistics.settings.uniqueStr.val == "") {
-    std::cout << "Error: Output name is not specified!" << std::endl;
+    std::cout << "ERROR: Output name is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
 #if ENSEMBLE == GEMC
   if (sys.gemc.kind == mv::GEMC_NPT && sys.gemc.pressure == DBL_MAX) {
-    std::cout << "Error: Pressure is not specified for NPT-GEMC!" << std::endl;
+    std::cout << "ERROR: Pressure is not specified for NPT-GEMC!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.gemc.kind == mv::GEMC_NVT && sys.gemc.pressure != DBL_MAX) {
@@ -1813,39 +1813,39 @@ void ConfigSetup::verifyInputs(void) {
   }
 
   if (sys.volume.cstVolBox0 && sys.gemc.kind == mv::GEMC_NVT) {
-    std::cout << "Error: Fix volume of box 0 cannot be applied to NVT-GEMC!\n";
+    std::cout << "ERROR: Fix volume of box 0 cannot be applied to NVT-GEMC!\n";
     exit(EXIT_FAILURE);
   }
 #endif
 #if ENSEMBLE == NPT
   if (sys.gemc.pressure == DBL_MAX) {
-    std::cout << "Error: Pressure is not specified for NPT!" << std::endl;
+    std::cout << "ERROR: Pressure is not specified for NPT!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.volume.cstVolBox0) {
     std::cout
-        << "Error: Fix volume of box 0 cannot be applied for NPT simulation!\n";
+        << "ERROR: Fix volume of box 0 cannot be applied for NPT simulation!\n";
     exit(EXIT_FAILURE);
   }
 #endif
 
 #if GOMC_LIB_MPI
   if (sys.step.parallelTemp && in.prngParallelTempering.kind != "INTSEED") {
-    std::cout << "Error: INTSEED required for parallel tempering!" << std::endl;
+    std::cout << "ERROR: INTSEED required for parallel tempering!" << std::endl;
     exit(EXIT_FAILURE);
   }
 #endif
 
   if (in.prng.kind == "INTSEED" && in.prng.seed == UINT_MAX) {
-    std::cout << "Error: Seed value is not specified!" << std::endl;
+    std::cout << "ERROR: Seed value is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (in.ffKind.numOfKinds == 0) {
-    std::cout << "Error: Force field type is not specified!" << std::endl;
+    std::cout << "ERROR: Force field type is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (in.ffKind.numOfKinds > 1) {
-    std::cout << "Error: Multiple Parameter types are specified!" << std::endl;
+    std::cout << "ERROR: Multiple Parameter types are specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if ((!in.ffKind.isMARTINI && !in.ffKind.isEXOTIC) &&
@@ -1861,11 +1861,11 @@ void ConfigSetup::verifyInputs(void) {
     std::cout << "Warning: Exclude 1-3 is set for EXOTIC type parameter.\n";
   }
   if (!in.files.param.size()) {
-    std::cout << "Error: Parameter file name is not specified!" << std::endl;
+    std::cout << "ERROR: Parameter file name is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.ff.VDW_KIND == UINT_MAX) {
-    std::cout << "Error: Potential type is not specified!" << std::endl;
+    std::cout << "ERROR: Potential type is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
@@ -1877,80 +1877,83 @@ void ConfigSetup::verifyInputs(void) {
   if (((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
        (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND)) &&
       sys.ff.doTailCorr) {
-    std::cout << "Warning: Long Range Correction is Active for "
-              << "truncated potential. Ignoring this option!" << std::endl;
-    sys.ff.doTailCorr = false;
+    std::cout << "ERROR: LJ long Range Correction is not supported for "
+              << "SHIFT or SWITCH potentials." << std::endl;
+    exit(EXIT_FAILURE);
   }
   if (((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
        (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) &&
       (!sys.ff.doImpulsePressureCorr && !sys.ff.doTailCorr)) {
-    std::cout << "Warning: Impulse Pressure Correction is Inactive for "
-              << "Non-truncated potential." << std::endl;
+    std::cout << "ERROR: Impulse Pressure Correction cannot be "
+              << "used with LJ long-range corrections." << std::endl;
+    exit(EXIT_FAILURE);
+
   }
   if (((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
        (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND)) &&
       sys.ff.doImpulsePressureCorr) {
-    std::cout << "Warning: Impulse Pressure Correction is Active for "
-              << "truncated potential. Ignoring this option!" << std::endl;
-    sys.ff.doImpulsePressureCorr = false;
+    std::cout << "ERROR: Impulse Pressure Correction is not supported "
+              << "for SWITCH or SHIFT potentials." << std::endl;
+    exit(EXIT_FAILURE);
+
   }
   if (sys.ff.doImpulsePressureCorr && sys.ff.doTailCorr) {
-    std::cout << "Error: Both LRC (Long Range Correction) and "
+    std::cout << "ERROR: Both LRC (Long Range Correction) and "
               << "IPC (Impulse Pressure Correction) cannot be used together!"
               << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.ff.cutoff == DBL_MAX) {
-    std::cout << "Error: Cutoff is not specified!" << std::endl;
+    std::cout << "ERROR: Cutoff is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.ff.cutoff < 0.0) {
-    std::cout << "Error: Cutoff cannot be negative!" << std::endl;
+    std::cout << "ERROR: Potential cutoff cannot be negative!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.ff.cutoffLow < 0.0) {
     sys.ff.cutoffLow = 0.0;
-    printf("Warning: Short Range Cutoff cannot be negative. Initializing to "
+    printf("Warning: RcutLow cannot be negative. Initializing to "
            "zero.\n");
   }
   if (sys.elect.ewald && (sys.elect.tolerance == DBL_MAX)) {
-    std::cout << "Error: Tolerance is not specified!" << std::endl;
+    std::cout << "ERROR: Tolerance is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.step.adjustment == ULONG_MAX) {
-    std::cout << "Error: Move adjustment frequency is not specified!\n";
+    std::cout << "ERROR: Move adjustment frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (sys.step.equil == ULONG_MAX) {
-    std::cout << "Error: Equilibration steps is not specified!\n";
+    std::cout << "ERROR: Equilibration steps is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (sys.step.total == ULONG_MAX) {
-    std::cout << "Error: Total run steps is not specified!" << std::endl;
+    std::cout << "ERROR: Total run steps is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.step.adjustment > sys.step.equil && !in.restart.enable &&
       !in.restart.recalcTrajectory) {
-    std::cout << "Error: Move adjustment frequency cannot exceed "
-              << "Equilibration steps!" << std::endl;
+    std::cout << "ERROR: Move adjustment frequency cannot be larger "
+              << "than the number of equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.step.equil > (sys.step.initStep + sys.step.total) &&
       !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
-    std::cout << "Error: Equilibration steps cannot exceed "
-              << "Total run steps!" << std::endl;
+    std::cout << "ERROR: The number of equilibration steps cannot exceed "
+              << "the total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (sys.step.equil > (sys.step.initStep + sys.step.total) &&
       !in.restart.recalcTrajectory && !in.restart.restartFromCheckpoint) {
-    std::cout << "Error: Equilibration steps cannot exceed "
-              << "Total run steps!" << std::endl;
+    std::cout << "ERROR: The number of equilibration steps cannot exceed "
+              << "the total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   if (sys.moves.displace == DBL_MAX) {
     if (!exptMode) {
-      std::cout << "Error: Displacement move frequency is not specified!\n";
+      std::cout << "ERROR: Displacement move frequency is not specified!\n";
       exit(EXIT_FAILURE);
     } else {
       sys.moves.displace = 0.0;
@@ -1961,7 +1964,7 @@ void ConfigSetup::verifyInputs(void) {
 #if ENSEMBLE == NPT
   if (sys.moves.volume == DBL_MAX) {
     if (!exptMode) {
-      std::cout << "Error: Volume move frequency is not specified!"
+      std::cout << "ERROR: Volume move frequency is not specified!"
                 << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -1974,7 +1977,7 @@ void ConfigSetup::verifyInputs(void) {
 #if ENSEMBLE == GEMC
   if (sys.moves.volume == DBL_MAX) {
     if (!exptMode) {
-      std::cout << "Error: Volume move frequency is not specified!"
+      std::cout << "ERROR: Volume move frequency is not specified!"
                 << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -1992,7 +1995,7 @@ void ConfigSetup::verifyInputs(void) {
 
   if (sys.moves.transfer == DBL_MAX) {
     if (!exptMode) {
-      std::cout << "Error: Molecule swap move frequency is not specified!"
+      std::cout << "ERROR: Molecule swap move frequency is not specified!"
                 << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -2008,13 +2011,13 @@ void ConfigSetup::verifyInputs(void) {
                sys.moves.multiParticle + sys.moves.multiParticleBrownian +
                sys.moves.neMolTransfer + sys.moves.targetedSwap +
                sys.moves.intraTargetedSwap - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequencies is not equal to one!\n";
+    std::cout << "ERROR: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
   if (sys.moves.volume == DBL_MAX) {
     if (!exptMode) {
-      std::cout << "Error: Volume move frequency is not specified!"
+      std::cout << "ERROR: Volume move frequency is not specified!"
                 << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -2029,14 +2032,14 @@ void ConfigSetup::verifyInputs(void) {
                sys.moves.crankShaft + sys.moves.multiParticle +
                sys.moves.multiParticleBrownian + sys.moves.intraTargetedSwap -
                1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequencies is not equal to one!\n";
+    std::cout << "ERROR: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 
 #elif ENSEMBLE == GCMC
   if (sys.moves.transfer == DBL_MAX) {
     if (!exptMode) {
-      std::cout << "Error: Molecule swap move frequency is not specified!"
+      std::cout << "ERROR: Molecule swap move frequency is not specified!"
                 << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -2051,7 +2054,7 @@ void ConfigSetup::verifyInputs(void) {
                sys.moves.multiParticle + sys.moves.multiParticleBrownian +
                sys.moves.neMolTransfer + sys.moves.targetedSwap +
                sys.moves.intraTargetedSwap - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
+    std::cout << "ERROR: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
@@ -2059,44 +2062,44 @@ void ConfigSetup::verifyInputs(void) {
                sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
                sys.moves.multiParticle + sys.moves.multiParticleBrownian +
                sys.moves.intraTargetedSwap - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
+    std::cout << "ERROR: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #endif
 
   for (i = 0; i < BOX_TOTAL; i++) {
     if (!in.files.pdb.defined[i]) {
-      std::cout << "Error: PDB file is not been specified for box number " << i
+      std::cout << "ERROR: PDB file was not specified for box number " << i
                 << "!" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
   for (i = 0; i < BOX_TOTAL; i++) {
     if (!in.files.psf.defined[i]) {
-      std::cout << "Error: PSF file is not specified for box number " << i
+      std::cout << "ERROR: PSF file was not specified for box number " << i
                 << "!" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
 
   if (in.restart.enable) {
-    // error checking to see if if we missed any binary coordinate file
+    // ERROR checking to see if if we missed any binary coordinate file
     if (in.restart.restartFromBinaryCoorFile) {
       for (i = 0; i < BOX_TOTAL; i++) {
         if (!in.files.binaryCoorInput.defined[i]) {
-          std::cout << "Error: Binary coordinate file is not specified for box "
+          std::cout << "ERROR: Binary coordinate file was not specified for box "
                        "number "
                     << i << "!" << std::endl;
           exit(EXIT_FAILURE);
         }
       }
     }
-    // error checking to see if if we missed any xsc file
+    // ERROR checking to see if if we missed any xsc file
     if (in.restart.restartFromXSCFile) {
       for (i = 0; i < BOX_TOTAL; i++) {
         if (!in.files.xscInput.defined[i]) {
           std::cout
-              << "Error: Extended system file is not specified for box number "
+              << "ERROR: Extended system file was not specified for box number "
               << i << "!" << std::endl;
           exit(EXIT_FAILURE);
         }
@@ -2105,12 +2108,12 @@ void ConfigSetup::verifyInputs(void) {
   }
 
   if (!sys.volume.hasVolume && !in.restart.enable) {
-    std::cout << "Error: This simulation requires the user define "
+    std::cout << "ERROR: This simulation requires the user define "
               << 3 * BOX_TOTAL << " Cell Basis vectors!" << std::endl;
     for (uint b = 0; b < BOX_TOTAL; b++) {
       for (uint i = 0; i < 3; i++) {
         if (!sys.volume.readCellBasis[b][i]) {
-          std::cout << "Error: CellBasisVector" << i + 1 << " for Box " << b
+          std::cout << "ERROR: CellBasisVector" << i + 1 << " for Box " << b
                     << " is missing!" << std::endl;
         }
       }
@@ -2118,7 +2121,7 @@ void ConfigSetup::verifyInputs(void) {
     exit(EXIT_FAILURE);
   }
   if (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX) {
-    std::cout << "Error: Switch distance is not specified!" << std::endl;
+    std::cout << "ERROR: Switch distance was not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
@@ -2130,100 +2133,100 @@ void ConfigSetup::verifyInputs(void) {
   }
   if (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND &&
       sys.ff.rswitch >= sys.ff.cutoff) {
-    std::cout << "Error: Switch distance should be less than Cutoff!\n";
+    std::cout << "ERROR: Switch distance must be less than Rcut!\n";
     exit(EXIT_FAILURE);
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if (sys.cbmcTrials.bonded.ang == UINT_MAX) {
-    std::cout << "Error: CBMC number of angle trials is not specified!\n";
+    std::cout << "ERROR: CBMC number of angle trials was not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (sys.cbmcTrials.bonded.dih == UINT_MAX) {
-    std::cout << "Error: CBMC number of dihedral trials is not specified!\n";
+    std::cout << "ERROR: CBMC number of dihedral trials was not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (sys.cbmcTrials.nonbonded.first == UINT_MAX) {
-    std::cout << "Error: CBMC number of first site trials is not specified!\n";
+    std::cout << "ERROR: CBMC number of first site trials was not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (sys.cbmcTrials.nonbonded.nth == UINT_MAX) {
-    std::cout << "Error: CBMC number of nth site trials is not specified!\n";
+    std::cout << "ERROR: CBMC number of nth site trials was not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (sys.memcVal.enable || sys.intraMemcVal.enable) {
     if ((sys.memcVal.MEMC1 && sys.memcVal.MEMC2) ||
         (sys.memcVal.MEMC1 && sys.memcVal.MEMC3) ||
         (sys.memcVal.MEMC2 && sys.memcVal.MEMC3)) {
-      std::cout << "Error: Multiple MEMC methods are specified!\n";
+      std::cout << "ERROR: Multiple MEMC methods were specified, but only one is allowed!\n";
       exit(EXIT_FAILURE);
     }
     if ((sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC2) ||
         (sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC3) ||
         (sys.intraMemcVal.MEMC2 && sys.intraMemcVal.MEMC3)) {
-      std::cout << "Error: Multiple Intra-MEMC methods are specified!\n";
+      std::cout << "ERROR: Multiple Intra-MEMC methods are specified, but only one is allowed!\n";
       exit(EXIT_FAILURE);
     }
     if (!sys.memcVal.readVol || !sys.intraMemcVal.readVol) {
-      std::cout << "Error: In MEMC method, Sub-Volume is not specified!\n";
+      std::cout << "ERROR: In the MEMC method, the Sub-Volume was not specified!\n";
       exit(EXIT_FAILURE);
     }
     if (!sys.memcVal.readRatio || !sys.intraMemcVal.readRatio) {
-      std::cout << "Error: In MEMC method, Exchange Ratio is not specified!\n";
+      std::cout << "ERROR: In the MEMC method, Exchange Ratio was not specified!\n";
       exit(EXIT_FAILURE);
     }
     if (sys.memcVal.largeKind.size() != sys.memcVal.exchangeRatio.size()) {
-      std::cout << "Error: In MEMC method, specified number of Large Kinds is "
+      std::cout << "ERROR: In the MEMC method, the specified number of Large Kinds was "
                 << sys.memcVal.largeKind.size() << ", but "
                 << sys.memcVal.exchangeRatio.size()
-                << " exchange ratio is specified!\n";
+                << " exchange ratio was specified!\n";
       exit(EXIT_FAILURE);
     }
     if (!sys.memcVal.readSK || !sys.intraMemcVal.readSK) {
-      std::cout << "Error: In MEMC method, Small Kind is not specified!\n";
+      std::cout << "ERROR: In the MEMC method, Small Kind was not specified!\n";
       exit(EXIT_FAILURE);
     }
     if (!sys.memcVal.readLK || !sys.intraMemcVal.readLK) {
-      std::cout << "Error: In MEMC method, Large Kind is not specified!\n";
+      std::cout << "ERROR: In the MEMC method, Large Kind was not specified!\n";
       exit(EXIT_FAILURE);
     }
     if ((sys.memcVal.largeKind.size() != sys.memcVal.smallKind.size()) ||
         (sys.intraMemcVal.largeKind.size() !=
          sys.intraMemcVal.smallKind.size())) {
       std::cout
-          << "Error: In MEMC method, specified number of Large Kinds is not "
+          << "ERROR: In the MEMC method, the specified number of Large Kinds is not "
           << " equal as specified number of Small Kinds!\n";
       exit(EXIT_FAILURE);
     }
     if (!sys.memcVal.readLargeBB || !sys.intraMemcVal.readLargeBB) {
       std::cout
-          << "Error: In MEMC method, Large Kind BackBone is not specified!\n";
+          << "ERROR: In the MEMC method, Large Kind BackBone was not specified!\n";
       exit(EXIT_FAILURE);
     }
     if (sys.memcVal.largeKind.size() != sys.memcVal.largeBBAtom1.size()) {
-      std::cout << "Error: In MEMC method, specified number of Large Kinds is "
+      std::cout << "ERROR: In the MEMC method, the specified number of Large Kinds was "
                 << sys.memcVal.largeKind.size() << ", but "
                 << sys.memcVal.largeBBAtom1.size()
-                << " sets of Large Molecule BackBone is specified!\n";
+                << " sets of Large Molecule BackBone was specified!\n";
       exit(EXIT_FAILURE);
     }
     if (sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
       std::cout
-          << "Error: In MEMC-2 method, Small Kind BackBone is not specified!\n";
+          << "ERROR: In the MEMC-2 method, Small Kind BackBone was not specified!\n";
       exit(EXIT_FAILURE);
     }
 
     if (sys.memcVal.MEMC2 &&
         (sys.memcVal.smallKind.size() != sys.memcVal.smallBBAtom1.size())) {
       std::cout
-          << "Error: In MEMC-2 method, specified number of Small Kinds is "
+          << "ERROR: In the MEMC-2 method, the specified number of Small Kinds was "
           << sys.memcVal.smallKind.size() << ", but "
           << sys.memcVal.smallBBAtom1.size()
-          << " sets of Small Molecule BackBone is specified!\n";
+          << " sets of Small Molecule BackBone was specified!\n";
       exit(EXIT_FAILURE);
     }
 
     if (sys.intraMemcVal.MEMC2 && !sys.intraMemcVal.readSmallBB) {
-      std::cout << "Error: In Intra-MEMC-2 method, Small Kind BackBone is not "
+      std::cout << "ERROR: In the Intra-MEMC-2 method, Small Kind BackBone was not "
                    "specified!\n";
       exit(EXIT_FAILURE);
     }
@@ -2231,7 +2234,7 @@ void ConfigSetup::verifyInputs(void) {
       if ((sys.memcVal.MEMC1 && !sys.intraMemcVal.MEMC1) ||
           (sys.memcVal.MEMC2 && !sys.intraMemcVal.MEMC2) ||
           (sys.memcVal.MEMC3 && !sys.intraMemcVal.MEMC3)) {
-        std::cout << "Error: Intra-MEMC method is not same as MEMC method!\n";
+        std::cout << "ERROR: The selected intra-MEMC method was not same as the inter-MEMC method!\n";
         exit(EXIT_FAILURE);
       }
     }
@@ -2239,19 +2242,19 @@ void ConfigSetup::verifyInputs(void) {
 
   if (sys.neMTMCVal.enable) {
     if (!sys.neMTMCVal.readLambdaCoulomb) {
-      std::cout << "Error: Lambda Coulomb states were not defined for "
+      std::cout << "ERROR: Lambda Coulomb states were not defined for "
                 << "NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
     if (!sys.neMTMCVal.readLambdaVDW) {
-      std::cout << "Error: Lambda VDW states were not defined for "
+      std::cout << "ERROR: Lambda VDW states were not defined for "
                 << "NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
     if (sys.neMTMCVal.lambdaCoulomb.size() != sys.neMTMCVal.lambdaVDW.size()) {
-      std::cout << "Error: Number of Lambda states for VDW and Coulomb "
+      std::cout << "ERROR: Number of Lambda states for VDW and Coulomb "
                 << "are not same in NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
@@ -2264,7 +2267,7 @@ void ConfigSetup::verifyInputs(void) {
         }
       }
       if (decreasing) {
-        std::cout << "Error: Lambda VDW values are not in increasing order "
+        std::cout << "ERROR: Lambda VDW values are not in increasing order "
                   << "in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
@@ -2278,7 +2281,7 @@ void ConfigSetup::verifyInputs(void) {
         }
       }
       if (decreasing) {
-        std::cout << "Error: Lambda Coulomb values are not in increasing "
+        std::cout << "ERROR: Lambda Coulomb values are not in increasing "
                   << "order in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
@@ -2286,7 +2289,7 @@ void ConfigSetup::verifyInputs(void) {
 
     uint last = sys.neMTMCVal.lambdaVDW.size() - 1;
     if (sys.neMTMCVal.lambdaVDW[last] < 0.9999) {
-      std::cout << "Error: Last Lambda value for VDW is not 1.0 "
+      std::cout << "ERROR: Last Lambda value for VDW is not 1.0 "
                 << "in NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
@@ -2294,14 +2297,14 @@ void ConfigSetup::verifyInputs(void) {
     if (sys.elect.enable) {
       last = sys.neMTMCVal.lambdaCoulomb.size() - 1;
       if (sys.neMTMCVal.lambdaCoulomb[last] < 0.9999) {
-        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 "
+        std::cout << "ERROR: Last Lambda value for Coulomb is not 1.0 "
                   << "in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
 
     if (!sys.neMTMCVal.readRelaxSteps) {
-      std::cout << "Error: Relaxing steps was not defined for NeMTMC move! \n";
+      std::cout << "ERROR: Relaxing steps was not defined for NeMTMC move! \n";
       exit(EXIT_FAILURE);
     } else if (sys.neMTMCVal.relaxSteps == 0) {
       std::cout << "Warning: No thermal relaxing move will be performed in "
@@ -2310,13 +2313,13 @@ void ConfigSetup::verifyInputs(void) {
 
     if (sys.neMTMCVal.conformationProb > 1.0f) {
       std::cout
-          << "Error: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps \n"
+          << "ERROR: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps \n"
           << "       must be less than 1.0! \n";
       exit(EXIT_FAILURE);
     }
 
     if (sys.neMTMCVal.lambdaLimit > 1.0f) {
-      std::cout << "Error: Lambda VDW limit for Intra-Swap move in NeMTMC "
+      std::cout << "ERROR: Lambda VDW limit for Intra-Swap move in NeMTMC "
                    "Relaxing Steps \n"
                 << "       must be less than 1.0! \n";
       exit(EXIT_FAILURE);
@@ -2325,7 +2328,7 @@ void ConfigSetup::verifyInputs(void) {
     if (sys.moves.multiParticleEnabled) {
       if (sys.neMTMCVal.MPEnable && sys.neMTMCVal.MPBEnable) {
         std::cout
-            << "Error: Multi-Particle and Multi-Particle Brownian moves cannot "
+            << "ERROR: Multi-Particle and Multi-Particle Brownian moves cannot "
                "\n"
             << "       be used simultaneously in NeMTMC Relaxing Steps! \n";
         exit(EXIT_FAILURE);
@@ -2335,7 +2338,7 @@ void ConfigSetup::verifyInputs(void) {
     if (!sys.moves.multiParticleEnabled) {
       if (sys.moves.displace < 1e-7 || sys.moves.rotate < 1e-7) {
         std::cout
-            << "Error: Displacement and rotation move must be activated in "
+            << "ERROR: Displacement and rotation move must be activated in "
             << "NeMTMC Relaxing Steps! \n";
         exit(EXIT_FAILURE);
       }
@@ -2343,12 +2346,12 @@ void ConfigSetup::verifyInputs(void) {
 
     if (sys.moves.multiParticleEnabled) {
       if (sys.moves.multiParticle < 1e-7 && sys.neMTMCVal.MPEnable) {
-        std::cout << "Error: Multi-Particle move must be activated in "
+        std::cout << "ERROR: Multi-Particle move must be activated in "
                   << "NeMTMC Relaxing Steps! \n";
         exit(EXIT_FAILURE);
       }
       if (sys.moves.multiParticleBrownian < 1e-7 && sys.neMTMCVal.MPBEnable) {
-        std::cout << "Error: Multi-Particle Brownian move must be activated in "
+        std::cout << "ERROR: Multi-Particle Brownian move must be activated in "
                   << "NeMTMC Relaxing Steps! \n";
         exit(EXIT_FAILURE);
       }
@@ -2367,19 +2370,19 @@ void ConfigSetup::verifyInputs(void) {
     }
 
     if (!sys.freeEn.readLambdaCoulomb) {
-      std::cout << "Error: Lambda Coulomb states were not defined for "
+      std::cout << "ERROR: Lambda Coulomb states were not defined for "
                 << "Free Energy Calculation! \n";
       exit(EXIT_FAILURE);
     }
 
     if (!sys.freeEn.readLambdaVDW) {
-      std::cout << "Error: Lambda VDW states were not defined for "
+      std::cout << "ERROR: Lambda VDW states were not defined for "
                 << "Free Energy Calculation! \n";
       exit(EXIT_FAILURE);
     }
 
     if (sys.freeEn.lambdaCoulomb.size() != sys.freeEn.lambdaVDW.size()) {
-      std::cout << "Error: Number of Lambda states for VDW and Coulomb "
+      std::cout << "ERROR: Number of Lambda states for VDW and Coulomb "
                 << "are not same in Free Energy Calculation! \n";
       exit(EXIT_FAILURE);
     }
@@ -2392,7 +2395,7 @@ void ConfigSetup::verifyInputs(void) {
         }
       }
       if (decreasing) {
-        std::cout << "Error: Lambda VDW values are not in increasing order "
+        std::cout << "ERROR: Lambda VDW values are not in increasing order "
                   << "in Free Energy Calculation! \n";
         exit(EXIT_FAILURE);
       }
@@ -2406,7 +2409,7 @@ void ConfigSetup::verifyInputs(void) {
         }
       }
       if (decreasing) {
-        std::cout << "Error: Lambda Coulomb values are not in increasing "
+        std::cout << "ERROR: Lambda Coulomb values are not in increasing "
                   << "order in Free Energy Calculation! \n";
         exit(EXIT_FAILURE);
       }
@@ -2414,7 +2417,7 @@ void ConfigSetup::verifyInputs(void) {
 
     uint last = sys.freeEn.lambdaVDW.size() - 1;
     if (sys.freeEn.lambdaVDW[last] < 0.9999) {
-      std::cout << "Error: Last Lambda value for VDW is not 1.0 "
+      std::cout << "ERROR: Last Lambda value for VDW is not 1.0 "
                 << "in Free Energy Calculation! \n";
       exit(EXIT_FAILURE);
     }
@@ -2422,37 +2425,37 @@ void ConfigSetup::verifyInputs(void) {
     if (sys.elect.enable) {
       last = sys.freeEn.lambdaCoulomb.size() - 1;
       if (sys.freeEn.lambdaCoulomb[last] < 0.9999) {
-        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 "
+        std::cout << "ERROR: Last Lambda value for Coulomb is not 1.0 "
                   << "in Free Energy Calculation! \n";
         exit(EXIT_FAILURE);
       }
     }
 
     if (sys.freeEn.lambdaVDW.size() <= sys.freeEn.iState) {
-      std::cout << "Error: Initial Lambda state is not valid "
+      std::cout << "ERROR: Initial Lambda state is not valid "
                 << "in Free Energy Calculation! \n";
       exit(EXIT_FAILURE);
     }
 
     if (!sys.freeEn.freqRead) {
-      std::cout << "Error: Frequency of Free Energy Calculation was "
+      std::cout << "ERROR: Frequency of Free Energy Calculation was "
                 << "not defined! \n";
       exit(EXIT_FAILURE);
     }
     if (!sys.freeEn.molTypeRead) {
-      std::cout << "Error: Molecule Type for Free Energy Calculation was "
+      std::cout << "ERROR: Molecule Type for Free Energy Calculation was "
                 << "not defined! \n";
       exit(EXIT_FAILURE);
     }
     if (!sys.freeEn.molIndexRead) {
-      std::cout << "Error: Molecule Index for Free Energy Calculation was "
+      std::cout << "ERROR: Molecule Index for Free Energy Calculation was "
                 << "not defined! \n";
       exit(EXIT_FAILURE);
     }
 #if ENSEMBLE == NVT
     if (sys.step.pressureCalc) {
       if ((sys.freeEn.frequency % sys.step.pressureCalcFreq) != 0) {
-        std::cout << "Error: Free Energy calculation Freq must be common "
+        std::cout << "ERROR: Free Energy calculation Freq must be common "
                   << "number of Pressure calculation freq! \n";
         exit(EXIT_FAILURE);
       }
@@ -2461,42 +2464,42 @@ void ConfigSetup::verifyInputs(void) {
   }
 #endif
   if (sys.T.inKelvin == DBL_MAX) {
-    std::cout << "Error: Temperature is not specified!\n";
+    std::cout << "ERROR: Temperature is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (out.statistics.settings.uniqueStr.val == "") {
-    std::cout << "Error: Output name is not specified!\n";
+    std::cout << "ERROR: Output name is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (out.console.enable && out.console.frequency == ULONG_MAX) {
-    std::cout << "Error: Console output frequency is not specified!\n";
+    std::cout << "ERROR: Console output frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (out.restart.settings.enable &&
       out.restart.settings.frequency == ULONG_MAX) {
-    std::cout << "Error: Restart coordinate frequency is not specified!\n";
+    std::cout << "ERROR: Restart coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
   // If both checkpoint and restart output are enabled,
   // Checkpoint freq must be divisible by restart freq.
   if (out.checkpoint.enable && !(out.restart.settings.enable)) {
-    std::cout << "Error: CheckpointFreq cannot be used without RestartFreq!\n";
+    std::cout << "ERROR: CheckpointFreq cannot be used without RestartFreq!\n";
     exit(EXIT_FAILURE);
   }
 
   if ((out.checkpoint.enable && out.restart.settings.enable) &&
       out.checkpoint.frequency != out.restart.settings.frequency) {
-    std::cout << "Error: Checkpoint frequency must equal restart frequency!\n";
+    std::cout << "ERROR: Checkpoint frequency must equal restart frequency!\n";
     std::cout << "Example: RestartFreq 10000; CheckpointFreq 10000\n";
     exit(EXIT_FAILURE);
   }
   if (out.state.settings.enable && out.state.settings.frequency == ULONG_MAX) {
-    std::cout << "Error: Coordinate frequency is not specified!\n";
+    std::cout << "ERROR: Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (out.state_dcd.settings.enable &&
       out.state_dcd.settings.frequency == ULONG_MAX) {
-    std::cout << "Error: DCD Coordinate frequency is not specified!\n";
+    std::cout << "ERROR: DCD Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
 
@@ -2505,14 +2508,14 @@ void ConfigSetup::verifyInputs(void) {
       if ((out.restart.settings.frequency % out.state.settings.frequency) !=
           0) {
         std::cout
-            << "Error: Coordinate frequency must be common multiple of \n";
+            << "ERROR: Coordinate frequency must be common multiple of \n";
         std::cout << "       restart corrdinate frequency !\n";
         exit(EXIT_FAILURE);
       }
     } else {
       if ((out.state.settings.frequency % out.restart.settings.frequency) !=
           0) {
-        std::cout << "Error: Restart coordinate frequency must be common "
+        std::cout << "ERROR: Restart coordinate frequency must be common "
                      "multiple of \n";
         std::cout << "       corrdinate frequency !\n";
         exit(EXIT_FAILURE);
@@ -2524,14 +2527,14 @@ void ConfigSetup::verifyInputs(void) {
     if (out.state_dcd.settings.frequency < out.restart.settings.frequency) {
       if ((out.restart.settings.frequency % out.state_dcd.settings.frequency) !=
           0) {
-        std::cout << "Error: DCD frequency must be common multiple of \n";
+        std::cout << "ERROR: DCD frequency must be common multiple of \n";
         std::cout << "       restart corrdinate frequency !\n";
         exit(EXIT_FAILURE);
       }
     } else {
       if ((out.state_dcd.settings.frequency % out.restart.settings.frequency) !=
           0) {
-        std::cout << "Error: Restart coordinate frequency must be common "
+        std::cout << "ERROR: Restart coordinate frequency must be common "
                      "multiple of \n";
         std::cout << "       DCD frequency !\n";
         exit(EXIT_FAILURE);
@@ -2541,33 +2544,33 @@ void ConfigSetup::verifyInputs(void) {
 
   if (out.statistics.settings.block.enable &&
       out.statistics.settings.block.frequency == ULONG_MAX) {
-    std::cout << "Error: Average output frequency is not specified!\n";
+    std::cout << "ERROR: Average output frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
 #if ENSEMBLE == GCMC
   if (out.statistics.settings.hist.enable &&
       out.statistics.settings.hist.frequency == ULONG_MAX) {
-    std::cout << "Error: Histogram output frequency is not specified!\n";
+    std::cout << "ERROR: Histogram output frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (out.state.files.hist.histName == "") {
-    std::cout << "Error: Distribution file name is not specified!" << std::endl;
+    std::cout << "ERROR: Distribution file name is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (out.state.files.hist.sampleName == "") {
-    std::cout << "Error: Histogram file name of is not specified!" << std::endl;
+    std::cout << "ERROR: Histogram file name of is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (out.state.files.hist.letter == "") {
-    std::cout << "Error: Run Letter of histogram file name is not specified!\n";
+    std::cout << "ERROR: Run Letter of histogram file name is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (out.state.files.hist.number == "") {
-    std::cout << "Error: Run number of histogram file is not specified!\n";
+    std::cout << "ERROR: Run number of histogram file is not specified!\n";
     exit(EXIT_FAILURE);
   }
   if (out.state.files.hist.stepsPerHistSample == UINT_MAX) {
-    std::cout << "Error: Histogram output sample frequency is not specified!\n";
+    std::cout << "ERROR: Histogram output sample frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
 #endif
