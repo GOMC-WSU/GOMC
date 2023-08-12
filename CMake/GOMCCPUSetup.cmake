@@ -21,15 +21,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 if(ENSEMBLE_NVT)
    add_executable(NVT ${sources} ${headers} ${libHeaders} ${libSources})
-   # Set Compiler and linker flags for each compiler
-   target_compile_options(NVT
-      PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>)
-   target_link_options(NVT
-      PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>)
+   # Set compiler and linker flags for each compiler
+    target_compile_options(NVT
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>)
+    target_link_options(NVT
+       PUBLIC $<$<LINK_LANGUAGE:CXX>:${CMAKE_LINK_FLAGS}>)
    set_target_properties(NVT PROPERTIES 
       OUTPUT_NAME ${NVT_name}
       COMPILE_FLAGS "${NVT_flags}")
@@ -44,15 +40,11 @@ endif()
 
 if(ENSEMBLE_GEMC)
    add_executable(GEMC ${sources} ${headers} ${libHeaders} ${libSources})
-   # Set Compiler and linker flags for each compiler
-   target_compile_options(GEMC
-      PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>)
-   target_link_options(GEMC
-      PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>)
+   # Set compiler and linker flags for each compiler
+    target_compile_options(GEMC
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>)
+    target_link_options(GEMC
+       PUBLIC $<$<LINK_LANGUAGE:CXX>:${CMAKE_LINK_FLAGS}>)
    set_target_properties(GEMC PROPERTIES 
       OUTPUT_NAME ${GE_name}
       COMPILE_FLAGS "${GE_flags}")
@@ -67,15 +59,11 @@ endif()
 
 if(ENSEMBLE_GCMC)
    add_executable(GCMC ${sources} ${headers} ${libHeaders} ${libSources})
-   # Set Compiler and linker flags for each compiler
-   target_compile_options(GCMC
-      PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>)
-   target_link_options(GCMC
-      PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>)
+   # Set compiler and linker flags for each compiler
+    target_compile_options(GCMC
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>)
+    target_link_options(GCMC
+       PUBLIC $<$<LINK_LANGUAGE:CXX>:${CMAKE_LINK_FLAGS}>)
    set_target_properties(GCMC PROPERTIES 
       OUTPUT_NAME ${GC_name}
       COMPILE_FLAGS "${GC_flags}")
@@ -90,15 +78,11 @@ endif()
 
 if(ENSEMBLE_NPT)
    add_executable(NPT ${sources} ${headers} ${libHeaders} ${libSources})
-   # Set Compiler and linker flags for each compiler
-   target_compile_options(NPT
-      PUBLIC $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_COMP_FLAGS}>
-             $<$<COMPILE_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_COMP_FLAGS}>)
-   target_link_options(NPT
-      PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
-             $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>)
+   # Set compiler and linker flags for each compiler
+    target_compile_options(NPT
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>)
+    target_link_options(NPT
+       PUBLIC $<$<LINK_LANGUAGE:CXX>:${CMAKE_LINK_FLAGS}>)
    set_target_properties(NPT PROPERTIES 
       OUTPUT_NAME ${NPT_name}
       COMPILE_FLAGS "${NPT_flags}")
@@ -110,4 +94,3 @@ if(ENSEMBLE_NPT)
       target_link_libraries(NPT ${MPI_LIBRARIES})
    endif()
 endif()
-

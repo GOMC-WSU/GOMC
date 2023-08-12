@@ -51,11 +51,11 @@ To cite GOMC project, please cite the following papers:
 > NOTES: You can also use CMake from the Windows command line if its directory is added to the PATH environment variable.
 
 ## Executing GOMC:
-  You can set the number of the threads using the +pN argument, where N is the number of threads.
+  You can set the number of CPU threads using the +pN argument, where N is the number of threads.
   For example:
   ```bash
   ./GOMC_GPU_GEMC +p4 in.conf
   ```
 
-  will run a simulation with the Gibbs ensemble on the GPU using 4 threads and loads configuration settings from the file "in.conf".
+  will run a simulation with the Gibbs ensemble on the GPU using 4 CPU threads and loads configuration settings from the file "in.conf".
 
