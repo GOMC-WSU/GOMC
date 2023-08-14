@@ -58,4 +58,3 @@ To cite GOMC project, please cite the following papers:
   ```
 
   will run a simulation with the Gibbs ensemble on the GPU using 4 CPU threads and loads configuration settings from the file "in.conf".
-
