@@ -13,40 +13,40 @@ To cite GOMC project, please cite the following papers:
 
 ## Building GOMC on GNU/Linux, macOS, or Cygwin:
 
-  1. Clone or download our code from GitHub:
-      ```bash
-      git clone https://github.com/GOMC-WSU/GOMC.git
-      ```
-  2. Go into the GOMC directory: 
-      ```bash
-      cd GOMC
-      ```
-  3. Give execution permission: 
-      ```bash
-      chmod u+x metamake.sh
-      ```
-  4. Run metamake file:
-      ```bash
-      ./metamake.sh
-      ```
-  5. Step 4 will place all the executables in ```bin``` directory.
+1.  Clone or download our code from GitHub:
+     ```bash
+     git clone https://github.com/GOMC-WSU/GOMC.git
+     ```
+2.  Go into the GOMC directory: 
+     ```bash
+     cd GOMC
+     ```
+3.  Give execution permission: 
+     ```bash
+     chmod u+x metamake.sh
+     ```
+4.  Run metamake file:
+     ```bash
+     ./metamake.sh
+     ```
+5.  Step 4 will place all the executables in the ```bin``` directory.
 
-  `./metamake.sh` accepts flags which indicate which ensembles to compile. Default behavior with no flags will compile all CPU ensembles and, if CUDA is available, all GPU ensembles. Multiple flags must be separated by spaces. Current accepted flags are: `CPU` to compile all CPU ensembles, `GPU` to compile all GPU ensembles, or you can compile ensembles individually by using any of the following flags:
+  `./metamake.sh` accepts a list of which ensembles to compile. Default behavior, listing no ensembles, is to compile all CPU ensembles and, if CUDA is available, all GPU ensembles. Multiple ensemble names must be separated by spaces. Current accepted values are: `CPU` to compile all CPU ensembles, `GPU` to compile all GPU ensembles, or you can compile ensembles individually by using any of the following keywords:
   `NVT`, `NPT`, `GCMC`, `GEMC`, `GPU_NVT`, `GPU_NPT`, `GPU_GCMC`, `GPU_GEMC`.
 
-> NOTES: Building GOMC requires CMake, available at https://cmake.org/ and in most Linux package repositories (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. (More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual".)
+> NOTES: Building GOMC requires [CMake](https://cmake.org/) version 3.18 or newer. CMake is available in most Linux package repositories (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/) "User Manual".
 
 ## Building GOMC on Windows:
-  1. Open the Windows-compatible CMake GUI.
-  2. Set the Source Folder to the GOMC root folder.
-  3. Set the Build Folder to your build folder.
-  4. Click Configure, select your compiler/environment.
-  5. Wait for CMake to finish the configuration.
-  6. Click Configure again and click Generate.
-  7. If your version of CUDA is older than CUDA 11, download the [CUB library](https://nvlabs.github.io/cub/download_cub.html).
-  8. If your version of CUDA is older than CUDA 11, extract the CUB library and copy the "cub" folder from the CUB library into the "lib" folder inside the GOMC directory.
-  9. Open the CMake-generated project/solution etc. in the desired IDE (e.g., Visual Studio).
-  10. Using the solution in the IDE, build GOMC per the IDE's standard release compilation/executable generation methods.
+1.  Open the Windows-compatible CMake GUI.
+2.  Set the Source Folder to the GOMC root folder.
+3.  Set the Build Folder to your build folder.
+4.  Click Configure, select your compiler/environment.
+5.  Wait for CMake to finish the configuration.
+6.  Click Configure again and click Generate.
+7.  If your version of CUDA is older than CUDA 11, download the [CUB library](https://nvlabs.github.io/cub/download_cub.html).
+8.  If your version of CUDA is older than CUDA 11, extract the CUB library and copy the "cub" folder from the CUB library into the "lib" folder inside the GOMC directory.
+9.  Open the CMake-generated project/solution etc. in the desired IDE (e.g., Visual Studio).
+10.  Using the solution in the IDE, build GOMC per the IDE's standard release compilation/executable generation methods.
 
 > NOTES: You can also use CMake from the Windows command line if its directory is added to the PATH environment variable.
 
