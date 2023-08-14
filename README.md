@@ -34,7 +34,7 @@ To cite GOMC project, please cite the following papers:
   `./metamake.sh` accepts flags which indicate which ensembles to compile. Default behavior with no flags will compile all CPU ensembles and, if CUDA is available, all GPU ensembles. Multiple flags must be separated by spaces. Current accepted flags are: `CPU` to compile all CPU ensembles, `GPU` to compile all GPU ensembles, or you can compile ensembles individually by using any of the following flags:
   `NVT`, `NPT`, `GCMC`, `GEMC`, `GPU_NVT`, `GPU_NPT`, `GPU_GCMC`, `GPU_GEMC`.
 
-> NOTES: Building GOMC requires CMake, available at http://www.cmake.org and in most Linux package repositories (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. (More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual".)
+> NOTES: Building GOMC requires CMake, available at https://cmake.org/ and in most Linux package repositories (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. (More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual".)
 
 ## Building GOMC on Windows:
   1. Open the Windows-compatible CMake GUI.
