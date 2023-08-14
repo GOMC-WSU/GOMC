@@ -5,7 +5,7 @@ Current Release: 2.75 (6/21/2022)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 [![Build Status](https://travis-ci.org/GOMC-WSU/GOMC.svg?branch=master)](https://travis-ci.org/GOMC-WSU/GOMC)
 
-We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website") and the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual") for further information and examples.
+We recommend the [GOMC Project Website](https://gomc-wsu.org/ "GOMC Website") and the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual") for further information and examples.
 
 To cite GOMC project, please cite the following papers:
 1.  [Y. Nejahi, M. Soroush Barhaghi,  G. Schwing, L. Schwiebert, J. Potoff. SoftwareX, 13, 100627 (2021). doi: 10.1016/j.softx.2020.100627.](https://www.sciencedirect.com/science/article/pii/S235271102030340X)
