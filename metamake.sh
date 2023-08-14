@@ -9,7 +9,6 @@ use_clang=0
 use_mpi=0
 use_asan=0
 use_opt=1
-use_tidy=0
 use_debug=0
 ENSEMBLES=""
 CMAKEARGS=""
@@ -76,7 +75,6 @@ while getopts 'acdglmnpt' opt; do
         a)
             use_asan=1;;
         c)
-            use_tidy=1
             CMAKEARGS+="-DGOMC_TIDY=on ";;
         d)
             use_debug=1;;
