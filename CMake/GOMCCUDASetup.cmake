@@ -1,10 +1,10 @@
 # Find CUDA is enabled, set it up
-
 set(CMAKE_CUDA_COMP_FLAGS -DGOMC_CUDA -DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("-- Debug build type detected, passing '-g -G --keep' to nvcc")
     set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} -g -G --keep)
+    set(CMAKE_CUDA_LINK_FLAGS -g -G --keep)
 endif()
 
 if(GOMC_NVTX_ENABLED)
@@ -16,18 +16,23 @@ endif()
 # Once CMake 3.23 has been available for a while, we should just use
 # set(CMAKE_CUDA_ARCHITECTURES all) and remove the if block
 # Can't get CUDA link time optimization enabled for all architectures directly, so need to do one-by-one.
-if(NOT GOMC_OPT)
+if(NOT GOMC_OPT OR (CMAKE_BUILD_TYPE STREQUAL "Debug"))
    if (CMAKE_MAJOR_VERSION VERSION_GREATER 3 OR CMAKE_MINOR_VERSION VERSION_GREATER_EQUAL 23)
        set(CMAKE_CUDA_ARCHITECTURES all)
    else()
-       set(CMAKE_CUDA_ARCHITECTURES 50;60;70;75;80)
+       set(CMAKE_CUDA_ARCHITECTURES 60;70;75;80)
    endif()
 else()
     set(CMAKE_CUDA_ARCHITECTURES OFF)
-    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_50,code=lto_50")
     set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_60,code=lto_60")
     set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_70,code=lto_70")
+    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_75,code=lto_75")
     set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_80,code=lto_80")
+    # set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} "SHELL:-arch=sm_60")
+    set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} "SHELL:-arch=sm_70")
+    # set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} "SHELL:-arch=sm_75")
+    # set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} "SHELL:-arch=sm_80")
+    set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} -dlto)
 endif()
 
 include_directories(src/GPU)
@@ -47,29 +52,29 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # Turn off warning that CUDA files were not compiled with the -ipo flag
-# if(GOMC_OPT)
-   # set(CMAKE_INTEL_LINK_FLAGS ${CMAKE_INTEL_LINK_FLAGS} -diag-disable=11003)
-# endif()
+if(GOMC_OPT)
+    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
+        set(CMAKE_LINK_FLAGS ${CMAKE_LINK_FLAGS} -diag-disable=11003)
+    endif()
+endif()
 
 # Disable the warning on deprecated GPU targets
 set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} -Wno-deprecated-gpu-targets)
+set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} -Wno-deprecated-gpu-targets)
 
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 #####################################
 if(ENSEMBLE_GPU_NVT)
-    add_executable(GPU_NVT ${cudaSources} ${cudaHeaders}
-    ${sources} ${headers} ${libHeaders} ${libSources})
-    # Set compiler and linker flags for each compiler
+    add_executable(GPU_NVT ${cudaSources} ${cudaHeaders} ${sources}
+    ${headers} ${libHeaders} ${libSources})
+    # Set compiler and linker flags for NVCC and the host compiler
     target_compile_options(GPU_NVT
        PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
-    # target_link_options(GPU_NVT
-       # PUBLIC $<$<LINK_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
-              # $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
-              # $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>
-              # $<$<LINK_LANGUAGE:CUDA>:${CMAKE_CUDA_LINK_FLAGS}>)
-              # $<$<LINK_LANG_AND_ID:CUDA,NVIDIA>: -dlto>)
+    target_link_options(GPU_NVT
+       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
+              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     set_target_properties(GPU_NVT PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_NVT_name}
@@ -89,15 +94,13 @@ endif()
 if(ENSEMBLE_GPU_GEMC)
     add_executable(GPU_GEMC ${cudaSources} ${cudaHeaders} ${sources}
     ${headers} ${libHeaders} ${libSources})
-    # Set compiler and linker flags for each compiler
+    # Set compiler and linker flags for NVCC and the host compiler
     target_compile_options(GPU_GEMC
        PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
-    # target_link_options(GPU_GEMC
-       # PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-              # $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
-              # $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>
-              # $<$<LINK_LANGUAGE:CUDA>:${CMAKE_CUDA_LINK_FLAGS}>)
+    target_link_options(GPU_GEMC
+       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
+              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     set_target_properties(GPU_GEMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GE_name}
@@ -117,15 +120,13 @@ endif()
 if(ENSEMBLE_GPU_GCMC)
     add_executable(GPU_GCMC ${cudaSources} ${cudaHeaders} ${sources}
     ${headers} ${libHeaders} ${libSources})
-    # Set compiler and linker flags for each compiler
+    # Set compiler and linker flags for NVCC and the host compiler
     target_compile_options(GPU_GCMC
        PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     target_link_options(GPU_GCMC
-       PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-              $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
-              $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>
-              $<$<LINK_LANGUAGE:CUDA>:${CMAKE_CUDA_LINK_FLAGS}>)
+       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
+              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     set_target_properties(GPU_GCMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GC_name}
@@ -145,15 +146,13 @@ endif()
 if(ENSEMBLE_GPU_NPT)
     add_executable(GPU_NPT ${cudaSources} ${cudaHeaders} ${sources}
     ${headers} ${libHeaders} ${libSources})
-    # Set compiler and linker flags for each compiler
+    # Set compiler and linker flags for NVCC and the host compiler
     target_compile_options(GPU_NPT
        PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     target_link_options(GPU_NPT
-       PUBLIC $<$<LINK_LANG_AND_ID:CXX,IntelLLVM,Intel>:${CMAKE_INTEL_LINK_FLAGS}>
-              $<$<LINK_LANG_AND_ID:CXX,GNU>:${CMAKE_GNU_LINK_FLAGS}>
-              $<$<LINK_LANG_AND_ID:CXX,Clang>:${CMAKE_CLANG_LINK_FLAGS}>
-              $<$<LINK_LANGUAGE:CUDA>:${CMAKE_CUDA_LINK_FLAGS}>)
+       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
+              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     set_target_properties(GPU_NPT PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_NPT_name}

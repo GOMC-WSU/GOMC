@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
 project(GOMC)
-set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include_directories(lib)
 include_directories(src)
@@ -33,9 +32,10 @@ if(GOMC_OPT)
    set(CMAKE_INTEL_COMP_FLAGS -Ofast -ipo -xHost)
    set(CMAKE_INTEL_CUDA_COMP_FLAGS "SHELL:-Xcompiler -Ofast" "SHELL:-Xcompiler -ipo" "SHELL:-Xcompiler -xHost")
    set(CMAKE_INTEL_LINK_FLAGS -Ofast -ipo -xHost)
-   set(CMAKE_GNU_COMP_FLAGS -flto -fno-fat-lto-objects -march=native)
-   set(CMAKE_GNU_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -flto" "SHELL:-Xcompiler -fno-fat-lto-objects" "SHELL:-Xcompiler -march=native")
-   set(CMAKE_GNU_LINK_FLAGS -flto -fno-fat-lto-objects -march=native)
+   set(CMAKE_GNU_COMP_FLAGS -flto -fno-fat-lto-objects -m64 -march=native)
+   set(CMAKE_GNU_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -m64" "SHELL:-Xcompiler -march=native")
+   # set(CMAKE_GNU_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -flto" "SHELL:-Xcompiler -fno-fat-lto-objects" "SHELL:-Xcompiler -march=native")
+   set(CMAKE_GNU_LINK_FLAGS -flto -fno-fat-lto-objects -m64 -march=native)
    set(CMAKE_CLANG_COMP_FLAGS -O3 -flto -march=native)
    set(CMAKE_CLANG_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -flto" "SHELL:-Xcompiler -march=native")
    set(CMAKE_CLANG_LINK_FLAGS -O3 -flto -march=native)
@@ -114,8 +114,8 @@ option(GOMC_GTEST_MPI    "Build unit tests for GOMC - MPI Enabled" OFF)
 
 #enable config header
 configure_file(
-	"${PROJECT_SOURCE_DIR}/GOMC_Config.h.in"
-	"${PROJECT_BINARY_DIR}/GOMC_Config.h"
+    "${PROJECT_SOURCE_DIR}/GOMC_Config.h.in"
+    "${PROJECT_BINARY_DIR}/GOMC_Config.h"
 )
 
 # Enable google test
