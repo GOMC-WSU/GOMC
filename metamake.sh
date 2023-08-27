@@ -13,6 +13,7 @@ use_debug=0
 ENSEMBLES=""
 CMAKEARGS=""
 
+
 # Check if nvcc is available
 if command -v nvcc &> /dev/null
 then
