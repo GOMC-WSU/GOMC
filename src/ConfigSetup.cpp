@@ -240,7 +240,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isCHARMM = true;
-        printf("%-40s %-s \n", "Info: PARAMETER file", "CHARMM format");
+        printf("%-40s %-s \n", "Info: Parameter file", "CHARMM format");
       }
     } else if (CheckString(line[0], "ParaTypeEXOTIC")) {
       if (checkBool(line[1])) {
@@ -248,7 +248,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.ffKind.isCHARMM = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isEXOTIC = true;
-        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format");
+        printf("%-40s %-s \n", "Info: Parameter file", "MIE format");
       }
     } else if (CheckString(line[0], "ParaTypeMIE")) {
       if (checkBool(line[1])) {
@@ -256,7 +256,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.ffKind.isCHARMM = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isEXOTIC = true;
-        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format");
+        printf("%-40s %-s \n", "Info: Parameter file", "MIE format");
       }
     } else if (CheckString(line[0], "ParaTypeMARTINI")) {
       if (checkBool(line[1])) {
@@ -264,7 +264,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = true;
         in.ffKind.isCHARMM = true;
-        printf("%-40s %-s \n", "Info: PARAMETER file",
+        printf("%-40s %-s \n", "Info: Parameter file",
                "MARTINI using CHARMM format");
       }
     } else if (CheckString(line[0], "Parameters")) {
@@ -1883,7 +1883,7 @@ void ConfigSetup::verifyInputs(void) {
   }
   if (((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
        (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) &&
-      (!sys.ff.doImpulsePressureCorr && !sys.ff.doTailCorr)) {
+      (sys.ff.doImpulsePressureCorr && sys.ff.doTailCorr)) {
     std::cout << "ERROR: Impulse Pressure Correction cannot be "
               << "used with LJ long-range corrections." << std::endl;
     exit(EXIT_FAILURE);

@@ -22,7 +22,7 @@ along with this program, also can be found at
 const uint FFSetup::CHARMM_ALIAS_IDX = 0;
 const uint FFSetup::EXOTIC_ALIAS_IDX = 1;
 const std::string FFSetup::paramFileAlias[] = {"CHARMM-Style parameter file",
-                                               "EXOTIC-Style parameter file"};
+                                               "Mie-Style parameter file"};
 const double ff_setup::KCAL_PER_MOL_TO_K = 503.21959899;
 const double ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
 const double ff_setup::RIJ_TO_SIG = 0.890898718;
@@ -106,10 +106,10 @@ void FFSetup::Init(const std::vector<config_setup::FileName> &fileName,
         if (isCHARMM) {
           if (hasEnding(currSectName, "MIE")) {
             std::cout << "Error: CHARMM-Style parameter is set but "
-                         "EXOTIC-Style parameter header "
+                         "Mie-Style parameter header "
                       << currSectName
                       << " was found.\n"
-                         "       Either set EXOTIC-Style in config file or "
+                         "       Either set Mie-Style in config file or "
                          "change the keyword\n"
                          "       "
                       << currSectName << " to "
@@ -122,7 +122,7 @@ void FFSetup::Init(const std::vector<config_setup::FileName> &fileName,
           std::regex nbfix("NBFIX");
           if (std::regex_match(currSectName, nbonded) ||
               std::regex_match(currSectName, nbfix)) {
-            std::cout << "Error: EXOTIC-Style parameter is set but "
+            std::cout << "Error: Mie-Style parameter is set but "
                          "CHARMM-Style parameter header "
                       << currSectName
                       << " was found.\n"
@@ -146,14 +146,14 @@ void FFSetup::Init(const std::vector<config_setup::FileName> &fileName,
   // check if we read nonbonded parameter
   if (mie.sigma.size() == 0) {
     if (isCHARMM) {
-      std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style "
+      std::cout << "Error: CHARMM-Style parameter is set but Mie-Style "
                    "parameter file was found.\n"
-                   "       Either set EXOTIC-Style in config file or change "
+                   "       Either set Mie-Style in config file or change "
                    "the keyword\n"
                    "       \"NONBONDED_MIE\" to \"NONBONDED\" in the parameter "
                    "files.\n";
     } else {
-      std::cout << "Error: EXOTIC-Style parameter is set but CHARMM-Style "
+      std::cout << "Error: Mie-Style parameter is set but CHARMM-Style "
                    "parameter file was found.\n"
                    "       Either set CHARMM-Style in config file or change "
                    "the keyword\n"
