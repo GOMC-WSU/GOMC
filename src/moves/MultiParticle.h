@@ -337,6 +337,47 @@ inline uint MultiParticle::Transform() {
   // move particles according to force and torque and store them in the new pos
   CalculateTrialDistRot();
 #endif
+
+  // Do error checking and skip if there is an invalid transform amount.
+  for (int m = 0; m < (int)moleculeIndex.size(); m++) {
+    uint molIndex = moleculeIndex[m];
+    XYZ num;
+    if (moveType == mp::MPROTATE) // rotate
+      num = r_k.Get(molIndex);
+    else { // displace
+      num = t_k.Get(molIndex);
+      // check for PBC error and bad initial configuration
+      if (num > boxDimRef.GetHalfAxis(bPick)) {
+        std::cout << "Warning: Trial Displacement exceeds half the box length "
+                     "in Multiparticle move!"
+                  << std::endl;
+        std::cout << "         Trial transformation vector: " << num
+                  << std::endl;
+        std::cout << "         Box Dimensions: " << boxDimRef.GetAxis(bPick)
+                  << std::endl
+                  << std::endl;
+        std::cout << "This might be due to a bad initial configuration, where "
+                     "atoms of the molecules"
+                  << std::endl
+                  << "are too close to each other or overlap. Please "
+                     "equilibrate your system using"
+                  << std::endl
+                  << "rigid body translation or rotation MC moves before using "
+                     "the Multiparticle"
+                  << std::endl
+                  << "move." << std::endl
+                  << std::endl;
+        state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+        break;
+      }
+    }
+    if (!std::isfinite(num.Length())) {
+      std::cout << "Trial Displacement is not a finite number in MultiParticle";
+      std::cout << " move.\nTrial transform: " << num;
+      state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+      break;
+    }
+  }
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MULTIPARTICLE);
   return state;
 }
@@ -488,19 +529,6 @@ inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb,
     val.z = log(exp(-1.0 * lbmax.z) + 2.0 * randnums.z * sinh(lbmax.z)) / lb.z;
   }
 
-  // We can possibly bound them
-  if (val.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceeds half of the box length in "
-                 "MultiParticle move.\n";
-    std::cout << "Trial transform: " << val;
-    exit(EXIT_FAILURE);
-  } else if (!std::isfinite(val.Length())) {
-    std::cout
-        << "Trial Displacement is not a finite number in MultiParticle move.\n";
-    std::cout << "Trial transform: " << val;
-    exit(EXIT_FAILURE);
-  }
-
   return val;
 }
 
@@ -513,7 +541,7 @@ inline void MultiParticle::CalculateTrialDistRot() {
     double *y = r_k.y;
     double *z = r_k.z;
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(lambda, r_max, x, y, z)
+#pragma omp parallel for default(none) shared(r_max, x, y, z)
 #endif
     for (uint m = 0; m < moleculeIndex.size(); m++) {
       uint molIndex = moleculeIndex[m];
@@ -535,7 +563,7 @@ inline void MultiParticle::CalculateTrialDistRot() {
     double *y = t_k.y;
     double *z = t_k.z;
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(lambda, t_max, x, y, z)
+#pragma omp parallel for default(none) shared(t_max, x, y, z)
 #endif
     for (uint m = 0; m < moleculeIndex.size(); m++) {
       uint molIndex = moleculeIndex[m];
@@ -588,28 +616,6 @@ inline void MultiParticle::RotateForceBiased(uint molIndex) {
 
 inline void MultiParticle::TranslateForceBiased(uint molIndex) {
   XYZ shift = t_k.Get(molIndex);
-  if (shift > boxDimRef.GetHalfAxis(bPick)) {
-    std::cout << "Error: Trial Displacement exceeds half the box length in "
-                 "Multiparticle move!"
-              << std::endl;
-    std::cout << "       Trial transformation vector: " << shift << std::endl;
-    std::cout << "       Box Dimensions: " << boxDimRef.GetAxis(bPick)
-              << std::endl
-              << std::endl;
-    std::cout << "This might be due to a bad initial configuration, where "
-                 "atoms of the molecules"
-              << std::endl
-              << "are too close to each other or overlap. Please equilibrate "
-                 "your system using"
-              << std::endl
-              << "rigid body translation or rotation MC moves before using the "
-                 "Multiparticle"
-              << std::endl
-              << "move." << std::endl
-              << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
   molRef.GetRange(start, stop, len, molIndex);

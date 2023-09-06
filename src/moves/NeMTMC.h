@@ -22,9 +22,8 @@ public:
   NEMTMC(System &sys, StaticVals const &statV)
       : MoveBase(sys, statV), lambdaRef(sys.lambdaRef), systemRef(sys),
         ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-        backUpCoordinate(boxDimRef, backUpCOM, sys.molLookupRef, sys.prng,
-                         statV.mol),
-        backUpCOM(sys.boxDimRef, backUpCoordinate, sys.molLookupRef, statV.mol),
+        backUpCoordinate(boxDimRef, backUpCOM, molLookRef, sys.prng, statV.mol),
+        backUpCOM(boxDimRef, backUpCoordinate, molLookRef, statV.mol),
         backUpMoveSetting(sys.boxDimRef), propagationMove(NULL),
         r123wrapper(sys.r123wrapper) {
     if (statV.neMTMCVal.enable) {
@@ -123,7 +122,7 @@ void NEMTMC::PrintAcceptKind() {
 inline uint NEMTMC::GetBoxPairAndMol(const double subDraw,
                                      const double movPerc) {
   // Need to call a function to pick a molecule that is not fixed but cannot be
-  // swap between boxes. (beta != 1, beta !=2)
+  // swapped between boxes. (beta != 1, beta !=2)
   uint state = prng.PickMolAndBoxPair2(molIndex, kindIndex, sourceBox, destBox,
                                        subDraw, movPerc);
 #if ENSEMBLE == GCMC
@@ -143,7 +142,7 @@ inline uint NEMTMC::GetBoxPairAndMol(const double subDraw,
 
 inline uint NEMTMC::Prep(const double subDraw, const double movPerc) {
   GOMC_EVENT_START(1, GomcProfileEvent::PREP_NEMTMC);
-  // back up the stats and data that needs to be reset if move got rejected
+  // back up the stats and data that needs to be reset if move gets rejected
   coordCurrRef.CopyRange(backUpCoordinate, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(backUpCOM, 0, 0, comCurrRef.Count());
   backUpPotential = sysPotRef;
@@ -156,14 +155,14 @@ inline uint NEMTMC::Prep(const double subDraw, const double movPerc) {
     newMolNEMT = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMolNEMT = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMolNEMT.SetCoords(coordCurrRef, pStartNEMT);
-    // Unwrap the old coordinate for using in new coordinate after wrapping
+    // Unwrap the old coordinates for use with new coordinates after wrapping
     XYZArray mol(pLenNEMT);
     coordCurrRef.CopyRange(mol, pStartNEMT, 0, pLenNEMT);
     boxDimRef.UnwrapPBC(mol, sourceBox, comCurrRef.Get(molIndex));
     boxDimRef.WrapPBC(mol, destBox);
     // Later it will shift to random COM
     newMolNEMT.SetCoords(mol, 0);
-    // store number of molecule in box before shifting molecule
+    // store number of molecules in box before shifting molecule
     molInSourceBox =
         (double)molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox);
     molInDestBox = (double)molLookRef.NumKindInBoxSwappable(kindIndex, destBox);
@@ -171,12 +170,13 @@ inline uint NEMTMC::Prep(const double subDraw, const double movPerc) {
       for (uint k = 0; k < molRef.GetKindsCount(); ++k) {
         kCount[b][k] = molLookRef.NumKindInBox(k, b);
         if (b == sourceBox && k == kindIndex) {
-          // consider the fraction molecule as different molecule kind
+          // consider the fraction molecule as a different molecule kind
           --kCount[b][k];
         }
       }
     }
   }
+
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_NEMTMC);
   return state;
 }
@@ -185,24 +185,22 @@ inline uint NEMTMC::Transform() {
   GOMC_EVENT_START(1, GomcProfileEvent::TRANS_NEMTMC);
   // Start with full interaction in sourceBox, zero interaction in destBox
   // Since we have the lambda for growing molecule, in sourceBox, lambdaWindow
-  // index correspond to full interaction (lambda =1) and (lambdaWindow - X) is
-  // for destBox
+  // index corresponds to full interaction (lambda = 1) and (lambdaWindow - X)
+  // is for destBox
   lambdaIdxOld = lambdaWindow;
   lambdaIdxNew = lambdaIdxOld - 1;
   // Like insert in vacuum, we use this just to create a random configuration
-  {
-    lambdaRef.Set(0.0, 0.0, molIndex, kindIndex, sourceBox);
-    lambdaRef.Set(0.0, 0.0, molIndex, kindIndex, destBox);
-    // Start growing the fractional molecule in destBox
-    molRef.kinds[kindIndex].BuildIDNew(newMolNEMT, molIndex);
-    ShiftMolToDestBox();
-    molRef.kinds[kindIndex].BuildIDOld(oldMolNEMT, molIndex);
-  }
+  lambdaRef.Set(0.0, 0.0, molIndex, kindIndex, sourceBox);
+  lambdaRef.Set(0.0, 0.0, molIndex, kindIndex, destBox);
+  // Start growing the fractional molecule in destBox
+  molRef.kinds[kindIndex].BuildIDNew(newMolNEMT, molIndex);
+  ShiftMolToDestBox();
+  molRef.kinds[kindIndex].BuildIDOld(oldMolNEMT, molIndex);
 
   Energy originalBond = calcEnRef.MoleculeIntra(newMolNEMT);
 
   while (lambdaIdxNew >= 0) {
-    // Set the interaction in source and destBox
+    // Set the interaction in sourceBox and destBox
     lambdaRef.Set(lambdaVDW[lambdaIdxNew], lambdaCoulomb[lambdaIdxNew],
                   molIndex, kindIndex, sourceBox);
     lambdaRef.Set(lambdaVDW[lambdaWindow - lambdaIdxNew],
@@ -220,8 +218,8 @@ inline uint NEMTMC::Transform() {
     --lambdaIdxNew;
     --lambdaIdxOld;
   };
-  // We have not transferred the bonded energy. We apply it at the end. Note, We
-  // might called regrowth, so we are concidering the newest conformaion.
+  // We have not transferred the bonded energy. We apply it at the end. Note: We
+  // might call Regrowth, so we are considering the newest conformation.
   sysPotRef.boxEnergy[sourceBox] -= calcEnRef.MoleculeIntra(oldMolNEMT);
   sysPotRef.boxEnergy[destBox] += originalBond;
   sysPotRef.Total();
@@ -266,22 +264,17 @@ inline void NEMTMC::CalcEnNEMT(uint lambdaIdxOldS, uint lambdaIdxNewS) {
   }
 
   ShiftMolToSourceBox();
-  {
-    // calculate inter energy for lambda new and old in source Box
-    calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], newEnergy[sourceBox],
-                                  lambdaOld_VDW_S, lambdaNew_VDW_S,
-                                  lambdaOld_Coulomb_S, lambdaNew_Coulomb_S,
-                                  molIndex, sourceBox);
-  }
+  // calculate inter energy for lambda new and old in source Box
+  calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], newEnergy[sourceBox],
+                                lambdaOld_VDW_S, lambdaNew_VDW_S,
+                                lambdaOld_Coulomb_S, lambdaNew_Coulomb_S,
+                                molIndex, sourceBox);
 
   ShiftMolToDestBox();
-  {
-    // calculate inter energy for lambda new and old in dest Box
-    calcEnRef.SingleMoleculeInter(oldEnergy[destBox], newEnergy[destBox],
-                                  lambdaOld_VDW_D, lambdaNew_VDW_D,
-                                  lambdaOld_Coulomb_D, lambdaNew_Coulomb_D,
-                                  molIndex, destBox);
-  }
+  // calculate inter energy for lambda new and old in dest Box
+  calcEnRef.SingleMoleculeInter(
+      oldEnergy[destBox], newEnergy[destBox], lambdaOld_VDW_D, lambdaNew_VDW_D,
+      lambdaOld_Coulomb_D, lambdaNew_Coulomb_D, molIndex, destBox);
 
   // Calculate self and correction difference for lambdaNew and lambdaOld
   // For electrostatic we use linear scaling
@@ -386,8 +379,8 @@ inline void NEMTMC::ShiftMolToDestBox() {
 }
 
 void NEMTMC::AddWork() {
-  double W1 = ((newEnergy[sourceBox].Total() - oldEnergy[sourceBox].Total()));
-  double W2 = ((newEnergy[destBox].Total() - oldEnergy[destBox].Total()));
+  double W1 = newEnergy[sourceBox].Total() - oldEnergy[sourceBox].Total();
+  double W2 = newEnergy[destBox].Total() - oldEnergy[destBox].Total();
   work += (W1 + W2 + W_tc + W_recip);
 }
 
@@ -444,11 +437,11 @@ inline void NEMTMC::RelaxingTransform(uint box) {
 
     if (sampleConf) {
       // sample conformation
-      // Check the lambda to decide to perform Regrowth or IntraSwap
+      // Check lambda to decide to perform Regrowth or IntraSwap
       if (lambdaRef.GetLambdaVDW(molIndex, box) <= lambdaLimit) {
-        // Perform IntraSwap move
+        // Perform IntraSwap or Regrowth move
         propagationMove = systemRef.GetMoveObject(
-            (prng.randInt(1) ? mv::INTRA_SWAP : mv::REGROWTH));
+            ((prng() < 0.5) ? mv::INTRA_SWAP : mv::REGROWTH));
       } else {
         // Perform Regrowth move
         propagationMove = systemRef.GetMoveObject(mv::REGROWTH);
@@ -456,7 +449,7 @@ inline void NEMTMC::RelaxingTransform(uint box) {
       rejectState = propagationMove->PrepNEMTMC(box, molIndex, kindIndex);
 
     } else if (MPEnable || BrownianDynamicEnable) {
-      // Relax the system using MP or random translation and rotation
+      // Relax the system using Brownian Motion or Force-Based MP move
       // Change the key number, otherwise we will perform the same move!
       // stepCounter resets every time in Prep()
       r123wrapper.SetKey(s + stepCounter);
@@ -485,14 +478,14 @@ inline void NEMTMC::RelaxingTransform(uint box) {
         } else {
           // get the displace/rotate move to propagate with 50% probability
           propagationMove = systemRef.GetMoveObject(
-              (prng.randInt(1) ? mv::ROTATE : mv::DISPLACE));
+              ((prng() < 0.5) ? mv::ROTATE : mv::DISPLACE));
         }
         // prepare the move with box, picked molkind and index
         rejectState = propagationMove->PrepNEMTMC(box, m, mk);
       }
     }
 
-    // Transform, calcEn, and accept/reject
+    // Transform, CalcEn, and Accept/Reject
     if (rejectState == mv::fail_state::NO_FAIL) {
       rejectState = propagationMove->Transform();
     }

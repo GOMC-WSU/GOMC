@@ -115,12 +115,12 @@ inline uint Regrowth::Transform() {
 
 inline void Regrowth::CalcEn() {
   GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_REGROWTH);
-  // since number of molecules would not change in the box,
+  // since number of molecules won't change in the box
   W_recip = 1.0;
   correct_old = 0.0;
   correct_new = 0.0;
 
-  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
+  if (ffRef.electrostatic && newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol, molIndex);
     correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy =
@@ -134,24 +134,24 @@ inline void Regrowth::CalcEn() {
 
 inline void Regrowth::Accept(const uint rejectState, const ulong step) {
   GOMC_EVENT_START(1, GomcProfileEvent::ACC_REGROWTH);
-  bool result;
+  bool result = false;
   // If we didn't skip the move calculation
   if (rejectState == mv::fail_state::NO_FAIL) {
     double Wo = oldMol.GetWeight();
     double Wn = newMol.GetWeight();
-    double Wrat = Wn / Wo * W_recip;
 
-    // safety to make sure move will be rejected in overlap case
-    if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
+    // safety to make sure move will be rejected in case of overlap or when
+    // either weight is too small to allow acceptance
+    if (Wn > SMALL_WEIGHT && Wo != 0.0 && !overlap) {
+      double Wrat = Wn / Wo * W_recip;
       result = prng() < Wrat;
-    } else
-      result = false;
+    }
 
     if (result) {
       // Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-      //Add Reciprocal energy difference
+      // Add Reciprocal energy difference
       sysPotRef.boxEnergy[destBox].recip += recipDiff.energy;
       // Add correction energy
       sysPotRef.boxEnergy[sourceBox].correction -= correct_old;
@@ -162,13 +162,12 @@ inline void Regrowth::Accept(const uint rejectState, const ulong step) {
       comCurrRef.SetNew(molIndex, destBox);
       cellList.AddMol(molIndex, destBox, coordCurrRef);
 
-      // Zero out box energies to prevent small number
-      // errors in double.
+      // Zero out box energies to remove small roundoff errors.
       if (molLookRef.NumInBox(sourceBox) == 1) {
-        sysPotRef.boxEnergy[sourceBox].inter = 0;
-        sysPotRef.boxVirial[sourceBox].inter = 0;
-        sysPotRef.boxEnergy[sourceBox].real = 0;
-        sysPotRef.boxVirial[sourceBox].real = 0;
+        sysPotRef.boxEnergy[sourceBox].inter = 0.0;
+        sysPotRef.boxVirial[sourceBox].inter = 0.0;
+        sysPotRef.boxEnergy[sourceBox].real = 0.0;
+        sysPotRef.boxVirial[sourceBox].real = 0.0;
       }
 
       calcEwald->UpdateRecip(sourceBox);
@@ -186,8 +185,7 @@ inline void Regrowth::Accept(const uint rejectState, const ulong step) {
       if (newMol.GetWeight() > SMALL_WEIGHT && !overlap)
         calcEwald->RestoreMol(molIndex);
     }
-  } else // else we didn't even try because we knew it would fail
-    result = false;
+  }
 
   moveSetRef.Update(mv::REGROWTH, result, sourceBox, kindIndex);
   GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_REGROWTH);

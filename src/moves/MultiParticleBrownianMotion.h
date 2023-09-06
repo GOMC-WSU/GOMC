@@ -1,8 +1,9 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
-Copyright (C) 2018  GOMC Group
-A copy of the GNU General Public License can be found in License.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
+Copyright (C) 2022 GOMC Group
+A copy of the MIT License can be found in License.txt
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef MULTIPARTICLEBROWNIANMOTION_H
 #define MULTIPARTICLEBROWNIANMOTION_H
@@ -28,8 +29,6 @@ public:
   ~MultiParticleBrownian() {
 #ifdef GOMC_CUDA
     cudaVars = NULL;
-    cudaFreeHost(kill);
-    kill = NULL;
 #endif
   }
 
@@ -62,7 +61,6 @@ private:
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
   bool isOrthogonal;
-  int *kill; // kill the simulation if we started with bad configuration
 #endif
 
   double GetCoeff();
@@ -99,15 +97,13 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys,
   for (uint k = 0; k < molLookup.GetNumKind(); ++k) {
     numAtomsPerKind += molRef.NumAtoms(k);
   }
-  // If we have only one atom in each kind, it means all molecule
-  // in the system is monoatomic
+  // If we have only one atom in each kind, it means all molecules
+  // in the system are monoatomic
   allTranslate = (numAtomsPerKind == molLookup.GetNumKind());
 
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
   isOrthogonal = statV.isOrthogonal;
-  cudaMallocHost((void **)&kill, sizeof(int));
-  checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 }
 
@@ -220,6 +216,7 @@ inline uint MultiParticleBrownian::Prep(const double subDraw,
 inline uint MultiParticleBrownian::PrepNEMTMC(const uint box, const uint midx,
                                               const uint kidx) {
   GOMC_EVENT_START(1, GomcProfileEvent::PREP_MULTIPARTICLE_BM);
+
   bPick = box;
   uint state = mv::fail_state::NO_FAIL;
   // In each step, we perform either:
@@ -283,7 +280,6 @@ inline uint MultiParticleBrownian::Transform() {
   uint state = mv::fail_state::NO_FAIL;
 
 #ifdef GOMC_CUDA
-  kill[0] = 0;
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if (moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
@@ -291,48 +287,67 @@ inline uint MultiParticleBrownian::Transform() {
         cudaVars, moleculeIndex, molTorqueRef, newMolsPos, newCOMs, r_k,
         boxDimRef.GetAxis(bPick), BETA, r_max, r123wrapper.GetStep(),
         r123wrapper.GetKeyValue(), r123wrapper.GetSeedValue(), bPick,
-        isOrthogonal, kill);
+        isOrthogonal);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
     BrownianMotionTranslateParticlesGPU(
         cudaVars, moleculeIndex, molForceRef, molForceRecRef, newMolsPos,
         newCOMs, t_k, boxDimRef.GetAxis(bPick), BETA, t_max,
         r123wrapper.GetStep(), r123wrapper.GetKeyValue(),
-        r123wrapper.GetSeedValue(), bPick, isOrthogonal, kill);
-  }
-  // kill the simulation if we had bad initial configuration
-  if (kill[0]) {
-    std::cout << "Error: Transformation of " << kill[0]
-              << " molecules in Multiparticle Brownian Motion move failed!"
-              << std::endl;
-    if (moveType == mp::MPROTATE) {
-      std::cout << "       Trial rotation is not a finite number!" << std::endl
-                << std::endl;
-    } else {
-      std::cout << "       Either trial translation is not a finite number or "
-                   "the translation"
-                << std::endl
-                << "       exceeded half of the box length!" << std::endl
-                << std::endl;
-    }
-    std::cout << "This might be due to a bad initial configuration, where "
-                 "atoms of the molecules"
-              << std::endl
-              << "are too close to each other or overlap. Please equilibrate "
-                 "your system using"
-              << std::endl
-              << "rigid body translation or rotation MC moves before using the "
-                 "Multiparticle"
-              << std::endl
-              << "Brownian Motion move." << std::endl
-              << std::endl;
-    exit(EXIT_FAILURE);
+        r123wrapper.GetSeedValue(), bPick, isOrthogonal);
   }
 #else
   // Calculate trial translate and rotate
   // move particles according to force and torque and store them in the new pos
   CalculateTrialDistRot();
 #endif
+  // Do error checking and skip if there is an invalid transform amount.
+  for (int m = 0; m < (int)moleculeIndex.size(); m++) {
+    uint molIndex = moleculeIndex[m];
+    XYZ num;
+    if (moveType == mp::MPROTATE) // rotate
+      num = r_k.Get(molIndex);
+    else { // displace
+      num = t_k.Get(molIndex);
+      // check for PBC error and bad initial configuration
+      if (num > boxDimRef.GetHalfAxis(bPick)) {
+        std::cout << "Warning: Trial Displacement exceeds half of the box "
+                     "length in"
+                  << std::endl
+                  << "         Multiparticle Brownian Motion move!"
+                  << std::endl;
+        std::cout << "         Trial transformation vector: " << num
+                  << std::endl;
+        std::cout << "         Box Dimensions: " << boxDimRef.GetAxis(bPick)
+                  << std::endl
+                  << std::endl;
+#ifndef NDEBUG
+        std::cout << "Problem with molecule " << molIndex << std::endl;
+#endif
+        std::cout << "This might be due to a bad initial configuration, where "
+                     "atoms of the molecules"
+                  << std::endl
+                  << "are too close to each other or overlap. Please "
+                     "equilibrate your system using"
+                  << std::endl
+                  << "rigid body translation or rotation MC moves before using "
+                     "the"
+                  << std::endl
+                  << "Multiparticle Brownian Motion move." << std::endl
+                  << std::endl;
+        state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+        break;
+      }
+    }
+    if (!std::isfinite(num.Length())) {
+      std::cout << "Warning: Trial transform is not a finite number in "
+                   "Brownian Motion Multiparticle move."
+                << std::endl;
+      std::cout << "         Trial transform: " << num << std::endl;
+      state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+      break;
+    }
+  }
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MULTIPARTICLE_BM);
   return state;
 }
@@ -340,7 +355,7 @@ inline uint MultiParticleBrownian::Transform() {
 inline void MultiParticleBrownian::CalcEn() {
   GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE_BM);
   // Calculate the new force and energy and we will compare that to the
-  // reference values in Accept() function
+  // reference values in the Accept() function
   // cellList.GridAll(boxDimRef, newMolsPos, molLookup);
   cellList.GridBox(boxDimRef, newMolsPos, molLookup, bPick);
 
@@ -377,9 +392,9 @@ inline double MultiParticleBrownian::CalculateWRatio(XYZ const &lb_new,
   XYZ new_var = lb_new + k;
 
   // Note: we could factor max4 and multiply at the end, but
-  //      for the move, where we translate and rotate all molecules,
-  //      this method would not work. Hence, I did not factor it.
-  // its actually is w_ratio += -1.0* but we simplify it
+  //       for the move, where we translate and rotate all molecules,
+  //       this method would not work. Hence, I did not factor it.
+  //       It actually is w_ratio += -1.0* but we simplify it.
   w_ratio -= (new_var.LengthSq() / max4);
   // its actually is w_ratio -= -1.0* but we simplify it
   w_ratio += (old_var.LengthSq() / max4);
@@ -397,10 +412,6 @@ inline double MultiParticleBrownian::GetCoeff() {
 
   if (moveType == mp::MPROTATE) { // rotate,
 #ifdef _OPENMP
-// Global var moleculeIndex is predetermined shared.  Older compilers won't
-// compile if you redeclare it shared.
-//#pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max,
-// r_max4, t_max4) reduction(+:w_ratio)
 #pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
 #endif
     for (uint m = 0; m < moleculeIndex.size(); m++) {
@@ -412,10 +423,6 @@ inline double MultiParticleBrownian::GetCoeff() {
     }
   } else { // displace
 #ifdef _OPENMP
-//#pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max,
-// r_max4, t_max4) reduction(+:w_ratio)
-// Global var moleculeIndex is predetermined shared.  Older compilers won't
-// compile if you redeclare it shared.
 #pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
 #endif
     for (uint m = 0; m < moleculeIndex.size(); m++) {
@@ -479,14 +486,6 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb,
   num.y = lbmax.y + randnums.y;
   num.z = lbmax.z + randnums.z;
 
-  if (!std::isfinite(num.Length())) {
-    std::cout << "Error: Trial transform is not a finite number in Brownian "
-                 "Motion Multiparticle move."
-              << std::endl;
-    std::cout << "       Trial transform: " << num << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  // We can possible bound them
   return num;
 }
 
@@ -498,9 +497,6 @@ inline void MultiParticleBrownian::CalculateTrialDistRot() {
     double *y = r_k.y;
     double *z = r_k.z;
 #ifdef _OPENMP
-// Global var moleculeIndex is predetermined shared.  Older compilers won't
-// compile if you redeclare it shared. #pragma omp parallel for default(none)
-// shared(moleculeIndex, r_max, x, y, z)
 #pragma omp parallel for default(none) shared(r_max, x, y, z)
 #endif
     for (uint m = 0; m < moleculeIndex.size(); m++) {
@@ -517,9 +513,6 @@ inline void MultiParticleBrownian::CalculateTrialDistRot() {
     double *y = t_k.y;
     double *z = t_k.z;
 #ifdef _OPENMP
-// Global var moleculeIndex is predetermined shared.  Older compilers won't
-// compile if you redeclare it shared. #pragma omp parallel for default(none)
-// shared(moleculeIndex, t_max, x, y, z)
 #pragma omp parallel for default(none) shared(t_max, x, y, z)
 #endif
     for (int m = 0; m < (int)moleculeIndex.size(); m++) {
@@ -564,29 +557,6 @@ inline void MultiParticleBrownian::RotateForceBiased(uint molIndex) {
 
 inline void MultiParticleBrownian::TranslateForceBiased(uint molIndex) {
   XYZ shift = t_k.Get(molIndex);
-  // check for PBC error and bad initial configuration
-  if (shift > boxDimRef.GetHalfAxis(bPick)) {
-    std::cout << "Error: Trial Displacement exceeds half of the box length in "
-                 "Multiparticle"
-              << std::endl
-              << "       Brownian Motion move!" << std::endl;
-    std::cout << "       Trial transformation vector: " << shift << std::endl;
-    std::cout << "       Box Dimensions: " << boxDimRef.GetAxis(bPick)
-              << std::endl
-              << std::endl;
-    std::cout << "This might be due to a bad initial configuration, where "
-                 "atoms of the molecules"
-              << std::endl
-              << "are too close to each other or overlap. Please equilibrate "
-                 "your system using"
-              << std::endl
-              << "rigid body translation or rotation MC moves before using the "
-                 "Multiparticle"
-              << std::endl
-              << "Brownian Motion move." << std::endl
-              << std::endl;
-    exit(EXIT_FAILURE);
-  }
 
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;

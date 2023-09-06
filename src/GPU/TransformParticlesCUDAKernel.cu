@@ -547,8 +547,7 @@ void BrownianMotionRotateParticlesGPU(
     VariablesCUDA *vars, const std::vector<unsigned int> &moleculeInvolved,
     XYZArray &mTorque, XYZArray &newMolPos, XYZArray &newCOMs, XYZArray &r_k,
     const XYZ &boxAxes, const double BETA, const double r_max, ulong step,
-    unsigned int key, ulong seed, const int box, const bool isOrthogonal,
-    int *kill) {
+    unsigned int key, ulong seed, const int box, const bool isOrthogonal) {
   int atomCount = newMolPos.Count();
   int molCount = newCOMs.Count();
   int molCountInBox = moleculeInvolved.size();
@@ -593,7 +592,7 @@ void BrownianMotionRotateParticlesGPU(
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, r_max, step, key,
-        seed, BETA, kill);
+        seed, BETA);
   else
     BrownianMotionRotateKernel<true><<<blocksPerGrid, threadsPerBlock>>>(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
@@ -603,7 +602,7 @@ void BrownianMotionRotateParticlesGPU(
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, r_max, step, key,
-        seed, BETA, kill);
+        seed, BETA);
 
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -633,7 +632,7 @@ __global__ void BrownianMotionRotateKernel(
     double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     double3 axis, double3 halfAx, int atomCount, double r_max, ulong step,
-    unsigned int key, ulong seed, double BETA, int *kill) {
+    unsigned int key, ulong seed, double BETA) {
   // Each block takes care of one molecule
   int molIndex = moleculeInvolved[blockIdx.x];
   int startIdx = startAtomIdx[molIndex];
@@ -662,10 +661,6 @@ __global__ void BrownianMotionRotateKernel(
     gpu_r_k_x[molIndex] = rot_x;
     gpu_r_k_y[molIndex] = rot_y;
     gpu_r_k_z[molIndex] = rot_z;
-    // check for bad configuration
-    if (!isfinite(rot_x + rot_y + rot_z)) {
-      atomicAdd(kill, 1);
-    }
     // build rotation matrix
     double cross[3][3], tensor[3][3];
     double rotLen = sqrt(rot_x * rot_x + rot_y * rot_y + rot_z * rot_z);
@@ -760,7 +755,7 @@ void BrownianMotionTranslateParticlesGPU(
     XYZArray &mForce, XYZArray &mForceRec, XYZArray &newMolPos,
     XYZArray &newCOMs, XYZArray &t_k, const XYZ &boxAxes, const double BETA,
     const double t_max, ulong step, unsigned int key, ulong seed, const int box,
-    const bool isOrthogonal, int *kill) {
+    const bool isOrthogonal) {
   int atomCount = newMolPos.Count();
   int molCount = newCOMs.Count();
   int molCountInBox = moleculeInvolved.size();
@@ -812,7 +807,7 @@ void BrownianMotionTranslateParticlesGPU(
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, t_max, step, key,
-        seed, BETA, kill);
+        seed, BETA);
   else
     BrownianMotionTranslateKernel<false><<<blocksPerGrid, threadsPerBlock>>>(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
@@ -823,7 +818,7 @@ void BrownianMotionTranslateParticlesGPU(
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, t_max, step, key,
-        seed, BETA, kill);
+        seed, BETA);
 
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -860,7 +855,7 @@ __global__ void BrownianMotionTranslateKernel(
     double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     double3 axis, double3 halfAx, int atomCount, double t_max, ulong step,
-    unsigned int key, ulong seed, double BETA, int *kill) {
+    unsigned int key, ulong seed, double BETA) {
   // Each block takes care of one molecule
   int molIndex = moleculeInvolved[blockIdx.x];
   int startIdx = startAtomIdx[molIndex];
@@ -906,12 +901,6 @@ __global__ void BrownianMotionTranslateKernel(
     gpu_comx[molIndex] = com.x;
     gpu_comy[molIndex] = com.y;
     gpu_comz[molIndex] = com.z;
-    // check for bad configuration
-    if (!isfinite(shift.x + shift.y + shift.z)) {
-      atomicAdd(kill, 1);
-    } else if (shift.x > halfAx.x || shift.y > halfAx.y || shift.z > halfAx.z) {
-      atomicAdd(kill, 1);
-    }
   }
 
   __syncthreads();
