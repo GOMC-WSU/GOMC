@@ -1883,7 +1883,7 @@ void ConfigSetup::verifyInputs(void) {
   }
   if (((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
        (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) &&
-      (!sys.ff.doImpulsePressureCorr && !sys.ff.doTailCorr)) {
+      (sys.ff.doImpulsePressureCorr && sys.ff.doTailCorr)) {
     std::cout << "ERROR: Impulse Pressure Correction cannot be "
               << "used with LJ long-range corrections." << std::endl;
     exit(EXIT_FAILURE);
