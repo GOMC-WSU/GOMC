@@ -141,8 +141,8 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
-void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
-                       double *rMaxSq, uint size) {
+void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
+                           double *rMaxSq, uint size) {
   CUMALLOC((void **)&vars->gpu_rMin, size * sizeof(double));
   CUMALLOC((void **)&vars->gpu_rMaxSq, size * sizeof(double));
   CUMALLOC((void **)&vars->gpu_expConst, size * sizeof(double));
@@ -307,6 +307,12 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
   delete[] vars->gpu_prefactRef;
   delete[] vars->gpu_hsqr;
   delete[] vars->gpu_hsqrRef;
+}
+
+void DestroyExp6CUDAVars(VariablesCUDA *vars) {
+  CUFREE(vars->gpu_rMin);
+  CUFREE(vars->gpu_rMaxSq);
+  CUFREE(vars->gpu_expConst);
 }
 
 void DestroyCUDAVars(VariablesCUDA *vars) {

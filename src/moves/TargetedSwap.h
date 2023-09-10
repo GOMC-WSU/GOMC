@@ -421,7 +421,7 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw,
   state = PickMolInSubVolume();
 
 #if ENSEMBLE == GCMC
-  if (state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1) {
+  if (state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1 && hasSubVolume[sourceBox]) {
     std::cout << "Error: There are no molecules of kind "
               << molRef.kinds[kindIndex].name << " left in reservoir.\n";
     exit(EXIT_FAILURE);
