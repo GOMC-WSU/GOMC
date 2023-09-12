@@ -110,21 +110,15 @@ private:
   void InitVals(config_setup::EventSettings const &event) {
     stepsPerOut = event.frequency;
     invSteps = 1.0 / stepsPerOut;
-    if (startStep != 0) {
+    firstInvSteps = invSteps;
+    //Handle the case where we are restarting from a checkpoint and the first
+    //interval is smaller than expected because we create a checkpoint more
+    //often than the Block output frequency.
+    if (startStep != 0 && (startStep % stepsPerOut) != 0) {
       ulong diff;
-      if (stepsPerOut >= startStep) {
-        diff = stepsPerOut - startStep;
-      } else {
-        diff = startStep - stepsPerOut;
-      }
-      firstInvSteps = 1.0 / diff;
-    } else {
-      firstInvSteps = invSteps;
+      diff = stepsPerOut - (startStep % stepsPerOut);
+      firstInvSteps = 1.0/diff;
     }
-    // We only subtract the firstInvSteps on
-    // the first print with startStep != 0
-    // invSteps - firstInvSteps = 1/(stepsPerOut-startStep)
-    // After the first print
     enableOut = event.enable;
   }
   void AllocBlocks(void);
