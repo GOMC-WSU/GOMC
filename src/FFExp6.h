@@ -34,7 +34,7 @@ public:
         rMin_1_4(NULL), rMaxSq(NULL), rMaxSq_1_4(NULL) {}
   virtual ~FF_EXP6() {
 #ifdef GOMC_CUDA
-    DestroyExp6CUDAVars(ff.particles->getCUDAVars());
+    DestroyExp6CUDAVars(getCUDAVars());
 #endif
     delete[] expConst;
     delete[] expConst_1_4;
@@ -144,7 +144,7 @@ inline void FF_EXP6::Init(ff_setup::Particle const &mie,
     }
   }
 #ifdef GOMC_CUDA
-  InitExp6VariablesCUDA(varCUDA, rMin, expConst, rMaxSq, size);
+  InitExp6VariablesCUDA(getCUDAVars(), rMin, expConst, rMaxSq, size);
 #endif
 }
 
