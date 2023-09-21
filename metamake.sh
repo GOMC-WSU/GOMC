@@ -134,6 +134,17 @@ while [ "$#" -ne 0 ]; do
     shift
 done
 
+# If user hasn't specified any ensemble, cmake automatically compiles all ensembles.
+# This will ensure we don't print empty for ensembles.
+if [ -z "$ENSEMBLES" ];
+then
+	ENSEMBLES="NVT NPT GCMC GEMC"
+	if (( use_cuda ))
+	then
+		ENSEMBLES+=" GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC"
+	fi
+fi
+
 mkdir -p bin
 cd bin
 
@@ -176,46 +187,26 @@ if (( !use_gtest )); then
 else
     if (( use_mpi )); 
     then
-        ENSEMBLES+="GOMC_NVT_MPI_Test "
-		ENSEMBLES+="GOMC_NPT_MPI_Test "
-		ENSEMBLES+="GOMC_GCMC_MPI_Test "
-		ENSEMBLES+="GOMC_GEMC_MPI_Test "
-		if (( use_cuda ))
-		then
-        	ENSEMBLES+="GOMC_GPU_NVT_MPI_Test "
-        	ENSEMBLES+="GOMC_GPU_NPT_MPI_Test "
-        	ENSEMBLES+="GOMC_GPU_GCMC_MPI_Test "
-        	ENSEMBLES+="GOMC_GPU_GEMC_MPI_Test "
-		fi
+        TESTENS=""
+        for ENS in $ENSEMBLES
+        do
+            TESTENS+="GOMC_"$ENS"_MPI_Test "
+        done
+        ENSEMBLES+=$TESTENS
         CMAKEARGS+="-DGOMC_GTEST_MPI=on "
     else
-        ENSEMBLES+="GOMC_NVT_Test "
-        ENSEMBLES+="GOMC_NPT_Test "
-        ENSEMBLES+="GOMC_GCMC_Test "
-        ENSEMBLES+="GOMC_GEMC_Test "
-		if (( use_cuda ))
-		then
-        	ENSEMBLES+="GOMC_GPU_NVT_Test "
-        	ENSEMBLES+="GOMC_GPU_NPT_Test "
-        	ENSEMBLES+="GOMC_GPU_GCMC_Test "
-        	ENSEMBLES+="GOMC_GPU_GEMC_Test "
-		fi
+        TESTENS=""
+        for ENS in $ENSEMBLES
+        do
+            TESTENS+="GOMC_"$ENS"_Test "
+        done
+        ENSEMBLES+=$TESTENS
         CMAKEARGS+="-DGOMC_GTEST=on "
     fi
     export CC="$(which gcc 2> /dev/null)"
     export CXX="$(which g++ 2> /dev/null)"
 fi
 
-# If user hasn't specified any ensemble, cmake automatically compiles all ensembles.
-# This will ensure we don't print empty for ensembles.
-if [ -z "$ENSEMBLES" ];
-then
-	ENSEMBLES="NVT NPT GCMC GEMC"
-	if (( use_cuda ))
-	then
-		ENSEMBLES+=" GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC"
-	fi
-fi
 echo "Ensembles To Compile: $ENSEMBLES"
 
 if (( use_profiler )); then
