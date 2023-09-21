@@ -337,4 +337,4 @@ private:
     ar &molVars;
   }
 };
-#endif
+#endif /*MOLSETUP_H*/

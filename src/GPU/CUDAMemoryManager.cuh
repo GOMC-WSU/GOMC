@@ -4,7 +4,9 @@ Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
 along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#pragma once
+#ifndef CUDA_MEMORY_MANAGER_H
+#define CUDA_MEMORY_MANAGER_H
+
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -27,3 +29,4 @@ private:
 };
 
 #endif
+#endif /*CUDA_MEMORY_MANAGER_H*/

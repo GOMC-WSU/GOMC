@@ -5,6 +5,9 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
+#ifndef GOMC_EVENTS_PROFILE_DEF_H
+#define GOMC_EVENTS_PROFILE_DEF_H
+
 GOMC_PROFILE_EVENT(INITIALIZE, "initialization")
 GOMC_PROFILE_EVENT(MC_RUN, "MC_run")
 GOMC_PROFILE_EVENT(DESTRUCTION, "destruction")
@@ -152,3 +155,5 @@ GOMC_PROFILE_EVENT(DUMMY_EVENT19, "Dummy Event19")
 GOMC_PROFILE_EVENT(DUMMY_EVENT20, "Dummy Event20")
 GOMC_PROFILE_EVENT(DUMMY_EVENT21, "Dummy Event21")
 GOMC_PROFILE_EVENT(DUMMY_EVENT22, "Dummy Event22")
+
+#endif /*GOMC_EVENTS_PROFILE_DEF_H*/

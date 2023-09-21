@@ -539,4 +539,4 @@ inline std::ostream &operator<<(std::ostream &out, Energy &en) {
 }
 #endif
 
-#endif
+#endif /*ENERGYTYPES_H*/

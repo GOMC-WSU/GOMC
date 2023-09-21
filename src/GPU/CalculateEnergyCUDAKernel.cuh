@@ -4,7 +4,9 @@ Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
 along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#pragma once
+#ifndef CALCULATE_ENERGY_CUDA_KERNEL_H
+#define CALCULATE_ENERGY_CUDA_KERNEL_H
+
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -206,3 +208,4 @@ __device__ double CalcEnSwitchGPUNoLambda(double distSq, int index,
     double gpu_rCut, double gpu_rOn);
 
 #endif /*GOMC_CUDA*/
+#endif /*CALCULATE_ENERGY_CUDA_KERNEL_H*/

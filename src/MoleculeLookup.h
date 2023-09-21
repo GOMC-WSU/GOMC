@@ -248,4 +248,4 @@ private:
   uint const *pIt;
 };
 
-#endif
+#endif /*MOLECULELOOKUP_H*/

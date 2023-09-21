@@ -4,8 +4,8 @@ Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
 along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CALCULATE_FORCE_CUDA_KERNEL
-#define CALCULATE_FORCE_CUDA_KERNEL
+#ifndef CALCULATE_FORCE_CUDA_KERNEL_H
+#define CALCULATE_FORCE_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
 #include <vector>
@@ -403,4 +403,4 @@ __device__ inline double CalcCoulombForceGPU(double distSq, double qi_qj,
 
 
 #endif /*GOMC_CUDA*/
-#endif /*CALCULATE_FORCE_CUDA_KERNEL*/
+#endif /*CALCULATE_FORCE_CUDA_KERNEL_H*/

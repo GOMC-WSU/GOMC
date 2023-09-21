@@ -147,4 +147,4 @@ private:
   double &temperature;               // system temperature
 };
 
-#endif
+#endif /*VELOCITY_H*/

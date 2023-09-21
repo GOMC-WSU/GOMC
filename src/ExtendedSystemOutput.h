@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef DCD_OUTPUT_H
-#define DCD_OUTPUT_H
+#ifndef EXTENDED_SYSTEM_OUTPUT_H
+#define EXTENDED_SYSTEM_OUTPUT_H
 
 #include <cstring>
 #include <iostream>
@@ -124,4 +124,4 @@ private:
   Writer xscFile[BOX_TOTAL];
 };
 
-#endif /*DCD_OUTPUT_H*/
+#endif /*EXTENDED_SYSTEM_OUTPUT_H*/

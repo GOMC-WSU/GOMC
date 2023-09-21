@@ -138,4 +138,4 @@ private:
   SubdividedArray subdiv;
 };
 
-#endif
+#endif /*GEOMETRY_H*/

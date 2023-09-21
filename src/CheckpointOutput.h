@@ -65,4 +65,4 @@ private:
   ulong stepsPerCheckpoint;
 };
 
-#endif
+#endif /*CHECKPOINT_OUTPUT_H*/

@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef EXTENDED_SYSTEM
-#define EXTENDED_SYSTEM
+#ifndef EXTENDED_SYSTEM_H
+#define EXTENDED_SYSTEM_H
 
 #include <vector>
 
@@ -83,4 +83,4 @@ private:
   std::vector<XYZ> binaryVeloc;
 };
 
-#endif /*EXTENDED_SYSTEM*/
+#endif /*EXTENDED_SYSTEM_H*/
