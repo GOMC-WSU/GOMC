@@ -55,4 +55,5 @@ private:
   std::vector<Dihedral> dih;
 };
 } // namespace cbmc
-#endif
+
+#endif /*DCROTATEONATOM_H*/
