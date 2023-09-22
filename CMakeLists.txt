@@ -132,7 +132,7 @@ if(CMAKE_CUDA_COMPILER)
     set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     enable_language(CUDA)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
-else
+else()
     message(WARNING "No CUDA support for this compiler")
 endif()
 
