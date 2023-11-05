@@ -219,6 +219,22 @@ inline void BoxDimensions::UnwrapPBC(XYZArray &arr, const uint start,
     UnwrapPBC(arr.x[i], arr.y[i], arr.z[i], b, ref);
 }
 
+inline XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const {
+  rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
+  rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
+  rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
+  return rawVec;
+}
+
+inline double BoxDimensions::MinImageSigned(double raw, double ax,
+                                     double halfAx) const {
+  if (raw > halfAx)
+    raw -= ax;
+  else if (raw < -halfAx)
+    raw += ax;
+  return raw;
+}
+
 inline bool BoxDimensions::InRcut(double &distSq, XYZ &dist,
                                   XYZArray const &arr, const uint i,
                                   const uint j, const uint b) const {

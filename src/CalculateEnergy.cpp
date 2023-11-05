@@ -745,7 +745,7 @@ void CalculateEnergy::ParticleInter(double *en, double *real,
     }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(nIndex, overlap, trialPos) \
+#pragma omp parallel for simd default(none) shared(nIndex, overlap, trialPos) \
 firstprivate(kindICharge, kindI, t, box, molIndex, num::qqFact) \
 reduction(+:tempLJ, tempReal)
 #endif
