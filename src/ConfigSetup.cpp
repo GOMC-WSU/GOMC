@@ -797,11 +797,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
              sys.moves.multiParticle);
     } else if (CheckString(line[0], "MultiParticleLiquid")) {
       sys.moves.multiParticleLiquid = checkBool(line[1]);
-      printf("%-40s %-4.4f \n", "Info: Multi-Particle liquid box move",
+      printf("%-40s %-s \n", "Info: Multi-Particle liquid box move",
              sys.moves.multiParticleLiquid ? "Active" : "Inactive");
     } else if (CheckString(line[0], "MultiParticleGas")) {
       sys.moves.multiParticleGas = checkBool(line[1]);
-      printf("%-40s %-4.4f \n", "Info: Multi-Particle gas box move",
+      printf("%-40s %-s \n", "Info: Multi-Particle gas box move",
              sys.moves.multiParticleGas ? "Active" : "Inactive");
     } else if (CheckString(line[0], "MultiParticleBrownianFreq")) {
       sys.moves.multiParticleBrownian = stringtod(line[1]);
