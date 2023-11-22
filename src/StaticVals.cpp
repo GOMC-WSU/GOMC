@@ -137,6 +137,8 @@ StaticVals::StaticVals(Setup &set)
 
 {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
+  multiParticleLiquid = set.config.sys.moves.multiParticleLiquid;
+  multiParticleGas = set.config.sys.moves.multiParticleGas;
   isOrthogonal = true;
   if (set.config.in.restart.enable) {
     IsBoxOrthogonal(set.pdb.cryst.cellAngle);

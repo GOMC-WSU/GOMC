@@ -82,6 +82,8 @@ ConfigSetup::ConfigSetup(void) {
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
   sys.moves.multiParticleEnabled = false;
+  sys.moves.multiParticleLiquid = true;
+  sys.moves.multiParticleGas = false;
   sys.moves.multiParticle = DBL_MAX;
   sys.moves.multiParticleBrownian = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
@@ -793,6 +795,14 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       }
       printf("%-40s %-4.4f \n", "Info: Multi-Particle move frequency",
              sys.moves.multiParticle);
+    } else if (CheckString(line[0], "MultiParticleLiquid")) {
+      sys.moves.multiParticleLiquid = checkBool(line[1]);
+      printf("%-40s %-4.4f \n", "Info: Multi-Particle liquid box move",
+             sys.moves.multiParticleLiquid ? "Active" : "Inactive");
+    } else if (CheckString(line[0], "MultiParticleGas")) {
+      sys.moves.multiParticleGas = checkBool(line[1]);
+      printf("%-40s %-4.4f \n", "Info: Multi-Particle gas box move",
+             sys.moves.multiParticleGas ? "Active" : "Inactive");
     } else if (CheckString(line[0], "MultiParticleBrownianFreq")) {
       sys.moves.multiParticleBrownian = stringtod(line[1]);
       if (sys.moves.multiParticleBrownian > 0.0) {
@@ -1960,6 +1970,13 @@ void ConfigSetup::verifyInputs(void) {
       printf("%-40s %-4.4f \n", "ADV USER: Displacement move frequency",
              sys.moves.displace);
     }
+  }
+
+  if (sys.moves.multiParticleEnabled && !sys.moves.multiParticleLiquid &&
+      !sys.moves.multiParticleGas) {
+    std::cout << "ERROR: Multi-Particle moves require either liquid or gas "
+              << "box active!" << std::endl;
+    exit(EXIT_FAILURE);
   }
 #if ENSEMBLE == NPT
   if (sys.moves.volume == DBL_MAX) {
