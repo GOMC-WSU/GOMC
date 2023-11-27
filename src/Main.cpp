@@ -38,6 +38,7 @@ namespace {
 std::ostream &PrintTime(std::ostream &stream);
 std::ostream &PrintHostname(std::ostream &stream);
 std::ostream &PrintVersion(std::ostream &stream);
+void PrintASCIArt();
 void PrintSimulationHeader();
 void PrintSimulationFooter();
 void PrintDebugMode();
@@ -62,6 +63,7 @@ int main(int argc, char *argv[]) {
   ParallelTemperingPreprocessor pt(argc, argv);
   MultiSim *multisim = pt.checkIfValidRank() ? new MultiSim(pt) : NULL;
 #endif
+  PrintASCIArt();
 #ifndef NDEBUG
   PrintDebugMode();
 #endif
@@ -161,6 +163,20 @@ int main(int argc, char *argv[]) {
 }
 
 namespace {
+
+void PrintASCIArt() {
+  std::cout << " .----------------.  .----------------.  .----------------.  .----------------. \n"
+                 "| .--------------. || .--------------. || .--------------. || .--------------. |\n"
+                 "| |    ______    | || |     ____     | || | ____    ____ | || |     ______   | |\n"
+                 "| |  .' ___  |   | || |   .'    `.   | || ||_   \\  /   _|| || |   .' ___  |  | |\n"
+                 "| | / .'   \\_|   | || |  /  .--.  \\  | || |  |   \\/   |  | || |  / .'   \\_|  | |\n"
+                 "| | | |    ____  | || |  | |    | |  | || |  | |\\  /| |  | || |  | |         | |\n"
+                 "| | \\ `.___]  _| | || |  \\  `--'  /  | || | _| |_\\/_| |_ | || |  \\ `.___.'\\  | |\n"
+                 "| |  `._____.'   | || |   `.____.'   | || ||_____||_____|| || |   `._____.'  | |\n"
+                 "| |              | || |              | || |              | || |              | |\n"
+                 "' '--------------' || '--------------' || '--------------' || '--------------' |\n"
+                 " '----------------'  '----------------'  '----------------'  '----------------' \n" << std::endl;
+}
 
 void PrintSimulationHeader() {
   std::cout << PrintVersion << '\n'
