@@ -58,12 +58,14 @@ private:
   const MoleculeLookup &molLookup;
   Random123Wrapper &r123wrapper;
   bool allTranslate;
+  bool multiParticleLiquid, multiParticleGas;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
   bool isOrthogonal;
 #endif
 
   double GetCoeff();
+  uint ChooseBox();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
@@ -100,7 +102,8 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys,
   // If we have only one atom in each kind, it means all molecules
   // in the system are monoatomic
   allTranslate = (numAtomsPerKind == molLookup.GetNumKind());
-
+  multiParticleLiquid = sys.statV.multiParticleLiquid;
+  multiParticleGas = sys.statV.multiParticleGas;
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
   isOrthogonal = statV.isOrthogonal;
@@ -153,6 +156,11 @@ inline uint MultiParticleBrownian::Prep(const double subDraw,
   uint state = mv::fail_state::NO_FAIL;
 #if ENSEMBLE == GCMC
   bPick = mv::BOX0;
+#elif ENSEMBLE == GEMC
+  if (multiParticleLiquid != multiParticleGas) // Only pick one of the two boxes
+    bPick = ChooseBox();
+  else
+    prng.PickBox(bPick, subDraw, movPerc);
 #else
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
@@ -271,6 +279,31 @@ inline uint MultiParticleBrownian::PrepNEMTMC(const uint box, const uint midx,
 #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE_BM);
   return state;
+}
+
+inline uint MultiParticleBrownian::ChooseBox() {
+  double minDens = 1.0e20;
+  double maxDens = 0.0;
+  uint minB = 0, maxB = 0;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    double density = 0.0;
+    for (uint k = 0; k < molLookup.GetNumKind(); ++k) {
+      density += molLookup.NumKindInBox(k, b) * boxDimRef.volInv[b] *
+                 molRef.kinds[k].molMass;
+    }
+    if (density > maxDens) {
+      maxDens = density;
+      maxB = b;
+    }
+    if (density < minDens) {
+      minDens = density;
+      minB = b;
+    }
+  }
+  if (multiParticleLiquid)
+      return maxB;
+  else
+      return minB;
 }
 
 inline uint MultiParticleBrownian::Transform() {

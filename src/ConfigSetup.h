@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CONFIGSETUP_H
-#define CONFIGSETUP_H
+#ifndef CONFIG_SETUP_H
+#define CONFIG_SETUP_H
 
 #include <iostream> //for cerr, cout;
 #include <map>      //for function handle storage.
@@ -173,6 +173,7 @@ struct MovePercents {
   double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft,
       multiParticle, multiParticleBrownian, intraTargetedSwap;
   bool multiParticleEnabled; // for both multiparticle and multiparticleBrownian
+  bool multiParticleLiquid, multiParticleGas; // GEMC: set boxes for MP moves
 #ifdef VARIABLE_VOLUME
   double volume;
 #endif
@@ -918,4 +919,4 @@ private:
   InputFileReader reader;
 };
 
-#endif
+#endif /*CONFIG_SETUP_H*/
