@@ -173,6 +173,7 @@ struct MovePercents {
   double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft,
       multiParticle, multiParticleBrownian, intraTargetedSwap;
   bool multiParticleEnabled; // for both multiparticle and multiparticleBrownian
+  bool multiParticleLiquid, multiParticleGas; // GEMC: set boxes for MP moves
 #ifdef VARIABLE_VOLUME
   double volume;
 #endif

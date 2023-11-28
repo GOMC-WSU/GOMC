@@ -39,6 +39,7 @@ public:
 #endif
   bool isOrthogonal;
   bool multiParticleEnabled;
+  bool multiParticleLiquid, multiParticleGas;
 
   Forcefield forcefield;
   SimEventFrequency simEventFreq;
