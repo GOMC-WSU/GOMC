@@ -15,24 +15,10 @@ endif()
 # Set architecture flags based on the CMake version
 # Once CMake 3.23 has been available for a while, we should just use
 # set(CMAKE_CUDA_ARCHITECTURES all) and remove the if block
-# Can't get CUDA link time optimization enabled for all architectures directly, so need to do one-by-one.
-if(NOT GOMC_OPT OR (CMAKE_BUILD_TYPE STREQUAL "Debug"))
-   if (CMAKE_MAJOR_VERSION VERSION_GREATER 3 OR CMAKE_MINOR_VERSION VERSION_GREATER_EQUAL 23)
-       set(CMAKE_CUDA_ARCHITECTURES all)
-   else()
-       set(CMAKE_CUDA_ARCHITECTURES 60;70;75;80)
-   endif()
+if (CMAKE_MAJOR_VERSION VERSION_GREATER 3 OR CMAKE_MINOR_VERSION VERSION_GREATER_EQUAL 23)
+    set(CMAKE_CUDA_ARCHITECTURES all)
 else()
-    set(CMAKE_CUDA_ARCHITECTURES OFF)
-    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_60,code=lto_60")
-    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_70,code=lto_70")
-    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_75,code=lto_75")
-    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-gencode arch=compute_80,code=lto_80")
-    # set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} "SHELL:-arch=sm_60")
-    set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} "SHELL:-arch=sm_70")
-    # set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} "SHELL:-arch=sm_75")
-    # set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} "SHELL:-arch=sm_80")
-    set(CMAKE_CUDA_LINK_FLAGS ${CMAKE_CUDA_LINK_FLAGS} -dlto)
+    set(CMAKE_CUDA_ARCHITECTURES 60;70;75;80)
 endif()
 
 include_directories(src/GPU)
@@ -50,13 +36,6 @@ set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
-
-# Turn off warning that CUDA files were not compiled with the -ipo flag
-if(GOMC_OPT)
-    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
-        set(CMAKE_LINK_FLAGS ${CMAKE_LINK_FLAGS} -diag-disable=11003)
-    endif()
-endif()
 
 # Disable the warning on deprecated GPU targets
 set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} -Wno-deprecated-gpu-targets)
