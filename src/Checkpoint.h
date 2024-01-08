@@ -169,4 +169,4 @@ private:
   }
 };
 
-#endif
+#endif /*CHECKPOINT_H*/

@@ -8,8 +8,8 @@ along with this program, also can be found at
 
 /* Courtesy of https://www.softwaretestinghelp.com/graph-implementation-cpp/ */
 
-#ifndef BONDADJACENCYLIST_H
-#define BONDADJACENCYLIST_H
+#ifndef BOND_ADJACENCY_LIST_H
+#define BOND_ADJACENCY_LIST_H
 
 #include <limits.h>
 
@@ -48,4 +48,4 @@ public:
 
   graphEdge *edges;
 };
-#endif
+#endif /*BOND_ADJACENCY_LIST_H*/

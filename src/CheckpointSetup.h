@@ -97,4 +97,4 @@ private:
   friend class CheckpointOutput;
 };
 
-#endif
+#endif /*CHECKPOINT_SETUP_H*/

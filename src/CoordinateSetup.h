@@ -21,4 +21,4 @@ struct CoordinateSetup {
   void SetCOM(const MolSetupData &molData);
 }
 
-#endif
+#endif /*COORDINATESETUP_H*/

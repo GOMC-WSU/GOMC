@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef SUBDIV_ARRAY
-#define SUBDIV_ARRAY
+#ifndef SUB_DIVIDED_ARRAY_H
+#define SUB_DIVIDED_ARRAY_H
 
 #include <cstddef>
 
@@ -64,4 +64,4 @@ private:
   uint *start, subdivCount;
 };
 
-#endif /*SUBDIV_ARRAY*/
+#endif /*SUB_DIVIDED_ARRAY_H*/

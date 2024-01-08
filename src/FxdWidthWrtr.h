@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef FXD_WIDTH_WRTR
-#define FXD_WIDTH_WRTR
+#ifndef FXD_WIDTH_WRTR_H
+#define FXD_WIDTH_WRTR_H
 
 struct FxdWidthWrtr : Writer {
   FxdWidthWrtr(std::string const &nm, std::string const &als, const bool crit,
@@ -23,4 +23,4 @@ struct FxdWidthWrtr : Writer {
   // Align left by default, but accept right alignment if necessary.
 }
 
-#endif /*FXD_WIDTH_WRTR*/
+#endif /*FXD_WIDTH_WRTR_H*/

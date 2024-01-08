@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef FF_MOLECULE_H
-#define FF_MOLECULE_H
+#ifndef MOLECULE_KIND_H
+#define MOLECULE_KIND_H
 
 #include <cassert>
 #include <string>
@@ -174,4 +174,4 @@ private:
   double *atomCharge;
 };
 
-#endif /*FF_MOLECULE_H*/
+#endif /*MOLECULE_KIND_H*/

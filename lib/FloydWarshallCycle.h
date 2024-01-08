@@ -5,7 +5,9 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#pragma once
+#ifndef FLOYD_WARSHALL_CYCLE_H
+#define FLOYD_WARSHALL_CYCLE_H
+
 #include <algorithm>
 #include <cassert>
 #include <vector>
@@ -86,3 +88,5 @@ private:
   std::vector<int> returnCombinedSet(const std::vector<int> &first,
                                      const std::vector<int> &second);
 };
+
+#endif /*FLOYD_WARSHALL_CYCLE_H*/

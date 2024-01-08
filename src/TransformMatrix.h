@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef TRANSFORMMATRIX_H
-#define TRANSFORMMATRIX_H
+#ifndef TRANSFORM_MATRIX_H
+#define TRANSFORM_MATRIX_H
 
 #include "BasicTypes.h"
 #define _USE_MATH_DEFINES
@@ -264,4 +264,4 @@ inline TransformMatrix TransformMatrix::UniformRandom(double u1, double u2,
   result.matrix[2][2] = 1.0 - u3;
   return result;
 }
-#endif
+#endif /*TRANSFORM_MATRIX_H*/

@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef EWALDCACHED_H
-#define EWALDCACHED_H
+#ifndef EWALD_CACHED_H
+#define EWALD_CACHED_H
 
 #include "Ewald.h"
 
@@ -81,4 +81,4 @@ private:
 #endif
 };
 
-#endif /*EWALDCACHED_H*/
+#endif /*EWALD_CACHED_H*/

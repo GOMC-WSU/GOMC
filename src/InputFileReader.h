@@ -5,7 +5,9 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#pragma once
+#ifndef INPUT_FILE_READER_H
+#define INPUT_FILE_READER_H
+
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -23,3 +25,5 @@ public:
   InputFileReader(void);
   ~InputFileReader();
 };
+
+#endif /*INPUT_FILE_READER_H*/

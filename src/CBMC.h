@@ -66,4 +66,4 @@ CBMC *MakeCBMC(System &sys, const Forcefield &ff, const MoleculeKind &kind,
                const Setup &set);
 } // namespace cbmc
 
-#endif
+#endif /*CBMC_H*/

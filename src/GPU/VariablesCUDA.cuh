@@ -4,9 +4,10 @@ Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
 along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#pragma once
-#ifdef GOMC_CUDA
+#ifndef VARIABLES_CUDA_H
+#define VARIABLES_CUDA_H
 
+#ifdef GOMC_CUDA
 #include <cuda.h>
 #include <stdio.h>
 #include <cuda_runtime.h>
@@ -135,3 +136,4 @@ public:
   int *gpu_cellVector, *gpu_mapParticleToCell;
 };
 #endif
+#endif /*VARIABLES_CUDA_H*/
