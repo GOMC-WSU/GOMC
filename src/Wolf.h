@@ -124,6 +124,8 @@ public:
   virtual void backupMolCache();
 
   virtual void UpdateVectorsAndRecipTerms(bool output);
+
+
 };
 
 #endif /*Wolf_H*/

@@ -7,6 +7,39 @@ along with this program, also can be found at
 ********************************************************************************/
 #include "Wolf.h"
 
+#include <cassert>
+
+#include "BasicTypes.h" //uint
+#include "BoxDimensions.h"
+#include "CalculateEnergy.h"
+#include "Coordinates.h"
+#include "EnergyTypes.h"          //Energy structs
+#include "EnsemblePreprocessor.h" //Flags
+#include "Forcefield.h"
+#include "GeomLib.h"
+#include "MoleculeKind.h"
+#include "NumLib.h"
+#include "StaticVals.h" //For init
+#include "System.h"     //For init
+#include "TrialMol.h"
+#ifdef GOMC_CUDA
+#include "CalculateEwaldCUDAKernel.cuh"
+#include "CalculateForceCUDAKernel.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#endif
+#include "GOMCEventsProfile.h"
+
+//
+//
+//    Energy Calculation functions for Ewald summation method
+//    Calculating self, correction and reciprocal part of ewald
+//
+//    Developed by Y. Li and Mohammad S. Barhaghi
+//
+//
+
+using namespace geom;
+
 Wolf::Wolf(StaticVals &stat, System &sys) : Ewald(stat, sys) {}
 
 void Wolf::Init() {}
@@ -53,10 +86,78 @@ double Wolf::ChangeLambdaRecip(XYZArray const &molCoords,
 }
 
 // calculate self term for a box
-double Wolf::BoxSelf(uint box) const { return 0.0; }
+double Wolf::BoxSelf(uint box) const {
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
 
-// calculate correction term for a molecule
-double Wolf::MolCorrection(uint molIndex, uint box) const { return 0.0; }
+  GOMC_EVENT_START(1, GomcProfileEvent::SELF_BOX);
+  double self = 0.0;
+  double molSelfEnergy;
+  uint i, j, length, molNum;
+  double lambdaCoef = 1.0;
+
+  for (i = 0; i < mols.GetKindsCount(); i++) {
+    MoleculeKind const &thisKind = mols.kinds[i];
+    length = thisKind.NumAtoms();
+    molNum = molLookup.NumKindInBox(i, box);
+    molSelfEnergy = 0.0;
+    if (lambdaRef.KindIsFractional(i, box)) {
+      // If a molecule is fractional, we subtract the fractional molecule and
+      // add it later
+      --molNum;
+      // returns lambda and not sqrt(lambda)
+      lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
+    }
+
+    for (j = 0; j < length; j++) {
+      molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
+    }
+    self += (molSelfEnergy * molNum);
+    if (lambdaRef.KindIsFractional(i, box)) {
+      // Add the fractional molecule part
+      self += (molSelfEnergy * lambdaCoef);
+    }
+  }
+
+  self *= -0.5 * ((ff.wolf_alpha[box] * M_2_SQRTPI) + ff.wolf_factor_1[box]);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
+  return self;
+}
+
+// calculate correction term for a molecule, with system lambda
+double Wolf::MolCorrection(uint molIndex, uint box) const {
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_MOL);
+  double dist, distSq;
+  double correction = 0.0, dampenedCorr = 0.0;
+  XYZ virComponents;
+
+  MoleculeKind &thisKind = mols.kinds[mols.kIndex[molIndex]];
+  uint atomSize = thisKind.NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  double lambdaCoef = GetLambdaCoef(molIndex, box);
+
+  for (uint i = 0; i < atomSize; i++) {
+    if (particleHasNoCharge[start + i]) {
+      continue;
+    }
+    for (uint j = i + 1; j < atomSize; j++) {
+      currentAxes.InRcut(distSq, virComponents, currentCoords, start + i,
+                         start + j, box);
+      dist = sqrt(distSq);
+      //correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+      //               erf(ff.alpha[box] * dist) / dist);
+      correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                     ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+    }
+  }
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_MOL);
+  return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
+}
+
 
 // calculate reciprocal term in destination box for swap move
 double Wolf::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
@@ -80,17 +181,89 @@ double Wolf::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
   return 0.0;
 }
 
-// calculate self term after swap move
-double Wolf::SwapSelf(const cbmc::TrialMol &trialMol) const { return 0.0; }
-
 // calculate correction term after swap move
 double Wolf::SwapCorrection(const cbmc::TrialMol &trialMol) const {
-  return 0.0;
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
+  double dist, distSq;
+  double correction = 0.0;
+  XYZ virComponents;
+  const MoleculeKind &thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+
+  for (uint i = 0; i < atomSize; i++) {
+    for (uint j = i + 1; j < atomSize; j++) {
+      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, j,
+                         box);
+
+      dist = sqrt(distSq);
+      //correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+      //               erf(ff.alpha[box] * dist) / dist);
+      correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                     ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+    }
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
+  return num::qqFact * correction;
 }
+
 // calculate correction term after swap move
 double Wolf::SwapCorrection(const cbmc::TrialMol &trialMol,
                                const uint molIndex) const {
-  return 0.0;
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
+  double dist, distSq;
+  double correction = 0.0;
+  XYZ virComponents;
+  const MoleculeKind &thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  double lambdaCoef = GetLambdaCoef(molIndex, box);
+
+  for (uint i = 0; i < atomSize; i++) {
+    if (particleHasNoCharge[start + i]) {
+      continue;
+    }
+    for (uint j = i + 1; j < atomSize; j++) {
+      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, j,
+                         box);
+
+      dist = sqrt(distSq);
+      //correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+      //               erf(ff.alpha[box] * dist) / dist);
+      correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                     ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+    }
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
+  return num::qqFact * correction * lambdaCoef * lambdaCoef;
+}
+
+
+// calculate self term after swap move
+double Wolf::SwapSelf(const cbmc::TrialMol &trialMol) const {
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::SELF_SWAP);
+  MoleculeKind const &thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  double en_self = 0.0;
+
+  for (uint i = 0; i < atomSize; i++) {
+    en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
+  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
+  //return (en_self * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5);
+  return (en_self *  num::qqFact * ((ff.wolf_alpha[box]*M_2_SQRTPI * 0.5) + ff.wolf_factor_1[box]));
 }
 
 // It's called in free energy calculation to calculate the change in
@@ -99,7 +272,25 @@ void Wolf::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
                          const std::vector<double> &lambda_Coul,
                          const uint iState, const uint molIndex,
                          const uint box) const {
-  return;
+  uint atomSize = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_Coul.size();
+  double coefDiff, en_self = 0.0;
+  // Calculate the self energy with lambda = 1
+  for (uint i = 0; i < atomSize; i++) {
+    en_self += (particleCharge[i + start] * particleCharge[i + start]);
+  }
+  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
+  //en_self *= -1.0 * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5;
+  en_self *= -1.0 * num::qqFact * ((ff.wolf_alpha[box]*M_2_SQRTPI * 0.5) + ff.wolf_factor_1[box]);
+
+  // Calculate the energy difference for each lambda state
+  for (uint s = 0; s < lambdaSize; s++) {
+    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+    energyDiff[s].self += coefDiff * en_self;
+  }
+  // Calculate du/dl of self for current state, for linear scaling
+  dUdL_Coul.self += en_self;
 }
 
 // It's called in free energy calculation to calculate the change in
@@ -108,7 +299,37 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
                                const std::vector<double> &lambda_Coul,
                                const uint iState, const uint molIndex,
                                const uint box) const {
-  return;
+  uint atomSize = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_Coul.size();
+  double coefDiff, distSq, dist, correction = 0.0;
+  XYZ virComponents;
+
+  // Calculate the correction energy with lambda = 1
+  for (uint i = 0; i < atomSize; i++) {
+    if (particleHasNoCharge[start + i]) {
+      continue;
+    }
+
+    for (uint j = i + 1; j < atomSize; j++) {
+      distSq = 0.0;
+      currentAxes.InRcut(distSq, virComponents, currentCoords, start + i,
+                         start + j, box);
+      dist = sqrt(distSq);
+      //correction += (particleCharge[i + start] * particleCharge[j + start] *
+      //               erf(ff.alpha[box] * dist) / dist);
+      correction += (particleCharge[i + start] * particleCharge[j + start] *
+                     ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+    }
+  }
+  correction *= -1.0 * num::qqFact;
+  // Calculate the energy difference for each lambda state
+  for (uint s = 0; s < lambdaSize; s++) {
+    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+    energyDiff[s].correction += coefDiff * correction;
+  }
+  // Calculate du/dl of correction for current state, for linear scaling
+  dUdL_Coul.correction += correction;
 }
 
 // It's called in free energy calculation to calculate the change in
