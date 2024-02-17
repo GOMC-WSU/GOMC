@@ -56,6 +56,9 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
+  wolf = val.elect.wolf;
+  dsf = val.elect.dsf;
+
   tolerance = val.elect.tolerance;
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
@@ -85,6 +88,15 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
     alphaSq[b] = alpha[b] * alpha[b];
     recip_rcut[b] = -2.0 * log(tolerance) / rCutCoulomb[b];
     recip_rcut_Sq[b] = recip_rcut[b] * recip_rcut[b];
+    if (wolf){
+      wolf_alpha[b] = val.elect.wolf_alpha[b];
+      wolf_factor_1[b] = erfc(wolf_alpha[b]*rCutCoulomb[b])/rCutCoulomb[b];
+      wolf_factor_2[b] = wolf_factor_1[b]/rCutCoulomb[b];
+      wolf_factor_2[b] += wolf_alpha[b] *  M_2_SQRTPI * 
+                        exp(-1.0*wolf_alpha[b]*wolf_alpha[b]*rCutCoulombSq[b])
+                        /rCutCoulomb[b];
+      wolf_factor_3[b] = wolf_alpha[b] *  M_2_SQRTPI;
+    }
   }
 
   vdwGeometricSigma = val.ff.vdwGeometricSigma;

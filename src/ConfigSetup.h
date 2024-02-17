@@ -184,19 +184,25 @@ struct MovePercents {
 
 struct ElectroStatic {
   bool readEwald;
+  bool readWolf;
+  bool readDSF;
   bool readElect;
   bool readCache;
   bool enable;
   bool ewald;
+  bool wolf;
+  bool dsf;
   bool cache;
   bool cutoffCoulombRead[BOX_TOTAL];
   double tolerance;
   double oneFourScale;
   double dielectric;
   double cutoffCoulomb[BOX_TOTAL];
+  double wolf_alpha[BOX_TOTAL];
   ElectroStatic(void) {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
     std::fill_n(cutoffCoulomb, BOX_TOTAL, 0.0);
+    std::fill_n(wolf_alpha, BOX_TOTAL, 0.0);
   }
 };
 

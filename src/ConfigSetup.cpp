@@ -693,6 +693,18 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       if (sys.elect.ewald) {
         printf("%-40s %-s \n", "Info: Ewald Summation", "Active");
       }
+    } else if (CheckString(line[0], "Wolf")) {
+      sys.elect.wolf = checkBool(line[1]);
+      sys.elect.readWolf = true;
+      if (sys.elect.wolf) {
+        printf("%-40s %-s \n", "Info: Wolf Summation", "Active");
+      }
+    } else if (CheckString(line[0], "DSF")) {
+      sys.elect.dsf = checkBool(line[1]);
+      sys.elect.readDSF = true;
+      if (sys.elect.dsf) {
+        printf("%-40s %-s \n", "Info: Wolf Summation DSF", "Active");
+      }
     } else if (CheckString(line[0], "ElectroStatic")) {
       sys.elect.enable = checkBool(line[1]);
       sys.elect.readElect = true;

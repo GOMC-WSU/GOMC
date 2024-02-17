@@ -52,6 +52,10 @@ public:
   double recip_rcut[BOX_TOTAL];    // Ewald sum terms
   double recip_rcut_Sq[BOX_TOTAL]; // Ewald sum terms
   double tolerance;                // Ewald sum terms
+  double wolf_alpha[BOX_TOTAL];    // Wolf sum terms
+  double wolf_factor_1[BOX_TOTAL]; // Wolf sum terms
+  double wolf_factor_2[BOX_TOTAL]; // Wolf sum terms
+  double wolf_factor_3[BOX_TOTAL]; // Wolf sum terms
   double rswitch;                  // Switch distance
   double dielectric;               // dielectric for martini
   double scaling_14; //!< Scaling factor for 1-4 pairs' ewald interactions
@@ -59,7 +63,7 @@ public:
   double sc_sigma, sc_sigma_6; // Free energy parameter
 
   bool OneThree, OneFour, OneN; // To include 1-3, 1-4 and more interaction
-  bool electrostatic, ewald;    // To consider columb interaction
+  bool electrostatic, ewald, wolf, dsf;    // To consider columb interaction
   bool vdwGeometricSigma;       // For sigma combining rule
   bool isMartini;
   bool exp6;
