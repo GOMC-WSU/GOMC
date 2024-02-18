@@ -11,7 +11,7 @@ RUN apt-get update && \
     cmake
 
 # Clone the GOMC repository
-RUN git clone -b mergedev_w_rcut --single-branch https://github.com/GregorySchwing/GOMC.git /gomc
+RUN git clone -b wolf_fitz --single-branch https://github.com/GregorySchwing/GOMC.git /gomc
 
 # Set the working directory to the GOMC repository
 WORKDIR /gomc

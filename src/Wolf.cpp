@@ -42,7 +42,35 @@ using namespace geom;
 
 Wolf::Wolf(StaticVals &stat, System &sys) : Ewald(stat, sys) {}
 
-void Wolf::Init() {}
+//void Wolf::Init() {}
+void Wolf::Init() {
+  for (uint m = 0; m < mols.count; ++m) {
+    const MoleculeKind &molKind = mols.GetKind(m);
+    for (uint a = 0; a < molKind.NumAtoms(); ++a) {
+      particleKind.push_back(molKind.AtomKind(a));
+      particleMol.push_back(m);
+      particleCharge.push_back(molKind.AtomCharge(a));
+      if (std::abs(molKind.AtomCharge(a)) < 0.000000001) {
+        particleHasNoCharge.push_back(true);
+      } else {
+        particleHasNoCharge.push_back(false);
+      }
+    }
+  }
+
+  // initialize starting index and length index of each molecule
+  startMol.resize(currentCoords.Count());
+  lengthMol.resize(currentCoords.Count());
+
+  for (int atom = 0; atom < (int)currentCoords.Count(); atom++) {
+    startMol[atom] = mols.MolStart(particleMol[atom]);
+    lengthMol[atom] = mols.MolLength(particleMol[atom]);
+  }
+
+  //AllocMem();
+  // initialize K vectors and reciprocal terms
+  //UpdateVectorsAndRecipTerms(true);
+}
 
 void Wolf::AllocMem() { return; }
 
