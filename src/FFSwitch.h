@@ -253,6 +253,18 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
     return qi_qj_Fact * erfc(val) / dist;
+  } else if (forcefield.wolf){
+    double dist = sqrt(distSq);
+    // V_DSP -- (16) from Gezelter 2006
+    double wolf_electrostatic = erfc(forcefield.wolf_alpha[b] * dist)/dist;
+    wolf_electrostatic -= forcefield.wolf_factor_1[b];
+    // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
+    if(forcefield.dsf){
+      double distDiff = dist-forcefield.rCutCoulomb[b];
+      wolf_electrostatic += forcefield.wolf_factor_2[b]*distDiff;
+    }
+    wolf_electrostatic *= qi_qj_Fact;
+    return wolf_electrostatic; 
   } else {
     double dist = sqrt(distSq);
     double switchVal = distSq / forcefield.rCutSq - 1.0;
@@ -300,6 +312,21 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq, const double qi_qj,
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (forcefield.wolf){
+    double dist = sqrt(distSq);
+    // F_DSP -- (17) from Gezelter 2006
+    double wolf_electrostatic_force = erfc(forcefield.wolf_alpha[b] * dist)/distSq;
+    // M_2_SQRTPI is 2/sqrt(PI)
+    wolf_electrostatic_force += forcefield.wolf_factor_3[b]*exp(-1.0*forcefield.wolf_alpha[b]*forcefield.wolf_alpha[b]*distSq)/dist;
+    // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
+    if(forcefield.dsf){
+      wolf_electrostatic_force -= forcefield.wolf_factor_2[b];
+    } 
+    wolf_electrostatic_force *= qi_qj;
+    // return wolf_electrostatic_force; 
+    // Since GOMC converts the force vectors to unit vectors
+    // Divide by the magnitude
+    return wolf_electrostatic_force/dist; 
   } else {
     double dist = sqrt(distSq);
     double switchVal = distSq / forcefield.rCutSq - 1.0;
