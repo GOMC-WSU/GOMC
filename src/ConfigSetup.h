@@ -186,6 +186,8 @@ struct ElectroStatic {
   bool readEwald;
   bool readWolf;
   bool readDSF;
+  bool readWolfAlpha[BOX_TOTAL];
+
   bool readElect;
   bool readCache;
   bool enable;
@@ -203,6 +205,8 @@ struct ElectroStatic {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
     std::fill_n(cutoffCoulomb, BOX_TOTAL, 0.0);
     std::fill_n(wolf_alpha, BOX_TOTAL, 0.0);
+    std::fill_n(readWolfAlpha, BOX_TOTAL, false);
+
   }
 };
 

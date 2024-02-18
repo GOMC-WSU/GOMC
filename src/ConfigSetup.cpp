@@ -37,6 +37,10 @@ ConfigSetup::ConfigSetup(void) {
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
+  for(i = 0; i < BOX_TOTAL; i++) {
+    sys.elect.wolf_alpha[i] = DBL_MAX;
+    sys.elect.readWolfAlpha[i] = false;
+  }
   sys.memcVal.enable = false;
   sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
@@ -704,6 +708,26 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       sys.elect.readDSF = true;
       if (sys.elect.dsf) {
         printf("%-40s %-s \n", "Info: Wolf Summation DSF", "Active");
+      }
+    } else if (CheckString(line[0], "WolfAlpha")) {
+      if (line.size() != 3){
+          std::cout <<  "Error: Wolf Alpha incorrectly specified!" << std::endl <<
+                        "Usage : WolfAlpha\tBox(0,1)\tvalue" << std::endl <<
+                        "Example : WolfAlpha\t0\t1.0" << std::endl;
+          exit(EXIT_FAILURE);
+      } else {
+        int b = stringtoi(line[1]); 
+        sys.elect.readWolfAlpha[b] = true;
+        sys.elect.wolf_alpha[b] = stringtod(line[2]);       
+        if (b == 0)
+          printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 0", sys.elect.wolf_alpha[b]);
+        else if (b == 1)
+          printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 1", sys.elect.wolf_alpha[b]);
+        else{
+          std::cout <<  "Error: Only (0/1) for box is supported!" << std::endl <<
+          "You entered : WolfAlpha\t" << b << "\tvalue" << std::endl;
+          exit(EXIT_FAILURE);
+        }
       }
     } else if (CheckString(line[0], "ElectroStatic")) {
       sys.elect.enable = checkBool(line[1]);
