@@ -822,6 +822,34 @@ struct FreeEnergy {
   }
 };
 
+struct WolfCalibration {
+
+  bool wolfAlphaRangeRead[BOX_TOTAL];
+  double wolfAlphaStart[BOX_TOTAL];
+  double wolfAlphaEnd[BOX_TOTAL];
+  double wolfAlphaDelta[BOX_TOTAL];
+
+  bool wolfCutoffCoulombRangeRead[BOX_TOTAL];
+  double wolfCutoffCoulombStart[BOX_TOTAL];
+  double wolfCutoffCoulombEnd[BOX_TOTAL];
+  double wolfCutoffCoulombDelta[BOX_TOTAL];
+
+  WolfCalibration(void)
+  {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      wolfAlphaRangeRead[b] = false;
+      wolfAlphaStart[b] = 0.0;
+      wolfAlphaEnd[b] = 0.0;
+      wolfAlphaDelta[b] = 0.0;
+
+      wolfCutoffCoulombRangeRead[b] = false;
+      wolfCutoffCoulombStart[b] = 0.0;
+      wolfCutoffCoulombEnd[b] = 0.0;
+      wolfCutoffCoulombDelta[b] = 0.0;
+    }
+  }
+};
+
 struct SystemVals {
   ElectroStatic elect;
   Temperature T;
@@ -834,6 +862,7 @@ struct SystemVals {
   MEMCVal memcVal, intraMemcVal;
   NEMTMCVal neMTMCVal;
   FreeEnergy freeEn;
+  WolfCalibration wolfCal;
   TargetSwapCollection targetedSwapCollection;
   TargetSwapCollection intraTargetedSwapCollection;
 #if ENSEMBLE == GCMC
@@ -901,7 +930,7 @@ struct Statistics {
   TrackedVars vars;
 };
 struct Output {
-  SysState state, restart, state_dcd, restart_dcd;
+  SysState state, restart, state_dcd, restart_dcd, wolfCalibration;
   SysState restart_vel;
   Statistics statistics;
   EventSettings console, checkpoint;

@@ -112,6 +112,8 @@ ConfigSetup::ConfigSetup(void) {
 #endif
   out.checkpoint.enable = false;
   out.checkpoint.frequency = ULONG_MAX;
+  out.wolfCalibration.settings.enable = false;
+  out.wolfCalibration.settings.frequency = false;
   out.statistics.settings.uniqueStr.val = "";
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
@@ -729,6 +731,35 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
           exit(EXIT_FAILURE);
         }
       }
+    } else if (CheckString(line[0], "WolfAlphaRange")){
+        if(line.size() == 5) {
+          uint b = stringtoi(line[1]);
+          sys.wolfCal.wolfAlphaRangeRead[b] = true;
+          sys.wolfCal.wolfAlphaStart[b] = stringtod(line[2]);
+          sys.wolfCal.wolfAlphaEnd[b] = stringtod(line[3]);
+          sys.wolfCal.wolfAlphaDelta[b] = stringtod(line[4]);
+          printf("%-40s %d %-8s %-1.3E %-8s %-1.3E %-8s %-1.3E\n", "Info: Wolf Alpha Range Box", b, "START", sys.wolfCal.wolfAlphaStart[b],
+           "END", sys.wolfCal.wolfAlphaEnd[b],  "DELTA", sys.wolfCal.wolfAlphaDelta[b]);
+        } else {
+          std::cout <<  "Error: WolfAlphaRange requires 4 arguments!" << std::endl <<
+          "Usage: WolfAlphaRange\tBOX\tSTART\tEND\tDELTA" << std::endl;
+          exit(EXIT_FAILURE);
+
+        }      
+    } else if (CheckString(line[0], "WolfCutoffCoulombRange")){
+        if(line.size() == 5) {
+          uint b = stringtoi(line[1]);
+          sys.wolfCal.wolfCutoffCoulombRangeRead[b] = true;
+          sys.wolfCal.wolfCutoffCoulombStart[b] = stringtod(line[2]);
+          sys.wolfCal.wolfCutoffCoulombEnd[b] = stringtod(line[3]);
+          sys.wolfCal.wolfCutoffCoulombDelta[b] = stringtod(line[4]);
+          printf("%-40s %d %-8s %-1.3E %-8s %-1.3E %-8s %-1.3E\n", "Info: Wolf Cutoff Coulomb Range Box", b, 
+          "START", sys.wolfCal.wolfCutoffCoulombStart[b], "END", sys.wolfCal.wolfCutoffCoulombEnd[b],  
+          "DELTA", sys.wolfCal.wolfCutoffCoulombDelta[b]);
+        } else {
+          std::cout <<  "Error: WolfCutoffCoulombRange requires 4 arguments!" << std::endl <<
+          "Usage: WolfCutoffCoulombRange\tBOX\tSTART\tEND\tDELTA" << std::endl;
+        }
     } else if (CheckString(line[0], "ElectroStatic")) {
       sys.elect.enable = checkBool(line[1]);
       sys.elect.readElect = true;
