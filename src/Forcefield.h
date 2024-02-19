@@ -34,6 +34,9 @@ public:
   // Initialize contained FFxxxx structs from setup data
   void Init(const Setup &set);
 
+  void SetWolfAlphaAndWolfFactors(double, double, uint);
+  void SetRCutCoulomb(double, uint);
+
   FFParticle *particles; //!< For LJ/Mie energy between unbonded atoms
   // for LJ, shift and switch type
   FFBonds bonds;             //!< For bond stretching energy

@@ -140,3 +140,20 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
     exit(EXIT_FAILURE);
   }
 }
+
+void Forcefield::SetWolfAlphaAndWolfFactors(double rcc, double wa, uint b){
+    rCutCoulomb[b]=rcc;
+    rCutCoulombSq[b]=rcc*rcc;
+    wolf_alpha[b] = wa;
+    wolf_factor_1[b] = erfc(wolf_alpha[b]*rCutCoulomb[b])/rCutCoulomb[b];
+    wolf_factor_2[b] = wolf_factor_1[b]/rCutCoulomb[b];
+    wolf_factor_2[b] += wolf_alpha[b] *  M_2_SQRTPI * 
+                      exp(-1.0*wolf_alpha[b]*wolf_alpha[b]*rCutCoulombSq[b])
+                      /rCutCoulomb[b];
+    wolf_factor_3[b] = wolf_alpha[b] *  M_2_SQRTPI;
+}
+
+void Forcefield::SetRCutCoulomb(double rcc, uint b){
+    rCutCoulomb[b]=rcc;
+    rCutCoulombSq[b]=rcc*rcc;
+}

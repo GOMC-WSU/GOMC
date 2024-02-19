@@ -409,6 +409,7 @@ void WolfCalibrationOutput::Sample(const ulong step) {
       ewaldRef.Total();
       // Swap wolf and ewald
       std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
+      std::swap(sysRef.calcEwald, sysRef.calcWolf);
 
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             //printf("EwAtStep %lu %.*e\n", step, Digs, ewaldRef.boxEnergy[b].totalElect);
@@ -422,8 +423,8 @@ void WolfCalibrationOutput::Sample(const ulong step) {
                         #ifdef GOMC_CUDA
                         statValRef.forcefield.particles->updateWolfEwald();
                         #endif
-                        SystemPotential wolfTot;
-                        wolfTot = calcEn.WolfCalSystemTotal();
+                        SystemPotential wolfTot = calcEn.SystemTotal();
+                        wolfTot.Total();
                         //printf("WoAtStep %lu %d %d %d %f %f %f\n", step, wolfKind, coulKind, b, alpha, rCutCoulomb, wolfTot.boxEnergy[b].totalElect);
                         sumRelativeErrorVec[b][GetIndex(RCutIndex, alphaIndex, b)].add_value(wolfTot.boxEnergy[b].totalElect);
                         //relativeErrorVec[b][i].push_back((wolfTot.boxEnergy[b].totalElect-ewaldRef.boxEnergy[b].totalElect)/ewaldRef.boxEnergy[b].totalElect);
@@ -431,7 +432,9 @@ void WolfCalibrationOutput::Sample(const ulong step) {
                   }
             }
       }
+      // Swap wolf and ewald
       std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
+      std::swap(sysRef.calcEwald, sysRef.calcWolf);
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             statValRef.forcefield.SetRCutCoulomb(originalCutoffCoulomb[b], b);
       }

@@ -1830,6 +1830,40 @@ void ConfigSetup::verifyInputs(void) {
     exit(EXIT_FAILURE);
   }
 
+  if(sys.elect.wolf && sys.elect.ewald){
+    std::cout << "Error: Wolf Electrostatic and Ewald cannot both be used to approximate reciprocal space!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if(sys.elect.wolf && !sys.elect.dsf && sys.moves.multiParticleEnabled){
+    printf("Warning: Wolf Damped Shifted Potential (DSP) set with Multiparticle enabled.");
+    printf("The force using DSP is discontinuous at the cutoff.  We recommend DSF with MP enabled.\n");
+    //exit(EXIT_FAILURE);
+  }
+
+  if(out.wolfCalibration.settings.enable){
+    bool readAllRequired = true;
+    for(i = 0 ; i < BOXES_WITH_U_NB ; i++) {
+      readAllRequired &= sys.wolfCal.wolfAlphaRangeRead[i];
+      readAllRequired &= sys.wolfCal.wolfCutoffCoulombRangeRead[i];
+    }
+    if(!readAllRequired){
+      printf("Error: Wolf Calibration alpha and Rcut ranges are not set for all boxes!");
+      exit(EXIT_FAILURE);
+    }
+    // Make sure I can check smaller RCutCoulombs without missing pairs.
+    for(int b = 0 ; b < BOXES_WITH_U_NB ; b++) {
+        printf("%s %-d CutoffCoulomb %4.4f A = (WolfCutoffCoulombRangeEnd %4.4f A)\n", "Warning: Setting Box ", b,
+               sys.elect.cutoffCoulomb[b], sys.wolfCal.wolfCutoffCoulombEnd[b]);
+        sys.elect.cutoffCoulomb[b] = sys.wolfCal.wolfCutoffCoulombEnd[b];
+    }
+  }
+
+  if (out.wolfCalibration.settings.enable && !sys.elect.ewald) {
+    std::cout << "Error: WolfCalibration requires Ewald True!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   if (!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
     printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
     sys.elect.oneFourScale = 0.0;

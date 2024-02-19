@@ -89,6 +89,8 @@ System::~System() {
     delete boxDimensions;
   if (calcEwald != NULL)
     delete calcEwald;
+  if (calcWolf != NULL)
+    delete calcWolf;
   for (int m = 0; m < mv::MOVE_KINDS_TOTAL; ++m) {
     delete moves[m];
   }
@@ -127,9 +129,13 @@ void System::Init(Setup &set) {
   // check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
   bool wolf = set.config.sys.elect.wolf;
+  bool wolfCalibration = set.config.out.wolfCalibration.settings.enable;
 
 #ifdef GOMC_CUDA
-  if (ewald)
+  if (wolfCalibration){
+    calcEwald = new Ewald(statV, *this);
+    calcWolf = new Wolf(statV, *this);
+  } else if (ewald)
     calcEwald = new Ewald(statV, *this);
   else if (wolf)
     calcEwald = new Wolf(statV, *this);
@@ -137,7 +143,10 @@ void System::Init(Setup &set) {
     calcEwald = new NoEwald(statV, *this);
 #else
   bool cached = set.config.sys.elect.cache;
-  if (ewald && cached)
+  if (wolfCalibration){
+    calcEwald = new Ewald(statV, *this);
+    calcWolf = new Wolf(statV, *this);
+  } else if (ewald && cached)
     calcEwald = new EwaldCached(statV, *this);
   else if (ewald && !cached)
     calcEwald = new Ewald(statV, *this);
@@ -151,6 +160,9 @@ void System::Init(Setup &set) {
   InitLambda();
   calcEnergy.Init(*this);
   calcEwald->Init();
+  if (wolfCalibration){ 
+    calcWolf->Init();
+  }
   potential = calcEnergy.SystemTotal();
   InitMoves(set);
   for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
