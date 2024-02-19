@@ -148,7 +148,7 @@ double Wolf::BoxSelf(uint box) const {
     }
   }
 
-  self *= -0.5 * ((ff.wolf_alpha[box] * M_2_SQRTPI) + ff.wolf_factor_1[box]);
+  self *= -0.5 * ((ff.wolf_alpha[box] * M_2_SQRTPI) + ff.wolf_factor_1[box]) * num::qqFact;
   GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
   return self;
 }
