@@ -340,6 +340,7 @@ void WolfCalibrationOutput::Sample(const ulong step) {
       // Swap wolf and ewald
       std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
       std::swap(sysRef.calcEwald, sysRef.calcWolf);
+      calcEn.UpdateEwald();
 
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             //printf("EwAtStep %lu %.*e\n", step, Digs, ewaldRef.boxEnergy[b].totalElect);
@@ -365,6 +366,7 @@ void WolfCalibrationOutput::Sample(const ulong step) {
       // Swap wolf and ewald
       std::swap(statValRef.forcefield.ewald, statValRef.forcefield.wolf);
       std::swap(sysRef.calcEwald, sysRef.calcWolf);
+      calcEn.UpdateEwald();
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             statValRef.forcefield.SetRCutCoulomb(originalCutoffCoulomb[b], b);
       }
