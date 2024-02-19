@@ -62,6 +62,7 @@ System::System(StaticVals &statics, Setup &set, ulong &startStep,
       restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
       startStepRef(startStep), trueStep(0) {
   calcEwald = NULL;
+  calcWolf = NULL;
 #if GOMC_LIB_MPI
   if (ms->parallelTemperingEnabled)
     prngParallelTemp = new PRNG(molLookupRef);

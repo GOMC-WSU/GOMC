@@ -23,6 +23,7 @@ along with this program, also can be found at
 #include "OutputVars.h"
 #include "PDBOutput.h"
 #include "PSFOutput.h"
+#include "WolfCalibrationOutput.h"
 
 class System;
 class StaticVals;
@@ -49,6 +50,7 @@ private:
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;
+  WolfCalibrationOutput wolfCalibration;
 #if ENSEMBLE == GCMC
   EnPartCntSample sample_N_E;
 #endif
