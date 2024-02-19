@@ -49,6 +49,7 @@ Ewald::Ewald(StaticVals &stat, System &sys)
 #endif
       currentAxes(sys.boxDimRef), currentCOM(sys.com), sysPotRef(sys.potential),
       lambdaRef(sys.lambdaRef) {
+  allocDone=false;
   ewald = false;
   electrostatic = false;
   alpha = 0.0;
@@ -58,7 +59,7 @@ Ewald::Ewald(StaticVals &stat, System &sys)
 }
 
 Ewald::~Ewald() {
-  if (ff.ewald) {
+  if (ff.ewald && allocDone) {
 #ifdef GOMC_CUDA
     DestroyEwaldCUDAVars(ff.particles->getCUDAVars());
 #endif
@@ -187,6 +188,7 @@ void Ewald::AllocMem() {
 #ifdef GOMC_CUDA
   InitEwaldVariablesCUDA(ff.particles->getCUDAVars(), imageTotal);
 #endif
+  allocDone=true;
 }
 
 // calculate reciprocal terms for a box. Should be called only at

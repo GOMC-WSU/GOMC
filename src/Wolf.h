@@ -14,7 +14,7 @@ class Wolf : public Ewald {
   // friend class CalculateEnergy;
 public:
   Wolf(StaticVals &stat, System &sys);
-
+  virtual ~Wolf();
   virtual void Init();
 
   virtual void AllocMem();

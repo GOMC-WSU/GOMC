@@ -41,6 +41,7 @@ along with this program, also can be found at
 using namespace geom;
 
 Wolf::Wolf(StaticVals &stat, System &sys) : Ewald(stat, sys) {}
+Wolf::~Wolf() {}
 
 //void Wolf::Init() {}
 void Wolf::Init() {
