@@ -99,19 +99,7 @@ void WolfCalibrationOutput::WriteHeader()
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
                         outF.open((getFileName(b, wolfKind, coulKind, uniqueName)+".dat").c_str(), std::ofstream::out);
                         if (outF.is_open()) {
-                              /*
-                              std::string firstRow = "";
-                              firstRow += "Step#\t";
-                              // We skip the reference r cut with reference alpha.
-                              // r = 0, a = 0
-                              // So there are no duplicate columns.
-                              for (double a = wolfAlphaStart[b]; a <= wolfAlphaEnd[b]; a+=wolfAlphaDelta[b]){
-                                    firstRow += std::to_string(a);
-                                    firstRow += " ";
-                              }
-                              outF << firstRow;
-                              outF << std::endl;
-                              */
+
                         } else {
                               std::cerr << "Unable to write to file \"" <<  name << "\" "
                                           << "(Wolf Calibration file)" << std::endl;
@@ -218,7 +206,8 @@ void WolfCalibrationOutput::WriteGraceParFileWRcut()
 }
 
 void WolfCalibrationOutput::DoOutput(const ulong step) {
-      if (((step+1) < stepsTillEquil) || !(enableOut && ((step + 1) % stepsPerOut == 0)))
+      //if (((step+1) < stepsTillEquil) || !(enableOut && ((step + 1) % stepsPerOut == 0)))
+      if (!(enableOut || !((step + 1) % stepsPerOut == 0)))
             return;
 
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
@@ -274,7 +263,12 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
                                           double sd2 = sumRelativeErrorVec[b][coulKind][GetIndex(RCutIndex, alphaIndex, b)].sd();
                                           double m = sumRelativeErrorVec[b][coulKind][GetIndex(RCutIndex, alphaIndex, b)].count();
 
-                                          double t_test = (mean1 - mean2) / sqrt((sd1 * sd1) / n + (sd2 * sd2) / m);
+                                          double t_test;
+                                          if (n == 1)
+                                                t_test = (mean1 - mean2);
+                                          else
+                                                t_test = (mean1 - mean2) / sqrt((sd1 * sd1) / n + (sd2 * sd2) / m);
+
                                           if (std::abs(t_test) < min_t_stat){
                                                 min_t_stat = std::abs(t_test);
                                                 min_err = err;
@@ -334,7 +328,8 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
 
 void WolfCalibrationOutput::Sample(const ulong step) {
       // Don't sample until equilibrated.
-      if (((step+1) < stepsTillEquil) || !(enableOut && ((step + 1) % stepsPerOut == 0)))
+      //if (((step+1) < stepsTillEquil) || !(enableOut && ((step + 1) % stepsPerOut == 0)))
+      if (!(enableOut || !((step + 1) % stepsPerOut == 0)))
             return;
       ++numSamples;
 
