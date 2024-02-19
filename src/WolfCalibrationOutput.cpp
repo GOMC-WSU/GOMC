@@ -207,9 +207,8 @@ void WolfCalibrationOutput::WriteGraceParFileWRcut()
 
 void WolfCalibrationOutput::DoOutput(const ulong step) {
       //if (((step+1) < stepsTillEquil) || !(enableOut && ((step + 1) % stepsPerOut == 0)))
-      if (!(enableOut || !((step + 1) % stepsPerOut == 0)))
-            return;
-
+      //      return;
+      CalculateGrid();
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             for (uint wolfKind = 0; wolfKind < 1; ++wolfKind){
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
@@ -326,14 +325,8 @@ void WolfCalibrationOutput::DoOutput(const ulong step) {
 
 #include <float.h>
 
-void WolfCalibrationOutput::Sample(const ulong step) {
-      // Don't sample until equilibrated.
-      //if (((step+1) < stepsTillEquil) || !(enableOut && ((step + 1) % stepsPerOut == 0)))
-      if (!(enableOut || !((step + 1) % stepsPerOut == 0)))
-            return;
+void WolfCalibrationOutput::CalculateGrid() {
       ++numSamples;
-
-
       SystemPotential ewaldRef;
       ewaldRef = calcEn.SystemTotal();
       ewaldRef.Total();

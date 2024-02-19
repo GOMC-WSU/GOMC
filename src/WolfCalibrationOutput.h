@@ -48,7 +48,9 @@ public:
   virtual void DoOutputRestart(const ulong step) {}  
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
-  virtual void Sample(const ulong step);
+                    
+  void CalculateGrid();
+  virtual void Sample(const ulong step) {}
 
 private:
   std::string getFileName(int b, int wolfKind, int coulKind, std::string uniqueName);
