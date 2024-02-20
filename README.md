@@ -36,6 +36,30 @@ To cite GOMC project, please use cite the following papers:
 
 > NOTES: Building GOMC requires cmake, available at http://www.cmake.org and in most Linux package repositories (as cmake). If you wish to utilize NVIDIA graphic cards you will need to install NVIDIA toolkit before compiling. The metamake file will automatically detect the location of CUDA installation. (More info in Manual)
 
+## Building GOMC in Docker (Linux)
+
+  1. Clone or download our code from GitHub:
+      ```bash
+      git clone https://github.com/GOMC-WSU/GOMC.git
+      ```
+  2. Go into the GOMC directory: 
+      ```bash
+      cd GOMC
+      ```
+  3. Download/Install Docker:
+      ```bash
+      sudo apt-get update && sudo apt-get install -y docker.io
+      ```
+  4. Issue docker build command:
+      ```bash
+      docker build -t gomc/gomc:cpu -f dockerfiles/GOMC_CPU.dockerfile
+      ```
+
+  5. Run docker images:
+      ```bash
+      sudo docker run -i -t gomc/gomc:cpu
+      ```
+
 ## Building GOMC on Windows:
   1. Open the Windows-compatible CMake GUI.
   2. Set the Source Folder to the GOMC root folder.
