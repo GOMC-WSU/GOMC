@@ -58,6 +58,8 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
   ewald = val.elect.ewald;
   wolf = val.elect.wolf;
   dsf = val.elect.dsf;
+  intramoleculardsf = val.elect.intramoleculardsf;
+  simpleself = val.elect.simpleself;
 
   tolerance = val.elect.tolerance;
   rswitch = val.ff.rswitch;

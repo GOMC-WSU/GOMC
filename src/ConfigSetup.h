@@ -186,6 +186,9 @@ struct ElectroStatic {
   bool readEwald;
   bool readWolf;
   bool readDSF;
+  bool readIntramolecularDSF;
+  bool readSimpleSelf;
+
   bool readWolfAlpha[BOX_TOTAL];
 
   bool readElect;
@@ -194,6 +197,9 @@ struct ElectroStatic {
   bool ewald;
   bool wolf;
   bool dsf;
+  bool intramoleculardsf;
+  bool simpleself;
+
   bool cache;
   bool cutoffCoulombRead[BOX_TOTAL];
   double tolerance;

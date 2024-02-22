@@ -31,7 +31,15 @@ ConfigSetup::ConfigSetup(void) {
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
+  sys.elect.readWolf = false;
+  sys.elect.readDSF = false;
+  sys.elect.readIntramolecularDSF = false;
+  sys.elect.simpleself = false;
   sys.elect.ewald = false;
+  sys.elect.wolf = false;
+  sys.elect.dsf = false;
+  sys.elect.intramoleculardsf = false;
+  sys.elect.simpleself = false;
   sys.elect.enable = false;
   sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
@@ -710,6 +718,18 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       sys.elect.readDSF = true;
       if (sys.elect.dsf) {
         printf("%-40s %-s \n", "Info: Wolf Summation DSF", "Active");
+      }
+    } else if (CheckString(line[0], "IntraDSF")) {
+      sys.elect.intramoleculardsf = checkBool(line[1]);
+      sys.elect.readIntramolecularDSF = true;
+      if (sys.elect.intramoleculardsf) {
+        printf("%-40s %-s \n", "Info: Wolf Summation INTRAMOLECULAR DSF", "Active");
+      }
+    } else if (CheckString(line[0], "SimpleSelf")) {
+      sys.elect.intramoleculardsf = checkBool(line[1]);
+      sys.elect.readIntramolecularDSF = true;
+      if (sys.elect.intramoleculardsf) {
+        printf("%-40s %-s \n", "Info: Wolf Summation SIMPLE SELF", "Active");
       }
     } else if (CheckString(line[0], "WolfAlpha")) {
       if (line.size() != 3){
