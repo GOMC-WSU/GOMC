@@ -84,7 +84,8 @@ private:
   bool wolfAlphaRangeRead[2];
   bool wolfCutoffCoulombRangeRead[2];
 
-  std::vector<Welford<double>> sumRelativeErrorVec[BOX_TOTAL][COUL_TOTAL_KINDS];
+  //std::vector<Welford<double>> sumRelativeErrorVec[BOX_TOTAL][COUL_TOTAL_KINDS];
+  std::vector<Welford<double>> sumRelativeErrorVec[BOX_TOTAL][WOLF_TOTAL_KINDS][COUL_TOTAL_KINDS];
   std::map<std::tuple<int, int, int>, int> mapWK_CK_BOX_to_bestRCutIndex;
 
   Welford<double> ewaldAvg[BOX_TOTAL];

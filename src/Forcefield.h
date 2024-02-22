@@ -36,6 +36,7 @@ public:
 
   void SetWolfAlphaAndWolfFactors(double, double, uint);
   void SetRCutCoulomb(double, uint);
+  void SetWolfMethod(uint, uint);
 
   FFParticle *particles; //!< For LJ/Mie energy between unbonded atoms
   // for LJ, shift and switch type

@@ -159,3 +159,30 @@ void Forcefield::SetRCutCoulomb(double rcc, uint b){
     rCutCoulomb[b]=rcc;
     rCutCoulombSq[b]=rcc*rcc;
 }
+
+
+void Forcefield::SetWolfMethod(uint wolfmethod, uint potential){
+
+  if (wolfmethod == 0){
+    intramoleculardsf = false;
+    simpleself = false;
+  } else if (wolfmethod == 1) {
+    intramoleculardsf = false;
+    simpleself = true;
+  } else if (wolfmethod == 2) {
+    intramoleculardsf = true;
+    simpleself = false;
+  } else {
+    std::cerr << "ERROR: METHOD VALID VALUES [0,1,2]" << std::endl;
+    exit(1);
+  }
+
+  if (potential == 0){
+    dsf = false;
+  } else if (potential == 1){
+    dsf = true;
+  } else {
+    std::cerr << "ERROR: METHOD VALID VALUES [0,1]" << std::endl;
+    exit(1);
+  }
+}
