@@ -171,70 +171,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const {
   double lambdaCoef = GetLambdaCoef(molIndex, box);
   
   if(ff.simpleself){
-    for (uint i = 0; i < atomSize; i++) {
-      if (particleHasNoCharge[start + i]) {
-        continue;
-      }
-      if(ff.OneThree){
-        //loop over all 1-3 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_3.Begin(i);
-        const uint* end = thisKind.sortedNB_1_3.End(i);
-        while (partner != end) {
-          // Need to check for cutoff for all kinds
-          currentAxes.InRcut(distSq, virComponents, currentCoords,
-                            start + i, start + (*partner), box); 
-          if(distSq < ff.rCutCoulombSq[box]){
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction += (ff.scaling_14*dampenedCorr);
-          }
-          ++partner;
-        }
-      }
-      if(ff.OneFour){
-        //loop over all 1-4 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_4.Begin(i);
-        const uint* end = thisKind.sortedNB_1_4.End(i);
-        while (partner != end) {
-          // Need to check for cutoff for all kinds
-          currentAxes.InRcut(distSq, virComponents, currentCoords,
-                            start + i, start + (*partner), box); 
-          if(distSq < ff.rCutCoulombSq[box]){
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction += (ff.scaling_14*dampenedCorr);
-          }
-          ++partner;
-        }
-      }
-      //loop over all 1-N partners of the particle
-      const uint* partner = thisKind.sortedNB.Begin(i);
-      const uint* end = thisKind.sortedNB.End(i);
-      while (partner != end) {
-        // Need to check for cutoff for all kinds
-        currentAxes.InRcut(distSq, virComponents, currentCoords,
-                          start + i, start + (*partner), box); 
-        if(distSq < ff.rCutCoulombSq[box]){
-          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
-            double distDiff = dist-ff.rCutCoulomb[box];
-            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-          }
-          // Dont scale 1-N
-          correction += (dampenedCorr);
-        }
-        ++partner;
-      }
-    }
+    correction = SimpleSelfCorrection(molIndex, box);
   } else {
     for (uint i = 0; i < atomSize; i++) {
       if (particleHasNoCharge[start + i]) {
@@ -298,66 +235,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol &trialMol) const {
   uint atomSize = thisKind.NumAtoms();
 
   if(ff.simpleself){
-    for (uint i = 0; i < atomSize; i++) {
-      if(ff.OneThree){
-        //loop over all 1-3 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_3.Begin(i);
-        const uint* end = thisKind.sortedNB_1_3.End(i);
-        while (partner != end) {
-          currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
-                            box);
-          if(distSq < ff.rCutCoulombSq[box]){
-            dist = sqrt(distSq);
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction -= (ff.scaling_14*dampenedCorr);
-          }
-          ++partner;
-        }
-      }
-      if(ff.OneFour){
-        //loop over all 1-4 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_4.Begin(i);
-        const uint* end = thisKind.sortedNB_1_4.End(i);
-        while (partner != end) {
-          currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
-                            box);
-          if(distSq < ff.rCutCoulombSq[box]){
-            dist = sqrt(distSq);
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction -= (ff.scaling_14*dampenedCorr);
-          }
-          ++partner;
-        }
-      }
-      //loop over all 1-4 partners of the particle
-      const uint* partner = thisKind.sortedNB.Begin(i);
-      const uint* end = thisKind.sortedNB.End(i);
-      while (partner != end) {
-        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
-                          box);
-        if(distSq < ff.rCutCoulombSq[box]){
-          dist = sqrt(distSq);
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction -= (dampenedCorr);
-        }
-        ++partner;
-      }
-    }
+    correction = SimpleSelfCorrection(trialMol);
   } else {
     for (uint i = 0; i < atomSize; i++) {
       for (uint j = i + 1; j < atomSize; j++) {
@@ -398,66 +276,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol &trialMol,
   double lambdaCoef = GetLambdaCoef(molIndex, box);
 
   if(ff.simpleself){
-    for (uint i = 0; i < atomSize; i++) {
-      if(ff.OneThree){
-        //loop over all 1-3 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_3.Begin(i);
-        const uint* end = thisKind.sortedNB_1_3.End(i);
-        while (partner != end) {
-          currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
-                            box);
-          if(distSq < ff.rCutCoulombSq[box]){
-            dist = sqrt(distSq);
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction -= (ff.scaling_14*dampenedCorr);
-          }
-          ++partner;
-        }
-      }
-      if(ff.OneFour){
-        //loop over all 1-4 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_4.Begin(i);
-        const uint* end = thisKind.sortedNB_1_4.End(i);
-        while (partner != end) {
-          currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
-                            box);
-          if(distSq < ff.rCutCoulombSq[box]){
-            dist = sqrt(distSq);
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction -= (ff.scaling_14*dampenedCorr);
-          }
-          ++partner;
-        }
-      }
-      //loop over all 1-4 partners of the particle
-      const uint* partner = thisKind.sortedNB.Begin(i);
-      const uint* end = thisKind.sortedNB.End(i);
-      while (partner != end) {
-        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
-                          box);
-        if(distSq < ff.rCutCoulombSq[box]){
-          dist = sqrt(distSq);
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction -= (dampenedCorr);
-        }
-        ++partner;
-      }
-    }
+    correction = SimpleSelfCorrection(trialMol,molIndex);
   } else {
     for (uint i = 0; i < atomSize; i++) {
       if (particleHasNoCharge[start + i]) {
@@ -553,70 +372,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
 
   // Calculate the correction energy with lambda = 1
   if (ff.simpleself){
-    for (uint i = 0; i < atomSize; i++) {
-      if (particleHasNoCharge[start + i]) {
-        continue;
-      }
-      if(ff.OneThree){
-        //loop over all 1-3 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_3.Begin(i);
-        const uint* end = thisKind.sortedNB_1_3.End(i);
-        while (partner != end) {
-          // Need to check for cutoff for all kinds
-          currentAxes.InRcut(distSq, virComponents, currentCoords,
-                            start + i, start + (*partner), box); 
-          if(distSq < ff.rCutCoulombSq[box]){
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction += (ff.scaling_14*dampenedCorr);
-          }
-          ++partner;
-        }
-      }
-      if(ff.OneFour){
-        //loop over all 1-4 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_4.Begin(i);
-        const uint* end = thisKind.sortedNB_1_4.End(i);
-        while (partner != end) {
-          // Need to check for cutoff for all kinds
-          currentAxes.InRcut(distSq, virComponents, currentCoords,
-                            start + i, start + (*partner), box); 
-          if(distSq < ff.rCutCoulombSq[box]){
-            dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                          ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-            if(ff.intramoleculardsf){
-              double distDiff = dist-ff.rCutCoulomb[box];
-              dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-            }
-            correction += (ff.scaling_14*dampenedCorr);
-          }
-          ++partner;
-        }
-      }
-      //loop over all 1-N partners of the particle
-      const uint* partner = thisKind.sortedNB.Begin(i);
-      const uint* end = thisKind.sortedNB.End(i);
-      while (partner != end) {
-        // Need to check for cutoff for all kinds
-        currentAxes.InRcut(distSq, virComponents, currentCoords,
-                          start + i, start + (*partner), box); 
-        if(distSq < ff.rCutCoulombSq[box]){
-          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
-                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
-            double distDiff = dist-ff.rCutCoulomb[box];
-            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
-          }
-          // Dont scale 1-N
-          correction += (dampenedCorr);
-        }
-        ++partner;
-      }
-    }
+    correction = SimpleSelfCorrection(molIndex,box);
   } else {
     for (uint i = 0; i < atomSize; i++) {
       if (particleHasNoCharge[start + i]) {
@@ -682,3 +438,232 @@ void Wolf::exgMolCache() { return; }
 void Wolf::backupMolCache() { return; }
 
 void Wolf::UpdateVectorsAndRecipTerms(bool output) { return; }
+
+double Wolf::SimpleSelfCorrection(const uint molIndex,
+                                  const uint box) const {
+  uint atomSize = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  MoleculeKind &thisKind = mols.kinds[mols.kIndex[molIndex]];
+  double coefDiff, distSq, dist, correction = 0.0, dampenedCorr = 0.0;
+  XYZ virComponents;
+  for (uint i = 0; i < atomSize; i++) {
+    if (particleHasNoCharge[start + i]) {
+      continue;
+    }
+    if(ff.OneThree){
+      //loop over all 1-3 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_3.Begin(i);
+      const uint* end = thisKind.sortedNB_1_3.End(i);
+      while (partner != end) {
+        // Need to check for cutoff for all kinds
+        currentAxes.InRcut(distSq, virComponents, currentCoords,
+                          start + i, start + (*partner), box); 
+        if(distSq < ff.rCutCoulombSq[box]){
+          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+          if(ff.intramoleculardsf){
+            double distDiff = dist-ff.rCutCoulomb[box];
+            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+          }
+          correction += (ff.scaling_14*dampenedCorr);
+        }
+        ++partner;
+      }
+    }
+    if(ff.OneFour){
+      //loop over all 1-4 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_4.Begin(i);
+      const uint* end = thisKind.sortedNB_1_4.End(i);
+      while (partner != end) {
+        // Need to check for cutoff for all kinds
+        currentAxes.InRcut(distSq, virComponents, currentCoords,
+                          start + i, start + (*partner), box); 
+        if(distSq < ff.rCutCoulombSq[box]){
+          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+          if(ff.intramoleculardsf){
+            double distDiff = dist-ff.rCutCoulomb[box];
+            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+          }
+          correction += (ff.scaling_14*dampenedCorr);
+        }
+        ++partner;
+      }
+    }
+    //loop over all 1-N partners of the particle
+    const uint* partner = thisKind.sortedNB.Begin(i);
+    const uint* end = thisKind.sortedNB.End(i);
+    while (partner != end) {
+      // Need to check for cutoff for all kinds
+      currentAxes.InRcut(distSq, virComponents, currentCoords,
+                        start + i, start + (*partner), box); 
+      if(distSq < ff.rCutCoulombSq[box]){
+        dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                      ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+        if(ff.intramoleculardsf){
+          double distDiff = dist-ff.rCutCoulomb[box];
+          dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+        }
+        // Dont scale 1-N
+        correction += (dampenedCorr);
+      }
+      ++partner;
+    }
+  }
+  return correction;
+}
+
+
+double Wolf::SimpleSelfCorrection(const cbmc::TrialMol &trialMol,
+                               const uint molIndex) const {
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
+  double dist, distSq;
+  double correction = 0.0, dampenedCorr = 0.0;
+  XYZ virComponents;
+  const MoleculeKind &thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  double lambdaCoef = GetLambdaCoef(molIndex, box);
+  for (uint i = 0; i < atomSize; i++) {
+    if(ff.OneThree){
+      //loop over all 1-3 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_3.Begin(i);
+      const uint* end = thisKind.sortedNB_1_3.End(i);
+      while (partner != end) {
+        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
+                          box);
+        if(distSq < ff.rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+          if(ff.intramoleculardsf){
+            double distDiff = dist-ff.rCutCoulomb[box];
+            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+          }
+          correction -= (ff.scaling_14*dampenedCorr);
+        }
+        ++partner;
+      }
+    }
+    if(ff.OneFour){
+      //loop over all 1-4 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_4.Begin(i);
+      const uint* end = thisKind.sortedNB_1_4.End(i);
+      while (partner != end) {
+        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
+                          box);
+        if(distSq < ff.rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+          if(ff.intramoleculardsf){
+            double distDiff = dist-ff.rCutCoulomb[box];
+            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+          }
+          correction -= (ff.scaling_14*dampenedCorr);
+        }
+        ++partner;
+      }
+    }
+    //loop over all 1-4 partners of the particle
+    const uint* partner = thisKind.sortedNB.Begin(i);
+    const uint* end = thisKind.sortedNB.End(i);
+    while (partner != end) {
+      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
+                        box);
+      if(distSq < ff.rCutCoulombSq[box]){
+        dist = sqrt(distSq);
+          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+          if(ff.intramoleculardsf){
+            double distDiff = dist-ff.rCutCoulomb[box];
+            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+          }
+          correction -= (dampenedCorr);
+      }
+      ++partner;
+    }
+  }
+  return correction;
+}
+
+
+double Wolf::SimpleSelfCorrection(const cbmc::TrialMol &trialMol) const {
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
+  double dist, distSq;
+  double correction = 0.0, dampenedCorr= 0.0;
+  XYZ virComponents;
+  const MoleculeKind &thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  for (uint i = 0; i < atomSize; i++) {
+    if(ff.OneThree){
+      //loop over all 1-3 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_3.Begin(i);
+      const uint* end = thisKind.sortedNB_1_3.End(i);
+      while (partner != end) {
+        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
+                          box);
+        if(distSq < ff.rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+          if(ff.intramoleculardsf){
+            double distDiff = dist-ff.rCutCoulomb[box];
+            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+          }
+          correction -= (ff.scaling_14*dampenedCorr);
+        }
+        ++partner;
+      }
+    }
+    if(ff.OneFour){
+      //loop over all 1-4 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_4.Begin(i);
+      const uint* end = thisKind.sortedNB_1_4.End(i);
+      while (partner != end) {
+        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
+                          box);
+        if(distSq < ff.rCutCoulombSq[box]){
+          dist = sqrt(distSq);
+          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+          if(ff.intramoleculardsf){
+            double distDiff = dist-ff.rCutCoulomb[box];
+            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+          }
+          correction -= (ff.scaling_14*dampenedCorr);
+        }
+        ++partner;
+      }
+    }
+    //loop over all 1-4 partners of the particle
+    const uint* partner = thisKind.sortedNB.Begin(i);
+    const uint* end = thisKind.sortedNB.End(i);
+    while (partner != end) {
+      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, *partner,
+                        box);
+      if(distSq < ff.rCutCoulombSq[box]){
+        dist = sqrt(distSq);
+          dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
+                        ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
+          if(ff.intramoleculardsf){
+            double distDiff = dist-ff.rCutCoulomb[box];
+            dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
+          }
+          correction -= (dampenedCorr);
+      }
+      ++partner;
+    }
+  }
+
+  return correction;
+}

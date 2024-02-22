@@ -125,7 +125,11 @@ public:
 
   virtual void UpdateVectorsAndRecipTerms(bool output);
 
-
+  double SimpleSelfCorrection(const uint molIndex,
+                              const uint box) const;
+  double SimpleSelfCorrection(const cbmc::TrialMol &trialMol,
+                               const uint molIndex) const;
+  double SimpleSelfCorrection(const cbmc::TrialMol &trialMol) const;
 };
 
 #endif /*Wolf_H*/
