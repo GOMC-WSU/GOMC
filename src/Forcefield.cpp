@@ -167,7 +167,7 @@ void Forcefield::SetWolfMethod(uint wolfmethod, uint potential){
     intramoleculardsf = false;
     simpleself = false;
   } else if (wolfmethod == 1) {
-    intramoleculardsf = false;
+    intramoleculardsf = true;
     simpleself = true;
   } else if (wolfmethod == 2) {
     intramoleculardsf = true;

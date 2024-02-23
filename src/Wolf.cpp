@@ -186,7 +186,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const {
           //               erf(ff.alpha[box] * dist) / dist);
           correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -247,7 +247,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol &trialMol) const {
           //               erf(ff.alpha[box] * dist) / dist);
           correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -291,7 +291,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol &trialMol,
           //               erf(ff.alpha[box] * dist) / dist);
           correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -389,7 +389,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
           //               erf(ff.alpha[box] * dist) / dist);
           correction += (particleCharge[i + start] * particleCharge[j + start] *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             correction += (particleCharge[i + start] * particleCharge[j + start] * ff.wolf_factor_2[box]*distDiff);
           }
@@ -461,7 +461,7 @@ double Wolf::SimpleSelfCorrection(const uint molIndex,
         if(distSq < ff.rCutCoulombSq[box]){
           dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -481,7 +481,7 @@ double Wolf::SimpleSelfCorrection(const uint molIndex,
         if(distSq < ff.rCutCoulombSq[box]){
           dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -500,7 +500,7 @@ double Wolf::SimpleSelfCorrection(const uint molIndex,
       if(distSq < ff.rCutCoulombSq[box]){
         dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                       ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-        if(ff.intramoleculardsf){
+        if(ff.dsf && ff.intramoleculardsf){
           double distDiff = dist-ff.rCutCoulomb[box];
           dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
         }
@@ -540,7 +540,7 @@ double Wolf::SimpleSelfCorrection(const cbmc::TrialMol &trialMol,
           dist = sqrt(distSq);
           dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -560,7 +560,7 @@ double Wolf::SimpleSelfCorrection(const cbmc::TrialMol &trialMol,
           dist = sqrt(distSq);
           dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -579,7 +579,7 @@ double Wolf::SimpleSelfCorrection(const cbmc::TrialMol &trialMol,
         dist = sqrt(distSq);
           dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -616,7 +616,7 @@ double Wolf::SimpleSelfCorrection(const cbmc::TrialMol &trialMol) const {
           dist = sqrt(distSq);
           dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -636,7 +636,7 @@ double Wolf::SimpleSelfCorrection(const cbmc::TrialMol &trialMol) const {
           dist = sqrt(distSq);
           dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
           }
@@ -655,7 +655,7 @@ double Wolf::SimpleSelfCorrection(const cbmc::TrialMol &trialMol) const {
         dist = sqrt(distSq);
           dampenedCorr = (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) *
                         ((erf(ff.wolf_alpha[box] * dist) / dist) + ff.wolf_factor_1[box]));
-          if(ff.intramoleculardsf){
+          if(ff.dsf && ff.intramoleculardsf){
             double distDiff = dist-ff.rCutCoulomb[box];
             dampenedCorr += (thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * ff.wolf_factor_2[box]*distDiff);
           }

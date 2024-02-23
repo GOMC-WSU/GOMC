@@ -341,7 +341,7 @@ void WolfCalibrationOutput::CalculateGrid() {
             for (uint wolfKind = 0; wolfKind < WOLF_TOTAL_KINDS; ++wolfKind){
                   for (uint coulKind = 0; coulKind < COUL_TOTAL_KINDS; ++coulKind){
                         //statValRef.forcefield.dsf = coulKind;
-                        statValRef.forcefield.SetWolfMethod(wolfKind,coulKind);
+                         statValRef.forcefield.SetWolfMethod(wolfKind,coulKind);
                         for (uint alphaIndex = 0; alphaIndex < alphaSize[b]; ++alphaIndex) {
                               double alpha = wolfAlphaStart[b] + alphaIndex*wolfAlphaDelta[b];
                               for (uint RCutIndex = 0; RCutIndex < cutoffCoulombSize[b]; ++RCutIndex) {
