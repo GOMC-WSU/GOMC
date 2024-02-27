@@ -8,7 +8,6 @@ along with this program, also can be found at
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
-//Include all the header files here
 #include <cmath>
 #include <cstddef>
 #include <fstream>
