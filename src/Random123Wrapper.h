@@ -4,8 +4,7 @@
 #include "Random123/philox.h"
 typedef r123::Philox4x64 RNG;
 
-class Random123Wrapper
-{
+class Random123Wrapper {
 public:
   Random123Wrapper();
 
@@ -16,7 +15,7 @@ public:
   unsigned int GetStep() const;
   unsigned int GetKeyValue() const;
   unsigned int GetSeedValue() const;
-  double operator() (unsigned int counter);
+  double operator()(unsigned int counter);
 
   double GetRandomNumber(unsigned int counter);
   XYZ GetRandomCoords(unsigned int counter);

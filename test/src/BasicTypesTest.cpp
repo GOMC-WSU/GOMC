@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
 #include "BasicTypes.h"
+#include <gtest/gtest.h>
 
 TEST(BasicTypesTest, CheckDefaultConstructorTest) {
   XYZ point;

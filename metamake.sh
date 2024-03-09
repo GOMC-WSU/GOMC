@@ -38,40 +38,22 @@ then
 			echo "==== GOMC needs CUB library to run..."
 			echo "==== Finding latest CUB library..."
 
-			# download the download html page
-			wget https://nvlabs.github.io/cub/download_cub.html > /dev/null 2>&1
-
-			# find the lines that have the link
-			grep "https://github.com/NVlabs/" download_cub.html > link_lines
-
-			# the last line is the easiest to find the link
-			awk '/./{line=$0} END{print line}' link_lines > last_line
-
-			# the substring between two quotes is the link!!!!
-			LINK="$(awk -F'"' '{ print $2 }' last_line)"
+			# Find the link
+			LINK=$(curl -s https://api.github.com/repos/NVIDIA/cub/releases/latest | grep "zip" | cut -d : -f 2,3 | tr -d \",\ )
 			echo "==== Link found at ${LINK}"
-
-			# remove any temporary files
-			rm link_lines
-			rm download_cub.html
-			rm last_line
 
 			# download the zip file 
 			echo "==== Downloading the CUB library... (Shouldn't take too long)"
-			wget "${LINK}" > /dev/null 2>&1
+			wget -O cub.zip "${LINK}" > /dev/null 2>&1
 
 			#unzip
 			echo "==== Extracting the CUB library..."
-			for z in *.zip; do
-				unzip "$z" > /dev/null 2>&1
-				rm "$z" > /dev/null 2>&1
-			done
+			unzip cub.zip > /dev/null 2>&1
 
 			# move the cub directory to and remove the rest
-			for d in */ ; do
-				mv "$d"/cub ../cub > /dev/null 2>&1
-				rm -r "$d" > /dev/null 2>&1
-			done
+			mv */cub ../cub
+			rm -rf NVIDIA*
+			rm cub.zip
 			cd ..
 			rmdir temp
 			cd ..
@@ -111,6 +93,16 @@ done
 shift "$(( OPTIND - 1 ))"
 
 while [ "$#" -ne 0 ]; do
+	if [[ "$1" == 'CPU' ]]; then
+		ENSEMBLES+="NVT NPT GCMC GEMC "
+		shift
+		continue
+	fi
+	if [[ "$1" == 'GPU' ]]; then
+		ENSEMBLES+="GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC "
+		shift
+		continue
+	fi
     case "$1" in
         NVT|NPT|GCMC|GEMC|GPU_NVT|GPU_NPT|GPU_GCMC|GPU_GEMC)                   # or just:  -t|--t*)
             ENSEMBLES+="$1 ";;
@@ -177,6 +169,16 @@ else
     export CXX="$(which g++ 2> /dev/null)"
 fi
 
+# If user hasn't specified any ensemble, cmake automatically compiles all ensembles.
+# This will ensure we don't print empty for ensembles.
+if [ -z "$ENSEMBLES" ];
+then
+	ENSEMBLES="NVT NPT GCMC GEMC"
+	if (( use_cuda ))
+	then
+		ENSEMBLES+=" GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC"
+	fi
+fi
 echo "Ensembles To Compile: $ENSEMBLES"
 
 if (( use_profiler )); then

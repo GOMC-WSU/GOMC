@@ -2,74 +2,72 @@
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
 Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CONFIGSETUP_H
-#define CONFIGSETUP_H
+#ifndef CONFIG_SETUP_H
+#define CONFIG_SETUP_H
 
-#include <map> //for function handle storage.
 #include <iostream> //for cerr, cout;
-#include <string> //for var names, etc.
+#include <map>      //for function handle storage.
+#include <string>   //for var names, etc.
 
-#include "InputAbstracts.h" //For ReadableBase parent class.
-#include "InputFileReader.h" // Input reader
 #include "BasicTypes.h" //for uint, ulong
-#include "EnsemblePreprocessor.h" //For box total;
-#include "Reader.h" //For config reader
-#include "FFConst.h" //For # of param file kinds
-#include "MersenneTwister.h" //For MTRand::uint32
-#include "XYZArray.h" //For box dimensions.
-#include "MoveConst.h"
-#include "UnitConst.h" //For bar --> mol*K / A3 conversion
 #include "EnergyTypes.h"
+#include "EnsemblePreprocessor.h" //For box total;
+#include "FFConst.h"              //For # of param file kinds
+#include "InputAbstracts.h"       //For ReadableBase parent class.
+#include "InputFileReader.h"      // Input reader
+#include "MersenneTwister.h"      //For MTRand::uint32
+#include "MoveConst.h"
+#include "Reader.h"    //For config reader
+#include "UnitConst.h" //For bar --> mol*K / A3 conversion
+#include "XYZArray.h"  //For box dimensions.
 
 #if ENSEMBLE == GCMC
-#include <sstream>  //for reading in variable # of chem. pot.
+#include <sstream> //for reading in variable # of chem. pot.
 #endif
 
-#include "GOMC_Config.h"    //For PT
+#include <sstream> //for prefixing uniqueVal with the pathToReplicaOutputDirectory
+
+#include "GOMC_Config.h" //For PT
 #include "ParallelTemperingPreprocessor.h"
-#include <sstream>  //for prefixing uniqueVal with the pathToReplicaOutputDirectory
 #ifdef WIN32
 #define OS_SEP '\\'
 #else
 #define OS_SEP '/'
 #endif
 
-namespace config_setup
-{
+namespace config_setup {
 /////////////////////////////////////////////////////////////////////////
 // Reoccurring structures
 
-//A filename
+// A filename
 struct FileName {
   std::string name;
   bool defined;
   FileName(void) {
     defined = false;
-    name = ""; 
+    name = "";
   }
   FileName(std::string file, bool def) {
     defined = def;
-    name = file; 
+    name = file;
   }
 };
 
-//Multiple filenames
-template <uint N>
-struct FileNames {
+// Multiple filenames
+template <uint N> struct FileNames {
   std::string name[N];
   bool defined[N];
-  FileNames(void) {
-    std::fill_n(defined, N, false);  
-  }
+  FileNames(void) { std::fill_n(defined, N, false); }
 };
 
 /////////////////////////////////////////////////////////////////////////
 // Input-specific structures
 
-//Could use "EnableEvent", but restart's enable arguably needs its
-//own struct as "frequency" is misleading name for step number
+// Could use "EnableEvent", but restart's enable arguably needs its
+// own struct as "frequency" is misleading name for step number
 struct RestartSettings {
   bool enable;
   ulong step;
@@ -78,29 +76,16 @@ struct RestartSettings {
   bool restartFromBinaryCoorFile;
   bool restartFromBinaryVelFile;
   bool restartFromXSCFile;
-  bool operator()(void)
-  {
-    return enable;
-  }
+  bool operator()(void) { return enable; }
 };
 
-//Kinds of Mersenne Twister initialization
+// Kinds of Mersenne Twister initialization
 struct PRNGKind {
   std::string kind;
   MTRand::uint32 seed;
-  bool IsRand(void) const
-  {
-    return str::compare(KIND_RANDOM, kind);
-  }
-  bool IsSeed(void) const
-  {
-    return str::compare(KIND_SEED, kind);
-  }
-  bool IsRestart(void) const
-  {
-    return str::compare(KIND_RESTART, kind);
-  }
-  static const std::string KIND_RANDOM, KIND_SEED, KIND_RESTART;
+  bool IsRand(void) const { return str::compare(KIND_RANDOM, kind); }
+  bool IsSeed(void) const { return str::compare(KIND_SEED, kind); }
+  static const std::string KIND_RANDOM, KIND_SEED;
 };
 
 struct FFKind {
@@ -109,7 +94,7 @@ struct FFKind {
   static const std::string FF_CHARMM, FF_EXOTIC, FF_MARTINI;
 };
 
-//Files for input.
+// Files for input.
 struct InFiles {
   std::vector<FileName> param;
   FileNames<BOX_TOTAL> pdb, psf, checkpoint;
@@ -117,15 +102,13 @@ struct InFiles {
   FileName seed;
 };
 
-//Input section of config file data.
+// Input section of config file data.
 struct Input {
   RestartSettings restart;
   PRNGKind prng, prngParallelTempering;
   FFKind ffKind;
   InFiles files;
 };
-
-
 
 /////////////////////////////////////////////////////////////////////////
 // System-specific structures
@@ -154,7 +137,7 @@ struct VDWSwitch : public PotentialConfig {
   double cuton;
 };
 
-//Items that effect the system interactions and/or identity, e.g. Temp.
+// Items that effect the system interactions and/or identity, e.g. Temp.
 struct FFValues {
   uint VDW_KIND;
   double cutoff, cutoffLow, rswitch;
@@ -162,12 +145,13 @@ struct FFValues {
   std::string kind;
 
   static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
-  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND;
+  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND,
+      VDW_EXP6_KIND;
 };
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
 
-//Items that effect the system interactions and/or identity, e.g. Temp.
+// Items that effect the system interactions and/or identity, e.g. Temp.
 struct GEMCKind {
   uint kind;
   double pressure;
@@ -175,20 +159,21 @@ struct GEMCKind {
 
 #endif
 
-
 struct Step {
   ulong start, total, equil, adjustment, initStep;
-  ulong pressureCalcFreq, parallelTempFreq, parallelTemperingAttemptsPerExchange;
+  ulong pressureCalcFreq, parallelTempFreq,
+      parallelTemperingAttemptsPerExchange;
   bool pressureCalc;
   bool parallelTemp;
   bool initStepRead;
 };
 
-//Holds the percentage of each kind of move for this ensemble.
+// Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
   double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft,
-         multiParticle, multiParticleBrownian, intraTargetedSwap;
+      multiParticle, multiParticleBrownian, intraTargetedSwap;
   bool multiParticleEnabled; // for both multiparticle and multiparticleBrownian
+  bool multiParticleLiquid, multiParticleGas; // GEMC: set boxes for MP moves
 #ifdef VARIABLE_VOLUME
   double volume;
 #endif
@@ -209,8 +194,7 @@ struct ElectroStatic {
   double oneFourScale;
   double dielectric;
   double cutoffCoulomb[BOX_TOTAL];
-  ElectroStatic(void)
-  {
+  ElectroStatic(void) {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
     std::fill_n(cutoffCoulomb, BOX_TOTAL, 0.0);
   }
@@ -220,19 +204,17 @@ struct Volume {
   bool hasVolume, cstArea, cstVolBox0;
   bool readCellBasis[BOX_TOTAL][3];
   XYZArray axis[BOX_TOTAL];
-  Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false)
-  {
-    for(uint b = 0; b < BOX_TOTAL; ++b) {
+  Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false) {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
       axis[b] = XYZArray(3);
       std::fill_n(readCellBasis[b], 3, false);
     }
   }
 
-  bool ReadCellBasis() const
-  {
-    for(uint b = 0; b < BOX_TOTAL; ++b) {
-      for(uint i = 0; i < 3; i++) {
-        if(!readCellBasis[b][i])
+  bool ReadCellBasis() const {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      for (uint i = 0; i < 3; i++) {
+        if (!readCellBasis[b][i])
           return false;
       }
     }
@@ -240,14 +222,14 @@ struct Volume {
   }
 };
 
-//If particle number varies (e.g. GCMC, GEMC) load in parameters for
-//configurational bias
+// If particle number varies (e.g. GCMC, GEMC) load in parameters for
+// configurational bias
 struct GrowNonbond {
   uint first, nth;
 };
 
-//If particle number varies (e.g. GCMC, GEMC) load in parameters for
-//configurational bias
+// If particle number varies (e.g. GCMC, GEMC) load in parameters for
+// configurational bias
 struct GrowBond {
   uint ang, dih;
 };
@@ -261,7 +243,7 @@ struct CBMC {
 struct ChemicalPotential {
   bool isFugacity;
   std::map<std::string, double> cp;
-  ChemicalPotential& operator=(ChemicalPotential const& rhs) {
+  ChemicalPotential &operator=(ChemicalPotential const &rhs) {
     isFugacity = rhs.isFugacity;
     cp = rhs.cp;
     return *this;
@@ -273,26 +255,26 @@ struct ChemicalPotential {
 // for targeted swap
 struct TargetSwapParam {
   // defines the center of subVolume
-  XYZ subVolumeCenter; 
+  XYZ subVolumeCenter;
   // defines the dimension of subVolume
-  XYZ subVolumeDim; 
+  XYZ subVolumeDim;
   // defines the targeted molecule kind
-  std::vector<std::string> selectedResKind; 
+  std::vector<std::string> selectedResKind;
   // defines the atom Indexes to find subVolume center
-  std::vector<int> atomList; 
+  std::vector<int> atomList;
   // defines box index for subVolume
   uint selectedBox;
   // defines the subVolume index for error checking
-  int subVolumeIdx; 
+  int subVolumeIdx;
   // defines if we do rigid body insertion/deletion or not
   // defaut value is true
   bool rigid_swap;
-  //defines if we have pbc in xyz axis, default is true in all axis
+  // defines if we have pbc in xyz axis, default is true in all axis
   std::vector<bool> subVolumeBPC;
-  // specify chemical potential for subVolume
-  #if ENSEMBLE == GCMC
+// specify chemical potential for subVolume
+#if ENSEMBLE == GCMC
   ChemicalPotential subVolumeChemPot;
-  #endif
+#endif
 
   bool center_defined, dim_defined, reskind_defined;
   bool box_defined, rigidSwap_defined, atomList_defined;
@@ -307,8 +289,7 @@ struct TargetSwapParam {
     subVolumeBPC.resize(3, true);
   }
 
-  TargetSwapParam& operator=(TargetSwapParam const& rhs)
-  {
+  TargetSwapParam &operator=(TargetSwapParam const &rhs) {
     subVolumeCenter = rhs.subVolumeCenter;
     subVolumeDim = rhs.subVolumeDim;
     selectedResKind = rhs.selectedResKind;
@@ -316,11 +297,11 @@ struct TargetSwapParam {
     selectedBox = rhs.selectedBox;
     subVolumeIdx = rhs.subVolumeIdx;
     rigid_swap = rhs.rigid_swap;
-    subVolumeBPC = rhs.subVolumeBPC; 
-  #if ENSEMBLE == GCMC
+    subVolumeBPC = rhs.subVolumeBPC;
+#if ENSEMBLE == GCMC
     subVolumeChemPot = rhs.subVolumeChemPot;
-  #endif
-    //copy boolean parameters
+#endif
+    // copy boolean parameters
     center_defined = rhs.center_defined;
     dim_defined = rhs.dim_defined;
     reskind_defined = rhs.reskind_defined;
@@ -334,60 +315,67 @@ struct TargetSwapParam {
   // Make sure all parameters have been set
   void VerifyParm() {
     bool allSet = true;
-    if(!box_defined) {
+    if (!box_defined) {
       printf("Error: Box has not been defined for subVolume index %d!\n",
-            subVolumeIdx);
+             subVolumeIdx);
       allSet = false;
     }
-    if(!center_defined && !atomList_defined) {
-      printf("Error: Center or atom list (to find the center) has not been defined for subVolume index %d!\n",
-            subVolumeIdx);
+    if (!center_defined && !atomList_defined) {
+      printf("Error: Center or atom list (to find the center) has not been "
+             "defined for subVolume index %d!\n",
+             subVolumeIdx);
       allSet = false;
     }
-    if(!dim_defined) {
+    if (!dim_defined) {
       printf("Error: dimension has not been defined for subVolume index %d!\n",
-            subVolumeIdx);
+             subVolumeIdx);
       allSet = false;
     }
 
-    if(subVolumeDim.x < 0.0 || subVolumeDim.y < 0.0 || subVolumeDim.z < 0.0) {
-      printf("Error: SubVolume dimension (%g %g %g) cannot be negative for subVolume index %d!\n",
-            subVolumeDim.x, subVolumeDim.y, subVolumeDim.z, subVolumeIdx);
+    if (subVolumeDim.x < 0.0 || subVolumeDim.y < 0.0 || subVolumeDim.z < 0.0) {
+      printf("Error: SubVolume dimension (%g %g %g) cannot be negative for "
+             "subVolume index %d!\n",
+             subVolumeDim.x, subVolumeDim.y, subVolumeDim.z, subVolumeIdx);
       allSet = false;
     }
 
-    if(!reskind_defined) {
-      printf("Error: residue kind has not been defined for subVolume index %d!\n",
-            subVolumeIdx);
+    if (!reskind_defined) {
+      printf(
+          "Error: residue kind has not been defined for subVolume index %d!\n",
+          subVolumeIdx);
       allSet = false;
     }
-    if(!rigidSwap_defined) {
-      printf("Default: Rigid body swap type has been defined for subVolume index %d!\n",
-            subVolumeIdx);
+    if (!rigidSwap_defined) {
+      printf("Default: Rigid body swap type has been defined for subVolume "
+             "index %d!\n",
+             subVolumeIdx);
       rigid_swap = true;
     }
-    if(!pbc_defined) {
+    if (!pbc_defined) {
       printf("Default: XYZ PBC has been defined for subVolume index %d!\n",
-            subVolumeIdx);
+             subVolumeIdx);
       pbc_defined = true;
     }
 
 #if ENSEMBLE == GCMC
     // make sure the resname exist in the list of targeted reskind
-    if(chemPot_defined) {
+    if (chemPot_defined) {
       bool notExist = false;
-      std::map<std::string, double>::const_iterator start = subVolumeChemPot.cp.begin();
-      std::map<std::string, double>::const_iterator end = subVolumeChemPot.cp.end();
-      if((selectedResKind[0] != "ALL") && reskind_defined) {
+      std::map<std::string, double>::const_iterator start =
+          subVolumeChemPot.cp.begin();
+      std::map<std::string, double>::const_iterator end =
+          subVolumeChemPot.cp.end();
+      if ((selectedResKind[0] != "ALL") && reskind_defined) {
         while (start != end) {
           std::string resname = start->first;
           notExist = (std::find(selectedResKind.begin(), selectedResKind.end(),
                                 resname) == selectedResKind.end());
 
-          if(notExist){
+          if (notExist) {
             allSet = false;
-            printf("Error: residue name %s has not been defined in SubVolumeResidueKind list for subVolume index %d!\n",
-                  resname.c_str(), subVolumeIdx);
+            printf("Error: residue name %s has not been defined in "
+                   "SubVolumeResidueKind list for subVolume index %d!\n",
+                   resname.c_str(), subVolumeIdx);
           }
 
           ++start;
@@ -396,19 +384,17 @@ struct TargetSwapParam {
     }
 #endif
 
-    if(!allSet)
+    if (!allSet)
       exit(EXIT_FAILURE);
   }
 };
 
 struct TargetSwapCollection {
-  TargetSwapCollection(void) {
-    enable = false;
-  }
+  TargetSwapCollection(void) { enable = false; }
   // Search for cavIdx in the targetSwap. If it exists,
   // returns true + the index to targetSwap vector
   bool SearchExisting(const int &subVIdx, int &idx) {
-    for (int i = 0; i < (int) targetedSwap.size(); i++) {
+    for (int i = 0; i < (int)targetedSwap.size(); i++) {
       if (targetedSwap[i].subVolumeIdx == subVIdx) {
         idx = i;
         return true;
@@ -430,9 +416,10 @@ struct TargetSwapCollection {
         targetedSwap.push_back(tempPar);
       } else {
         // If subVolume index exist and subvolume box is defined
-        if(targetedSwap[idx].box_defined) {
-          printf("Error: The subVolume index %d has already been defined for Box %d!\n",
-                subVIdx, targetedSwap[idx].selectedBox);
+        if (targetedSwap[idx].box_defined) {
+          printf("Error: The subVolume index %d has already been defined for "
+                 "Box %d!\n",
+                 subVIdx, targetedSwap[idx].selectedBox);
           printf("       Please use different subVolume index.\n");
           exit(EXIT_FAILURE);
         } else {
@@ -441,12 +428,15 @@ struct TargetSwapCollection {
         }
       }
     } else {
-      printf("Error: Subvolume index %d cannot be set for box %d!\n", subVIdx, box);
-      #if ENSEMBLE == GCMC
-        printf("       Maximum box index for this simulation is %d!\n", BOXES_WITH_U_NB - 1);
-      #else
-        printf("       Maximum box index for this simulation is %d!\n", BOXES_WITH_U_NB - 1);
-      #endif
+      printf("Error: Subvolume index %d cannot be set for box %d!\n", subVIdx,
+             box);
+#if ENSEMBLE == GCMC
+      printf("       Maximum box index for this simulation is %d!\n",
+             BOXES_WITH_U_NB - 1);
+#else
+      printf("       Maximum box index for this simulation is %d!\n",
+             BOXES_WITH_U_NB - 1);
+#endif
       exit(EXIT_FAILURE);
     }
   }
@@ -463,9 +453,11 @@ struct TargetSwapCollection {
       targetedSwap.push_back(tempPar);
     } else {
       // If subVolume index exist and subvolume dimension is defined
-      if(targetedSwap[idx].dim_defined) {
-        printf("Error: The subVolume dimension (%g, %g, %g) has already been defined for subVolume index %d!\n",
-               targetedSwap[idx].subVolumeDim.x, targetedSwap[idx].subVolumeDim.y,
+      if (targetedSwap[idx].dim_defined) {
+        printf("Error: The subVolume dimension (%g, %g, %g) has already been "
+               "defined for subVolume index %d!\n",
+               targetedSwap[idx].subVolumeDim.x,
+               targetedSwap[idx].subVolumeDim.y,
                targetedSwap[idx].subVolumeDim.z, subVIdx);
         printf("       Please use different subVolume index.\n");
         exit(EXIT_FAILURE);
@@ -488,16 +480,20 @@ struct TargetSwapCollection {
       targetedSwap.push_back(tempPar);
     } else {
       // If subVolume index exist and and subvolume center is defined
-      if(targetedSwap[idx].center_defined) {
-        printf("Error: The subVolume center (%g, %g, %g) has already been defined for subVolume index %d!\n",
-               targetedSwap[idx].subVolumeCenter.x, targetedSwap[idx].subVolumeCenter.y,
+      if (targetedSwap[idx].center_defined) {
+        printf("Error: The subVolume center (%g, %g, %g) has already been "
+               "defined for subVolume index %d!\n",
+               targetedSwap[idx].subVolumeCenter.x,
+               targetedSwap[idx].subVolumeCenter.y,
                targetedSwap[idx].subVolumeCenter.z, subVIdx);
         printf("       Please use different subVolume index.\n");
         exit(EXIT_FAILURE);
-      } else if (targetedSwap[idx].atomList_defined){
-        printf("Error: Atom list has already been defined to find center in subVolume index %d!\n",
-                subVIdx);
-        printf("       One of the SubVolumeCenter or SubVolumeCenterList must be defined.\n");
+      } else if (targetedSwap[idx].atomList_defined) {
+        printf("Error: Atom list has already been defined to find center in "
+               "subVolume index %d!\n",
+               subVIdx);
+        printf("       One of the SubVolumeCenter or SubVolumeCenterList must "
+               "be defined.\n");
         exit(EXIT_FAILURE);
       } else {
         targetedSwap[idx].subVolumeCenter = center;
@@ -507,7 +503,8 @@ struct TargetSwapCollection {
   }
 
   // add center subVolume to subVIdx
-  void AddsubVolumeAtomList(const int &subVIdx, std::vector<std::string> &atoms) {
+  void AddsubVolumeAtomList(const int &subVIdx,
+                            std::vector<std::string> &atoms) {
     int idx = 0;
     std::vector<int> alist = ParsAtomList(subVIdx, atoms);
     if (!SearchExisting(subVIdx, idx)) {
@@ -519,16 +516,20 @@ struct TargetSwapCollection {
       targetedSwap.push_back(tempPar);
     } else {
       // If subVolume index exist and and subvolume center is defined
-      if(targetedSwap[idx].atomList_defined) {
-        printf("Error: The atom list has already been defined to find center for subVolume index %d!\n",
-                subVIdx);
+      if (targetedSwap[idx].atomList_defined) {
+        printf("Error: The atom list has already been defined to find center "
+               "for subVolume index %d!\n",
+               subVIdx);
         printf("       Please use different subVolume index.\n");
         exit(EXIT_FAILURE);
-      } else if (targetedSwap[idx].center_defined){
-        printf("Error: Subvolume center (%g, %g, %g) has been defined for in subVolume index %d!\n",
-                targetedSwap[idx].subVolumeCenter.x, targetedSwap[idx].subVolumeCenter.y,
-                targetedSwap[idx].subVolumeCenter.z,subVIdx);
-        printf("       One of the SubVolumeCenter or SubVolumeCenterList must be defined.\n");
+      } else if (targetedSwap[idx].center_defined) {
+        printf("Error: Subvolume center (%g, %g, %g) has been defined for in "
+               "subVolume index %d!\n",
+               targetedSwap[idx].subVolumeCenter.x,
+               targetedSwap[idx].subVolumeCenter.y,
+               targetedSwap[idx].subVolumeCenter.z, subVIdx);
+        printf("       One of the SubVolumeCenter or SubVolumeCenterList must "
+               "be defined.\n");
         exit(EXIT_FAILURE);
       } else {
         targetedSwap[idx].atomList = alist;
@@ -537,43 +538,44 @@ struct TargetSwapCollection {
     }
   }
 
-  int stringtoui(const std::string& s)
-  {
+  int stringtoui(const std::string &s) {
     int i = std::stoi(s);
     std::string newstr = std::to_string(i);
 
-    if(i < 0) {
+    if (i < 0) {
       printf("Error: Expected to receive unsigned integer, but received %s!\n",
-            s.c_str());
+             s.c_str());
       exit(EXIT_FAILURE);
-    } 
-    if (s != newstr) {
-      printf("Warning: Converting %s to %s in parsing integer!\n",
-            s.c_str(), newstr.c_str());
     }
-    
+    if (s != newstr) {
+      printf("Warning: Converting %s to %s in parsing integer!\n", s.c_str(),
+             newstr.c_str());
+    }
+
     return i;
   }
 
   // Parse the list of atoms. If user uses a range of atom (e.g. 5-10)
   // This function would handle it properly
-  std::vector<int> ParsAtomList(const int &subVIdx, std::vector<std::string> &atoms)
-  {
+  std::vector<int> ParsAtomList(const int &subVIdx,
+                                std::vector<std::string> &atoms) {
     const char dash = '-';
     size_t pos = 0;
     int start = 0, end = 0;
     std::vector<int> list;
-    for(int i = 0; i < (int) atoms.size(); ++i) {
-      if(atoms[i] == "-") {
-        printf("Error: In subVolume Index %d, if you are trying to use a range of atom indices, use '-' without any space!\n", subVIdx);
+    for (int i = 0; i < (int)atoms.size(); ++i) {
+      if (atoms[i] == "-") {
+        printf("Error: In subVolume Index %d, if you are trying to use a range "
+               "of atom indices, use '-' without any space!\n",
+               subVIdx);
         exit(EXIT_FAILURE);
       }
       // check if string has dash in it
       pos = atoms[i].find(dash);
       if (pos != std::string::npos && pos != 0) {
         start = stringtoui(atoms[i].substr(0, pos));
-        //dash has length of 1
-        end = stringtoui(atoms[i].substr(pos+1, atoms[i].length()));
+        // dash has length of 1
+        end = stringtoui(atoms[i].substr(pos + 1, atoms[i].length()));
         while (start <= end) {
           list.push_back(start);
           ++start;
@@ -603,9 +605,10 @@ struct TargetSwapCollection {
       }
     } else {
       // If subVolume index exist and and reskind is defined
-      if(targetedSwap[idx].reskind_defined) {
-        printf("Error: The targeted residue kind has already been defined for subVolume index %d!\n",
-                subVIdx);
+      if (targetedSwap[idx].reskind_defined) {
+        printf("Error: The targeted residue kind has already been defined for "
+               "subVolume index %d!\n",
+               subVIdx);
         printf("       Please use different subVolume index.\n");
         exit(EXIT_FAILURE);
       } else {
@@ -617,30 +620,37 @@ struct TargetSwapCollection {
       }
     }
   }
-  //Check if user defined multiple reskind
+  // Check if user defined multiple reskind
   void CheckSelectedKind(const int &subVIdx, std::vector<std::string> &kind) {
     std::vector<std::string> newKind = kind;
     std::vector<std::string>::iterator ip;
     std::sort(newKind.begin(), newKind.end());
     ip = std::unique(newKind.begin(), newKind.end());
-    //Find Uniquie reskind
+    // Find Uniquie reskind
     newKind.resize(std::distance(newKind.begin(), ip));
-    if(newKind.size() != kind.size()) {
-      printf("Warning: Duplicated residue kind was defined for subVolume index %d!\n",
-                subVIdx);
-      printf("Warning: Proceed with unique residue kind for subVolume index %d!\n",
-                subVIdx);
+    if (newKind.size() != kind.size()) {
+      printf("Warning: Duplicated residue kind was defined for subVolume index "
+             "%d!\n",
+             subVIdx);
+      printf(
+          "Warning: Proceed with unique residue kind for subVolume index %d!\n",
+          subVIdx);
     }
 
-    bool selectedAll = (std::find(newKind.begin(), newKind.end(), "ALL") != newKind.end());
-    selectedAll |= (std::find(newKind.begin(), newKind.end(), "all") != newKind.end());
-    selectedAll |= (std::find(newKind.begin(), newKind.end(), "All") != newKind.end());
-    if(selectedAll) {
-      if(newKind.size() > 1) {
-        printf("Warning: %lu additional residue kinds were defined for subVolume index %d, while using all residues!\n",
-                  newKind.size() - 1, subVIdx);
-        printf("Warning: Proceed with all residue kinds for subVolume index %d!\n",
-                  subVIdx);
+    bool selectedAll =
+        (std::find(newKind.begin(), newKind.end(), "ALL") != newKind.end());
+    selectedAll |=
+        (std::find(newKind.begin(), newKind.end(), "all") != newKind.end());
+    selectedAll |=
+        (std::find(newKind.begin(), newKind.end(), "All") != newKind.end());
+    if (selectedAll) {
+      if (newKind.size() > 1) {
+        printf("Warning: %lu additional residue kinds were defined for "
+               "subVolume index %d, while using all residues!\n",
+               newKind.size() - 1, subVIdx);
+        printf(
+            "Warning: Proceed with all residue kinds for subVolume index %d!\n",
+            subVIdx);
       }
       newKind.clear();
       newKind.push_back("ALL");
@@ -661,9 +671,10 @@ struct TargetSwapCollection {
       targetedSwap.push_back(tempPar);
     } else {
       // If subVolume index exist and subvolume box is defined
-      if(targetedSwap[idx].rigidSwap_defined) {
-        printf("Error: The swap type has already been defined for subVolume index %d!\n",
-              subVIdx);
+      if (targetedSwap[idx].rigidSwap_defined) {
+        printf("Error: The swap type has already been defined for subVolume "
+               "index %d!\n",
+               subVIdx);
         printf("       Please use different subVolume index.\n");
         exit(EXIT_FAILURE);
       } else {
@@ -678,17 +689,18 @@ struct TargetSwapCollection {
     int idx = 0;
     std::vector<bool> pbcMode(3, false);
     char upper;
-    for(uint k = 0; k < pbc.length(); k++) {
+    for (uint k = 0; k < pbc.length(); k++) {
       upper = toupper(pbc[k]);
-      if(upper == 'X') {
+      if (upper == 'X') {
         pbcMode[0] = true;
-      } else if (upper == 'Y'){
+      } else if (upper == 'Y') {
         pbcMode[1] = true;
-      } else if (upper == 'Z'){
+      } else if (upper == 'Z') {
         pbcMode[2] = true;
       } else {
-        printf("Error: Unknown option '%c' in '%s' for PBC type in subVolume index %d!\n",
-              pbc[k], pbc.c_str(), subVIdx);
+        printf("Error: Unknown option '%c' in '%s' for PBC type in subVolume "
+               "index %d!\n",
+               pbc[k], pbc.c_str(), subVIdx);
         exit(EXIT_FAILURE);
       }
     }
@@ -702,9 +714,10 @@ struct TargetSwapCollection {
       targetedSwap.push_back(tempPar);
     } else {
       // If subVolume index exist and subvolume box is defined
-      if(targetedSwap[idx].pbc_defined) {
-        printf("Error: The PBC mode has already been defined for subVolume index %d!\n",
-              subVIdx);
+      if (targetedSwap[idx].pbc_defined) {
+        printf("Error: The PBC mode has already been defined for subVolume "
+               "index %d!\n",
+               subVIdx);
         printf("       Please use different subVolume index.\n");
         exit(EXIT_FAILURE);
       } else {
@@ -713,13 +726,14 @@ struct TargetSwapCollection {
       }
     }
   }
- 
+
 #if ENSEMBLE == GCMC
   // set chemical potential for subvolume
   void AddsubVolumeChemPot(const int &subVIdx, const std::string &resName,
-                          const double &cpValue, const bool &isFugacity) {
+                           const double &cpValue, const bool &isFugacity) {
     int idx = 0;
-    double value = cpValue * (isFugacity ? unit::BAR_TO_K_MOLECULE_PER_A3 : 1.0);
+    double value =
+        cpValue * (isFugacity ? unit::BAR_TO_K_MOLECULE_PER_A3 : 1.0);
     if (!SearchExisting(subVIdx, idx)) {
       // If the subVolume index did not exist, add one
       TargetSwapParam tempPar;
@@ -737,9 +751,9 @@ struct TargetSwapCollection {
   }
 #endif
 
-  public:
-    std::vector<TargetSwapParam> targetedSwap;
-    bool enable;
+public:
+  std::vector<TargetSwapParam> targetedSwap;
+  bool enable;
 };
 
 struct MEMCVal {
@@ -751,8 +765,7 @@ struct MEMCVal {
   std::vector<uint> exchangeRatio;
   std::vector<std::string> smallBBAtom1, smallBBAtom2;
   std::vector<std::string> largeBBAtom1, largeBBAtom2;
-  MEMCVal(void)
-  {
+  MEMCVal(void) {
     MEMC1 = MEMC2 = MEMC3 = false;
     MEMC2Liq = MEMC3Liq = false;
     readVol = readRatio = readSmallBB = false;
@@ -767,15 +780,14 @@ struct NEMTMCVal {
   bool MPEnable, MPBEnable;
   bool readRelaxSteps, readMPEnable, readMPBEnable;
   bool readLambdaLimit, readConformationProb;
-  //scaling parameter
+  // scaling parameter
   uint scalePower;
   double scaleAlpha, scaleSigma;
   bool scaleCoulomb;
   bool enable, readLambdaCoulomb, readLambdaVDW;
   bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
   std::vector<double> lambdaCoulomb, lambdaVDW;
-  NEMTMCVal(void)
-  {
+  NEMTMCVal(void) {
     readLambdaCoulomb = readRelaxSteps = false;
     readMPEnable = MPEnable = readLambdaVDW = enable = false;
     scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
@@ -787,15 +799,14 @@ struct FreeEnergy {
   bool enable, readLambdaCoulomb, readLambdaVDW, freqRead;
   bool molTypeRead, molIndexRead, iStateRead;
   uint frequency, molIndex, iState;
-  //scaling parameter
+  // scaling parameter
   uint scalePower;
   double scaleAlpha, scaleSigma;
   bool scaleCoulomb;
   bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
   std::string molType;
   std::vector<double> lambdaCoulomb, lambdaVDW;
-  FreeEnergy(void)
-  {
+  FreeEnergy(void) {
     readLambdaCoulomb = readLambdaVDW = enable = freqRead = false;
     molTypeRead = molIndexRead = iStateRead = false;
     scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
@@ -809,7 +820,7 @@ struct SystemVals {
   Exclude exclude;
   Step step;
   MovePercents moves;
-  Volume volume; //May go unused
+  Volume volume; // May go unused
   CBMC cbmcTrials;
   MEMCVal memcVal, intraMemcVal;
   NEMTMCVal neMTMCVal;
@@ -829,10 +840,7 @@ struct SystemVals {
 struct EventSettings { /* : ReadableStepDependentBase*/
   bool enable;
   ulong frequency;
-  bool operator()(void)
-  {
-    return enable;
-  }
+  bool operator()(void) { return enable; }
 };
 
 struct UniqueStr { /* : ReadableBase*/
@@ -844,7 +852,7 @@ struct HistFiles { /* : ReadableBase*/
   uint stepsPerHistSample;
 };
 
-//Files for output.
+// Files for output.
 struct OutFiles {
   /* For split pdb, psf, and dcd files , BOX 0 and BOX 1 */
   FileNames<BOX_TOTAL> pdb, splitPSF, dcd;
@@ -858,7 +866,7 @@ struct Settings {
   UniqueStr uniqueStr;
 };
 
-//Enables for each variable that can be tracked
+// Enables for each variable that can be tracked
 struct OutputEnables {
   bool block, fluct;
 };
@@ -890,21 +898,21 @@ struct Output {
   EventSettings console, checkpoint;
 };
 
-}
+} // namespace config_setup
 
-class ConfigSetup
-{
+class ConfigSetup {
 public:
   config_setup::Input in;
   config_setup::Output out;
   config_setup::SystemVals sys;
   bool exptMode;
   ConfigSetup(void);
-  void Init(const char *fileName, MultiSim const*const& multisim);
+  void Init(const char *fileName, MultiSim const *const &multisim);
+
 private:
   void fillDefaults(void);
-  int stringtoi(const std::string& s);
-  double stringtod(const std::string& s);
+  int stringtoi(const std::string &s);
+  double stringtod(const std::string &s);
   bool checkBool(std::string str);
   bool isBool(std::string str);
   bool CheckString(std::string str1, std::string str2);
@@ -912,4 +920,4 @@ private:
   InputFileReader reader;
 };
 
-#endif
+#endif /*CONFIG_SETUP_H*/

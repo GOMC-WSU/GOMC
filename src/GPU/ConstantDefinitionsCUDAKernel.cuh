@@ -31,6 +31,8 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
                          uint maxAtomsInMol, uint maxMolNumber);
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
+void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
+                           double *rMaxSq, uint size);
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void CopyRefToNewCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);
@@ -41,9 +43,8 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
                             double *invCellBasis_x, double *invCellBasis_y,
                             double *invCellBasis_z);
 void DestroyEwaldCUDAVars(VariablesCUDA *vars);
+void DestroyExp6CUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
-void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
-                       double *rMaxSq, uint size);
 
 #endif /*GOMC_CUDA*/
 #endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/

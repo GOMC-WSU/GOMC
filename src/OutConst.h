@@ -2,24 +2,24 @@
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
 Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef OUT_CONST_H
 #define OUT_CONST_H
 
 #include <string>
 
+#include "BasicTypes.h"           //For uint
 #include "EnsemblePreprocessor.h" //For VARIABLE_x, etc.
-#include "BasicTypes.h" //For uint
 
-namespace out
-{
+namespace out {
 extern const std::string ENERGY_TOTAL;
 static const uint ENERGY_TOTAL_IDX = 0;
 extern const std::string ENERGY_INTER;
 static const uint ENERGY_INTER_IDX = 1;
-extern const std::string ENERGY_TC;
-static const uint ENERGY_TC_IDX = 2;
+extern const std::string ENERGY_LRC;
+static const uint ENERGY_LRC_IDX = 2;
 extern const std::string ENERGY_INTRA_B;
 static const uint ENERGY_INTRA_B_IDX = 3;
 extern const std::string ENERGY_INTRA_NB;
@@ -58,12 +58,12 @@ static const uint HEAT_OF_VAP_IDX = 16;
 static const uint TOTAL_SINGLE = 17;
 #endif
 
-//MULTI
+// MULTI
 extern const std::string MOL_FRACTION;
 extern const std::string MOL_DENSITY;
 static const uint MOL_FRACTION_IDX = 0;
 static const uint MOL_DENSITY_IDX = 1;
 static const uint TOTAL_K = 2;
-}
+} // namespace out
 
 #endif /*OUT_CONST_H*/

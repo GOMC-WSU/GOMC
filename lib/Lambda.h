@@ -2,29 +2,32 @@
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
 Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef LAMBDA_H
 #define LAMBDA_H
 
+#include <iostream>
+
 #include "BasicTypes.h" //For ulong, uint
+#include "EnsemblePreprocessor.h"
 
 #ifdef GOMC_CUDA
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#include "VariablesCUDA.cuh"
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "VariablesCUDA.cuh"
-#include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
-//Defining lambda class to handle fractional molecule
-class Lambda
-{
+// Defining lambda class to handle fractional molecule
+class Lambda {
 public:
   Lambda() {}
 
   void Init(
-  #ifdef GOMC_CUDA 
-    VariablesCUDA *refVarCUDA
-  #endif
+#ifdef GOMC_CUDA
+      VariablesCUDA *refVarCUDA
+#endif
   ) {
     std::fill_n(isFraction, BOX_TOTAL, false);
     std::fill_n(lambdaVDW, BOX_TOTAL, 1.0);
@@ -34,8 +37,7 @@ public:
 #ifdef GOMC_CUDA
     varCUDA = refVarCUDA;
     // Update Lambda on GPU
-    UpdateGPULambda(varCUDA, molIndex, lambdaVDW,
-                    lambdaCoulomb, isFraction);
+    UpdateGPULambda(varCUDA, molIndex, lambdaVDW, lambdaCoulomb, isFraction);
 #endif
   }
 
@@ -52,7 +54,6 @@ public:
 
   int GetMolIndex(const uint box) const;
 
-
 protected:
   int molIndex[BOX_TOTAL]; // global molecule index
   int kindIndex[BOX_TOTAL];
@@ -64,8 +65,7 @@ protected:
 };
 
 inline void Lambda::Set(const double vdw, const double coulomb, const uint mol,
-                        const uint kind, const uint box)
-{
+                        const uint kind, const uint box) {
   molIndex[box] = mol;
   kindIndex[box] = kind;
   lambdaVDW[box] = vdw;
@@ -73,13 +73,11 @@ inline void Lambda::Set(const double vdw, const double coulomb, const uint mol,
   isFraction[box] = true;
 #ifdef GOMC_CUDA
   // Update Lambda on GPU
-  UpdateGPULambda(varCUDA, molIndex, lambdaVDW,
-                  lambdaCoulomb, isFraction);
+  UpdateGPULambda(varCUDA, molIndex, lambdaVDW, lambdaCoulomb, isFraction);
 #endif
 }
 
-inline void Lambda::UnSet(const uint sourceBox, const uint destBox)
-{
+inline void Lambda::UnSet(const uint sourceBox, const uint destBox) {
   isFraction[sourceBox] = isFraction[destBox] = false;
   lambdaVDW[sourceBox] = lambdaCoulomb[sourceBox] = 1.0;
   lambdaVDW[destBox] = lambdaCoulomb[destBox] = 0.0;
@@ -87,48 +85,42 @@ inline void Lambda::UnSet(const uint sourceBox, const uint destBox)
   kindIndex[sourceBox] = kindIndex[destBox] = 0;
 #ifdef GOMC_CUDA
   // Update Lambda on GPU
-  UpdateGPULambda(varCUDA, molIndex, lambdaVDW,
-                  lambdaCoulomb, isFraction);
+  UpdateGPULambda(varCUDA, molIndex, lambdaVDW, lambdaCoulomb, isFraction);
 #endif
 }
 
-
-inline double Lambda::GetLambdaVDW(const uint mol, const uint box) const
-{
+inline double Lambda::GetLambdaVDW(const uint mol, const uint box) const {
   double val = 1.0;
-  if(isFraction[box]) {
-    if(molIndex[box] == mol) {
+  if (isFraction[box]) {
+    if (molIndex[box] == mol) {
       val = lambdaVDW[box];
     }
   }
   return val;
 }
 
-inline double Lambda::GetLambdaCoulomb(const uint mol, const uint box) const
-{
+inline double Lambda::GetLambdaCoulomb(const uint mol, const uint box) const {
   double val = 1.0;
-  if(isFraction[box]) {
-    if(molIndex[box] == mol) {
+  if (isFraction[box]) {
+    if (molIndex[box] == mol) {
       val = lambdaCoulomb[box];
     }
   }
   return val;
 }
 
-inline bool Lambda::KindIsFractional(const uint kind, const uint box) const
-{
+inline bool Lambda::KindIsFractional(const uint kind, const uint box) const {
   bool result = false;
-  if(isFraction[box]) {
-    if(kindIndex[box] == kind) {
+  if (isFraction[box]) {
+    if (kindIndex[box] == kind) {
       result = true;
     }
   }
   return result;
 }
 
-inline int Lambda::GetMolIndex(const uint box) const
-{
-  if(isFraction[box]) {
+inline int Lambda::GetMolIndex(const uint box) const {
+  if (isFraction[box]) {
     return molIndex[box];
   } else {
     std::cout << "Error: Lambda.h, calling GetMolIndex\n";
