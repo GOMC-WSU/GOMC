@@ -77,7 +77,12 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
-                            int box);
+                            int box,
+                            int *gpu_wolf,
+                            int *gpu_dsf,
+                            double * gpu_wolf_alpha,
+                            double * gpu_wolf_factor_1,
+                            double * gpu_wolf_factor_2);
 
 
 __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
@@ -88,7 +93,12 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
                                  double gpu_lambdaCoulomb, bool sc_coul,
                                  double sc_sigma_6, double sc_alpha,
                                  uint sc_power, double *gpu_sigmaSq,
-                                 int gpu_count);
+                                 int gpu_count,
+                                 int gpu_wolf,
+                                 int gpu_dsf,
+                                 double gpu_wolf_alpha,
+                                 double gpu_wolf_factor_1,
+                                 double gpu_wolf_factor_2);
 __device__ double CalcCoulombVirGPU(double distSq, double qi_qj,
                                     double gpu_rCutCoulomb, double gpu_alpha,
                                     int gpu_VDW_Kind, int gpu_ewald,

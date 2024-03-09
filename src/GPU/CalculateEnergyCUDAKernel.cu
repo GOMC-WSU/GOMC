@@ -107,7 +107,12 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
       vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box], sc_coul, sc_sigma_6, sc_alpha, sc_power,
       vars->gpu_rMin, vars->gpu_rMaxSq, vars->gpu_expConst, vars->gpu_molIndex,
-      vars->gpu_lambdaVDW, vars->gpu_lambdaCoulomb, vars->gpu_isFraction, box);
+      vars->gpu_lambdaVDW, vars->gpu_lambdaCoulomb, vars->gpu_isFraction, box,
+      vars->gpu_wolf,
+      vars->gpu_dsf,
+      vars->gpu_wolf_alpha,
+      vars->gpu_wolf_factor_1,
+      vars->gpu_wolf_factor_2);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -164,7 +169,12 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
             double sc_sigma_6, double sc_alpha, uint sc_power, double *gpu_rMin,
             double *gpu_rMaxSq, double *gpu_expConst, int *gpu_molIndex,
             double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
-            bool *gpu_isFraction, int box) {
+            bool *gpu_isFraction, int box,
+            int *gpu_wolf,
+            int *gpu_dsf,
+            double * gpu_wolf_alpha,
+            double * gpu_wolf_factor_1,
+            double * gpu_wolf_factor_2) {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   double REn = 0.0, LJEn = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
@@ -228,7 +238,12 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
                 distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0], gpu_ewald[0],
                 gpu_VDW_Kind[0], gpu_alpha[box], gpu_rCutCoulomb[box],
                 gpu_isMartini[0], gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
-                sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq, gpu_count[0]);
+                sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq, gpu_count[0],
+                gpu_wolf[0],
+                gpu_dsf[0],
+                gpu_wolf_alpha[box],
+                gpu_wolf_factor_1[box],
+                gpu_wolf_factor_2[box]);
           }
         }
       }
@@ -246,7 +261,12 @@ CalcCoulombGPU(double distSq, int kind1, int kind2, double qi_qj_fact,
                double gpu_alpha, double gpu_rCutCoulomb, int gpu_isMartini,
                double gpu_diElectric_1, double gpu_lambdaCoulomb, bool sc_coul,
                double sc_sigma_6, double sc_alpha, uint sc_power,
-               double *gpu_sigmaSq, int gpu_count) {
+               double *gpu_sigmaSq, int gpu_count,
+               int gpu_wolf,
+               int gpu_dsf,
+               double gpu_wolf_alpha,
+               double gpu_wolf_factor_1,
+               double gpu_wolf_factor_2) {
   if ((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
   }

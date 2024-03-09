@@ -27,7 +27,13 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        int VDW_Kind, int isMartini, int count,
                        double Rcut, double const *rCutCoulomb,
                        double RcutLow, double Ron, double const *alpha,
-                       int ewald, double diElectric_1);
+                       int ewald, double diElectric_1,
+                       int wolf, 
+                       int dsf,
+                       double const * wolf_alpha,
+                       double const * wolf_factor_1, 
+                       double const * wolf_factor_2, 
+                       double const * wolf_factor_3);
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
                          uint maxAtomsInMol, uint maxMolNumber);
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);

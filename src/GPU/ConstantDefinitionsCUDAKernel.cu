@@ -33,7 +33,13 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *epsilon_Cn, double const *n, int VDW_Kind,
                        int isMartini, int count, double Rcut,
                        double const *rCutCoulomb, double RcutLow, double Ron,
-                       double const *alpha, int ewald, double diElectric_1) {
+                       double const *alpha, int ewald, double diElectric_1,
+                       int wolf, 
+                       int dsf,
+                       double const * wolf_alpha,
+                       double const * wolf_factor_1, 
+                       double const * wolf_factor_2, 
+                       double const * wolf_factor_3) {
   int countSq = count * count;
   CUMALLOC((void **)&vars.gpu_sigmaSq, countSq * sizeof(double));
   CUMALLOC((void **)&vars.gpu_epsilon_Cn, countSq * sizeof(double));
@@ -55,6 +61,14 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   CUMALLOC((void **)&vars.gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
   CUMALLOC((void **)&vars.gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
 
+  // allocate gpu memory for wolf variables
+  CUMALLOC((void**) &vars.gpu_wolf, sizeof(int));
+  CUMALLOC((void**) &vars.gpu_dsf, sizeof(int));
+  CUMALLOC((void**) &vars.gpu_wolf_alpha, (int)BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_wolf_factor_1, (int)BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_wolf_factor_2, (int)BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_wolf_factor_3, (int)BOX_TOTAL * sizeof(double));
+
   cudaMemcpy(vars.gpu_sigmaSq, sigmaSq, countSq * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_epsilon_Cn, epsilon_Cn, countSq * sizeof(double),
@@ -75,6 +89,18 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);
+
+  cudaMemcpy(vars.gpu_wolf, &wolf, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_dsf, &dsf, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_wolf_alpha, wolf_alpha, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_wolf_factor_1, wolf_factor_1, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_wolf_factor_2, wolf_factor_2, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice); 
+  cudaMemcpy(vars.gpu_wolf_factor_3, wolf_factor_3, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice); 
+
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
@@ -328,6 +354,12 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_rOn);
   CUFREE(vars->gpu_alpha);
   CUFREE(vars->gpu_ewald);
+  CUFREE(vars->gpu_wolf);
+  CUFREE(vars->gpu_dsf);
+  CUFREE(vars->gpu_wolf_alpha);
+  CUFREE(vars->gpu_wolf_factor_1);
+  CUFREE(vars->gpu_wolf_factor_2);
+  CUFREE(vars->gpu_wolf_factor_3);
   CUFREE(vars->gpu_diElectric_1);
   CUFREE(vars->gpu_x);
   CUFREE(vars->gpu_y);

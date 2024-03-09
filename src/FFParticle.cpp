@@ -90,7 +90,12 @@ void FFParticle::Init(ff_setup::Particle const &mie,
                     forcefield.isMartini, count, forcefield.rCut,
                     forcefield.rCutCoulomb, forcefield.rCutLow,
                     forcefield.rswitch, forcefield.alpha, forcefield.ewald,
-                    diElectric_1);
+                    diElectric_1, 
+                    forcefield.wolf, forcefield.dsf,
+                    forcefield.wolf_alpha,
+                    forcefield.wolf_factor_1,
+                    forcefield.wolf_factor_2,
+                    forcefield.wolf_factor_3);
 #endif
 }
 

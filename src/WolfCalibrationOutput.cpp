@@ -348,9 +348,9 @@ void WolfCalibrationOutput::CalculateGrid() {
                                     double rCutCoulomb = wolfCutoffCoulombStart[b] + RCutIndex*wolfCutoffCoulombDelta[b];
                                     // Wolf class has references to these forcefield values
                                     statValRef.forcefield.SetWolfAlphaAndWolfFactors(rCutCoulomb, alpha, b);
-                                    #ifdef GOMC_CUDA
-                                    statValRef.forcefield.particles->updateWolfEwald();
-                                    #endif
+                                    //#ifdef GOMC_CUDA
+                                    //statValRef.forcefield.particles->updateWolfEwald();
+                                    //#endif
                                     SystemPotential wolfTot = calcEn.SystemTotal();
                                     wolfTot.Total();
                                     sumRelativeErrorVec[b][wolfKind][coulKind][GetIndex(RCutIndex, alphaIndex, b)].add_value(wolfTot.boxEnergy[b].totalElect);
@@ -366,9 +366,9 @@ void WolfCalibrationOutput::CalculateGrid() {
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
             statValRef.forcefield.SetRCutCoulomb(originalCutoffCoulomb[b], b);
       }
-      #ifdef GOMC_CUDA
-      statValRef.forcefield.particles->updateWolfEwald();
-      #endif
+      //#ifdef GOMC_CUDA
+      //statValRef.forcefield.particles->updateWolfEwald();
+      //#endif
 
 }
 

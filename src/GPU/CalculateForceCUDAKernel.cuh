@@ -140,7 +140,13 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
-                            int box);
+                            int box,
+                            int *gpu_wolf,
+                            int *gpu_dsf,
+                            double * gpu_wolf_alpha,
+                            double * gpu_wolf_factor_1,
+                            double * gpu_wolf_factor_2,
+                            double * gpu_wolf_factor_3);
 
 __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
                                  int *gpu_cellVector,
@@ -203,7 +209,12 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
                                  double *gpu_lambdaVDW,
                                  double *gpu_lambdaCoulomb,
                                  bool *gpu_isFraction,
-                                 int box);
+                                 int box,
+                                 int *gpu_wolf,
+                                 int *gpu_dsf,
+                                 double * gpu_wolf_alpha,
+                                 double * gpu_wolf_factor_2,
+                                 double * gpu_wolf_factor_3);
 
 __global__ void VirialReciprocalGPU(double *gpu_x,
                                     double *gpu_y,
@@ -369,7 +380,12 @@ __device__ inline double CalcCoulombForceGPU(double distSq, double qi_qj,
     uint sc_power,
     double gpu_lambdaCoulomb,
     int gpu_count, int kind1,
-    int kind2)
+    int kind2,
+    int gpu_wolf,
+    int gpu_dsf,
+    double gpu_wolf_alpha,
+    double gpu_wolf_factor_2,
+    double gpu_wolf_factor_3)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
