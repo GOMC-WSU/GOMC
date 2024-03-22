@@ -726,9 +726,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         printf("%-40s %-s \n", "Info: Wolf Summation INTRAMOLECULAR DSF", "Active");
       }
     } else if (CheckString(line[0], "SimpleSelf")) {
-      sys.elect.intramoleculardsf = checkBool(line[1]);
-      sys.elect.readIntramolecularDSF = true;
-      if (sys.elect.intramoleculardsf) {
+      sys.elect.simpleself = checkBool(line[1]);
+      sys.elect.readSimpleSelf = true;
+      if (sys.elect.simpleself) {
         printf("%-40s %-s \n", "Info: Wolf Summation SIMPLE SELF", "Active");
       }
     } else if (CheckString(line[0], "WolfAlpha")) {
