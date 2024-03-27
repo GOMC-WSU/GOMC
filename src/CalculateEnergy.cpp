@@ -101,6 +101,7 @@ SystemPotential CalculateEnergy::SystemTotal() {
       ++thisMol;
     }
 
+//parallel is ~7seconds faster - (1000 steps 8 cores)
 #ifdef _OPENMP
 #pragma omp parallel for default(none) private(bondEnergy) shared(b, molID) \
     reduction(+:bondEn, nonbondEn, correction)

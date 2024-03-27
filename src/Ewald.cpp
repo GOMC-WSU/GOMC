@@ -36,6 +36,9 @@ along with this program, also can be found at
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
 //
+//    Parallel analysis performed by Rory Lange
+//    GOMC ran with 4cores, 500 steps on WSU Grid
+//    Parallel analyses' can be found before every openMP call
 //
 
 using namespace geom;
@@ -392,6 +395,13 @@ double Ewald::BoxReciprocal(uint box, bool isNewVolume) const {
       imageSzVal = static_cast<int>(imageSizeRef[box]);
     }
 #ifdef _OPENMP
+
+//parallel analysis
+//-----------------------
+//no omp: 16.968s
+//pragma omp parallel: 8.187s
+//original call: 8.180s
+
 #pragma omp parallel for default(none) shared(box, imageSzVal, prefactPtr) \
     reduction(+:energyRecip)
 #endif
@@ -431,7 +441,14 @@ double Ewald::MolReciprocal(XYZArray const &molCoords, const uint molIndex,
                          sumInew[box], energyRecipNew, box);
 #else
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(lambdaCoef, molCoords, \
+
+//parallel analysis
+//-------------------------
+//no omp: 8.257s
+//pragma omp parallel: 8.180s
+//original call: 8.635s
+
+#pragma omp parallel //for default(none) shared(lambdaCoef, molCoords, \
     startAtom, thisKind) firstprivate(box, length) \
 reduction(+:energyRecipNew)
 #endif
@@ -499,7 +516,15 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
 #else
     uint startAtom = mols.MolStart(molIndex);
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(molCoords, thisKind) \
+
+//left off here
+//parallel analysis
+//--------------------------
+//no omp: 7.224s
+//pragma omp parallel: 7.362s
+//original call:7.347s
+
+//#pragma omp parallel //for default(none) shared(molCoords, thisKind) \
 reduction(+:energyRecipNew) firstprivate(length, box, startAtom)
 #endif
     for (int i = 0; i < (int)imageSizeRef[box]; i++) {
@@ -555,7 +580,14 @@ double Ewald::ChangeLambdaRecip(XYZArray const &molCoords,
         sumRnew[box], sumInew[box], energyRecipNew, lambdaCoef, box);
 #else
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(lambdaCoef, molCoords, thisKind) \
+
+//parallel analysis
+//--------------------------
+//no omp: 7.191s
+//pragma omp parallel: 7.186s
+//original call: 7.247s
+
+#pragma omp parallel //for default(none) shared(lambdaCoef, molCoords, thisKind) \
 firstprivate(box, length, startAtom) reduction(+:energyRecipNew)
 #endif
     for (int i = 0; i < (int)imageSizeRef[box]; i++) {
@@ -604,6 +636,13 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+
+//parallel analysis
+//----------------------------
+//no omp: 8.506s
+//omp parallel: 7.268s
+//original call: 7.247s
+
 #pragma omp parallel for default(none) shared(lambda_Coul) \
 firstprivate(lambdaSize, length, startAtom, box, iState) \
 reduction(+:energyRecip[:lambdaSize])
@@ -679,6 +718,13 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
 #else
     uint startAtom = mols.MolStart(molIndex);
 #ifdef _OPENMP
+
+//parallel analysis
+//-----------------------
+//no omp: 7.327s
+//just pragma omp parallel: 7.353s
+//original call: 7.247s
+
 #pragma omp parallel for default(none) shared(molCoords, thisKind) \
 firstprivate(length, box, startAtom) reduction(+:energyRecipNew)
 #endif
@@ -732,7 +778,14 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     lengthOld = thisKindOld.NumAtoms();
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
+
+//parallel analysis
+//----------------------------
+//no omp: 7.247s
+//pragma omp parallel: 7.306s
+//originall call: 7.283s
+
+//#pragma omp parallel //for default(none) shared(box, first_call, lengthNew, lengthOld, \
     newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
 reduction(+:energyRecipNew)
 #endif
@@ -1224,6 +1277,13 @@ Virial Ewald::VirialReciprocal(Virial &virial, uint box) const {
                           wT23, wT33, imageSizeRef[box], constVal, box);
 #else
 #ifdef _OPENMP
+
+//parallel analysis
+//------------------------------
+//no omp: 8.621s
+//just pragma omp parallel: 8.756s
+//original call: 7.283s
+
 #pragma omp parallel for default(none) shared(box, constVal) reduction(+:wT11, wT22, wT33)
 #endif
   for (int i = 0; i < (int)imageSizeRef[box]; i++) {
@@ -1261,7 +1321,14 @@ Virial Ewald::VirialReciprocal(Virial &virial, uint box) const {
       double charge = particleCharge[atom] * lambdaCoef;
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(atom, box, charge, diffC) reduction(+:wT11, wT22, wT33)
+
+//parallel analysis
+//-----------------------
+//no omp call: 7.283s
+//just pragma omp parallel: 7.636s
+//original call: 8.140s
+
+//#pragma omp parallel for default(none) shared(atom, box, charge, diffC) reduction(+:wT11, wT22, wT33)
 #endif
       for (int i = 0; i < (int)imageSizeRef[box]; i++) {
         // compute the dot product of k and r
@@ -1569,6 +1636,13 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
             }
           }
 #ifdef _OPENMP
+
+//parallel analysis
+//-------------------------------------
+//original omp call: 8.104s
+//without parallelization: 9.301s
+//just pragma omp parallel: 8.438s
+
 #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, p) reduction(+:X, Y, Z)
 #endif
           for (int i = 0; i < (int)imageSizeRef[box]; i++) {

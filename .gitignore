@@ -41,3 +41,8 @@ cmake-build-debug
 .vscode
 output.txt
 *.orig
+
+#Ensembles
+GCMC
+GEMC
+C5A_bench
