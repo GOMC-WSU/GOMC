@@ -20,4 +20,4 @@ public:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCFACTORY_H*/

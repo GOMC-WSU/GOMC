@@ -93,4 +93,4 @@ private:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCCYCLIC_H*/

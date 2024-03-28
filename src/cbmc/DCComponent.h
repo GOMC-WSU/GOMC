@@ -29,4 +29,4 @@ public:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCCOMPONENT_H*/

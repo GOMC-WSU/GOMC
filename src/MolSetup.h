@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef MOLSETUP_H
-#define MOLSETUP_H
+#ifndef MOL_SETUP_H
+#define MOL_SETUP_H
 
 #include <cereal/access.hpp>
 #include <cereal/types/map.hpp>
@@ -337,4 +337,4 @@ private:
     ar &molVars;
   }
 };
-#endif /*MOLSETUP_H*/
+#endif /*MOL_SETUP_H*/

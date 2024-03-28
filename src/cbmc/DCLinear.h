@@ -47,4 +47,4 @@ private:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCLINEAR_H*/

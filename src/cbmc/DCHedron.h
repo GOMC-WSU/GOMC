@@ -69,4 +69,4 @@ private:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCHEDRON_H*/

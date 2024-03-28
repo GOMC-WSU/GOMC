@@ -32,4 +32,4 @@ private:
   uint atom;
 };
 } // namespace cbmc
-#endif
+#endif /*DCSINGLE_H*/

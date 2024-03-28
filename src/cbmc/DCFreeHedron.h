@@ -50,4 +50,4 @@ private:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCFREEHEDRON_H*/
