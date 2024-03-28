@@ -192,7 +192,7 @@ else
         TESTENS=""
         for ENS in $ENSEMBLES
         do
-            TESTENS+="GOMC_"$ENS"_MPI_Test "
+            TESTENS+="GOMC_$ENS_MPI_Test "
         done
         ENSEMBLES+=$TESTENS
         CMAKEARGS+="-DGOMC_GTEST_MPI=on "
@@ -200,7 +200,7 @@ else
         TESTENS=""
         for ENS in $ENSEMBLES
         do
-            TESTENS+="GOMC_"$ENS"_Test "
+            TESTENS+="GOMC_$ENS_Test "
         done
         ENSEMBLES+=$TESTENS
         CMAKEARGS+="-DGOMC_GTEST=on "
