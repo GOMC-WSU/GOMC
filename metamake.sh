@@ -138,10 +138,10 @@ done
 # This will ensure we don't print empty for ensembles.
 if [ -z "$ENSEMBLES" ];
 then
-	ENSEMBLES="NVT NPT GCMC GEMC"
+	ENSEMBLES="NVT NPT GCMC GEMC "
 	if (( use_cuda ))
 	then
-		ENSEMBLES+=" GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC"
+		ENSEMBLES+="GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC "
 	fi
 fi
 
@@ -192,7 +192,7 @@ else
         TESTENS=""
         for ENS in $ENSEMBLES
         do
-            TESTENS+="GOMC_$ENS_MPI_Test "
+            TESTENS+="GOMC_${ENS}_MPI_Test "
         done
         ENSEMBLES+=$TESTENS
         CMAKEARGS+="-DGOMC_GTEST_MPI=on "
@@ -200,7 +200,7 @@ else
         TESTENS=""
         for ENS in $ENSEMBLES
         do
-            TESTENS+="GOMC_$ENS_Test "
+            TESTENS+="GOMC_${ENS}_Test "
         done
         ENSEMBLES+=$TESTENS
         CMAKEARGS+="-DGOMC_GTEST=on "
