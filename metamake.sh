@@ -100,7 +100,7 @@ while getopts 'acdglmnpt' opt; do
             echo "-g, use the GNU compiler"
 			echo "-l, use the Clang compiler"
             echo "-m, enables MPI support (Required for Parallel Tempering)"
-            echo "-n, disables most optimizing compiler flags"
+            echo "-n, disables most compiler optimization flags"
             echo "-p enables GPU code profiling (NVTX tags)"
             echo "-t disables Intel compiler to allow GTests to compile"
             echo "For combined usage, concatenate flags, e.g.: -ptmg"
@@ -149,14 +149,16 @@ mkdir -p bin
 cd bin
 
 if (( !use_gtest )); then
-    if (( !use_gcc && !use_clang )); then
-        ICC_PATH="$(which icx 2> /dev/null)"
-        ICPC_PATH="$(which icpx 2> /dev/null)"
-        if [ -z "$ICC_PATH" ]
-        then
+    if (( !use_gcc && !use_clang ));
+    then
+# comment out this check until CUDA supports the newer Intel Compiler
+#        ICC_PATH="$(which icx 2> /dev/null)"
+#        ICPC_PATH="$(which icpx 2> /dev/null)"
+#        if [ -z "$ICC_PATH" ]
+#        then
             ICC_PATH="$(which icc 2> /dev/null)"
             ICPC_PATH="$(which icpc 2> /dev/null)"
-		fi
+#		fi
         if [ -z "$ICC_PATH" ]
         then
             export CC="$(which gcc 2> /dev/null)"
