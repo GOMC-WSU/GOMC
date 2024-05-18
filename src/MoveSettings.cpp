@@ -254,8 +254,9 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind) {
         scale[box][move][kind] *= 0.5;
       }
     }
-    // Warning: This will lead to have acceptance > 50%
-    double maxVolExchange = boxDimRef.volume[box] - boxDimRef.minVol[box];
+    // Warning: This could lead to an acceptance of > 50%
+    double maxVolExchange =
+        boxDimRef.volume[box] * 0.34 - boxDimRef.minVol[box];
     num::Bound<double>(scale[box][move][kind], 0.001, maxVolExchange - 0.001);
   }
 #endif
