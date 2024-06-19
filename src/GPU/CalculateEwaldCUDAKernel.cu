@@ -22,7 +22,7 @@ along with this program, also can be found at
 using namespace cub;
 
 #define IMAGES_PER_BLOCK 64
-#define PARTICLES_PER_BLOCK 64
+#define PARTICLES_PER_BLOCK 32
 
 #define FULL_MASK 0xffffffff
 
@@ -65,7 +65,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  dim3 threadsPerBlock(256, 1, 1);
+  dim3 threadsPerBlock(128, 1, 1);
   dim3 blocksPerGrid((int)(imageSize / threadsPerBlock.x) + 1,
                      (int)(atomNumber / PARTICLES_PER_BLOCK) + 1, 1);
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
@@ -127,7 +127,7 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  dim3 threadsPerBlock(256, 1, 1);
+  dim3 threadsPerBlock(128, 1, 1);
   dim3 blocksPerGrid((int)(imageSize / threadsPerBlock.x) + 1,
                      (int)(atomNumber / PARTICLES_PER_BLOCK) + 1, 1);
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
@@ -186,10 +186,10 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
         gpu_z[offset_coordinates_index + threadIdx.x];
   }
 
-  if (imageID >= imageSize)
-    return;
-
+  if (imageID >= imageSize) return;
   __syncthreads();
+
+#pragma unroll 32
   for (int particleID = 0; particleID < numberOfAtoms; particleID++) {
     double dot = DotProductGPU(gpu_kx[imageID], gpu_ky[imageID],
                                gpu_kz[imageID], shared_coords[particleID * 3],
