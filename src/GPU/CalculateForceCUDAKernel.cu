@@ -17,7 +17,7 @@ along with this program, also can be found at
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "cub/cub.cuh"
 #define NUMBER_OF_NEIGHBOR_CELLS 27
-#define PARTICLES_PER_BLOCK 64
+#define PARTICLES_PER_BLOCK 32
 
 using namespace cub;
 
@@ -407,7 +407,7 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
 
   // Run the kernel...
   // calculate block and grid sizes
-  dim3 threadsPerBlock(256, 1, 1);
+  dim3 threadsPerBlock(128, 1, 1);
   int blocksPerGridX = (int)(imageSize / threadsPerBlock.x) + 1;
   int blocksPerGridY = (int)(atomNumber / PARTICLES_PER_BLOCK) + 1;
   dim3 blocksPerGrid(blocksPerGridX, blocksPerGridY, 1);
@@ -807,6 +807,7 @@ __global__ void VirialReciprocalGPU(
   __syncthreads();
 
   // Intramolecular part
+#pragma unroll 32
   for (int particleID = 0; particleID < numberOfAtoms; particleID++) {
     double dotsin, dotcos;
 
