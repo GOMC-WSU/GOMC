@@ -471,6 +471,10 @@ __global__ void BoxInterForceGPU(
     double sc_alpha, uint sc_power, double *gpu_rMin, double *gpu_rMaxSq,
     double *gpu_expConst, int *gpu_molIndex, double *gpu_lambdaVDW,
     double *gpu_lambdaCoulomb, bool *gpu_isFraction, int box) {
+  __shared__ double shr_cutoff;
+  __shared__ int shr_particlesInsideCurrentCell, shr_numberOfPairs;
+  __shared__ int shr_currentCellStartIndex, shr_neighborCellStartIndex;
+  __shared__ bool shr_sameCell;
   double distSq;
   double3 virComponents;
 
@@ -491,48 +495,58 @@ __global__ void BoxInterForceGPU(
     gpu_rT23[threadID] = 0.0;
   }
 
-  double3 diff_com;
-  diff_com = make_double3(0.0, 0.0, 0.0);
-
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
-
   int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
-  // calculate number of particles inside neighbor Cell
-  int particlesInsideCurrentCell, particlesInsideNeighboringCell;
-  int endIndex = gpu_cellStartIndex[neighborCell + 1];
-  particlesInsideNeighboringCell = endIndex - gpu_cellStartIndex[neighborCell];
+  //Skip some block pairs so we don't double count particle pairs
+  if (currentCell > neighborCell) return;
 
-  // calculate number of particles inside current Cell
-  endIndex = gpu_cellStartIndex[currentCell + 1];
-  particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
+  if (threadIdx.x == 0) {
+    // Calculate number of particles inside current Cell
+    shr_currentCellStartIndex = gpu_cellStartIndex[currentCell];
+    shr_particlesInsideCurrentCell =
+        gpu_cellStartIndex[currentCell + 1] - shr_currentCellStartIndex;
 
-  // total number of pairs
-  int numberOfPairs =
-      particlesInsideCurrentCell * particlesInsideNeighboringCell;
+    // Calculate number of particles inside neighbor Cell
+    shr_neighborCellStartIndex = gpu_cellStartIndex[neighborCell];
+    int particlesInsideNeighboringCell =
+        gpu_cellStartIndex[neighborCell + 1] - shr_neighborCellStartIndex;
 
-  for (int pairIndex = threadIdx.x; pairIndex < numberOfPairs;
+    shr_sameCell = currentCell == neighborCell;
+    // Total number of pairs
+    shr_numberOfPairs =
+        shr_particlesInsideCurrentCell * particlesInsideNeighboringCell;
+    shr_cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
+  }
+  __syncthreads();
+
+  double3 diff_com;
+
+  for (int pairIndex = threadIdx.x; pairIndex < shr_numberOfPairs;
        pairIndex += blockDim.x) {
-    int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
-    int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
+    int neighborParticleIndex = pairIndex / shr_particlesInsideCurrentCell;
+    int currentParticleIndex = pairIndex % shr_particlesInsideCurrentCell;
 
     int currentParticle =
-        gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
-    int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] +
+        gpu_cellVector[shr_currentCellStartIndex + currentParticleIndex];
+    int neighborParticle = gpu_cellVector[shr_neighborCellStartIndex +
                                           neighborParticleIndex];
 
-    if (currentParticle < neighborParticle &&
-        gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
+    // We don't process the same pair of cells twice, so we just need to check
+    // to be sure we have different molecules. The exception is when the two
+    // cells are the same, then we need to skip some pairs of molecules so we
+    // don't double count any pairs.
+    int mA = gpu_particleMol[currentParticle];
+    int mB = gpu_particleMol[neighborParticle];
+    bool skip = mA == mB || (shr_sameCell && mA > mB);
+    if (!skip) {
       if (InRcutGPU(distSq, virComponents, gpu_x, gpu_y, gpu_z, currentParticle,
-                    neighborParticle, axis, halfAx, cutoff, gpu_nonOrth[0],
+                    neighborParticle, axis, halfAx, shr_cutoff, gpu_nonOrth[0],
                     gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x,
                     gpu_Invcell_y, gpu_Invcell_z)) {
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
-        int mA = gpu_particleMol[currentParticle];
-        int mB = gpu_particleMol[neighborParticle];
 
         double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
                                               gpu_molIndex, gpu_lambdaVDW);
