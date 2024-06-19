@@ -40,10 +40,9 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   int energyVectorLen;
   double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;
-  double *gpu_final_REn, *gpu_final_LJEn;
 
   // Run the kernel
-  threadsPerBlock = 256;
+  threadsPerBlock = 128;
   blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELL;
   energyVectorLen = blocksPerGrid * threadsPerBlock;
 
@@ -62,10 +61,8 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   CUMALLOC((void **)&gpu_particleKind, particleKind.size() * sizeof(int));
   CUMALLOC((void **)&gpu_particleMol, particleMol.size() * sizeof(int));
   CUMALLOC((void **)&gpu_LJEn, energyVectorLen * sizeof(double));
-  CUMALLOC((void **)&gpu_final_LJEn, sizeof(double));
   if (electrostatic) {
     CUMALLOC((void **)&gpu_REn, energyVectorLen * sizeof(double));
-    CUMALLOC((void **)&gpu_final_REn, sizeof(double));
   }
 
   // Copy necessary data to GPU
@@ -108,27 +105,29 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
       vars->gpu_Invcell_z[box], sc_coul, sc_sigma_6, sc_alpha, sc_power,
       vars->gpu_rMin, vars->gpu_rMaxSq, vars->gpu_expConst, vars->gpu_molIndex,
       vars->gpu_lambdaVDW, vars->gpu_lambdaCoulomb, vars->gpu_isFraction, box);
+#ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
   // LJ ReduceSum
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-                    gpu_final_LJEn, energyVectorLen);
+                    vars->gpu_finalVal, energyVectorLen);
   CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-                    gpu_final_LJEn, energyVectorLen);
+                    vars->gpu_finalVal, energyVectorLen);
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(&LJEn, gpu_final_LJEn, sizeof(double),
+  CubDebugExit(cudaMemcpy(&LJEn, vars->gpu_finalVal, sizeof(double),
                           cudaMemcpyDeviceToHost));
   if (electrostatic) {
     // Real Term ReduceSum
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-                      gpu_final_REn, energyVectorLen);
+                      vars->gpu_finalVal, energyVectorLen);
     // Copy back the result to CPU ! :)
-    CubDebugExit(cudaMemcpy(&REn, gpu_final_REn, sizeof(double),
+    CubDebugExit(cudaMemcpy(&REn, vars->gpu_finalVal, sizeof(double),
                             cudaMemcpyDeviceToHost));
   } else {
     REn = 0.0;
@@ -139,10 +138,8 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   CUFREE(gpu_particleKind);
   CUFREE(gpu_particleMol);
   CUFREE(gpu_LJEn);
-  CUFREE(gpu_final_LJEn);
   if (electrostatic) {
     CUFREE(gpu_REn);
-    CUFREE(gpu_final_REn);
   }
   CUFREE(gpu_neighborList);
   CUFREE(gpu_cellStartIndex);

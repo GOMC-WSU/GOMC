@@ -26,6 +26,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
   }
 }
 
+#ifndef NDEBUG
 inline void checkLastErrorCUDA(const char *file, int line)
 {
   cudaError_t code = cudaGetLastError();
@@ -34,6 +35,7 @@ inline void checkLastErrorCUDA(const char *file, int line)
     exit(code);
   }
 }
+#endif
 
 inline void printFreeMemory()
 {
@@ -58,33 +60,40 @@ class VariablesCUDA
 public:
   VariablesCUDA()
   {
-    gpu_sigmaSq = NULL;
-    gpu_epsilon_Cn = NULL;
-    gpu_n = NULL;
-    gpu_VDW_Kind = NULL;
-    gpu_isMartini = NULL;
-    gpu_count = NULL;
-    gpu_rCut = NULL;
-    gpu_rCutLow = NULL;
-    gpu_rOn = NULL;
-    gpu_alpha = NULL;
-    gpu_rCutCoulomb = NULL;
-    gpu_ewald = NULL;
-    gpu_diElectric_1 = NULL;
-    gpu_aForcex = NULL;
-    gpu_aForcey = NULL;
-    gpu_aForcez = NULL;
-    gpu_mForcex = NULL;
-    gpu_mForcey = NULL;
-    gpu_mForcez = NULL;
-    gpu_startAtomIdx = NULL;
+    cub_reduce_storage_size = 0;
+    cub_reduce_storage = nullptr;
+    gpu_sigmaSq = nullptr;
+    gpu_epsilon_Cn = nullptr;
+    gpu_n = nullptr;
+    gpu_VDW_Kind = nullptr;
+    gpu_isMartini = nullptr;
+    gpu_count = nullptr;
+    gpu_startAtomIdx = nullptr;
+    gpu_rCut = nullptr;
+    gpu_rCutCoulomb = nullptr;
+    gpu_rCutLow = nullptr;
+    gpu_rOn = nullptr;
+    gpu_alpha = nullptr;
+    gpu_ewald = nullptr;
+    gpu_diElectric_1 = nullptr;
+    gpu_finalVal = nullptr;
+    gpu_aForcex = nullptr;
+    gpu_aForcey = nullptr;
+    gpu_aForcez = nullptr;
+    gpu_mForcex = nullptr;
+    gpu_mForcey = nullptr;
+    gpu_mForcez = nullptr;
+    gpu_startAtomIdx = nullptr;
 
-    // setting lambda values to null
-    gpu_molIndex = NULL;
-    gpu_lambdaVDW = NULL;
-    gpu_lambdaCoulomb = NULL;
-    gpu_isFraction = NULL;
+    // setting lambda valuesy to null
+    gpu_molIndex = nullptr;
+    gpu_lambdaVDW = nullptr;
+    gpu_lambdaCoulomb = nullptr;
+    gpu_isFraction = nullptr;
   }
+
+  size_t cub_reduce_storage_size;
+  void *cub_reduce_storage;
   double *gpu_sigmaSq;
   double *gpu_epsilon_Cn;
   double *gpu_n;
@@ -99,6 +108,7 @@ public:
   double *gpu_alpha;
   int *gpu_ewald;
   double *gpu_diElectric_1;
+  double *gpu_finalVal;
   double *gpu_x, *gpu_y, *gpu_z;
   double *gpu_nx, *gpu_ny, *gpu_nz;
   double *gpu_dx, *gpu_dy, *gpu_dz;
@@ -107,6 +117,7 @@ public:
   double **gpu_sumRnew, **gpu_sumInew, **gpu_sumRref, **gpu_sumIref;
   double **gpu_prefact, **gpu_prefactRef;
   double **gpu_hsqr, **gpu_hsqrRef;
+  double *gpu_recipEnergies;
   double *gpu_comx, *gpu_comy, *gpu_comz;
   double *gpu_rT11, *gpu_rT12, *gpu_rT13;
   double *gpu_rT22, *gpu_rT23, *gpu_rT33;

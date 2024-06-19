@@ -273,8 +273,10 @@ void CallTranslateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
+
   TranslateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(
       molCount, t_max, vars->gpu_mForcex, vars->gpu_mForcey, vars->gpu_mForcez,
       vars->gpu_inForceRange, step, key, seed, vars->gpu_x, vars->gpu_y,
@@ -285,8 +287,10 @@ void CallTranslateParticlesGPU(
       lambdaBETA, vars->gpu_t_k_x, vars->gpu_t_k_y, vars->gpu_t_k_z,
       gpu_isMoleculeInvolved, vars->gpu_mForceRecx, vars->gpu_mForceRecy,
       vars->gpu_mForceRecz);
+#ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   cudaMemcpy(newMolPos.x, vars->gpu_x, atomCount * sizeof(double),
              cudaMemcpyDeviceToHost);
@@ -310,7 +314,9 @@ void CallTranslateParticlesGPU(
              cudaMemcpyDeviceToHost);
   CUFREE(gpu_isMoleculeInvolved);
   CUFREE(gpu_particleMol);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void CallRotateParticlesGPU(
@@ -362,8 +368,10 @@ void CallRotateParticlesGPU(
       vars->gpu_Invcell_y[box], vars->gpu_Invcell_z[box], vars->gpu_nonOrth,
       lambdaBETA, vars->gpu_r_k_x, vars->gpu_r_k_y, vars->gpu_r_k_z,
       gpu_isMoleculeInvolved);
+#ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   cudaMemcpy(newMolPos.x, vars->gpu_x, atomCount * sizeof(double),
              cudaMemcpyDeviceToHost);
@@ -381,7 +389,9 @@ void CallRotateParticlesGPU(
              cudaMemcpyDeviceToHost);
   CUFREE(gpu_isMoleculeInvolved);
   CUFREE(gpu_particleMol);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 __global__ void TranslateParticlesKernel(
@@ -603,9 +613,10 @@ void BrownianMotionRotateParticlesGPU(
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, r_max, step, key,
         seed, BETA);
-
+#ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   cudaMemcpy(newMolPos.x, vars->gpu_x, atomCount * sizeof(double),
              cudaMemcpyDeviceToHost);
@@ -620,7 +631,9 @@ void BrownianMotionRotateParticlesGPU(
   cudaMemcpy(r_k.z, vars->gpu_r_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
   CUFREE(gpu_moleculeInvolved);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 template <const bool isOrthogonal>
@@ -819,9 +832,10 @@ void BrownianMotionTranslateParticlesGPU(
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, t_max, step, key,
         seed, BETA);
-
+#ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   cudaMemcpy(newMolPos.x, vars->gpu_x, atomCount * sizeof(double),
              cudaMemcpyDeviceToHost);
@@ -842,7 +856,9 @@ void BrownianMotionTranslateParticlesGPU(
   cudaMemcpy(t_k.z, vars->gpu_t_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
   CUFREE(gpu_moleculeInvolved);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 template <const bool isOrthogonal>

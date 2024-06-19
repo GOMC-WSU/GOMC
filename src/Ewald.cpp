@@ -489,13 +489,27 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
     uint length = thisKind.NumAtoms();
 #ifdef GOMC_CUDA
     bool insert = true;
-    std::vector<double> MolCharge;
-    for (uint p = 0; p < length; p++) {
-      MolCharge.push_back(thisKind.AtomCharge(p));
+    std::vector<double> molCharges;
+	int charges = 0;
+    for (uint p = 0; p < length; ++p) {
+	  if (thisKind.AtomCharge(p) != 0.0) {
+        molCharges.push_back(thisKind.AtomCharge(p));
+        if (p > charges) {
+          molCoords.Set(charges, molCoords[p]);
+         }
+        charges++;
+      }
     }
-    CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, MolCharge,
-                          imageSizeRef[box], sumRnew[box], sumInew[box], insert,
-                          energyRecipNew, box);
+
+    CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
+                          imageSizeRef[box], sumRnew[box], sumInew[box],
+                          sumRref[box], sumIref[box], insert, energyRecipNew, box);
+    //If there are no charged particles, the energy doesn't change, but we need
+	//to run CallSwapReciprocalGPU to make sure the sumRnew and sumInew arrays
+	//have correct values
+	if (charges == 0) {
+      energyRecipNew = sysPotRef.boxEnergy[box].recip;
+    }
 #else
     uint startAtom = mols.MolStart(molIndex);
 #ifdef _OPENMP
@@ -668,14 +682,26 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
     uint length = thisKind.NumAtoms();
 #ifdef GOMC_CUDA
     bool insert = false;
-    std::vector<double> MolCharge;
-    for (uint p = 0; p < length; p++) {
-      MolCharge.push_back(thisKind.AtomCharge(p));
+    std::vector<double> molCharges;
+	int charges = 0;
+    for (uint p = 0; p < length; ++p) {
+	  if (thisKind.AtomCharge(p) != 0.0) {
+        molCharges.push_back(thisKind.AtomCharge(p));
+        if (p > charges) {
+          molCoords.Set(charges, molCoords[p]);
+        }
+        charges++;
+      }
     }
-    CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, MolCharge,
-                          imageSizeRef[box], sumRnew[box], sumInew[box], insert,
-                          energyRecipNew, box);
-
+    CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
+                          imageSizeRef[box], sumRnew[box], sumInew[box],
+                          sumRref[box], sumIref[box], insert, energyRecipNew, box);
+    //If there are no charged particles, the energy doesn't change, but we need
+	//to run CallSwapReciprocalGPU to make sure the sumRnew and sumInew arrays
+	//have correct values
+	if (charges == 0) {
+      energyRecipNew = sysPotRef.boxEnergy[box].recip;
+    }
 #else
     uint startAtom = mols.MolStart(molIndex);
 #ifdef _OPENMP
@@ -725,6 +751,15 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
 
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
+// Because MolExchangeReciprocal does not have a matching GPU function, this is
+// a stub function to copy the GPU sumRref and sumIref vectors to the CPU in
+// order to calcuate the new sums. If this function is ported to the GPU, this
+// call should be removed.
+#ifdef GOMC_CUDA
+  CallMolExchangeReciprocalStartGPU(ff.particles->getCUDAVars(), imageSizeRef[box],
+                               sumRref[box], sumIref[box], box);
+#endif
+
     uint lengthNew, lengthOld;
     MoleculeKind const &thisKindNew = newMol[0].GetKind();
     MoleculeKind const &thisKindOld = oldMol[0].GetKind();

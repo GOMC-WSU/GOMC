@@ -61,7 +61,7 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
                           uint imageSize,
                           double *sumRnew,
                           double *sumInew,
-                          double &energyRecipNew,
+                          double &energyRecip,
                           uint box);
 
 //Calculate reciprocal term for lambdaNew and Old with same coordinates
@@ -71,7 +71,7 @@ void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
                                       uint imageSize,
                                       double *sumRnew,
                                       double *sumInew,
-                                      double &energyRecipNew,
+                                      double &energyRecip,
                                       const double lambdaCoef,
                                       uint box);
 
@@ -81,14 +81,22 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                            uint imageSize,
                            double *sumRnew,
                            double *sumInew,
+                           double *sumRref,
+                           double *sumIref,
                            const bool insert,
-                           double &energyRecipNew,
+                           double &energyRecip,
                            uint box);
 
 void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
                                   uint imageSize,
                                   double *sumRnew,
                                   double *sumInew,
+                                  uint box);
+
+void CallMolExchangeReciprocalStartGPU(VariablesCUDA *vars,
+                                  uint imageSize,
+                                  double *sumRref,
+                                  double *sumIref,
                                   uint box);
 
 __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
@@ -154,7 +162,7 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                                  double *gpu_sumRref,
                                  double *gpu_sumIref,
                                  double *gpu_prefactRef,
-                                 double *gpu_energyRecipNew,
+                                 double *gpu_RecipEnergies,
                                  int imageSize);
 
 __global__ void ChangeLambdaMolReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
@@ -166,7 +174,7 @@ __global__ void ChangeLambdaMolReciprocalGPU(double *gpu_x, double *gpu_y, doubl
                                             double *gpu_sumRref,
                                             double *gpu_sumIref,
                                             double *gpu_prefactRef,
-                                            double *gpu_energyRecipNew,
+                                            double *gpu_RecipEnergies,
                                             double lambdaCoef,
                                             int imageSize);
 
@@ -180,13 +188,21 @@ __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
                                   double *gpu_sumIref,
                                   double *gpu_prefactRef,
                                   const bool insert,
-                                  double *gpu_energyRecipNew,
+                                  double *gpu_RecipEnergies,
+                                  int imageSize);
+
+__global__ void NewSwapReciprocalGPU(VariablesCUDA *vars,
+                                  int atomNumber,
+                                  uint box,
+                                  double *gpu_particleCharge,
+                                  const bool insert,
+                                  double *gpu_RecipEnergies,
                                   int imageSize);
 
 __global__ void BoxReciprocalGPU(double *gpu_prefact,
                                  double *gpu_sumRnew,
                                  double *gpu_sumInew,
-                                 double *gpu_energyRecip,
+                                 double *gpu_RecipEnergies,
                                  int imageSize);
 
 #endif /*GOMC_CUDA*/

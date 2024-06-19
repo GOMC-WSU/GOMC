@@ -8,8 +8,9 @@ along with this program, also can be found at
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <stdio.h>
+#include "cub/cub.cuh"
 
+#include <cstdio>
 #include <iostream>
 
 #include "CUDAMemoryManager.cuh"
@@ -48,8 +49,9 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   CUMALLOC((void **)&vars.gpu_alpha, BOX_TOTAL * sizeof(double));
   CUMALLOC((void **)&vars.gpu_ewald, sizeof(int));
   CUMALLOC((void **)&vars.gpu_diElectric_1, sizeof(double));
+  CUMALLOC((void **)&vars.gpu_finalVal, sizeof(double));
 
-  // allocate gpu memory for lambda variables
+  // allocate GPU memory for lambda variables
   CUMALLOC((void **)&vars.gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
   CUMALLOC((void **)&vars.gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
   CUMALLOC((void **)&vars.gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
@@ -75,7 +77,9 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
@@ -138,7 +142,9 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void **)&vars->gpu_mForceRecz, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_cellVector, atomNumber * sizeof(int));
   CUMALLOC((void **)&vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
@@ -153,7 +159,9 @@ void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_expConst, expConst, size * sizeof(double),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal) {
@@ -189,7 +197,15 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal) {
     CUMALLOC((void **)&vars->gpu_hsqr[b], imageTotal * sizeof(double));
     CUMALLOC((void **)&vars->gpu_hsqrRef[b], imageTotal * sizeof(double));
   }
+  CUMALLOC((void **)&vars->gpu_recipEnergies, imageTotal * sizeof(double));
+  //Allocate space for cub reduction operations on the Ewald arrays
+  //Set to the maximum value
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                         vars->gpu_recipEnergies, vars->gpu_finalVal, imageTotal);
+  CUMALLOC(&vars->cub_reduce_storage, vars->cub_reduce_storage_size);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal) {
@@ -207,7 +223,9 @@ void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal) {
              imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_kzRef[box], vars->gpu_kz[box],
              imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void CopyRefToNewCUDA(VariablesCUDA *vars, uint box, uint imageTotal) {
@@ -215,7 +233,9 @@ void CopyRefToNewCUDA(VariablesCUDA *vars, uint box, uint imageTotal) {
              imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_sumInew[box], vars->gpu_sumIref[box],
              imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box) {
@@ -259,7 +279,9 @@ void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
   cudaMemcpy(vars->gpu_cell_z[box], cellBasis_z, 3 * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
@@ -273,7 +295,9 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
   cudaMemcpy(vars->gpu_Invcell_z[box], invCellBasis_z, 3 * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
+#ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
@@ -293,6 +317,9 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
     CUFREE(vars->gpu_hsqr[b]);
     CUFREE(vars->gpu_hsqrRef[b]);
   }
+  CUFREE(vars->gpu_recipEnergies);
+  CUFREE(vars->cub_reduce_storage);
+  
   delete[] vars->gpu_kx;
   delete[] vars->gpu_ky;
   delete[] vars->gpu_kz;
@@ -329,6 +356,7 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_alpha);
   CUFREE(vars->gpu_ewald);
   CUFREE(vars->gpu_diElectric_1);
+  CUFREE(vars->gpu_finalVal);
   CUFREE(vars->gpu_x);
   CUFREE(vars->gpu_y);
   CUFREE(vars->gpu_z);
@@ -376,7 +404,7 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
     CUFREE(vars->gpu_Invcell_z[b]);
   }
 
-  // delete gpu memory for lambda variables
+  // delete GPU memory for lambda variables
   CUFREE(vars->gpu_molIndex);
   CUFREE(vars->gpu_lambdaVDW);
   CUFREE(vars->gpu_lambdaCoulomb);
