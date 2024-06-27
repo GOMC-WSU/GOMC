@@ -44,7 +44,7 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   // Run the kernel
   threadsPerBlock = 128;
   blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELL;
-  energyVectorLen = blocksPerGrid * threadsPerBlock;
+  energyVectorLen = blocksPerGrid;
 
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(neighborListCount);
@@ -132,8 +132,8 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   } else {
     REn = 0.0;
   }
+  
   CUFREE(d_temp_storage);
-
   CUFREE(gpu_particleCharge);
   CUFREE(gpu_particleKind);
   CUFREE(gpu_particleMol);
@@ -162,51 +162,75 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
             double *gpu_rMaxSq, double *gpu_expConst, int *gpu_molIndex,
             double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
             bool *gpu_isFraction, int box) {
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  double REn = 0.0, LJEn = 0.0;
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
+
+  __shared__ double shr_cutoff;
+  __shared__ int shr_particlesInsideCurrentCell, shr_numberOfPairs;
+  __shared__ int shr_currentCellStartIndex, shr_neighborCellStartIndex;
+  __shared__ bool shr_sameCell;
 
   int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
-  // calculate number of particles inside neighbor Cell
-  int particlesInsideCurrentCell, particlesInsideNeighboringCells;
-  int endIndex = gpu_cellStartIndex[neighborCell + 1];
-  particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
+  if (currentCell > neighborCell) {
+    if (threadIdx.x == 0) {
+	  gpu_LJEn[blockIdx.x] = 0.0;
+      if (electrostatic) gpu_REn[blockIdx.x] = 0.0;
+	}
+    return;
+  }
+  
+  if (threadIdx.x == 0) {
+    // Calculate number of particles inside current Cell
+    shr_currentCellStartIndex = gpu_cellStartIndex[currentCell];
+    shr_particlesInsideCurrentCell =
+        gpu_cellStartIndex[currentCell + 1] - shr_currentCellStartIndex;
 
-  // Calculate number of particles inside current Cell
-  endIndex = gpu_cellStartIndex[currentCell + 1];
-  particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
+    // Calculate number of particles inside neighbor Cell
+    shr_neighborCellStartIndex = gpu_cellStartIndex[neighborCell];
+    int particlesInsideNeighboringCell =
+        gpu_cellStartIndex[neighborCell + 1] - shr_neighborCellStartIndex;
 
-  // total number of pairs
-  int numberOfPairs =
-      particlesInsideCurrentCell * particlesInsideNeighboringCells;
+    shr_sameCell = currentCell == neighborCell;
+    // Total number of pairs
+    shr_numberOfPairs =
+        shr_particlesInsideCurrentCell * particlesInsideNeighboringCell;
+    shr_cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
+  }
+  __syncthreads();
 
-  for (int pairIndex = threadIdx.x; pairIndex < numberOfPairs;
+  // Specialize BlockReduce for a 1D block of 128 threads of type double
+  using BlockReduce = cub::BlockReduce<double, 128>;
+
+  // Allocate shared memory for BlockReduce
+  __shared__ typename BlockReduce::TempStorage temp_storage;
+
+  double LJEn = 0.0, REn = 0.0;
+
+  for (int pairIndex = threadIdx.x; pairIndex < shr_numberOfPairs;
        pairIndex += blockDim.x) {
-    int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
-    int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
+    int neighborParticleIndex = pairIndex / shr_particlesInsideCurrentCell;
+    int currentParticleIndex = pairIndex % shr_particlesInsideCurrentCell;
 
     int currentParticle =
-        gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
-    int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] +
+        gpu_cellVector[shr_currentCellStartIndex + currentParticleIndex];
+    int neighborParticle = gpu_cellVector[shr_neighborCellStartIndex +
                                           neighborParticleIndex];
 
-    if (currentParticle < neighborParticle &&
-        gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
+    int mA = gpu_particleMol[currentParticle];
+    int mB = gpu_particleMol[neighborParticle];
+    bool skip = mA == mB || (shr_sameCell && mA > mB);
+    if (!skip) {
       // Check if they are within rcut
       double distSq = 0.0;
 
       if (InRcutGPU(distSq, gpu_x, gpu_y, gpu_z, currentParticle,
-                    neighborParticle, axis, halfAx, cutoff, gpu_nonOrth[0],
+                    neighborParticle, axis, halfAx, shr_cutoff, gpu_nonOrth[0],
                     gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x,
                     gpu_Invcell_y, gpu_Invcell_z)) {
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
-        int mA = gpu_particleMol[currentParticle];
-        int mB = gpu_particleMol[neighborParticle];
-
+ 
         double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
                                               gpu_molIndex, gpu_lambdaVDW);
         LJEn += CalcEnGPU(
@@ -231,10 +255,24 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
       }
     }
   }
-  if (electrostatic) {
-    gpu_REn[threadID] = REn;
+  __syncthreads();
+
+  // Compute the block-wide sum for thread 0
+  double aggregate = BlockReduce(temp_storage).Sum(LJEn);
+
+  if (threadIdx.x == 0) {
+    gpu_LJEn[blockIdx.x] = aggregate;
   }
-  gpu_LJEn[threadID] = LJEn;
+
+  if (electrostatic) {
+    //Need to sync the threads before reusing temp_storage
+    //OK inside the if since it's a global value for all threads
+    __syncthreads();
+    // Compute the block-wide sum for thread 0
+    aggregate = BlockReduce(temp_storage).Sum(REn);
+    if (threadIdx.x == 0)
+      gpu_REn[blockIdx.x] = aggregate;
+  }
 }
 
 __device__ double
