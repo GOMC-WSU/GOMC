@@ -91,13 +91,14 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
                                   uint imageSize,
                                   double *sumRnew,
                                   double *sumInew,
-                                  uint box);
+                                  uint box, 
+                                  std::vector<double> chargeBoxNew,
+                                  std::vector<double> chargeBoxOld,
+                                  uint lengthNew, uint lengthOld,
+                                  double &energyRecipNew,
+                                  XYZArray newMolCoords,
+                                  XYZArray oldMolCoords);
 
-void CallMolExchangeReciprocalStartGPU(VariablesCUDA *vars,
-                                  uint imageSize,
-                                  double *sumRref,
-                                  double *sumIref,
-                                  uint box);
 
 __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       double *gpu_aForceRecy,
@@ -190,6 +191,24 @@ __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
                                   const bool insert,
                                   double *gpu_RecipEnergies,
                                   int imageSize);
+
+__global__ void MolExchangeReciprocalGPU(
+                                  int imageSize,
+                                  double *gpu_kx,
+                                  double *gpu_ky,
+                                  double *gpu_kz,
+                                  double *gpu_sumRnew,
+                                  double *gpu_sumInew,
+                                  double *gpu_chargeBoxNew,
+                                  double *gpu_chargeBoxOld,
+                                  uint lengthNew,
+                                  uint lengthOld,
+                                  double *gpu_newMolX,
+                                  double *gpu_newMolY,
+                                  double *gpu_newMolZ,
+                                  double *gpu_oldMolX,
+                                  double *gpu_oldMolY,
+                                  double *gpu_oldMolZ);
 
 __global__ void NewSwapReciprocalGPU(VariablesCUDA *vars,
                                   int atomNumber,

@@ -745,88 +745,140 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                     const std::vector<uint> &molIndexOld,
                                     bool first_call) {
   double energyRecipNew = 0.0;
-  double energyRecipOld = 0.0;
-  // Change in reciprocal happens in the same box.
+  //Change in reciprocal happens in the same box.
   uint box = newMol[0].GetBox();
 
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
-// Because MolExchangeReciprocal does not have a matching GPU function, this is
-// a stub function to copy the GPU sumRref and sumIref vectors to the CPU in
-// order to calcuate the new sums. If this function is ported to the GPU, this
-// call should be removed.
+    
 #ifdef GOMC_CUDA
-  CallMolExchangeReciprocalStartGPU(ff.particles->getCUDAVars(), imageSizeRef[box],
-                               sumRref[box], sumIref[box], box);
-#endif
+    //Build a vector of only the charged particles in the new and old molecules
+    std::vector<double> chargeBoxNew;
+    MoleculeKind const& thisKindNew = newMol[0].GetKind();
+    uint lengthNew = thisKindNew.NumAtoms() * newMol.size();
+    XYZArray newMolCoords = XYZArray(lengthNew); 
 
-    uint lengthNew, lengthOld;
-    MoleculeKind const &thisKindNew = newMol[0].GetKind();
-    MoleculeKind const &thisKindOld = oldMol[0].GetKind();
-    lengthNew = thisKindNew.NumAtoms();
-    lengthOld = thisKindOld.NumAtoms();
+    int newChargedParticles = 0; 
+    for (uint m = 0; m < newMol.size(); ++m) {
+      uint newMoleculeIndex = molIndexNew[m];
+      double lambdaCoef = GetLambdaCoef(newMoleculeIndex, box);
 
+      XYZArray currNewMolCoords = newMol[m].GetCoords(); 
+      for (uint p = 0; p < lengthNew; ++p) {
+        unsigned long currentAtom = mols.MolStart(newMoleculeIndex) + p;
+        if(!particleHasNoCharge[currentAtom]) {
+          newMolCoords.Set(newChargedParticles, 
+                           currNewMolCoords.x[p],
+                           currNewMolCoords.y[p],
+                           currNewMolCoords.z[p]); 
+          newChargedParticles++;
+          chargeBoxNew.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
+        }
+      }      
+    }
+    lengthNew = newChargedParticles;
+
+    std::vector<double> chargeBoxOld;
+    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
+    uint lengthOld = thisKindOld.NumAtoms() * oldMol.size();
+    XYZArray oldMolCoords = XYZArray(lengthOld); 
+
+    int oldChargedParticles = 0; 
+    for (uint m = 0; m < oldMol.size(); ++m) {
+      uint oldMoleculeIndex = molIndexOld[m];
+      double lambdaCoef = GetLambdaCoef(oldMoleculeIndex, box);
+      XYZArray currOldMolCoords = oldMol[m].GetCoords(); 
+      for (uint p = 0; p < lengthOld; ++p) {
+        unsigned long currentAtom = mols.MolStart(oldMoleculeIndex) + p;
+        if(!particleHasNoCharge[currentAtom]) {
+          oldMolCoords.Set(oldChargedParticles, 
+                           currOldMolCoords.x[p],
+                           currOldMolCoords.y[p],
+                           currOldMolCoords.z[p]); 
+          oldChargedParticles++;
+          chargeBoxOld.push_back(thisKindOld.AtomCharge(p) * lambdaCoef);
+        }
+      }
+    }
+    lengthOld = oldChargedParticles;
+
+    // Depending on the move, we could call this function twice. If so, we don't want to
+    // double count the existing (reference) sums, so we copy them only for the first call
+    // and then add to them inside the function based on the delta values for the move.
+    if(first_call) {
+      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
+    }
+
+    CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(), 
+                                 imageSizeRef[box],
+                                 sumRnew[box], sumInew[box], box, 
+                                 chargeBoxNew, chargeBoxOld,
+                                 lengthNew, lengthOld,
+                                 energyRecipNew,
+                                 newMolCoords,
+                                 oldMolCoords);
+#else 
+    MoleculeKind const& thisKindNew = newMol[0].GetKind();
+    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
+    uint lengthNew = thisKindNew.NumAtoms();
+    uint lengthOld = thisKindOld.NumAtoms();
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
+    #pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
     newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
-reduction(+:energyRecipNew)
+    reduction(+:energyRecipNew)
 #endif
-    for (int i = 0; i < (int)imageSizeRef[box]; i++) {
+    for (int i = 0; i < (int) imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
 
-      // Add dot sum of the new molecule
       for (uint m = 0; m < newMol.size(); m++) {
         uint newMoleculeIndex = molIndexNew[m];
         double lambdaCoef = GetLambdaCoef(newMoleculeIndex, box);
         for (uint p = 0; p < lengthNew; ++p) {
           unsigned long currentAtom = mols.MolStart(newMoleculeIndex) + p;
-          if (particleHasNoCharge[currentAtom]) {
+          if(particleHasNoCharge[currentAtom]) {
             continue;
           }
           double dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],
                                      kzRef[box][i], newMol[m].GetCoords());
-
           // TODO: Using GNU extension we could improve this part of the code
           // by using sincos() function and merge sin() and cos() calculation
           // However, this will not work with Visual studio
           // Intel should automatically optimize this section by using
           // internal functions like __svml_sincosf8..()
-          sumRealNew +=
-              (thisKindNew.AtomCharge(p) * lambdaCoef * cos(dotProductNew));
-          sumImaginaryNew +=
-              (thisKindNew.AtomCharge(p) * lambdaCoef * sin(dotProductNew));
+          sumRealNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
+                         cos(dotProductNew));
+          sumImaginaryNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
+                              sin(dotProductNew));
         }
       }
 
-      // Subtract the sum of the old molecule
       for (uint m = 0; m < oldMol.size(); m++) {
         uint oldMoleculeIndex = molIndexOld[m];
         double lambdaCoef = GetLambdaCoef(oldMoleculeIndex, box);
         for (uint p = 0; p < lengthOld; ++p) {
           unsigned long currentAtom = mols.MolStart(oldMoleculeIndex) + p;
-          if (particleHasNoCharge[currentAtom]) {
+          if(particleHasNoCharge[currentAtom]) {
             continue;
           }
           double dotProductOld = Dot(p, kxRef[box][i], kyRef[box][i],
                                      kzRef[box][i], oldMol[m].GetCoords());
-
           // TODO: Using GNU extension we could improve this part of the code
           // by using sincos() function and merge sin() and cos() calculation
           // However, this will not work with Visual studio
           // Intel should automatically optimize this section by using
           // internal functions like __svml_sincosf8..()
-          sumRealNew -=
-              thisKindOld.AtomCharge(p) * lambdaCoef * cos(dotProductOld);
-          sumImaginaryNew -=
-              thisKindOld.AtomCharge(p) * lambdaCoef * sin(dotProductOld);
+          sumRealNew -= thisKindOld.AtomCharge(p) * lambdaCoef *
+                        cos(dotProductOld);
+          sumImaginaryNew -= thisKindOld.AtomCharge(p) * lambdaCoef *
+                             sin(dotProductOld);
         }
       }
 
       // Update the new sum value based on the difference and previous sum
-      // If this is the first call to this function within the same pair of
-      // molecules, then use the ref variable to update new However, if this is
-      // the second time calling it then use the previous result as reference
+      // If this is the first call to this function within the same pair of molecules,
+      // then use the ref variable to update new
+      // However, if this is the second time calling it then use the previous result as reference
       if (first_call) {
         sumRnew[box][i] = sumRref[box][i] + sumRealNew;
         sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
@@ -835,30 +887,15 @@ reduction(+:energyRecipNew)
         sumInew[box][i] += sumImaginaryNew;
       }
 
-      // Calculate new energy recip based on the new sum real and imaginary
-      // values
-      energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] +
-                         sumInew[box][i] * sumInew[box][i]) *
-                        prefactRef[box][i];
+      // Calculate new energy recip based on the new sum real and imaginary values
+      energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
+                         * sumInew[box][i]) * prefactRef[box][i];
     }
-
-    // Keep hold of the old recip value
-    energyRecipOld = sysPotRef.boxEnergy[box].recip;
+#endif 
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
   }
-
-// Because MolExchangeReciprocal does not have a matching GPU function, this is
-// a stub function to copy the CPU sumRnew and sumInew vectors to the GPU in
-// case the move is accepted. If this function is ported to the GPU, this call
-// should be moved to the beginning of the MolExchangeReciprocal function and
-// called instead of running the CPU code.
-#ifdef GOMC_CUDA
-  CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(), imageSizeRef[box],
-                               sumRnew[box], sumInew[box], box);
-#endif
-
-  // Return the difference between old and new reciprocal energies
-  return energyRecipNew - energyRecipOld;
+  // Return the change in reciprocal energy
+  return energyRecipNew - sysPotRef.boxEnergy[box].recip;
 }
 
 // restore cosMol and sinMol

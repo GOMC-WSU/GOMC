@@ -373,10 +373,6 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
-  // cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
-             // cudaMemcpyDeviceToHost);
-  // cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
-             // cudaMemcpyDeviceToHost);
 
   // ReduceSum
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size, vars->gpu_recipEnergies,
@@ -387,21 +383,130 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
   CUFREE(gpu_particleCharge);
 }
 
-void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize,
-                                  double *sumRnew, double *sumInew, uint box) {
-  cudaMemcpy(vars->gpu_sumRnew[box], sumRnew, imageSize * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_sumInew[box], sumInew, imageSize * sizeof(double),
-             cudaMemcpyHostToDevice);
+void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
+                                  uint imageSize,
+                                  double *sumRnew,
+                                  double *sumInew,
+                                  uint box, 
+                                  std::vector<double> chargeBoxNew,
+                                  std::vector<double> chargeBoxOld,
+                                  uint lengthNew, uint lengthOld,
+                                  double &energyRecipNew,
+                                  XYZArray newMolCoords,
+                                  XYZArray oldMolCoords)
+{
+  uint atomsPerImage = lengthNew +lengthOld;
+  uint totalAtoms = atomsPerImage * imageSize;
+  
+  double *gpu_chargeBoxNew;
+  double *gpu_chargeBoxOld;
+  double *gpu_newMolX;
+  double *gpu_newMolY;
+  double *gpu_newMolZ;
+  double *gpu_oldMolX;
+  double *gpu_oldMolY;
+  double *gpu_oldMolZ;
+
+  cudaMemset(vars->gpu_recipEnergies, 0, imageSize * sizeof(double));
+
+  if(lengthNew > 0){
+    CUMALLOC((void**) &gpu_chargeBoxNew,
+              chargeBoxNew.size() * sizeof(double));
+    cudaMemcpy(gpu_chargeBoxNew, &chargeBoxNew[0], 
+               chargeBoxNew.size() * sizeof(double), 
+               cudaMemcpyHostToDevice);
+        
+  }
+  if(lengthOld > 0){
+    CUMALLOC((void**) &gpu_chargeBoxOld,
+              chargeBoxOld.size() * sizeof(double));
+    cudaMemcpy(gpu_chargeBoxOld, &chargeBoxOld[0], 
+               chargeBoxOld.size() * sizeof(double), 
+               cudaMemcpyHostToDevice);
+  }
+  CUMALLOC((void**) &gpu_newMolX, newMolCoords.Count() * sizeof(double));
+  CUMALLOC((void**) &gpu_newMolY, newMolCoords.Count() * sizeof(double));
+  CUMALLOC((void**) &gpu_newMolZ, newMolCoords.Count() * sizeof(double));
+  CUMALLOC((void**) &gpu_oldMolX, oldMolCoords.Count() * sizeof(double));
+  CUMALLOC((void**) &gpu_oldMolY, oldMolCoords.Count() * sizeof(double)); 
+  CUMALLOC((void**) &gpu_oldMolZ, oldMolCoords.Count() * sizeof(double));          
+  cudaMemcpy(gpu_newMolX, &newMolCoords.x[0], 
+              newMolCoords.Count() * sizeof(double), 
+              cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_newMolY, &newMolCoords.y[0], 
+              newMolCoords.Count() * sizeof(double), 
+              cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_newMolZ, &newMolCoords.z[0], 
+              newMolCoords.Count() * sizeof(double), 
+              cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_oldMolX, &oldMolCoords.x[0], 
+              oldMolCoords.Count() * sizeof(double), 
+              cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_oldMolY, &oldMolCoords.y[0], 
+              oldMolCoords.Count() * sizeof(double), 
+              cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_oldMolZ, &oldMolCoords.z[0], 
+              oldMolCoords.Count() * sizeof(double), 
+              cudaMemcpyHostToDevice);
+
+  int threadsPerBlock = 256;
+  int blocksPerGrid = (int)(totalAtoms / threadsPerBlock) + 1;
+  int dynamicSharedMemorySize = 4 * sizeof(double) * (lengthNew + lengthOld);
+  MolExchangeReciprocalGPU<<< blocksPerGrid, threadsPerBlock, dynamicSharedMemorySize>>>(
+        imageSize,
+        vars->gpu_kxRef[box],
+        vars->gpu_kyRef[box],
+        vars->gpu_kzRef[box],
+        vars->gpu_sumRnew[box],
+        vars->gpu_sumInew[box],
+        gpu_chargeBoxNew,
+        gpu_chargeBoxOld,
+        lengthNew,
+        lengthOld,
+        gpu_newMolX,
+        gpu_newMolY,
+        gpu_newMolZ,
+        gpu_oldMolX,
+        gpu_oldMolY,
+        gpu_oldMolZ);
+#ifndef NDEBUG
+  cudaDeviceSynchronize();
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
+
+  blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
+  BoxReciprocalGPU <<< blocksPerGrid, threadsPerBlock>>>(
+        vars->gpu_prefactRef[box],
+        vars->gpu_sumRnew[box],
+        vars->gpu_sumInew[box],
+        vars->gpu_recipEnergies,
+		imageSize);
+ #ifndef NDEBUG
+  cudaDeviceSynchronize();
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
+
+  // ReduceSum
+
+   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size, vars->gpu_recipEnergies,
+                    vars->gpu_finalVal, imageSize);
+  cudaMemcpy(&energyRecipNew, vars->gpu_finalVal,
+             sizeof(double), cudaMemcpyDeviceToHost);
+
+  if(lengthNew > 0){
+    CUFREE(gpu_chargeBoxNew);
+  }
+  if(lengthOld > 0){
+    CUFREE(gpu_chargeBoxOld);
+  }
+  CUFREE(gpu_newMolX); 
+  CUFREE(gpu_newMolY);
+  CUFREE(gpu_newMolZ);
+  CUFREE(gpu_oldMolX);
+  CUFREE(gpu_oldMolY);
+  CUFREE(gpu_oldMolZ);
 }
 
-void CallMolExchangeReciprocalStartGPU(VariablesCUDA *vars, uint imageSize,
-                                  double *sumRref, double *sumIref, uint box) {
-  cudaMemcpy(sumRref, vars->gpu_sumRref[box], imageSize * sizeof(double),
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(sumIref, vars->gpu_sumIref[box], imageSize * sizeof(double),
-             cudaMemcpyDeviceToHost);
-}
 
 void CallBoxForceReciprocalGPU(
     VariablesCUDA *vars, XYZArray &atomForceRec, XYZArray &molForceRec,
@@ -688,6 +793,73 @@ __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
         gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
        gpu_prefactRef[threadID]);
 }
+
+
+__global__ void MolExchangeReciprocalGPU(
+                                  int imageSize, 
+                                  double *gpu_kx, 
+                                  double *gpu_ky, 
+                                  double *gpu_kz,
+                                  double *gpu_sumRnew,
+                                  double *gpu_sumInew,
+                                  double *gpu_chargeBoxNew,
+                                  double *gpu_chargeBoxOld, 
+                                  uint lengthNew, 
+                                  uint lengthOld,
+                                  double *gpu_newMolX,
+                                  double *gpu_newMolY,
+                                  double *gpu_newMolZ,
+                                  double *gpu_oldMolX,
+                                  double *gpu_oldMolY,
+                                  double *gpu_oldMolZ)
+{
+  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+  int chargeBoxLength = lengthNew + lengthOld;
+
+  extern __shared__ double shared_arr[]; 
+  double* shared_chargeBox = (double *) shared_arr; 
+  double* shared_Mol = (double *) &shared_chargeBox[chargeBoxLength]; 
+
+  if(threadIdx.x < lengthNew) { 
+    shared_Mol[threadIdx.x * 3] = gpu_newMolX[threadIdx.x];
+    shared_Mol[threadIdx.x * 3 + 1] = gpu_newMolY[threadIdx.x];
+    shared_Mol[threadIdx.x * 3 + 2] = gpu_newMolZ[threadIdx.x];
+    shared_chargeBox[threadIdx.x] = gpu_chargeBoxNew[threadIdx.x];
+  }
+  else if (threadIdx.x < chargeBoxLength) {
+    int gpu_oldMolIndex = threadIdx.x - lengthNew;
+    shared_Mol[threadIdx.x * 3] = gpu_oldMolX[gpu_oldMolIndex];
+    shared_Mol[threadIdx.x * 3 + 1] = gpu_oldMolY[gpu_oldMolIndex];
+    shared_Mol[threadIdx.x * 3 + 2] = gpu_oldMolZ[gpu_oldMolIndex];
+    shared_chargeBox[threadIdx.x] = -gpu_chargeBoxOld[gpu_oldMolIndex];
+  }
+  __syncthreads();
+
+  //wait until the shared array is loaded before deciding that we don't need these threads
+  if (threadID >= imageSize * chargeBoxLength)
+    return;
+
+  // for each new & old atom index, loop thru each image
+  int p = threadID / imageSize;
+  int imageID = threadID % imageSize;
+
+  double dotProduct = DotProductGPU(gpu_kx[imageID],
+                                    gpu_ky[imageID],
+                                    gpu_kz[imageID],
+                                    shared_Mol[p * 3],
+                                    shared_Mol[p * 3 + 1],
+                                    shared_Mol[p * 3 + 2]);
+									
+  double dotsin, dotcos;
+  sincos(dotProduct, &dotsin, &dotcos);
+
+  double sumRealNew = shared_chargeBox[p] * dotcos;
+  double sumImaginaryNew = shared_chargeBox[p] * dotsin;
+
+  atomicAdd(&gpu_sumRnew[imageID], sumRealNew);
+  atomicAdd(&gpu_sumInew[imageID], sumImaginaryNew);
+}
+
 
 __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                                  double *gpu_nx, double *gpu_ny, double *gpu_nz,
