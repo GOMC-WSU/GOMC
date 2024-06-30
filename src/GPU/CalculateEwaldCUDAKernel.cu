@@ -333,13 +333,7 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
                            uint imageSize, double *sumRnew, double *sumInew,
                            double *sumRref, double *sumIref, const bool insert,
                            double &energyRecipNew, uint box) {
-  //If there are no charged particles in this atom, skip the computation
-  if (particleCharge.size() == 0) {
-    CopyRefToNewCUDA(vars, box, imageSize);
-    // std::memcpy(sumRnew, sumRref, sizeof(double) * imageSize);
-    // std::memcpy(sumInew, sumIref, sizeof(double) * imageSize);
-    return;
-  }
+
   // Calculate atom number
   int atomNumber = coords.Count();
   // given coordinates
@@ -397,7 +391,7 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
 {
   uint atomsPerImage = lengthNew +lengthOld;
   uint totalAtoms = atomsPerImage * imageSize;
-  
+
   double *gpu_chargeBoxNew;
   double *gpu_chargeBoxOld;
   double *gpu_newMolX;
@@ -407,23 +401,18 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
   double *gpu_oldMolY;
   double *gpu_oldMolZ;
 
-  cudaMemset(vars->gpu_recipEnergies, 0, imageSize * sizeof(double));
+  if (lengthNew > 0) {
+    CUMALLOC((void**) &gpu_chargeBoxNew, chargeBoxNew.size() * sizeof(double));
+    cudaMemcpy(gpu_chargeBoxNew, &chargeBoxNew[0], chargeBoxNew.size() * sizeof(double), 
+               cudaMemcpyHostToDevice);
+  }
 
-  if(lengthNew > 0){
-    CUMALLOC((void**) &gpu_chargeBoxNew,
-              chargeBoxNew.size() * sizeof(double));
-    cudaMemcpy(gpu_chargeBoxNew, &chargeBoxNew[0], 
-               chargeBoxNew.size() * sizeof(double), 
-               cudaMemcpyHostToDevice);
-        
-  }
-  if(lengthOld > 0){
-    CUMALLOC((void**) &gpu_chargeBoxOld,
-              chargeBoxOld.size() * sizeof(double));
-    cudaMemcpy(gpu_chargeBoxOld, &chargeBoxOld[0], 
-               chargeBoxOld.size() * sizeof(double), 
+  if (lengthOld > 0) {
+    CUMALLOC((void**) &gpu_chargeBoxOld, chargeBoxOld.size() * sizeof(double));
+    cudaMemcpy(gpu_chargeBoxOld, &chargeBoxOld[0], chargeBoxOld.size() * sizeof(double), 
                cudaMemcpyHostToDevice);
   }
+
   CUMALLOC((void**) &gpu_newMolX, newMolCoords.Count() * sizeof(double));
   CUMALLOC((void**) &gpu_newMolY, newMolCoords.Count() * sizeof(double));
   CUMALLOC((void**) &gpu_newMolZ, newMolCoords.Count() * sizeof(double));
@@ -449,9 +438,9 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
               oldMolCoords.Count() * sizeof(double), 
               cudaMemcpyHostToDevice);
 
-  int threadsPerBlock = 256;
-  int blocksPerGrid = (int)(totalAtoms / threadsPerBlock) + 1;
-  int dynamicSharedMemorySize = 4 * sizeof(double) * (lengthNew + lengthOld);
+  int threadsPerBlock = 128;
+  int blocksPerGrid = (totalAtoms + threadsPerBlock - 1)/threadsPerBlock;
+  int dynamicSharedMemorySize = 4 * sizeof(double) * atomsPerImage;
   MolExchangeReciprocalGPU<<< blocksPerGrid, threadsPerBlock, dynamicSharedMemorySize>>>(
         imageSize,
         vars->gpu_kxRef[box],
@@ -474,7 +463,7 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
+  blocksPerGrid = (imageSize + threadsPerBlock - 1)/threadsPerBlock;
   BoxReciprocalGPU <<< blocksPerGrid, threadsPerBlock>>>(
         vars->gpu_prefactRef[box],
         vars->gpu_sumRnew[box],
@@ -487,11 +476,9 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
 #endif
 
   // ReduceSum
-
-   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size, vars->gpu_recipEnergies,
-                    vars->gpu_finalVal, imageSize);
-  cudaMemcpy(&energyRecipNew, vars->gpu_finalVal,
-             sizeof(double), cudaMemcpyDeviceToHost);
+  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                    vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
+  cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
 
   if(lengthNew > 0){
     CUFREE(gpu_chargeBoxNew);

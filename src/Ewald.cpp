@@ -490,9 +490,9 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
 #ifdef GOMC_CUDA
     bool insert = true;
     std::vector<double> molCharges;
-	int charges = 0;
+    int charges = 0;
     for (uint p = 0; p < length; ++p) {
-	  if (thisKind.AtomCharge(p) != 0.0) {
+      if (thisKind.AtomCharge(p) != 0.0) {
         molCharges.push_back(thisKind.AtomCharge(p));
         if (p > charges) {
           molCoords.Set(charges, molCoords[p]);
@@ -500,15 +500,17 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
         charges++;
       }
     }
-
-    CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
-                          imageSizeRef[box], sumRnew[box], sumInew[box],
-                          sumRref[box], sumIref[box], insert, energyRecipNew, box);
-    //If there are no charged particles, the energy doesn't change, but we need
-	//to run CallSwapReciprocalGPU to make sure the sumRnew and sumInew arrays
-	//have correct values
-	if (charges == 0) {
+    // If there are no charged particles, the energy doesn't change, but we need
+    // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
+    // in case the move is accepted
+    if (charges == 0) {
+      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
+    }
+    else {
+      CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
+                            imageSizeRef[box], sumRnew[box], sumInew[box],
+                            sumRref[box], sumIref[box], insert, energyRecipNew, box);
     }
 #else
     uint startAtom = mols.MolStart(molIndex);
@@ -683,9 +685,9 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
 #ifdef GOMC_CUDA
     bool insert = false;
     std::vector<double> molCharges;
-	int charges = 0;
+    int charges = 0;
     for (uint p = 0; p < length; ++p) {
-	  if (thisKind.AtomCharge(p) != 0.0) {
+      if (thisKind.AtomCharge(p) != 0.0) {
         molCharges.push_back(thisKind.AtomCharge(p));
         if (p > charges) {
           molCoords.Set(charges, molCoords[p]);
@@ -693,14 +695,17 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
         charges++;
       }
     }
-    CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
-                          imageSizeRef[box], sumRnew[box], sumInew[box],
-                          sumRref[box], sumIref[box], insert, energyRecipNew, box);
-    //If there are no charged particles, the energy doesn't change, but we need
-	//to run CallSwapReciprocalGPU to make sure the sumRnew and sumInew arrays
-	//have correct values
-	if (charges == 0) {
+    // If there are no charged particles, the energy doesn't change, but we need
+    // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
+    // in case the move is accepted
+    if (charges == 0) {
+      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
+    }
+    else {
+      CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
+                            imageSizeRef[box], sumRnew[box], sumInew[box],
+                            sumRref[box], sumIref[box], insert, energyRecipNew, box);
     }
 #else
     uint startAtom = mols.MolStart(molIndex);
@@ -809,14 +814,21 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
     }
 
-    CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(), 
-                                 imageSizeRef[box],
-                                 sumRnew[box], sumInew[box], box, 
-                                 chargeBoxNew, chargeBoxOld,
-                                 lengthNew, lengthOld,
-                                 energyRecipNew,
-                                 newMolCoords,
-                                 oldMolCoords);
+    // If there are no charged particles, the energy doesn't change, so no need to call
+    // the function
+    if (lengthNew + lengthOld == 0) {
+      energyRecipNew = sysPotRef.boxEnergy[box].recip;
+    }
+    else {
+      CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(), 
+                                   imageSizeRef[box],
+                                   sumRnew[box], sumInew[box], box, 
+                                   chargeBoxNew, chargeBoxOld,
+                                   lengthNew, lengthOld,
+                                   energyRecipNew,
+                                   newMolCoords,
+                                   oldMolCoords);
+    }
 #else 
     MoleculeKind const& thisKindNew = newMol[0].GetKind();
     MoleculeKind const& thisKindOld = oldMol[0].GetKind();
