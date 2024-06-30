@@ -189,8 +189,8 @@ bool Simulation::RecalculateAndCheck(void) {
   if (!compare) {
     std::cout
         << "=================================================================\n"
-        << "Energy       INTRA B |     INTRA NB |        INTER |           TC "
-           "|         REAL |         SELF |   CORRECTION |        RECIP"
+        << "Energy         INTRA B |        INTRA NB |           INTER |              TC "
+           "|            REAL |            SELF |     CORRECTION |          RECIP"
         << std::endl
         << "System: " << std::setw(12)
         << system->potential.totalEnergy.intraBond << " | " << std::setw(12)
@@ -209,7 +209,7 @@ bool Simulation::RecalculateAndCheck(void) {
         << pot.totalEnergy.self << " | " << std::setw(12)
         << pot.totalEnergy.correction << " | " << std::setw(12)
         << pot.totalEnergy.recip << std::endl
-        << "================================================================"
+        << "================================================================="
         << std::endl
         << std::endl;
   }
