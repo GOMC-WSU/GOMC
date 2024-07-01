@@ -203,7 +203,8 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   using BlockReduce = cub::BlockReduce<double, 128>;
 
   // Allocate shared memory for BlockReduce
-  __shared__ typename BlockReduce::TempStorage temp_storage;
+  __shared__ typename BlockReduce::TempStorage LJEn_temp_storage;
+  __shared__ typename BlockReduce::TempStorage REn_temp_storage;
 
   double LJEn = 0.0, REn = 0.0;
 
@@ -258,18 +259,17 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   __syncthreads();
 
   // Compute the block-wide sum for thread 0
-  double aggregate = BlockReduce(temp_storage).Sum(LJEn);
+  double aggregate = BlockReduce(LJEn_temp_storage).Sum(LJEn);
 
   if (threadIdx.x == 0) {
     gpu_LJEn[blockIdx.x] = aggregate;
   }
 
   if (electrostatic) {
-    //Need to sync the threads before reusing temp_storage
-    //OK inside the if since it's a global value for all threads
-    __syncthreads();
+    // Need to sync the threads before reusing temp_storage
+    // so using different variables
     // Compute the block-wide sum for thread 0
-    aggregate = BlockReduce(temp_storage).Sum(REn);
+    aggregate = BlockReduce(REn_temp_storage).Sum(REn);
     if (threadIdx.x == 0)
       gpu_REn[blockIdx.x] = aggregate;
   }

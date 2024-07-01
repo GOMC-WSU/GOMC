@@ -92,13 +92,10 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
                                   double *sumRnew,
                                   double *sumInew,
                                   uint box, 
-                                  std::vector<double> chargeBoxNew,
-                                  std::vector<double> chargeBoxOld,
-                                  uint lengthNew, uint lengthOld,
+                                  std::vector<double> chargeBox,
+                                  int numChargedParticles,
                                   double &energyRecipNew,
-                                  XYZArray newMolCoords,
-                                  XYZArray oldMolCoords);
-
+                                  XYZArray molCoords);
 
 __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       double *gpu_aForceRecy,
@@ -199,16 +196,11 @@ __global__ void MolExchangeReciprocalGPU(
                                   double *gpu_kz,
                                   double *gpu_sumRnew,
                                   double *gpu_sumInew,
-                                  double *gpu_chargeBoxNew,
-                                  double *gpu_chargeBoxOld,
-                                  uint lengthNew,
-                                  uint lengthOld,
-                                  double *gpu_newMolX,
-                                  double *gpu_newMolY,
-                                  double *gpu_newMolZ,
-                                  double *gpu_oldMolX,
-                                  double *gpu_oldMolY,
-                                  double *gpu_oldMolZ);
+                                  double *gpu_chargeBox,
+                                  int numChargedParticles,
+                                  double *gpu_MolX,
+                                  double *gpu_MolY,
+                                  double *gpu_MolZ);
 
 __global__ void NewSwapReciprocalGPU(VariablesCUDA *vars,
                                   int atomNumber,

@@ -758,76 +758,71 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     
 #ifdef GOMC_CUDA
     //Build a vector of only the charged particles in the new and old molecules
-    std::vector<double> chargeBoxNew;
+    std::vector<double> chargeBox;
     MoleculeKind const& thisKindNew = newMol[0].GetKind();
     uint lengthNew = thisKindNew.NumAtoms() * newMol.size();
-    XYZArray newMolCoords = XYZArray(lengthNew); 
+    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
+    uint lengthOld = thisKindOld.NumAtoms() * oldMol.size();
+    // The maximum size of this array is all charged particles
+    XYZArray molCoords = XYZArray(lengthNew + lengthOld); 
 
-    int newChargedParticles = 0; 
+    int numChargedParticles = 0; 
     for (uint m = 0; m < newMol.size(); ++m) {
-      uint newMoleculeIndex = molIndexNew[m];
-      double lambdaCoef = GetLambdaCoef(newMoleculeIndex, box);
+      uint moleculeIndex = molIndexNew[m];
+      double lambdaCoef = GetLambdaCoef(moleculeIndex, box);
 
-      XYZArray currNewMolCoords = newMol[m].GetCoords(); 
+      XYZArray currMolCoords = newMol[m].GetCoords(); 
       for (uint p = 0; p < lengthNew; ++p) {
-        unsigned long currentAtom = mols.MolStart(newMoleculeIndex) + p;
-        if(!particleHasNoCharge[currentAtom]) {
-          newMolCoords.Set(newChargedParticles, 
-                           currNewMolCoords.x[p],
-                           currNewMolCoords.y[p],
-                           currNewMolCoords.z[p]); 
-          newChargedParticles++;
-          chargeBoxNew.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
+        unsigned long currentAtom = mols.MolStart(moleculeIndex) + p;
+        if (!particleHasNoCharge[currentAtom]) {
+          molCoords.Set(numChargedParticles, 
+                        currMolCoords.x[p],
+                        currMolCoords.y[p],
+                        currMolCoords.z[p]); 
+          numChargedParticles++;
+          chargeBox.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
         }
       }      
     }
-    lengthNew = newChargedParticles;
 
-    std::vector<double> chargeBoxOld;
-    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
-    uint lengthOld = thisKindOld.NumAtoms() * oldMol.size();
-    XYZArray oldMolCoords = XYZArray(lengthOld); 
-
-    int oldChargedParticles = 0; 
     for (uint m = 0; m < oldMol.size(); ++m) {
-      uint oldMoleculeIndex = molIndexOld[m];
-      double lambdaCoef = GetLambdaCoef(oldMoleculeIndex, box);
-      XYZArray currOldMolCoords = oldMol[m].GetCoords(); 
+      uint moleculeIndex = molIndexOld[m];
+      double lambdaCoef = GetLambdaCoef(moleculeIndex, box);
+      XYZArray currMolCoords = oldMol[m].GetCoords(); 
       for (uint p = 0; p < lengthOld; ++p) {
-        unsigned long currentAtom = mols.MolStart(oldMoleculeIndex) + p;
-        if(!particleHasNoCharge[currentAtom]) {
-          oldMolCoords.Set(oldChargedParticles, 
-                           currOldMolCoords.x[p],
-                           currOldMolCoords.y[p],
-                           currOldMolCoords.z[p]); 
-          oldChargedParticles++;
-          chargeBoxOld.push_back(thisKindOld.AtomCharge(p) * lambdaCoef);
+        unsigned long currentAtom = mols.MolStart(moleculeIndex) + p;
+        if (!particleHasNoCharge[currentAtom]) {
+          molCoords.Set(numChargedParticles, 
+                        currMolCoords.x[p],
+                        currMolCoords.y[p],
+                        currMolCoords.z[p]); 
+          numChargedParticles++;
+		  // Invert these charges since we subtract them in the energy calc
+          chargeBox.push_back(thisKindOld.AtomCharge(p) * -lambdaCoef);
         }
       }
     }
-    lengthOld = oldChargedParticles;
 
     // Depending on the move, we could call this function twice. If so, we don't want to
     // double count the existing (reference) sums, so we copy them only for the first call
     // and then add to them inside the function based on the delta values for the move.
-    if(first_call) {
+    if (first_call) {
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
     }
 
     // If there are no charged particles, the energy doesn't change, so no need to call
     // the function
-    if (lengthNew + lengthOld == 0) {
+    if (numChargedParticles == 0) {
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     }
     else {
-      CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(), 
+      CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(),
                                    imageSizeRef[box],
-                                   sumRnew[box], sumInew[box], box, 
-                                   chargeBoxNew, chargeBoxOld,
-                                   lengthNew, lengthOld,
+                                   sumRnew[box], sumInew[box], box,
+                                   chargeBox,
+                                   numChargedParticles,
                                    energyRecipNew,
-                                   newMolCoords,
-                                   oldMolCoords);
+                                   molCoords);
     }
 #else 
     MoleculeKind const& thisKindNew = newMol[0].GetKind();
