@@ -194,13 +194,15 @@ __global__ void MolExchangeReciprocalGPU(
                                   double *gpu_kx,
                                   double *gpu_ky,
                                   double *gpu_kz,
+                                  double *gpu_prefactRef,
                                   double *gpu_sumRnew,
                                   double *gpu_sumInew,
                                   double *gpu_chargeBox,
                                   int numChargedParticles,
                                   double *gpu_MolX,
                                   double *gpu_MolY,
-                                  double *gpu_MolZ);
+                                  double *gpu_MolZ,
+                                  double *gpu_RecipEnergies);
 
 __global__ void NewSwapReciprocalGPU(VariablesCUDA *vars,
                                   int atomNumber,

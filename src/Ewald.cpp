@@ -797,7 +797,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                         currMolCoords.y[p],
                         currMolCoords.z[p]); 
           numChargedParticles++;
-		  // Invert these charges since we subtract them in the energy calc
+          // Invert these charges since we subtract them in the energy calc
           chargeBox.push_back(thisKindOld.AtomCharge(p) * -lambdaCoef);
         }
       }
