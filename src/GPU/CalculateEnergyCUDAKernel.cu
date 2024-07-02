@@ -17,7 +17,9 @@ along with this program, also can be found at
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "cub/cub.cuh"
+
 #define NUMBER_OF_NEIGHBOR_CELL 27
+#define THREADS_PER_BLOCK 128
 
 using namespace cub;
 
@@ -36,15 +38,13 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   int numberOfCells = neighborList.size();
   int *gpu_particleKind, *gpu_particleMol;
   int *gpu_neighborList, *gpu_cellStartIndex;
-  int blocksPerGrid, threadsPerBlock;
-  int energyVectorLen;
   double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;
 
   // Run the kernel
-  threadsPerBlock = 128;
-  blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELL;
-  energyVectorLen = blocksPerGrid;
+  int threadsPerBlock = THREADS_PER_BLOCK;
+  int blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELL;
+  int energyVectorLen = blocksPerGrid;
 
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(neighborListCount);
@@ -174,9 +174,9 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
 
   if (currentCell > neighborCell) {
     if (threadIdx.x == 0) {
-	  gpu_LJEn[blockIdx.x] = 0.0;
+      gpu_LJEn[blockIdx.x] = 0.0;
       if (electrostatic) gpu_REn[blockIdx.x] = 0.0;
-	}
+    }
     return;
   }
   
@@ -199,8 +199,8 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   }
   __syncthreads();
 
-  // Specialize BlockReduce for a 1D block of 128 threads of type double
-  using BlockReduce = cub::BlockReduce<double, 128>;
+  // Specialize BlockReduce for a 1D block of threads of type double
+  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK>;
 
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage LJEn_temp_storage;
