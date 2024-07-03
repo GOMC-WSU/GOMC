@@ -82,15 +82,19 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
 #endif
 }
 
-void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
+// maxAtomNumber is the maximum number of atoms in the system
+// maxAtomsInMol is the maximum number of atoms in one molecule
+// maxMolNumber is the maximum number of molecules in the system
+void InitCoordinatesCUDA(VariablesCUDA *vars, uint maxAtomNumber,
                          uint maxAtomsInMol, uint maxMolNumber) {
-  CUMALLOC((void **)&vars->gpu_x, atomNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_y, atomNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_z, atomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_x, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_y, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_z, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_particleCharge, maxAtomNumber * sizeof(double));
 
-  CUMALLOC((void **)&vars->gpu_dx, atomNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_dy, atomNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_dz, atomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_dx, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_dy, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_dz, maxAtomNumber * sizeof(double));
 
   CUMALLOC((void **)&vars->gpu_nx, maxAtomsInMol * sizeof(double));
   CUMALLOC((void **)&vars->gpu_ny, maxAtomsInMol * sizeof(double));
@@ -124,9 +128,9 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
     CUMALLOC((void **)&vars->gpu_Invcell_z[b], 3 * sizeof(double));
   }
 
-  CUMALLOC((void **)&vars->gpu_aForcex, atomNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_aForcey, atomNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_aForcez, atomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_aForcex, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_aForcey, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_aForcez, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mForcex, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mForcey, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mForcez, maxMolNumber * sizeof(double));
@@ -134,14 +138,14 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void **)&vars->gpu_mTorquey, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mTorquez, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_inForceRange, maxMolNumber * sizeof(int));
-  CUMALLOC((void **)&vars->gpu_aForceRecx, atomNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_aForceRecy, atomNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_aForceRecz, atomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_aForceRecx, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_aForceRecy, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_aForceRecz, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mForceRecx, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mForceRecy, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mForceRecz, maxMolNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_cellVector, atomNumber * sizeof(int));
-  CUMALLOC((void **)&vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
+  CUMALLOC((void **)&vars->gpu_cellVector, maxAtomNumber * sizeof(int));
+  CUMALLOC((void **)&vars->gpu_mapParticleToCell, maxAtomNumber * sizeof(int));
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -360,6 +364,7 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_x);
   CUFREE(vars->gpu_y);
   CUFREE(vars->gpu_z);
+  CUFREE(vars->gpu_particleCharge);
   CUFREE(vars->gpu_dx);
   CUFREE(vars->gpu_dy);
   CUFREE(vars->gpu_dz);

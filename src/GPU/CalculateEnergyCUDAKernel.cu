@@ -38,7 +38,6 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   int numberOfCells = neighborList.size();
   int *gpu_particleKind, *gpu_particleMol;
   int *gpu_neighborList, *gpu_cellStartIndex;
-  double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;
 
   // Run the kernel
@@ -56,8 +55,6 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 
   CUMALLOC((void **)&gpu_neighborList, neighborListCount * sizeof(int));
   CUMALLOC((void **)&gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
-  CUMALLOC((void **)&gpu_particleCharge,
-           particleCharge.size() * sizeof(double));
   CUMALLOC((void **)&gpu_particleKind, particleKind.size() * sizeof(int));
   CUMALLOC((void **)&gpu_particleMol, particleMol.size() * sizeof(int));
   CUMALLOC((void **)&gpu_LJEn, energyVectorLen * sizeof(double));
@@ -72,7 +69,7 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
              cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
+  cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
              particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleKind, &particleKind[0],
              particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
@@ -95,7 +92,7 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(
       gpu_cellStartIndex, vars->gpu_cellVector, gpu_neighborList, numberOfCells,
       vars->gpu_x, vars->gpu_y, vars->gpu_z, axis, halfAx, electrostatic,
-      gpu_particleCharge, gpu_particleKind, gpu_particleMol, gpu_REn, gpu_LJEn,
+      vars->gpu_particleCharge, gpu_particleKind, gpu_particleMol, gpu_REn, gpu_LJEn,
       vars->gpu_sigmaSq, vars->gpu_epsilon_Cn, vars->gpu_n, vars->gpu_VDW_Kind,
       vars->gpu_isMartini, vars->gpu_count, vars->gpu_rCut,
       vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn, vars->gpu_alpha,
@@ -134,7 +131,6 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   }
   
   CUFREE(d_temp_storage);
-  CUFREE(gpu_particleCharge);
   CUFREE(gpu_particleKind);
   CUFREE(gpu_particleMol);
   CUFREE(gpu_LJEn);
