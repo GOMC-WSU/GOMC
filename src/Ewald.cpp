@@ -221,7 +221,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     }
     CallBoxReciprocalSetupGPU(
         ff.particles->getCUDAVars(), thisBoxCoords, kx[box], ky[box], kz[box],
-        chargeBox, imageSize[box], sumRnew[box], sumInew[box], prefact[box],
+        chargeBox, imageSize[box], prefact[box],
         hsqr[box], currentEnergyRecip[box], box);
 #else
 #ifdef _OPENMP
@@ -308,8 +308,8 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
       thisMol++;
     }
     CallBoxReciprocalSumsGPU(ff.particles->getCUDAVars(), thisBoxCoords,
-                             chargeBox, imageSizeRef[box], sumRnew[box],
-                             sumInew[box], currentEnergyRecip[box], box);
+                             chargeBox, imageSizeRef[box],
+                             currentEnergyRecip[box], box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel sections default(none) shared(box)
@@ -421,14 +421,26 @@ double Ewald::MolReciprocal(XYZArray const &molCoords, const uint molIndex,
     double lambdaCoef = GetLambdaCoef(molIndex, box);
 #ifdef GOMC_CUDA
     XYZArray cCoords(length);
-    std::vector<double> MolCharge;
-    for (uint p = 0; p < length; p++) {
+    std::vector<double> molCharge;
+    int charges = 0;
+    for (uint p = 0; p < length; ++p) {
       cCoords.Set(p, currentCoords[startAtom + p]);
-      MolCharge.push_back(thisKind.AtomCharge(p) * lambdaCoef);
+      molCharge.push_back(thisKind.AtomCharge(p) * lambdaCoef);
+      if (thisKind.AtomCharge(p) != 0.0) charges++;
     }
-    CallMolReciprocalGPU(ff.particles->getCUDAVars(), cCoords, molCoords,
-                         MolCharge, imageSizeRef[box], sumRnew[box],
-                         sumInew[box], energyRecipNew, box);
+    
+    // If there are no charged particles, the energy doesn't change, but we need
+    // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
+    // in case the move is accepted
+    if (charges == 0) {
+      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
+      energyRecipNew = sysPotRef.boxEnergy[box].recip;
+    }
+    else {
+      CallMolReciprocalGPU(ff.particles->getCUDAVars(), cCoords, molCoords,
+                           molCharge, imageSizeRef[box],
+                           energyRecipNew, box);
+    }
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(lambdaCoef, molCoords, \
@@ -509,8 +521,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
     }
     else {
       CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
-                            imageSizeRef[box], sumRnew[box], sumInew[box],
-                            sumRref[box], sumIref[box], insert, energyRecipNew, box);
+                            imageSizeRef[box], insert, energyRecipNew, box);
     }
 #else
     uint startAtom = mols.MolStart(molIndex);
@@ -568,7 +579,7 @@ double Ewald::ChangeLambdaRecip(XYZArray const &molCoords,
     }
     CallChangeLambdaMolReciprocalGPU(
         ff.particles->getCUDAVars(), molCoords, MolCharge, imageSizeRef[box],
-        sumRnew[box], sumInew[box], energyRecipNew, lambdaCoef, box);
+        energyRecipNew, lambdaCoef, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(lambdaCoef, molCoords, thisKind) \
@@ -704,8 +715,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
     }
     else {
       CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
-                            imageSizeRef[box], sumRnew[box], sumInew[box],
-                            sumRref[box], sumIref[box], insert, energyRecipNew, box);
+                            imageSizeRef[box], insert, energyRecipNew, box);
     }
 #else
     uint startAtom = mols.MolStart(molIndex);
@@ -755,50 +765,50 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
 
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
-    
+    MoleculeKind const& thisKindNew = newMol[0].GetKind();
+    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
+    uint lengthNew = thisKindNew.NumAtoms();
+    uint lengthOld = thisKindOld.NumAtoms();
+
 #ifdef GOMC_CUDA
     //Build a vector of only the charged particles in the new and old molecules
-    std::vector<double> chargeBox;
-    MoleculeKind const& thisKindNew = newMol[0].GetKind();
-    uint lengthNew = thisKindNew.NumAtoms() * newMol.size();
-    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
-    uint lengthOld = thisKindOld.NumAtoms() * oldMol.size();
-    // The maximum size of this array is all charged particles
-    XYZArray molCoords = XYZArray(lengthNew + lengthOld); 
+    std::vector<double> particleCharge;
+    // The maximum size of this array is all particles have charges
+    XYZArray molCoords = XYZArray(lengthNew + lengthOld);
 
-    int numChargedParticles = 0; 
+    int numChargedParticles = 0;
     for (uint m = 0; m < newMol.size(); ++m) {
       uint moleculeIndex = molIndexNew[m];
       double lambdaCoef = GetLambdaCoef(moleculeIndex, box);
 
-      XYZArray currMolCoords = newMol[m].GetCoords(); 
+      XYZArray currMolCoords = newMol[m].GetCoords();
       for (uint p = 0; p < lengthNew; ++p) {
         unsigned long currentAtom = mols.MolStart(moleculeIndex) + p;
         if (!particleHasNoCharge[currentAtom]) {
-          molCoords.Set(numChargedParticles, 
+          molCoords.Set(numChargedParticles,
                         currMolCoords.x[p],
                         currMolCoords.y[p],
                         currMolCoords.z[p]); 
           numChargedParticles++;
-          chargeBox.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
+          particleCharge.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
         }
-      }      
+      }
     }
 
     for (uint m = 0; m < oldMol.size(); ++m) {
       uint moleculeIndex = molIndexOld[m];
       double lambdaCoef = GetLambdaCoef(moleculeIndex, box);
-      XYZArray currMolCoords = oldMol[m].GetCoords(); 
+      XYZArray currMolCoords = oldMol[m].GetCoords();
       for (uint p = 0; p < lengthOld; ++p) {
         unsigned long currentAtom = mols.MolStart(moleculeIndex) + p;
         if (!particleHasNoCharge[currentAtom]) {
-          molCoords.Set(numChargedParticles, 
+          molCoords.Set(numChargedParticles,
                         currMolCoords.x[p],
                         currMolCoords.y[p],
-                        currMolCoords.z[p]); 
+                        currMolCoords.z[p]);
           numChargedParticles++;
           // Invert these charges since we subtract them in the energy calc
-          chargeBox.push_back(thisKindOld.AtomCharge(p) * -lambdaCoef);
+          particleCharge.push_back(thisKindOld.AtomCharge(p) * -lambdaCoef);
         }
       }
     }
@@ -817,18 +827,13 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     }
     else {
       CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(),
-                                   imageSizeRef[box],
-                                   sumRnew[box], sumInew[box], box,
-                                   chargeBox,
+                                   imageSizeRef[box], box,
+                                   particleCharge,
                                    numChargedParticles,
                                    energyRecipNew,
                                    molCoords);
     }
 #else 
-    MoleculeKind const& thisKindNew = newMol[0].GetKind();
-    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
-    uint lengthNew = thisKindNew.NumAtoms();
-    uint lengthOld = thisKindOld.NumAtoms();
 #ifdef _OPENMP
     #pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
     newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
