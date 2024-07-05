@@ -219,10 +219,10 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
       }
       thisMol++;
     }
-    CallBoxReciprocalSetupGPU(
-        ff.particles->getCUDAVars(), thisBoxCoords, kx[box], ky[box], kz[box],
-        chargeBox, imageSize[box], prefact[box],
-        hsqr[box], currentEnergyRecip[box], box);
+    CallBoxReciprocalSetupGPU(ff.particles->getCUDAVars(), thisBoxCoords,
+                              kx[box], ky[box], kz[box], chargeBox,
+                              imageSize[box], prefact[box], hsqr[box],
+                              currentEnergyRecip[box], box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel sections default(none) shared(box)
@@ -439,11 +439,9 @@ double Ewald::MolReciprocal(XYZArray const &molCoords, const uint molIndex,
     if (charges == 0) {
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
-    }
-    else {
+    } else {
       CallMolReciprocalGPU(ff.particles->getCUDAVars(), cCoords, nCoords,
-                           molCharge, imageSizeRef[box],
-                           energyRecipNew, box);
+                           molCharge, imageSizeRef[box], energyRecipNew, box);
     }
 #else
 #ifdef _OPENMP
@@ -511,7 +509,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
         molCharges.push_back(thisKind.AtomCharge(p));
         if (p > charges) {
           molCoords.Set(charges, molCoords[p]);
-         }
+        }
         charges++;
       }
     }
@@ -521,8 +519,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
     if (charges == 0) {
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
-    }
-    else {
+    } else {
       CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
                             imageSizeRef[box], energyRecipNew, box);
     }
@@ -580,9 +577,9 @@ double Ewald::ChangeLambdaRecip(XYZArray const &molCoords,
     for (uint p = 0; p < length; p++) {
       MolCharge.push_back(thisKind.AtomCharge(p));
     }
-    CallChangeLambdaMolReciprocalGPU(
-        ff.particles->getCUDAVars(), molCoords, MolCharge, imageSizeRef[box],
-        energyRecipNew, lambdaCoef, box);
+    CallChangeLambdaMolReciprocalGPU(ff.particles->getCUDAVars(), molCoords,
+                                     MolCharge, imageSizeRef[box],
+                                     energyRecipNew, lambdaCoef, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(lambdaCoef, molCoords, thisKind) \
@@ -715,8 +712,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
     if (charges == 0) {
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
-    }
-    else {
+    } else {
       CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
                             imageSizeRef[box], energyRecipNew, box);
     }
@@ -763,18 +759,18 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                     const std::vector<uint> &molIndexOld,
                                     bool first_call) {
   double energyRecipNew = 0.0;
-  //Change in reciprocal happens in the same box.
+  // Change in reciprocal happens in the same box.
   uint box = newMol[0].GetBox();
 
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
-    MoleculeKind const& thisKindNew = newMol[0].GetKind();
-    MoleculeKind const& thisKindOld = oldMol[0].GetKind();
+    MoleculeKind const &thisKindNew = newMol[0].GetKind();
+    MoleculeKind const &thisKindOld = oldMol[0].GetKind();
     uint lengthNew = thisKindNew.NumAtoms();
     uint lengthOld = thisKindOld.NumAtoms();
 
 #ifdef GOMC_CUDA
-    //Build a vector of only the charged particles in the new and old molecules
+    // Build a vector of only the charged particles in the new and old molecules
     std::vector<double> particleCharge;
     // The maximum size of this array is all particles have charges
     XYZArray molCoords = XYZArray(lengthNew + lengthOld);
@@ -810,33 +806,30 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
       }
     }
 
-    // Depending on the move, we could call this function twice. If so, we don't want to
-    // double count the existing (reference) sums, so we copy them only for the first call
-    // and then add to them inside the function based on the delta values for the move.
+    // Depending on the move, we could call this function twice. If so, we don't
+    // want to double count the existing (reference) sums, so we copy them only
+    // for the first call and then add to them inside the function based on the
+    // delta values for the move.
     if (first_call) {
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
     }
 
-    // If there are no charged particles, the energy doesn't change, so no need to call
-    // the function
+    // If there are no charged particles, the energy doesn't change, so no need
+    // to call the function
     if (numChargedParticles == 0) {
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
+    } else {
+      CallMolExchangeReciprocalGPU(
+          ff.particles->getCUDAVars(), imageSizeRef[box], box, particleCharge,
+          numChargedParticles, energyRecipNew, molCoords);
     }
-    else {
-      CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(),
-                                   imageSizeRef[box], box,
-                                   particleCharge,
-                                   numChargedParticles,
-                                   energyRecipNew,
-                                   molCoords);
-    }
-#else 
+#else
 #ifdef _OPENMP
-    #pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
+#pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
     newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
     reduction(+:energyRecipNew)
 #endif
-    for (int i = 0; i < (int) imageSizeRef[box]; i++) {
+    for (int i = 0; i < (int)imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
 
@@ -845,7 +838,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
         double lambdaCoef = GetLambdaCoef(newMoleculeIndex, box);
         for (uint p = 0; p < lengthNew; ++p) {
           unsigned long currentAtom = mols.MolStart(newMoleculeIndex) + p;
-          if(particleHasNoCharge[currentAtom]) {
+          if (particleHasNoCharge[currentAtom]) {
             continue;
           }
           double dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],
@@ -855,10 +848,10 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
           // However, this will not work with Visual studio
           // Intel should automatically optimize this section by using
           // internal functions like __svml_sincosf8..()
-          sumRealNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
-                         cos(dotProductNew));
-          sumImaginaryNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
-                              sin(dotProductNew));
+          sumRealNew +=
+              (thisKindNew.AtomCharge(p) * lambdaCoef * cos(dotProductNew));
+          sumImaginaryNew +=
+              (thisKindNew.AtomCharge(p) * lambdaCoef * sin(dotProductNew));
         }
       }
 
@@ -867,7 +860,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
         double lambdaCoef = GetLambdaCoef(oldMoleculeIndex, box);
         for (uint p = 0; p < lengthOld; ++p) {
           unsigned long currentAtom = mols.MolStart(oldMoleculeIndex) + p;
-          if(particleHasNoCharge[currentAtom]) {
+          if (particleHasNoCharge[currentAtom]) {
             continue;
           }
           double dotProductOld = Dot(p, kxRef[box][i], kyRef[box][i],
@@ -877,17 +870,17 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
           // However, this will not work with Visual studio
           // Intel should automatically optimize this section by using
           // internal functions like __svml_sincosf8..()
-          sumRealNew -= thisKindOld.AtomCharge(p) * lambdaCoef *
-                        cos(dotProductOld);
-          sumImaginaryNew -= thisKindOld.AtomCharge(p) * lambdaCoef *
-                             sin(dotProductOld);
+          sumRealNew -=
+              thisKindOld.AtomCharge(p) * lambdaCoef * cos(dotProductOld);
+          sumImaginaryNew -=
+              thisKindOld.AtomCharge(p) * lambdaCoef * sin(dotProductOld);
         }
       }
 
       // Update the new sum value based on the difference and previous sum
-      // If this is the first call to this function within the same pair of molecules,
-      // then use the ref variable to update new
-      // However, if this is the second time calling it then use the previous result as reference
+      // If this is the first call to this function within the same pair of
+      // molecules, then use the ref variable to update new However, if this is
+      // the second time calling it then use the previous result as reference
       if (first_call) {
         sumRnew[box][i] = sumRref[box][i] + sumRealNew;
         sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
@@ -896,11 +889,13 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
         sumInew[box][i] += sumImaginaryNew;
       }
 
-      // Calculate new energy recip based on the new sum real and imaginary values
-      energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-                         * sumInew[box][i]) * prefactRef[box][i];
+      // Calculate new energy recip based on the new sum real and imaginary
+      // values
+      energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] +
+                         sumInew[box][i] * sumInew[box][i]) *
+                        prefactRef[box][i];
     }
-#endif 
+#endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
   }
   // Return the change in reciprocal energy

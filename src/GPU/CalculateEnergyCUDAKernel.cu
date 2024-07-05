@@ -92,9 +92,9 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(
       gpu_cellStartIndex, vars->gpu_cellVector, gpu_neighborList, numberOfCells,
       vars->gpu_x, vars->gpu_y, vars->gpu_z, axis, halfAx, electrostatic,
-      vars->gpu_particleCharge, gpu_particleKind, gpu_particleMol, gpu_REn, gpu_LJEn,
-      vars->gpu_sigmaSq, vars->gpu_epsilon_Cn, vars->gpu_n, vars->gpu_VDW_Kind,
-      vars->gpu_isMartini, vars->gpu_count, vars->gpu_rCut,
+      vars->gpu_particleCharge, gpu_particleKind, gpu_particleMol, gpu_REn,
+      gpu_LJEn, vars->gpu_sigmaSq, vars->gpu_epsilon_Cn, vars->gpu_n,
+      vars->gpu_VDW_Kind, vars->gpu_isMartini, vars->gpu_count, vars->gpu_rCut,
       vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn, vars->gpu_alpha,
       vars->gpu_ewald, vars->gpu_diElectric_1, vars->gpu_nonOrth,
       vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
@@ -129,7 +129,7 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   } else {
     REn = 0.0;
   }
-  
+
   CUFREE(d_temp_storage);
   CUFREE(gpu_particleKind);
   CUFREE(gpu_particleMol);
@@ -171,11 +171,12 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   if (currentCell > neighborCell) {
     if (threadIdx.x == 0) {
       gpu_LJEn[blockIdx.x] = 0.0;
-      if (electrostatic) gpu_REn[blockIdx.x] = 0.0;
+      if (electrostatic)
+        gpu_REn[blockIdx.x] = 0.0;
     }
     return;
   }
-  
+
   if (threadIdx.x == 0) {
     // Calculate number of particles inside current Cell
     shr_currentCellStartIndex = gpu_cellStartIndex[currentCell];
@@ -211,8 +212,8 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
 
     int currentParticle =
         gpu_cellVector[shr_currentCellStartIndex + currentParticleIndex];
-    int neighborParticle = gpu_cellVector[shr_neighborCellStartIndex +
-                                          neighborParticleIndex];
+    int neighborParticle =
+        gpu_cellVector[shr_neighborCellStartIndex + neighborParticleIndex];
 
     int mA = gpu_particleMol[currentParticle];
     int mB = gpu_particleMol[neighborParticle];
@@ -227,7 +228,7 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
                     gpu_Invcell_y, gpu_Invcell_z)) {
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
- 
+
         double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
                                               gpu_molIndex, gpu_lambdaVDW);
         LJEn += CalcEnGPU(

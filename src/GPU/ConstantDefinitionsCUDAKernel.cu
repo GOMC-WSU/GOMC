@@ -6,9 +6,9 @@ along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifdef GOMC_CUDA
+#include "cub/cub.cuh"
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "cub/cub.cuh"
 
 #include <cstdio>
 #include <iostream>
@@ -202,10 +202,11 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal) {
     CUMALLOC((void **)&vars->gpu_hsqrRef[b], imageTotal * sizeof(double));
   }
   CUMALLOC((void **)&vars->gpu_recipEnergies, imageTotal * sizeof(double));
-  //Allocate space for cub reduction operations on the Ewald arrays
-  //Set to the maximum value
-  cub::DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                         vars->gpu_recipEnergies, vars->gpu_finalVal, imageTotal);
+  // Allocate space for cub reduction operations on the Ewald arrays
+  // Set to the maximum value
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_recipEnergies,
+                         vars->gpu_finalVal, imageTotal);
   CUMALLOC(&vars->cub_reduce_storage, vars->cub_reduce_storage_size);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -323,7 +324,7 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
   }
   CUFREE(vars->gpu_recipEnergies);
   CUFREE(vars->cub_reduce_storage);
-  
+
   delete[] vars->gpu_kx;
   delete[] vars->gpu_ky;
   delete[] vars->gpu_kz;

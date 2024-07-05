@@ -2,196 +2,112 @@
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
 Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef CALCULATE_EWALD_CUDA_KERNEL
 #define CALCULATE_EWALD_CUDA_KERNEL
 
 #ifdef GOMC_CUDA
+#include "VariablesCUDA.cuh"
+#include "XYZArray.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "VariablesCUDA.cuh"
 #include <vector>
-#include "XYZArray.h"
 
-void CallBoxForceReciprocalGPU(VariablesCUDA *vars,
-                               XYZArray &atomForceRec,
-                               XYZArray &molForceRec,
-                               const std::vector<double> &particleCharge,
-                               const std::vector<int> &particleMol,
-                               const std::vector<bool> &particleHasNoCharge,
-                               const bool *particleUsed,
-                               const std::vector<int> &startMol,
-                               const std::vector<int> &lengthMol,
-                               double alpha,
-                               double alphaSq,
-                               double constValue,
-                               uint imageSize,
-                               XYZArray const &molCoords,
-                               BoxDimensions const &boxAxes,
-                               int box);
+void CallBoxForceReciprocalGPU(
+    VariablesCUDA *vars, XYZArray &atomForceRec, XYZArray &molForceRec,
+    const std::vector<double> &particleCharge,
+    const std::vector<int> &particleMol,
+    const std::vector<bool> &particleHasNoCharge, const bool *particleUsed,
+    const std::vector<int> &startMol, const std::vector<int> &lengthMol,
+    double alpha, double alphaSq, double constValue, uint imageSize,
+    XYZArray const &molCoords, BoxDimensions const &boxAxes, int box);
 
-void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
-                               XYZArray const &coords,
-                               double const *kx,
-                               double const *ky,
+void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
+                               double const *kx, double const *ky,
                                double const *kz,
                                const std::vector<double> &particleCharge,
-                               uint imageSize,
-                               double *prefact,
-                               double *hsqr,
-                               double &energyRecip,
-                               uint box);
+                               uint imageSize, double *prefact, double *hsqr,
+                               double &energyRecip, uint box);
 
-void CallBoxReciprocalSumsGPU(VariablesCUDA *vars,
-                              XYZArray const &coords,
+void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
                               const std::vector<double> &particleCharge,
-                              uint imageSize,
-                              double &energyRecip,
-                              uint box);
+                              uint imageSize, double &energyRecip, uint box);
 
-void CallMolReciprocalGPU(VariablesCUDA *vars,
-                          XYZArray const &currentCoords,
+void CallMolReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
                           XYZArray const &newCoords,
                           const std::vector<double> &particleCharge,
-                          uint imageSize,
-                          double &energyRecip,
-                          uint box);
+                          uint imageSize, double &energyRecip, uint box);
 
-//Calculate reciprocal term for lambdaNew and Old with same coordinates
+// Calculate reciprocal term for lambdaNew and Old with same coordinates
 void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
                                       XYZArray const &coords,
                                       const std::vector<double> &particleCharge,
-                                      uint imageSize,
-                                      double &energyRecip,
-                                      const double lambdaCoef,
-                                      uint box);
+                                      uint imageSize, double &energyRecip,
+                                      const double lambdaCoef, uint box);
 
-void CallSwapReciprocalGPU(VariablesCUDA *vars,
-                           XYZArray const &coords,
+void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
                            const std::vector<double> &particleCharge,
-                           uint imageSize,
-                           double &energyRecip,
-                           uint box);
+                           uint imageSize, double &energyRecip, uint box);
 
-void CallMolExchangeReciprocalGPU(VariablesCUDA *vars,
-                                  uint imageSize,
-                                  uint box,
+void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
                                   std::vector<double> particleCharge,
                                   int numChargedParticles,
-                                  double &energyRecipNew,
-                                  XYZArray molCoords);
+                                  double &energyRecipNew, XYZArray molCoords);
 
-__global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
-                                      double *gpu_aForceRecy,
-                                      double *gpu_aForceRecz,
-                                      double *gpu_mForceRecx,
-                                      double *gpu_mForceRecy,
-                                      double *gpu_mForceRecz,
-                                      double *gpu_particleCharge,
-                                      int *gpu_particleMol,
-                                      bool *gpu_particleHasNoCharge,
-                                       bool *gpu_particleUsed,
-                                     int *gpu_startMol,
-                                      int *gpu_lengthMol,
-                                      double alpha,
-                                      double alphaSq,
-                                      double constValue,
-                                      int imageSize,
-                                      double *gpu_kx,
-                                      double *gpu_ky,
-                                      double *gpu_kz,
-                                      double *gpu_x,
-                                      double *gpu_y,
-                                      double *gpu_z,
-                                      double *gpu_prefact,
-                                      double *gpu_sumRnew,
-                                      double *gpu_sumInew,
-                                      bool *gpu_isFraction,
-                                      int *gpu_molIndex,
-                                      double *gpu_lambdaCoulomb,
-                                      double *gpu_cell_x,
-                                      double *gpu_cell_y,
-                                      double *gpu_cell_z,
-                                      double *gpu_Invcell_x,
-                                      double *gpu_Invcell_y,
-                                      double *gpu_Invcell_z,
-                                      int *gpu_nonOrth,
-                                      double axx,
-                                      double axy,
-                                      double axz,
-                                      int box,
-                                      int atomCount);
+__global__ void BoxForceReciprocalGPU(
+    double *gpu_aForceRecx, double *gpu_aForceRecy, double *gpu_aForceRecz,
+    double *gpu_mForceRecx, double *gpu_mForceRecy, double *gpu_mForceRecz,
+    double *gpu_particleCharge, int *gpu_particleMol,
+    bool *gpu_particleHasNoCharge, bool *gpu_particleUsed, int *gpu_startMol,
+    int *gpu_lengthMol, double alpha, double alphaSq, double constValue,
+    int imageSize, double *gpu_kx, double *gpu_ky, double *gpu_kz,
+    double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_prefact,
+    double *gpu_sumRnew, double *gpu_sumInew, bool *gpu_isFraction,
+    int *gpu_molIndex, double *gpu_lambdaCoulomb, double *gpu_cell_x,
+    double *gpu_cell_y, double *gpu_cell_z, double *gpu_Invcell_x,
+    double *gpu_Invcell_y, double *gpu_Invcell_z, int *gpu_nonOrth, double axx,
+    double axy, double axz, int box, int atomCount);
 
-__global__ void BoxReciprocalSumsGPU(double * gpu_x,
-                                     double * gpu_y,
-                                     double * gpu_z,
-                                     double * gpu_kx,
-                                     double * gpu_ky,
-                                     double * gpu_kz,
-                                     int atomNumber,
-                                     double * gpu_particleCharge,
-                                     double * gpu_sumRnew,
-                                     double * gpu_sumInew,
+__global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
+                                     double *gpu_z, double *gpu_kx,
+                                     double *gpu_ky, double *gpu_kz,
+                                     int atomNumber, double *gpu_particleCharge,
+                                     double *gpu_sumRnew, double *gpu_sumInew,
                                      int imageSize);
 
 __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                                  double *gpu_nx, double *gpu_ny, double *gpu_nz,
                                  double *gpu_kx, double *gpu_ky, double *gpu_kz,
-                                 int atomNumber,
-                                 double *gpu_particleCharge,
-                                 double *gpu_sumRnew,
-                                 double *gpu_sumInew,
-                                 double *gpu_sumRref,
-                                 double *gpu_sumIref,
+                                 int atomNumber, double *gpu_particleCharge,
+                                 double *gpu_sumRnew, double *gpu_sumInew,
+                                 double *gpu_sumRref, double *gpu_sumIref,
                                  double *gpu_prefactRef,
-                                 double *gpu_RecipEnergies,
-                                 int imageSize);
+                                 double *gpu_RecipEnergies, int imageSize);
 
-__global__ void ChangeLambdaMolReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
-                                            double *gpu_kx, double *gpu_ky, double *gpu_kz,
-                                            int atomNumber,
-                                            double *gpu_particleCharge,
-                                            double *gpu_sumRnew,
-                                            double *gpu_sumInew,
-                                            double *gpu_sumRref,
-                                            double *gpu_sumIref,
-                                            double *gpu_prefactRef,
-                                            double *gpu_RecipEnergies,
-                                            double lambdaCoef,
-                                            int imageSize);
+__global__ void ChangeLambdaMolReciprocalGPU(
+    double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_kx, double *gpu_ky,
+    double *gpu_kz, int atomNumber, double *gpu_particleCharge,
+    double *gpu_sumRnew, double *gpu_sumInew, double *gpu_sumRref,
+    double *gpu_sumIref, double *gpu_prefactRef, double *gpu_RecipEnergies,
+    double lambdaCoef, int imageSize);
 
-__global__ void SwapReciprocalGPU(const double *gpu_x, const double *gpu_y, const double *gpu_z,
-                                  const double *gpu_kx, const double *gpu_ky, const double *gpu_kz,
-                                  int atomNumber,
-                                  const double *gpu_particleCharge,
-                                  double *gpu_sumRnew,
-                                  double *gpu_sumInew,
-                                  const double *gpu_sumRref,
-                                  const double *gpu_sumIref,
-                                  const double *gpu_prefactRef,
-                                  double *gpu_RecipEnergies,
-                                  int imageSize);
+__global__ void SwapReciprocalGPU(
+    const double *gpu_x, const double *gpu_y, const double *gpu_z,
+    const double *gpu_kx, const double *gpu_ky, const double *gpu_kz,
+    int atomNumber, const double *gpu_particleCharge, double *gpu_sumRnew,
+    double *gpu_sumInew, const double *gpu_sumRref, const double *gpu_sumIref,
+    const double *gpu_prefactRef, double *gpu_RecipEnergies, int imageSize);
 
 __global__ void MolExchangeReciprocalGPU(
-                                  int imageSize,
-                                  double *gpu_kx,
-                                  double *gpu_ky,
-                                  double *gpu_kz,
-                                  double *gpu_prefactRef,
-                                  double *gpu_sumRnew,
-                                  double *gpu_sumInew,
-                                  double *gpu_particleCharge,
-                                  int numChargedParticles,
-                                  double *gpu_MolX,
-                                  double *gpu_MolY,
-                                  double *gpu_MolZ,
-                                  double *gpu_RecipEnergies);
+    int imageSize, double *gpu_kx, double *gpu_ky, double *gpu_kz,
+    double *gpu_prefactRef, double *gpu_sumRnew, double *gpu_sumInew,
+    double *gpu_particleCharge, int numChargedParticles, double *gpu_MolX,
+    double *gpu_MolY, double *gpu_MolZ, double *gpu_RecipEnergies);
 
-__global__ void BoxReciprocalGPU(double *gpu_prefact,
-                                 double *gpu_sumRnew,
-                                 double *gpu_sumInew,
-                                 double *gpu_RecipEnergies,
+__global__ void BoxReciprocalGPU(double *gpu_prefact, double *gpu_sumRnew,
+                                 double *gpu_sumInew, double *gpu_RecipEnergies,
                                  int imageSize);
 
 #endif /*GOMC_CUDA*/
