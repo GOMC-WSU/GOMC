@@ -500,7 +500,6 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
     XYZArray molCoords = newMol.GetCoords();
     uint length = thisKind.NumAtoms();
 #ifdef GOMC_CUDA
-    bool insert = true;
     std::vector<double> molCharges;
     int charges = 0;
     for (uint p = 0; p < length; ++p) {
@@ -521,7 +520,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
     }
     else {
       CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
-                            imageSizeRef[box], insert, energyRecipNew, box);
+                            imageSizeRef[box], energyRecipNew, box);
     }
 #else
     uint startAtom = mols.MolStart(molIndex);
@@ -694,12 +693,12 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
     XYZArray molCoords = oldMol.GetCoords();
     uint length = thisKind.NumAtoms();
 #ifdef GOMC_CUDA
-    bool insert = false;
     std::vector<double> molCharges;
     int charges = 0;
     for (uint p = 0; p < length; ++p) {
       if (thisKind.AtomCharge(p) != 0.0) {
-        molCharges.push_back(thisKind.AtomCharge(p));
+		// Negate charge since we are removing this molecule
+        molCharges.push_back(-(thisKind.AtomCharge(p)));
         if (p > charges) {
           molCoords.Set(charges, molCoords[p]);
         }
@@ -715,7 +714,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
     }
     else {
       CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
-                            imageSizeRef[box], insert, energyRecipNew, box);
+                            imageSizeRef[box], energyRecipNew, box);
     }
 #else
     uint startAtom = mols.MolStart(molIndex);

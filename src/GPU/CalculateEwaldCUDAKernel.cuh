@@ -71,7 +71,6 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                            XYZArray const &coords,
                            const std::vector<double> &particleCharge,
                            uint imageSize,
-                           const bool insert,
                            double &energyRecip,
                            uint box);
 
@@ -162,16 +161,15 @@ __global__ void ChangeLambdaMolReciprocalGPU(double *gpu_x, double *gpu_y, doubl
                                             double lambdaCoef,
                                             int imageSize);
 
-__global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
-                                  double *gpu_kx, double *gpu_ky, double *gpu_kz,
+__global__ void SwapReciprocalGPU(const double *gpu_x, const double *gpu_y, const double *gpu_z,
+                                  const double *gpu_kx, const double *gpu_ky, const double *gpu_kz,
                                   int atomNumber,
-                                  double *gpu_particleCharge,
+                                  const double *gpu_particleCharge,
                                   double *gpu_sumRnew,
                                   double *gpu_sumInew,
-                                  double *gpu_sumRref,
-                                  double *gpu_sumIref,
-                                  double *gpu_prefactRef,
-                                  const bool insert,
+                                  const double *gpu_sumRref,
+                                  const double *gpu_sumIref,
+                                  const double *gpu_prefactRef,
                                   double *gpu_RecipEnergies,
                                   int imageSize);
 
