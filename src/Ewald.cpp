@@ -421,14 +421,18 @@ double Ewald::MolReciprocal(XYZArray const &molCoords, const uint molIndex,
     double lambdaCoef = GetLambdaCoef(molIndex, box);
 #ifdef GOMC_CUDA
     XYZArray cCoords(length);
+    XYZArray nCoords(length);
     std::vector<double> molCharge;
     int charges = 0;
     for (uint p = 0; p < length; ++p) {
-      cCoords.Set(p, currentCoords[startAtom + p]);
-      molCharge.push_back(thisKind.AtomCharge(p) * lambdaCoef);
-      if (thisKind.AtomCharge(p) != 0.0) charges++;
+      if (thisKind.AtomCharge(p) != 0.0) {
+        cCoords.Set(charges, currentCoords[startAtom + p]);
+        nCoords.Set(charges, molCoords[p]);
+        molCharge.push_back(thisKind.AtomCharge(p) * lambdaCoef);
+        charges++;
+      }
     }
-    
+
     // If there are no charged particles, the energy doesn't change, but we need
     // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
     // in case the move is accepted
@@ -437,7 +441,7 @@ double Ewald::MolReciprocal(XYZArray const &molCoords, const uint molIndex,
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     }
     else {
-      CallMolReciprocalGPU(ff.particles->getCUDAVars(), cCoords, molCoords,
+      CallMolReciprocalGPU(ff.particles->getCUDAVars(), cCoords, nCoords,
                            molCharge, imageSizeRef[box],
                            energyRecipNew, box);
     }
@@ -697,7 +701,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
     int charges = 0;
     for (uint p = 0; p < length; ++p) {
       if (thisKind.AtomCharge(p) != 0.0) {
-		// Negate charge since we are removing this molecule
+        // Negate charge since we are removing this molecule
         molCharges.push_back(-(thisKind.AtomCharge(p)));
         if (p > charges) {
           molCoords.Set(charges, molCoords[p]);
@@ -784,12 +788,9 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
       for (uint p = 0; p < lengthNew; ++p) {
         unsigned long currentAtom = mols.MolStart(moleculeIndex) + p;
         if (!particleHasNoCharge[currentAtom]) {
-          molCoords.Set(numChargedParticles,
-                        currMolCoords.x[p],
-                        currMolCoords.y[p],
-                        currMolCoords.z[p]); 
-          numChargedParticles++;
+          molCoords.Set(numChargedParticles, currMolCoords[p]);
           particleCharge.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
+          numChargedParticles++;
         }
       }
     }
@@ -801,10 +802,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
       for (uint p = 0; p < lengthOld; ++p) {
         unsigned long currentAtom = mols.MolStart(moleculeIndex) + p;
         if (!particleHasNoCharge[currentAtom]) {
-          molCoords.Set(numChargedParticles,
-                        currMolCoords.x[p],
-                        currMolCoords.y[p],
-                        currMolCoords.z[p]);
+          molCoords.Set(numChargedParticles, currMolCoords[p]);
           numChargedParticles++;
           // Invert these charges since we subtract them in the energy calc
           particleCharge.push_back(thisKindOld.AtomCharge(p) * -lambdaCoef);
