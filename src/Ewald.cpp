@@ -106,9 +106,11 @@ void Ewald::Init() {
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
-      if (std::abs(molKind.AtomCharge(a)) < 0.000000001) {
+      if (std::abs(molKind.AtomCharge(a)) < 1.0e-9) {
+        particleCharge.push_back(0.0);
         particleHasNoCharge.push_back(true);
       } else {
+        particleCharge.push_back(molKind.AtomCharge(a));
         particleHasNoCharge.push_back(false);
       }
     }
@@ -1597,7 +1599,7 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     }
 #else
     // Only one box, so clear all atoms and molecules and mark all particles as
-    // Used
+    // used
     atomForceRec.Reset();
     molForceRec.Reset();
     memset((void *)particleUsed, true, atomForceRec.Count() * sizeof(bool));
