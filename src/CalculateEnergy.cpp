@@ -326,7 +326,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
-  firstprivate(box, atomCount, molCount, num::qqFact) \
+  //firstprivate(box, atomCount, molCount, num::qqFact) 
   reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
             aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], \
             mForcez[:molCount])
@@ -1493,6 +1493,7 @@ void CalculateEnergy::SingleMoleculeInter(
     const double lambdaNewCoulomb, const uint molIndex, const uint box) const {
   double tempREnOld = 0.0, tempLJEnOld = 0.0;
   double tempREnNew = 0.0, tempLJEnNew = 0.0;
+
   if (box < BOXES_WITH_U_NB) {
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
@@ -1516,6 +1517,7 @@ firstprivate(atom, box, lambdaNewCoulomb, lambdaOldCoulomb, lambdaOldVDW, \
 lambdaNewVDW, num::qqFact) reduction(+:tempREnOld, tempLJEnOld, tempREnNew, \
 tempLJEnNew)
 #endif
+
       for (int i = 0; i < (int)nIndex.size(); i++) {
         double distSq = 0.0;
         XYZ virComponents;
