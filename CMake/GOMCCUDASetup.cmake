@@ -1,5 +1,6 @@
 # Find CUDA is enabled, set it up
 set(CMAKE_CUDA_COMP_FLAGS -DGOMC_CUDA -DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT)
+set(CMAKE_COMP_FLAGS ${CMAKE_COMP_FLAGS} -DGOMC_CUDA)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("-- Debug build type detected, passing '-g -G --keep' to nvcc")
