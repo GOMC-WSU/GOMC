@@ -1,6 +1,6 @@
 # Find CUDA is enabled, set it up
 set(CMAKE_CUDA_COMP_FLAGS -DGOMC_CUDA -DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT)
-set(CMAKE_COMP_FLAGS ${CMAKE_COMP_FLAGS} -DGOMC_CUDA)
+set(CMAKE_HOST_COMP_FLAGS ${CMAKE_COMP_FLAGS} -DGOMC_CUDA)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("-- Debug build type detected, passing '-g -G --keep' to nvcc")
@@ -50,7 +50,7 @@ if(ENSEMBLE_GPU_NVT)
     ${headers} ${libHeaders} ${libSources})
     # Set compiler and linker flags for NVCC and the host compiler
     target_compile_options(GPU_NVT
-       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     target_link_options(GPU_NVT
        PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
@@ -76,7 +76,7 @@ if(ENSEMBLE_GPU_GEMC)
     ${headers} ${libHeaders} ${libSources})
     # Set compiler and linker flags for NVCC and the host compiler
     target_compile_options(GPU_GEMC
-       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     target_link_options(GPU_GEMC
        PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
@@ -102,7 +102,7 @@ if(ENSEMBLE_GPU_GCMC)
     ${headers} ${libHeaders} ${libSources})
     # Set compiler and linker flags for NVCC and the host compiler
     target_compile_options(GPU_GCMC
-       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     target_link_options(GPU_GCMC
        PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
@@ -128,7 +128,7 @@ if(ENSEMBLE_GPU_NPT)
     ${headers} ${libHeaders} ${libSources})
     # Set compiler and linker flags for NVCC and the host compiler
     target_compile_options(GPU_NPT
-       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_COMP_FLAGS}>
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
               $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS} ${CMAKE_GPU_COMP_FLAGS}>)
     target_link_options(GPU_NPT
        PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
