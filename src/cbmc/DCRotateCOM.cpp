@@ -187,7 +187,6 @@ void DCRotateCOM::BuildNew(TrialMol &newMol, uint molIndex) {
         u2 = prng();
         u3 = prng();
         spin = RotationMatrix::UniformRandom(u1, u2, u3);
-        // spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
       }
 
       for (uint a = 0; a < atomNumber; ++a) {
@@ -297,7 +296,6 @@ void DCRotateCOM::BuildOld(TrialMol &oldMol, uint molIndex) {
         u2 = prng();
         u3 = prng();
         spin = RotationMatrix::UniformRandom(u1, u2, u3);
-        // spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
       }
 
       for (uint a = 0; a < atomNumber; ++a) {
