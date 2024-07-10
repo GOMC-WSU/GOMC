@@ -138,9 +138,14 @@ void DCFreeCycleSeed::BuildNew(TrialMol &newMol, uint molIndex) {
   positions[hed.NumBond()].Set(0, newMol.RawRectCoords(anchorBond, 0, 0));
 
   // counting backward to preserve prototype
+  double u1, u2, u3;
   for (uint lj = nLJTrials; lj-- > 0;) {
     // convert chosen torsion to 3D positions
-    RotationMatrix spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
+    u1 = prng();
+    u2 = prng();
+    u3 = prng();
+    RotationMatrix spin = RotationMatrix::UniformRandom(u1, u2, u3);
+    // RotationMatrix spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
     for (uint b = 0; b < hed.NumBond() + 1; ++b) {
       // find positions
       positions[b].Set(lj, spin.Apply(positions[b][0]));
@@ -216,9 +221,14 @@ void DCFreeCycleSeed::BuildOld(TrialMol &oldMol, uint molIndex) {
   positions[hed.NumBond()].Add(0, -center);
 
   // counting backward to preserve prototype
+  double u1, u2, u3;
   for (uint lj = nLJTrials; lj-- > 1;) {
     // convert chosen torsion to 3D positions
-    RotationMatrix spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
+    u1 = prng();
+    u2 = prng();
+    u3 = prng();
+    RotationMatrix spin = RotationMatrix::UniformRandom(u1, u2, u3);
+    // RotationMatrix spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
     for (uint b = 0; b < hed.NumBond() + 1; ++b) {
       // find positions
       positions[b].Set(lj, spin.Apply(positions[b][0]));
