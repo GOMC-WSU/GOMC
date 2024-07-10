@@ -145,7 +145,6 @@ void DCFreeCycleSeed::BuildNew(TrialMol &newMol, uint molIndex) {
     u2 = prng();
     u3 = prng();
     RotationMatrix spin = RotationMatrix::UniformRandom(u1, u2, u3);
-    // RotationMatrix spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
     for (uint b = 0; b < hed.NumBond() + 1; ++b) {
       // find positions
       positions[b].Set(lj, spin.Apply(positions[b][0]));
@@ -228,7 +227,6 @@ void DCFreeCycleSeed::BuildOld(TrialMol &oldMol, uint molIndex) {
     u2 = prng();
     u3 = prng();
     RotationMatrix spin = RotationMatrix::UniformRandom(u1, u2, u3);
-    // RotationMatrix spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
     for (uint b = 0; b < hed.NumBond() + 1; ++b) {
       // find positions
       positions[b].Set(lj, spin.Apply(positions[b][0]));
