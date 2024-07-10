@@ -182,7 +182,12 @@ void DCRotateCOM::BuildNew(TrialMol &newMol, uint molIndex) {
         RandRotateZ();
       } else {
         // convert chosen torsion to 3D positions
-        spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
+        double u1, u2, u3;
+        u1 = prng();
+        u2 = prng();
+        u3 = prng();
+        spin = RotationMatrix::UniformRandom(u1, u2, u3);
+        // spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
       }
 
       for (uint a = 0; a < atomNumber; ++a) {
@@ -287,7 +292,12 @@ void DCRotateCOM::BuildOld(TrialMol &oldMol, uint molIndex) {
         RandRotateZ();
       } else {
         // convert chosen torsion to 3D positions
-        spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
+        double u1, u2, u3;
+        u1 = prng();
+        u2 = prng();
+        u3 = prng();
+        spin = RotationMatrix::UniformRandom(u1, u2, u3);
+        // spin = RotationMatrix::UniformRandom(prng(), prng(), prng());
       }
 
       for (uint a = 0; a < atomNumber; ++a) {
