@@ -105,7 +105,6 @@ void Ewald::Init() {
     for (uint a = 0; a < molKind.NumAtoms(); ++a) {
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
-      particleCharge.push_back(molKind.AtomCharge(a));
       if (std::abs(molKind.AtomCharge(a)) < 1.0e-9) {
         particleCharge.push_back(0.0);
         particleHasNoCharge.push_back(true);
