@@ -168,7 +168,7 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
     return;
   __syncthreads();
 
-#pragma unroll 32
+#pragma unroll 16
   for (int particleID = 0; particleID < numberOfAtoms; particleID++) {
     double dot = DotProductGPU(gpu_kx[imageID], gpu_ky[imageID],
                                gpu_kz[imageID], shared_coords[particleID * 3],
