@@ -305,6 +305,24 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
 #endif
 }
 
+void UpdateEnergyVecs(VariablesCUDA *vars, int newVecLen, bool electrostatic) {
+  // If we haven't exceeded the previous maximum size, we can reuse the storage
+  if (vars->gpu_energyVecLen >= newVecLen) return;
+
+  // Free the current allocations if this isn't the first allocation
+  if (vars->gpu_energyVecLen > 0) {
+    CUFREE(vars->gpu_LJEn);
+    if (electrostatic) {
+      CUFREE(vars->gpu_REn);
+    }
+  }
+  vars->gpu_energyVecLen = newVecLen;
+  CUMALLOC((void **)&vars->gpu_LJEn, vars->gpu_energyVecLen * sizeof(double));
+  if (electrostatic) {
+    CUMALLOC((void **)&vars->gpu_REn, vars->gpu_energyVecLen * sizeof(double));
+  }
+}
+
 void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
   for (uint b = 0; b < BOX_TOTAL; b++) {
     CUFREE(vars->gpu_kx[b]);
@@ -375,6 +393,8 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_comx);
   CUFREE(vars->gpu_comy);
   CUFREE(vars->gpu_comz);
+  CUFREE(vars->gpu_LJEn);
+  CUFREE(vars->gpu_REn);
   CUFREE(vars->gpu_r_k_x);
   CUFREE(vars->gpu_r_k_y);
   CUFREE(vars->gpu_r_k_z);
@@ -410,7 +430,7 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
     CUFREE(vars->gpu_Invcell_z[b]);
   }
 
-  // delete GPU memory for lambda variables
+  // free GPU memory for lambda variables
   CUFREE(vars->gpu_molIndex);
   CUFREE(vars->gpu_lambdaVDW);
   CUFREE(vars->gpu_lambdaCoulomb);

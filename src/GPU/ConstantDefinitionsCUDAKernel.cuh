@@ -42,6 +42,7 @@ void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
 void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
                             double *invCellBasis_x, double *invCellBasis_y,
                             double *invCellBasis_z);
+void UpdateEnergyVecs(VariablesCUDA *vars, int newVecLen, bool electrostatic);
 void DestroyEwaldCUDAVars(VariablesCUDA *vars);
 void DestroyExp6CUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);

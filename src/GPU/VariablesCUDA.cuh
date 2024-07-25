@@ -86,8 +86,11 @@ public:
     gpu_mForcey = nullptr;
     gpu_mForcez = nullptr;
     gpu_startAtomIdx = nullptr;
+	gpu_energyVecLen = 0;
+	gpu_LJEn = nullptr;
+	gpu_REn = nullptr;
 
-    // setting lambda valuesy to null
+    // setting lambda values to nullptr
     gpu_molIndex = nullptr;
     gpu_lambdaVDW = nullptr;
     gpu_lambdaCoulomb = nullptr;
@@ -121,6 +124,8 @@ public:
   double **gpu_hsqr, **gpu_hsqrRef;
   double *gpu_recipEnergies;
   double *gpu_comx, *gpu_comy, *gpu_comz;
+  int gpu_energyVecLen;
+  double *gpu_LJEn, *gpu_REn;
   double *gpu_rT11, *gpu_rT12, *gpu_rT13;
   double *gpu_rT22, *gpu_rT23, *gpu_rT33;
   double *gpu_vT11, *gpu_vT12, *gpu_vT13;
