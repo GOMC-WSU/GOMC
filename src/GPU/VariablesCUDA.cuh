@@ -64,6 +64,8 @@ public:
   VariablesCUDA() {
     cub_reduce_storage_size = 0;
     cub_reduce_storage = nullptr;
+    cub_energyVec_storage_size = 0;
+    cub_energyVec_storage = nullptr;
     gpu_sigmaSq = nullptr;
     gpu_epsilon_Cn = nullptr;
     gpu_n = nullptr;
@@ -99,6 +101,8 @@ public:
 
   size_t cub_reduce_storage_size;
   void *cub_reduce_storage;
+  size_t cub_energyVec_storage_size;
+  void *cub_energyVec_storage;
   double *gpu_sigmaSq;
   double *gpu_epsilon_Cn;
   double *gpu_n;

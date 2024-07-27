@@ -321,6 +321,21 @@ void UpdateEnergyVecs(VariablesCUDA *vars, int newVecLen, bool electrostatic) {
   if (electrostatic) {
     CUMALLOC((void **)&vars->gpu_REn, vars->gpu_energyVecLen * sizeof(double));
   }
+
+  // Check if more temporary storage is needed for this larger reduction size.
+  // If so, free and malloc a new array for the additional space.
+  void *d_temp_storage = nullptr;
+  size_t temp_storage_bytes = 0;
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_LJEn,
+                         vars->gpu_finalVal, vars->gpu_energyVecLen);
+  if (temp_storage_bytes > vars->cub_energyVec_storage_size) {
+    // Free the current allocation if this isn't the first allocation
+    if (vars->cub_energyVec_storage_size > 0) {
+      CUFREE(vars->cub_energyVec_storage);
+    }
+    vars->cub_energyVec_storage_size = temp_storage_bytes;
+    CUMALLOC(&(vars->cub_energyVec_storage), vars->cub_energyVec_storage_size);
+  }
 }
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
@@ -366,6 +381,7 @@ void DestroyExp6CUDAVars(VariablesCUDA *vars) {
 }
 
 void DestroyCUDAVars(VariablesCUDA *vars) {
+  CUFREE(vars->cub_energyVec_storage);
   CUFREE(vars->gpu_sigmaSq);
   CUFREE(vars->gpu_epsilon_Cn);
   CUFREE(vars->gpu_n);
