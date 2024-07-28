@@ -88,13 +88,13 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(
       gpu_cellStartIndex, vars->gpu_cellVector, gpu_neighborList, numberOfCells,
       vars->gpu_x, vars->gpu_y, vars->gpu_z, axis, halfAx, electrostatic,
-      vars->gpu_particleCharge, gpu_particleKind, gpu_particleMol, vars->gpu_REn,
-      vars->gpu_LJEn, vars->gpu_sigmaSq, vars->gpu_epsilon_Cn, vars->gpu_n,
-      vars->gpu_VDW_Kind, vars->gpu_isMartini, vars->gpu_count, vars->gpu_rCut,
-      vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn, vars->gpu_alpha,
-      vars->gpu_ewald, vars->gpu_diElectric_1, vars->gpu_nonOrth,
-      vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
-      vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
+      vars->gpu_particleCharge, gpu_particleKind, gpu_particleMol,
+      vars->gpu_REn, vars->gpu_LJEn, vars->gpu_sigmaSq, vars->gpu_epsilon_Cn,
+      vars->gpu_n, vars->gpu_VDW_Kind, vars->gpu_isMartini, vars->gpu_count,
+      vars->gpu_rCut, vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn,
+      vars->gpu_alpha, vars->gpu_ewald, vars->gpu_diElectric_1,
+      vars->gpu_nonOrth, vars->gpu_cell_x[box], vars->gpu_cell_y[box],
+      vars->gpu_cell_z[box], vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box], sc_coul, sc_sigma_6, sc_alpha, sc_power,
       vars->gpu_rMin, vars->gpu_rMaxSq, vars->gpu_expConst, vars->gpu_molIndex,
       vars->gpu_lambdaVDW, vars->gpu_lambdaCoulomb, vars->gpu_isFraction, box);
@@ -104,14 +104,17 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 #endif
 
   // ReduceSum
-  DeviceReduce::Sum(vars->cub_energyVec_storage, vars->cub_energyVec_storage_size, vars->gpu_LJEn,
+  DeviceReduce::Sum(vars->cub_energyVec_storage,
+                    vars->cub_energyVec_storage_size, vars->gpu_LJEn,
                     vars->gpu_finalVal, energyVectorLen);
   cudaMemcpy(&LJEn, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   if (electrostatic) {
     // Real Term ReduceSum
-    DeviceReduce::Sum(vars->cub_energyVec_storage, vars->cub_energyVec_storage_size, vars->gpu_REn,
+    DeviceReduce::Sum(vars->cub_energyVec_storage,
+                      vars->cub_energyVec_storage_size, vars->gpu_REn,
                       vars->gpu_finalVal, energyVectorLen);
-    cudaMemcpy(&REn, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&REn, vars->gpu_finalVal, sizeof(double),
+               cudaMemcpyDeviceToHost);
   } else {
     REn = 0.0;
   }

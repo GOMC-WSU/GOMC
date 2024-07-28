@@ -88,9 +88,9 @@ public:
     gpu_mForcey = nullptr;
     gpu_mForcez = nullptr;
     gpu_startAtomIdx = nullptr;
-	gpu_energyVecLen = 0;
-	gpu_LJEn = nullptr;
-	gpu_REn = nullptr;
+    gpu_energyVecLen = 0;
+    gpu_LJEn = nullptr;
+    gpu_REn = nullptr;
 
     // setting lambda values to nullptr
     gpu_molIndex = nullptr;

@@ -307,7 +307,8 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
 
 void UpdateEnergyVecs(VariablesCUDA *vars, int newVecLen, bool electrostatic) {
   // If we haven't exceeded the previous maximum size, we can reuse the storage
-  if (vars->gpu_energyVecLen >= newVecLen) return;
+  if (vars->gpu_energyVecLen >= newVecLen)
+    return;
 
   // Free the current allocations if this isn't the first allocation
   if (vars->gpu_energyVecLen > 0) {

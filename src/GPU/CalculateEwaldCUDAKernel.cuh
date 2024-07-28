@@ -18,8 +18,7 @@ along with this program, also can be found at
 void CallBoxForceReciprocalGPU(
     VariablesCUDA *vars, XYZArray &atomForceRec, XYZArray &molForceRec,
     const std::vector<double> &particleCharge,
-    const std::vector<int> &particleMol,
-    const std::vector<bool> &particleHasNoCharge, const bool *particleUsed,
+    const std::vector<int> &particleMol, const bool *particleUsed,
     const std::vector<int> &startMol, const std::vector<int> &lengthMol,
     double alpha, double alphaSq, double constValue, uint imageSize,
     XYZArray const &molCoords, BoxDimensions const &boxAxes, int box);
@@ -59,16 +58,16 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
 __global__ void BoxForceReciprocalGPU(
     double *gpu_aForceRecx, double *gpu_aForceRecy, double *gpu_aForceRecz,
     double *gpu_mForceRecx, double *gpu_mForceRecy, double *gpu_mForceRecz,
-    double *gpu_particleCharge, int *gpu_particleMol,
-    bool *gpu_particleHasNoCharge, bool *gpu_particleUsed, int *gpu_startMol,
-    int *gpu_lengthMol, double alpha, double alphaSq, double constValue,
-    int imageSize, double *gpu_kx, double *gpu_ky, double *gpu_kz,
-    double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_prefact,
-    double *gpu_sumRnew, double *gpu_sumInew, bool *gpu_isFraction,
-    int *gpu_molIndex, double *gpu_lambdaCoulomb, double *gpu_cell_x,
-    double *gpu_cell_y, double *gpu_cell_z, double *gpu_Invcell_x,
-    double *gpu_Invcell_y, double *gpu_Invcell_z, int *gpu_nonOrth, double axx,
-    double axy, double axz, int box, int atomCount);
+    double *gpu_particleCharge, int *gpu_particleMol, bool *gpu_particleUsed,
+    int *gpu_startMol, int *gpu_lengthMol, double alpha, double alphaSq,
+    double constValue, int imageSize, double *gpu_kx, double *gpu_ky,
+    double *gpu_kz, double *gpu_x, double *gpu_y, double *gpu_z,
+    double *gpu_prefact, double *gpu_sumRnew, double *gpu_sumInew,
+    bool *gpu_isFraction, int *gpu_molIndex, double *gpu_lambdaCoulomb,
+    double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
+    double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
+    int *gpu_nonOrth, double axx, double axy, double axz, int box,
+    int atomCount);
 
 __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_z, double *gpu_kx,

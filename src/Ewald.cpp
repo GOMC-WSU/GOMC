@@ -1578,9 +1578,7 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     double constValue = ff.alpha[box] * M_2_SQRTPI;
 
 #ifdef GOMC_CUDA
-    bool *particleUsed;
-    particleUsed = new bool[atomForceRec.Count()];
-    memset((void *)particleUsed, false, atomForceRec.Count() * sizeof(bool));
+    bool *particleUsed = new bool[atomForceRec.Count()];
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
     memset((void *)particleUsed, false, atomForceRec.Count() * sizeof(bool));
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
@@ -1604,11 +1602,11 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     memset((void *)particleUsed, true, atomForceRec.Count() * sizeof(bool));
 #endif
 
-    CallBoxForceReciprocalGPU(
-        ff.particles->getCUDAVars(), atomForceRec, molForceRec, particleCharge,
-        particleMol, particleHasNoCharge, particleUsed, startMol, lengthMol,
-        ff.alpha[box], ff.alphaSq[box], constValue, imageSizeRef[box],
-        molCoords, currentAxes, box);
+    CallBoxForceReciprocalGPU(ff.particles->getCUDAVars(), atomForceRec,
+                              molForceRec, particleCharge, particleMol,
+                              particleUsed, startMol, lengthMol, ff.alpha[box],
+                              ff.alphaSq[box], constValue, imageSizeRef[box],
+                              molCoords, currentAxes, box);
     delete[] particleUsed;
 #else
     // molecule iterator
