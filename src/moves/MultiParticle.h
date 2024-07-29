@@ -326,9 +326,9 @@ inline uint MultiParticle::ChooseBox() {
     }
   }
   if (multiParticleLiquid)
-      return maxB;
+    return maxB;
   else
-      return minB;
+    return minB;
 }
 
 inline uint MultiParticle::Transform() {

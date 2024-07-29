@@ -301,9 +301,9 @@ inline uint MultiParticleBrownian::ChooseBox() {
     }
   }
   if (multiParticleLiquid)
-      return maxB;
+    return maxB;
   else
-      return minB;
+    return minB;
 }
 
 inline uint MultiParticleBrownian::Transform() {

@@ -192,7 +192,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const ulong step) {
       // Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-      //Add Reciprocal energy
+      // Add Reciprocal energy
       sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
       sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
       // Add correction energy
