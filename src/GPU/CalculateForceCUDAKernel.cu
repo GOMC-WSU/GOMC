@@ -8,7 +8,6 @@ along with this program, also can be found at
 #ifdef GOMC_CUDA
 
 #include <cuda.h>
-#include <stdio.h>
 
 #include "CUDAMemoryManager.cuh"
 #include "CalculateEnergyCUDAKernel.cuh"
@@ -16,8 +15,10 @@ along with this program, also can be found at
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "cub/cub.cuh"
+
 #define NUMBER_OF_NEIGHBOR_CELLS 27
 #define PARTICLES_PER_BLOCK 32
+#define THREADS_PER_BLOCK 128
 
 using namespace cub;
 
@@ -40,14 +41,12 @@ void CallBoxInterForceGPU(
   int *gpu_particleKind;
   int *gpu_particleMol;
   int *gpu_neighborList, *gpu_cellStartIndex;
-  int blocksPerGrid, threadsPerBlock;
-  int energyVectorLen = 0;
   double *gpu_particleCharge;
 
   // Run the kernel...
-  threadsPerBlock = 128;
-  blocksPerGrid = numberOfCellPairs;
-  energyVectorLen = blocksPerGrid * threadsPerBlock;
+  int threadsPerBlock = 128;
+  int blocksPerGrid = numberOfCellPairs;
+  int energyVectorLen = blocksPerGrid;
 
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(numberOfCellPairs);
@@ -231,14 +230,13 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   int numberOfCells = neighborList.size();
   int numberOfCellPairs = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
   int *gpu_neighborList, *gpu_cellStartIndex;
-  int blocksPerGrid, threadsPerBlock, energyVectorLen;
   double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;
   double cpu_final_REn = 0.0, cpu_final_LJEn = 0.0;
 
-  threadsPerBlock = 128;
-  blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
-  energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS * threadsPerBlock;
+  int threadsPerBlock = 128;
+  int blocksPerGrid = numberOfCellPairs;
+  int energyVectorLen = numberOfCellPairs;
 
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(numberOfCellPairs);
@@ -486,28 +484,38 @@ __global__ void BoxInterForceGPU(
 
   virComponents = make_double3(0.0, 0.0, 0.0);
 
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  // tensors for VDW
-  gpu_vT11[threadID] = 0.0, gpu_vT22[threadID] = 0.0, gpu_vT33[threadID] = 0.0;
-  // extra tensors reserved for later on
-  gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
-
-  if (electrostatic) {
-    // tensors for real part of electrostatic
-    gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0,
-    gpu_rT33[threadID] = 0.0;
-    // extra tensors reserved for later on
-    gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0,
-    gpu_rT23[threadID] = 0.0;
-  }
+  //tensors for VDW
+  double local_vT11 = 0.0, local_vT22 = 0.0, local_vT33 = 0.0;
+  double local_vT12 = 0.0, local_vT13 = 0.0, local_vT23 = 0.0;
+  
+  double local_rT11 = 0.0, local_rT22 = 0.0, local_rT33 = 0.0;
+  double local_rT12 = 0.0, local_rT13 = 0.0, local_rT23 = 0.0;
 
   int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
   // Skip some block pairs so we don't double count particle pairs
-  if (currentCell > neighborCell)
+  if (currentCell > neighborCell) {
+    if (threadIdx.x == 0) {
+      gpu_vT11[blockIdx.x] = 0.0;
+      gpu_vT22[blockIdx.x] = 0.0;
+      gpu_vT33[blockIdx.x] = 0.0;
+      gpu_vT12[blockIdx.x] = 0.0;
+      gpu_vT13[blockIdx.x] = 0.0;
+      gpu_vT23[blockIdx.x] = 0.0;
+
+      if (electrostatic) {
+        gpu_rT11[blockIdx.x] = 0.0;
+        gpu_rT22[blockIdx.x] = 0.0;
+        gpu_rT33[blockIdx.x] = 0.0;
+        gpu_rT12[blockIdx.x] = 0.0;
+        gpu_rT13[blockIdx.x] = 0.0;
+        gpu_rT23[blockIdx.x] = 0.0;
+      }
+    }
     return;
+  }
 
   if (threadIdx.x == 0) {
     // Calculate number of particles inside current Cell
@@ -572,17 +580,14 @@ __global__ void BoxInterForceGPU(
             lambdaVDW, sc_sigma_6, sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq,
             gpu_expConst);
 
-        gpu_vT11[threadID] += pVF * (virComponents.x * diff_com.x);
-        gpu_vT22[threadID] += pVF * (virComponents.y * diff_com.y);
-        gpu_vT33[threadID] += pVF * (virComponents.z * diff_com.z);
+        local_vT11 += pVF * (virComponents.x * diff_com.x);
+        local_vT22 += pVF * (virComponents.y * diff_com.y);
+        local_vT33 += pVF * (virComponents.z * diff_com.z);
 
-        // extra tensor calculations
-        gpu_vT12[threadID] += pVF * (0.5 * (virComponents.x * diff_com.y +
-                                            virComponents.y * diff_com.x));
-        gpu_vT13[threadID] += pVF * (0.5 * (virComponents.x * diff_com.z +
-                                            virComponents.z * diff_com.x));
-        gpu_vT23[threadID] += pVF * (0.5 * (virComponents.y * diff_com.z +
-                                            virComponents.z * diff_com.y));
+        //extra tensor calculations
+        local_vT12 += pVF * 0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
+        local_vT13 += pVF * 0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
+        local_vT23 += pVF * 0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
 
         if (electrostatic) {
           double qi_qj = gpu_particleCharge[currentParticle] *
@@ -597,20 +602,67 @@ __global__ void BoxInterForceGPU(
                 gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha, sc_power,
                 lambdaCoulomb, gpu_count[0], kA, kB);
 
-            gpu_rT11[threadID] += pRF * (virComponents.x * diff_com.x);
-            gpu_rT22[threadID] += pRF * (virComponents.y * diff_com.y);
-            gpu_rT33[threadID] += pRF * (virComponents.z * diff_com.z);
+            local_rT11 += pRF * (virComponents.x * diff_com.x);
+            local_rT22 += pRF * (virComponents.y * diff_com.y);
+            local_rT33 += pRF * (virComponents.z * diff_com.z);
 
-            // extra tensor calculations
-            gpu_rT12[threadID] += pRF * (0.5 * (virComponents.x * diff_com.y +
-                                                virComponents.y * diff_com.x));
-            gpu_rT13[threadID] += pRF * (0.5 * (virComponents.x * diff_com.z +
-                                                virComponents.z * diff_com.x));
-            gpu_rT23[threadID] += pRF * (0.5 * (virComponents.y * diff_com.z +
-                                                virComponents.z * diff_com.y));
+            //extra tensor calculations
+            local_rT12 += pRF * 0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
+            local_rT13 += pRF * 0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
+            local_rT23 += pRF * 0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
           }
         }
       }
+    }
+  }
+  __syncthreads();
+  
+  // Use BlockReduce to sum local tensor values across threads in the block
+  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK>;
+  __shared__ typename BlockReduce::TempStorage vT11_temp_storage;
+  __shared__ typename BlockReduce::TempStorage vT22_temp_storage;
+  __shared__ typename BlockReduce::TempStorage vT33_temp_storage;
+  __shared__ typename BlockReduce::TempStorage vT12_temp_storage;
+  __shared__ typename BlockReduce::TempStorage vT13_temp_storage;
+  __shared__ typename BlockReduce::TempStorage vT23_temp_storage;
+  
+  double aggregate_vT11 = BlockReduce(vT11_temp_storage).Sum(local_vT11);
+  double aggregate_vT22 = BlockReduce(vT22_temp_storage).Sum(local_vT22);
+  double aggregate_vT33 = BlockReduce(vT33_temp_storage).Sum(local_vT33);
+  double aggregate_vT12 = BlockReduce(vT12_temp_storage).Sum(local_vT12);
+  double aggregate_vT13 = BlockReduce(vT13_temp_storage).Sum(local_vT13);
+  double aggregate_vT23 = BlockReduce(vT23_temp_storage).Sum(local_vT23);
+
+  if (threadIdx.x == 0) {
+    gpu_vT11[blockIdx.x] = aggregate_vT11;
+    gpu_vT22[blockIdx.x] = aggregate_vT22;
+    gpu_vT33[blockIdx.x] = aggregate_vT33;
+    gpu_vT12[blockIdx.x] = aggregate_vT12;
+    gpu_vT13[blockIdx.x] = aggregate_vT13;
+    gpu_vT23[blockIdx.x] = aggregate_vT23;
+  }
+  if (electrostatic) {
+    __shared__ typename BlockReduce::TempStorage rT11_temp_storage;
+    __shared__ typename BlockReduce::TempStorage rT22_temp_storage;
+    __shared__ typename BlockReduce::TempStorage rT33_temp_storage;
+    __shared__ typename BlockReduce::TempStorage rT12_temp_storage;
+    __shared__ typename BlockReduce::TempStorage rT13_temp_storage;
+    __shared__ typename BlockReduce::TempStorage rT23_temp_storage;
+
+    double aggregate_rT11 = BlockReduce(rT11_temp_storage).Sum(local_rT11);
+    double aggregate_rT22 = BlockReduce(rT22_temp_storage).Sum(local_rT22);
+    double aggregate_rT33 = BlockReduce(rT33_temp_storage).Sum(local_rT33);
+    double aggregate_rT12 = BlockReduce(rT12_temp_storage).Sum(local_rT12);
+    double aggregate_rT13 = BlockReduce(rT13_temp_storage).Sum(local_rT13);
+    double aggregate_rT23 = BlockReduce(rT23_temp_storage).Sum(local_rT23);
+
+    if (threadIdx.x == 0) {
+      gpu_rT11[blockIdx.x] = aggregate_rT11;
+      gpu_rT22[blockIdx.x] = aggregate_rT22;
+      gpu_rT33[blockIdx.x] = aggregate_rT33;
+      gpu_rT12[blockIdx.x] = aggregate_rT12;
+      gpu_rT13[blockIdx.x] = aggregate_rT13;
+      gpu_rT23[blockIdx.x] = aggregate_rT23;
     }
   }
 }
@@ -643,10 +695,11 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
   int neighborCell = gpu_neighborList[blockIdx.x];
   if (currentCell > neighborCell) {
-    int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-    gpu_LJEn[threadID] = 0.0;
+    if (threadIdx.x == 0) {
+    gpu_LJEn[blockIdx.x] = 0.0;
     if (electrostatic)
-      gpu_REn[threadID] = 0.0;
+      gpu_REn[blockIdx.x] = 0.0;
+    }
     return;
   }
 
@@ -749,11 +802,32 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
       }
     }
   }
+  __syncthreads();
 
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  gpu_LJEn[threadID] = LJEn;
-  if (electrostatic)
-    gpu_REn[threadID] = REn;
+  // Specialize BlockReduce code
+  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK>;
+
+  // Allocating shared memory for BlockReduce
+  __shared__ typename BlockReduce::TempStorage LJEn_temp_storage;
+
+  // Compute the block-wide sum for thread 0
+  double aggregate1 = BlockReduce(LJEn_temp_storage).Sum(LJEn);
+
+  if (threadIdx.x == 0) {
+    gpu_LJEn[blockIdx.x] = aggregate1;
+  }
+
+  if (electrostatic) {
+    // Need to sync the threads before reusing temp_storage
+    // so using different variables
+    __shared__ typename BlockReduce::TempStorage REn_temp_storage;
+
+    // Compute the block-wide sum for thread 0
+    double aggregate2 = BlockReduce(REn_temp_storage).Sum(REn);
+
+    if (threadIdx.x == 0)
+      gpu_REn[blockIdx.x] = aggregate2;
+  }
 }
 
 __global__ void VirialReciprocalGPU(
