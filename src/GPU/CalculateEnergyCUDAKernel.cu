@@ -7,7 +7,6 @@ along with this program, also can be found at
 ********************************************************************************/
 #ifdef GOMC_CUDA
 #include <cuda.h>
-#include <stdio.h>
 
 #include <vector>
 
@@ -237,22 +236,22 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
 
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage LJEn_temp_storage;
-  __shared__ typename BlockReduce::TempStorage REn_temp_storage;
 
   // Compute the block-wide sum for thread 0
-  double aggregate = BlockReduce(LJEn_temp_storage).Sum(LJEn);
+  double aggregate1 = BlockReduce(LJEn_temp_storage).Sum(LJEn);
 
   if (threadIdx.x == 0) {
-    gpu_LJEn[blockIdx.x] = aggregate;
+    gpu_LJEn[blockIdx.x] = aggregate1;
   }
 
   if (electrostatic) {
     // Need to sync the threads before reusing temp_storage
     // so using different variables
+    __shared__ typename BlockReduce::TempStorage REn_temp_storage;
     // Compute the block-wide sum for thread 0
-    aggregate = BlockReduce(REn_temp_storage).Sum(REn);
+    double aggregate2 = BlockReduce(REn_temp_storage).Sum(REn);
     if (threadIdx.x == 0)
-      gpu_REn[blockIdx.x] = aggregate;
+      gpu_REn[blockIdx.x] = aggregate2;
   }
 }
 
