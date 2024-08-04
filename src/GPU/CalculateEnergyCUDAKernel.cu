@@ -180,13 +180,6 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   }
   __syncthreads();
 
-  // Specialize BlockReduce for a 1D block of threads of type double
-  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK>;
-
-  // Allocate shared memory for BlockReduce
-  __shared__ typename BlockReduce::TempStorage LJEn_temp_storage;
-  __shared__ typename BlockReduce::TempStorage REn_temp_storage;
-
   double LJEn = 0.0, REn = 0.0;
 
   for (int pairIndex = threadIdx.x; pairIndex < shr_numberOfPairs;
@@ -238,6 +231,13 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
     }
   }
   __syncthreads();
+
+  // Specialize BlockReduce for a 1D block of threads of type double
+  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK>;
+
+  // Allocate shared memory for BlockReduce
+  __shared__ typename BlockReduce::TempStorage LJEn_temp_storage;
+  __shared__ typename BlockReduce::TempStorage REn_temp_storage;
 
   // Compute the block-wide sum for thread 0
   double aggregate = BlockReduce(LJEn_temp_storage).Sum(LJEn);
