@@ -484,10 +484,10 @@ __global__ void BoxInterForceGPU(
 
   virComponents = make_double3(0.0, 0.0, 0.0);
 
-  //tensors for VDW
+  // tensors for VDW
   double local_vT11 = 0.0, local_vT22 = 0.0, local_vT33 = 0.0;
   double local_vT12 = 0.0, local_vT13 = 0.0, local_vT23 = 0.0;
-  
+
   double local_rT11 = 0.0, local_rT22 = 0.0, local_rT33 = 0.0;
   double local_rT12 = 0.0, local_rT13 = 0.0, local_rT23 = 0.0;
 
@@ -495,7 +495,7 @@ __global__ void BoxInterForceGPU(
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
-  // Skip some block pairs so we don't double count particle pairs
+  // Skip some cell pairs so we don't double count particle pairs
   if (currentCell > neighborCell) {
     if (threadIdx.x == 0) {
       gpu_vT11[blockIdx.x] = 0.0;
@@ -584,10 +584,16 @@ __global__ void BoxInterForceGPU(
         local_vT22 += pVF * (virComponents.y * diff_com.y);
         local_vT33 += pVF * (virComponents.z * diff_com.z);
 
-        //extra tensor calculations
-        local_vT12 += pVF * 0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
-        local_vT13 += pVF * 0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
-        local_vT23 += pVF * 0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
+        // extra tensor calculations
+        local_vT12 +=
+            pVF * 0.5 *
+            (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
+        local_vT13 +=
+            pVF * 0.5 *
+            (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
+        local_vT23 +=
+            pVF * 0.5 *
+            (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
 
         if (electrostatic) {
           double qi_qj = gpu_particleCharge[currentParticle] *
@@ -606,17 +612,23 @@ __global__ void BoxInterForceGPU(
             local_rT22 += pRF * (virComponents.y * diff_com.y);
             local_rT33 += pRF * (virComponents.z * diff_com.z);
 
-            //extra tensor calculations
-            local_rT12 += pRF * 0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
-            local_rT13 += pRF * 0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
-            local_rT23 += pRF * 0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
+            // extra tensor calculations
+            local_rT12 +=
+                pRF * 0.5 *
+                (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
+            local_rT13 +=
+                pRF * 0.5 *
+                (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
+            local_rT23 +=
+                pRF * 0.5 *
+                (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
           }
         }
       }
     }
   }
   __syncthreads();
-  
+
   // Use BlockReduce to sum local tensor values across threads in the block
   using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK>;
   __shared__ typename BlockReduce::TempStorage vT11_temp_storage;
@@ -625,7 +637,7 @@ __global__ void BoxInterForceGPU(
   __shared__ typename BlockReduce::TempStorage vT12_temp_storage;
   __shared__ typename BlockReduce::TempStorage vT13_temp_storage;
   __shared__ typename BlockReduce::TempStorage vT23_temp_storage;
-  
+
   double aggregate_vT11 = BlockReduce(vT11_temp_storage).Sum(local_vT11);
   double aggregate_vT22 = BlockReduce(vT22_temp_storage).Sum(local_vT22);
   double aggregate_vT33 = BlockReduce(vT33_temp_storage).Sum(local_vT33);
@@ -696,9 +708,9 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   int neighborCell = gpu_neighborList[blockIdx.x];
   if (currentCell > neighborCell) {
     if (threadIdx.x == 0) {
-    gpu_LJEn[blockIdx.x] = 0.0;
-    if (electrostatic)
-      gpu_REn[blockIdx.x] = 0.0;
+      gpu_LJEn[blockIdx.x] = 0.0;
+      if (electrostatic)
+        gpu_REn[blockIdx.x] = 0.0;
     }
     return;
   }
