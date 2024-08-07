@@ -389,6 +389,17 @@ void Dihedral::Read(Reader &param, std::string const &firstVar) {
 }
 void Dihedral::Add(std::string const &merged, const double coeff,
                    const uint index, const double def) {
+  // Check for (and skip) duplicate periodicities for the same dihedral
+  bool duplicate = false;
+  for (auto it = n[merged].begin(); it != n[merged].end(); ++it) {
+    duplicate |= *it == index;
+  }
+
+  if (duplicate) {
+    std::cout << "Warning: Skipping duplicate periodicity of " << index
+              << " for dihedral " << merged << "!\n";
+    return;
+  }
   ++countTerms;
   Kchi[merged].push_back(EnConvIfCHARMM(coeff));
   n[merged].push_back(index);
