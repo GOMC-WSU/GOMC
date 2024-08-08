@@ -19,6 +19,7 @@ along with this program, also can be found at
 // For Exotic style parameter header error checking
 #include <regex>
 
+const double EPSILON = 0.001;
 const uint FFSetup::CHARMM_ALIAS_IDX = 0;
 const uint FFSetup::EXOTIC_ALIAS_IDX = 1;
 const std::string FFSetup::paramFileAlias[] = {"CHARMM-Style parameter file",
@@ -390,15 +391,27 @@ void Dihedral::Read(Reader &param, std::string const &firstVar) {
 void Dihedral::Add(std::string const &merged, const double coeff,
                    const uint index, const double def) {
   // Check for (and skip) duplicate periodicities for the same dihedral
-  bool duplicate = false;
+  // Generate an error and terminate if the duplicate dihedrals have different
+  // parameters
+  auto Kchi_it = Kchi[merged].begin();
+  auto delta_it = delta[merged].begin();
   for (auto it = n[merged].begin(); it != n[merged].end(); ++it) {
-    duplicate |= *it == index;
-  }
-
-  if (duplicate) {
-    std::cout << "Warning: Skipping duplicate periodicity of " << index
-              << " for dihedral " << merged << "!\n";
-    return;
+    // Found a duplicate dihedral
+    if (*it == index) {
+      if (std::fabs(*Kchi_it - EnConvIfCHARMM(coeff)) > EPSILON ||
+          std::fabs(*delta_it - geom::DegToRad(def)) > EPSILON) {
+        std::cout << "Error: Inconsistent Dihedral parameters were found in "
+                     "parameter file for dihedral "
+                  << merged << " with periodicity " << index << "!\n";
+        exit(EXIT_FAILURE);
+      } else {
+        std::cout << "Warning: Skipping duplicate periodicity of " << index
+                  << " for dihedral " << merged << "!\n";
+        return;
+      }
+    }
+    Kchi_it++;
+    delta_it++;
   }
   ++countTerms;
   Kchi[merged].push_back(EnConvIfCHARMM(coeff));
