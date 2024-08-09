@@ -126,6 +126,8 @@ public:
   double **gpu_sumRnew, **gpu_sumInew, **gpu_sumRref, **gpu_sumIref;
   double **gpu_prefact, **gpu_prefactRef;
   double **gpu_hsqr, **gpu_hsqrRef;
+  double *gpu_virial_rT11, *gpu_virial_rT12, *gpu_virial_rT13;
+  double *gpu_virial_rT22, *gpu_virial_rT23, *gpu_virial_rT33;
   double *gpu_recipEnergies;
   double *gpu_comx, *gpu_comy, *gpu_comz;
   int gpu_energyVecLen;

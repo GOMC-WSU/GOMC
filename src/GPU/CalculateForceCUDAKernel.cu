@@ -377,10 +377,6 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
                              double &rT22, double &rT23, double &rT33,
                              uint imageSize, double constVal, uint box) {
   int atomNumber = currentCoords.Count();
-  double *gpu_particleCharge;
-
-  CUMALLOC((void **)&gpu_particleCharge,
-           particleCharge.size() * sizeof(double));
 
   cudaMemcpy(vars->gpu_x, currentCoords.x, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -394,66 +390,54 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_dz, currentCOMDiff.z, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
-  CUMALLOC((void **)&vars->gpu_rT11, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_rT11, 0, imageSize * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_rT12, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_rT12, 0, imageSize * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_rT13, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_rT13, 0, imageSize * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_rT22, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_rT22, 0, imageSize * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_rT23, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_rT23, 0, imageSize * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_rT33, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_rT33, 0, imageSize * sizeof(double));
-  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
+  cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
              particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 
-  // Run the kernel...
-  // calculate block and grid sizes
+  // Initialize the real terms to zero
+  cudaMemset(vars->gpu_virial_rT11, 0, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_virial_rT12, 0, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_virial_rT13, 0, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_virial_rT22, 0, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_virial_rT23, 0, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_virial_rT33, 0, imageSize * sizeof(double));
+
   dim3 threadsPerBlock(128, 1, 1);
-  int blocksPerGridX = (int)(imageSize / threadsPerBlock.x) + 1;
-  int blocksPerGridY = (int)(atomNumber / PARTICLES_PER_BLOCK) + 1;
+  int blocksPerGridX = (imageSize + threadsPerBlock.x - 1) / threadsPerBlock.x;
+  int blocksPerGridY =
+      (atomNumber + PARTICLES_PER_BLOCK - 1) / PARTICLES_PER_BLOCK;
   dim3 blocksPerGrid(blocksPerGridX, blocksPerGridY, 1);
   VirialReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_dx, vars->gpu_dy,
       vars->gpu_dz, vars->gpu_kxRef[box], vars->gpu_kyRef[box],
       vars->gpu_kzRef[box], vars->gpu_prefactRef[box], vars->gpu_hsqrRef[box],
-      vars->gpu_sumRref[box], vars->gpu_sumIref[box], gpu_particleCharge,
-      vars->gpu_rT11, vars->gpu_rT12, vars->gpu_rT13, vars->gpu_rT22,
-      vars->gpu_rT23, vars->gpu_rT33, constVal, imageSize, atomNumber);
+      vars->gpu_sumRref[box], vars->gpu_sumIref[box], vars->gpu_particleCharge,
+      vars->gpu_virial_rT11, vars->gpu_virial_rT12, vars->gpu_virial_rT13,
+      vars->gpu_virial_rT22, vars->gpu_virial_rT23, vars->gpu_virial_rT33,
+      constVal, imageSize, atomNumber);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  // ReduceSum // Virial of Reciprocal
+  // ReduceSum -- Virial of Reciprocal
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_rT11, vars->gpu_finalVal, imageSize);
+                    vars->gpu_virial_rT11, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&rT11, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_rT12, vars->gpu_finalVal, imageSize);
+                    vars->gpu_virial_rT12, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&rT12, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_rT13, vars->gpu_finalVal, imageSize);
+                    vars->gpu_virial_rT13, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&rT13, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_rT22, vars->gpu_finalVal, imageSize);
+                    vars->gpu_virial_rT22, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&rT22, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_rT23, vars->gpu_finalVal, imageSize);
+                    vars->gpu_virial_rT23, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&rT23, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_rT33, vars->gpu_finalVal, imageSize);
+                    vars->gpu_virial_rT33, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&rT33, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-
-  CUFREE(vars->gpu_rT11);
-  CUFREE(vars->gpu_rT12);
-  CUFREE(vars->gpu_rT13);
-  CUFREE(vars->gpu_rT22);
-  CUFREE(vars->gpu_rT23);
-  CUFREE(vars->gpu_rT33);
-  CUFREE(gpu_particleCharge);
 }
 
 __global__ void BoxInterForceGPU(
@@ -896,7 +880,6 @@ __global__ void VirialReciprocalGPU(
     rT33 = factor * (1.0 - 2.0 * constant_part * gpu_kzRef[imageID] *
                                gpu_kzRef[imageID]);
   }
-
   __syncthreads();
 
   // Intramolecular part
