@@ -360,7 +360,6 @@ void CallBoxForceReciprocalGPU(
     XYZArray const &molCoords, BoxDimensions const &boxAxes, int box) {
   int atomCount = atomForceRec.Count();
   int molCount = molForceRec.Count();
-  int *gpu_particleMol;
   bool *gpu_particleUsed;
   int *gpu_startMol, *gpu_lengthMol;
 
@@ -373,7 +372,6 @@ void CallBoxForceReciprocalGPU(
   CUMALLOC((void **)&gpu_particleUsed, atomCount * sizeof(bool));
   CUMALLOC((void **)&gpu_startMol, startMol.size() * sizeof(int));
   CUMALLOC((void **)&gpu_lengthMol, lengthMol.size() * sizeof(int));
-  CUMALLOC((void **)&gpu_particleMol, particleMol.size() * sizeof(int));
 
   cudaMemcpy(vars->gpu_aForceRecx, atomForceRec.x, sizeof(double) * atomCount,
              cudaMemcpyHostToDevice);
@@ -389,8 +387,8 @@ void CallBoxForceReciprocalGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
              sizeof(double) * particleCharge.size(), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleMol, &particleMol[0], sizeof(int) * particleMol.size(),
-             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
+             sizeof(int) * particleMol.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleUsed, particleUsed, sizeof(bool) * atomCount,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, molCoords.x, sizeof(double) * atomCount,
@@ -410,8 +408,8 @@ void CallBoxForceReciprocalGPU(
   BoxForceReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_aForceRecx, vars->gpu_aForceRecy, vars->gpu_aForceRecz,
       vars->gpu_mForceRecx, vars->gpu_mForceRecy, vars->gpu_mForceRecz,
-      vars->gpu_particleCharge, gpu_particleMol, gpu_particleUsed, gpu_startMol,
-      gpu_lengthMol, alpha, alphaSq, constValue, imageSize,
+      vars->gpu_particleCharge, vars->gpu_particleMol, gpu_particleUsed,
+      gpu_startMol, gpu_lengthMol, alpha, alphaSq, constValue, imageSize,
       vars->gpu_kxRef[box], vars->gpu_kyRef[box], vars->gpu_kzRef[box],
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_prefactRef[box],
       vars->gpu_sumRnew[box], vars->gpu_sumInew[box], vars->gpu_isFraction,
@@ -444,7 +442,6 @@ void CallBoxForceReciprocalGPU(
   CUFREE(gpu_particleUsed);
   CUFREE(gpu_startMol);
   CUFREE(gpu_lengthMol);
-  CUFREE(gpu_particleMol);
 }
 
 __global__ void BoxForceReciprocalGPU(

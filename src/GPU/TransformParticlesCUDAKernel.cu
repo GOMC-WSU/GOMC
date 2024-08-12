@@ -238,11 +238,9 @@ void CallTranslateParticlesGPU(
   int8_t *gpu_isMoleculeInvolved;
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
-  int *gpu_particleMol;
 
   CUMALLOC((void **)&gpu_isMoleculeInvolved,
            isMoleculeInvolved.size() * sizeof(int8_t));
-  CUMALLOC((void **)&gpu_particleMol, particleMol.size() * sizeof(int));
 
   cudaMemcpy(vars->gpu_mForcex, mForcex, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -256,8 +254,8 @@ void CallTranslateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mForceRecz, molForceRecRef.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int),
-             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
+             particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_isMoleculeInvolved, &isMoleculeInvolved[0],
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
@@ -280,7 +278,7 @@ void CallTranslateParticlesGPU(
   TranslateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(
       molCount, t_max, vars->gpu_mForcex, vars->gpu_mForcey, vars->gpu_mForcez,
       vars->gpu_inForceRange, step, key, seed, vars->gpu_x, vars->gpu_y,
-      vars->gpu_z, gpu_particleMol, atomCount, xAxes, yAxes, zAxes,
+      vars->gpu_z, vars->gpu_particleMol, atomCount, xAxes, yAxes, zAxes,
       vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_cell_x[box],
       vars->gpu_cell_y[box], vars->gpu_cell_z[box], vars->gpu_Invcell_x[box],
       vars->gpu_Invcell_y[box], vars->gpu_Invcell_z[box], vars->gpu_nonOrth,
@@ -313,7 +311,6 @@ void CallTranslateParticlesGPU(
   cudaMemcpy(&inForceRange[0], vars->gpu_inForceRange, molCount * sizeof(int),
              cudaMemcpyDeviceToHost);
   CUFREE(gpu_isMoleculeInvolved);
-  CUFREE(gpu_particleMol);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -329,11 +326,9 @@ void CallRotateParticlesGPU(
   int8_t *gpu_isMoleculeInvolved;
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
-  int *gpu_particleMol;
 
   CUMALLOC((void **)&gpu_isMoleculeInvolved,
            isMoleculeInvolved.size() * sizeof(int8_t));
-  CUMALLOC((void **)&gpu_particleMol, particleMol.size() * sizeof(int));
 
   cudaMemcpy(vars->gpu_mTorquex, mTorquex, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -341,8 +336,8 @@ void CallRotateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mTorquez, mTorquez, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int),
-             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
+             particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, newMolPos.x, atomCount * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, newMolPos.y, atomCount * sizeof(double),
@@ -362,12 +357,12 @@ void CallRotateParticlesGPU(
   RotateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(
       molCount, r_max, vars->gpu_mTorquex, vars->gpu_mTorquey,
       vars->gpu_mTorquez, vars->gpu_inForceRange, step, key, seed, vars->gpu_x,
-      vars->gpu_y, vars->gpu_z, gpu_particleMol, atomCount, xAxes, yAxes, zAxes,
-      vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_cell_x[box],
-      vars->gpu_cell_y[box], vars->gpu_cell_z[box], vars->gpu_Invcell_x[box],
-      vars->gpu_Invcell_y[box], vars->gpu_Invcell_z[box], vars->gpu_nonOrth,
-      lambdaBETA, vars->gpu_r_k_x, vars->gpu_r_k_y, vars->gpu_r_k_z,
-      gpu_isMoleculeInvolved);
+      vars->gpu_y, vars->gpu_z, vars->gpu_particleMol, atomCount, xAxes, yAxes,
+      zAxes, vars->gpu_comx, vars->gpu_comy, vars->gpu_comz,
+      vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
+      vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
+      vars->gpu_Invcell_z[box], vars->gpu_nonOrth, lambdaBETA, vars->gpu_r_k_x,
+      vars->gpu_r_k_y, vars->gpu_r_k_z, gpu_isMoleculeInvolved);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -388,7 +383,6 @@ void CallRotateParticlesGPU(
   cudaMemcpy(&inForceRange[0], vars->gpu_inForceRange, molCount * sizeof(int),
              cudaMemcpyDeviceToHost);
   CUFREE(gpu_isMoleculeInvolved);
-  CUFREE(gpu_particleMol);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
