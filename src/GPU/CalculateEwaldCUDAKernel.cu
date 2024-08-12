@@ -60,8 +60,9 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   dim3 threadsPerBlock(THREADS_PER_BLOCK, 1, 1);
-  dim3 blocksPerGrid(imageSize + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                    (atomNumber + PARTICLES_PER_BLOCK - 1) / PARTICLES_PER_BLOCK, 1);
+  dim3 blocksPerGrid(
+      (imageSize + threadsPerBlock.x - 1) / threadsPerBlock.x,
+      (atomNumber + PARTICLES_PER_BLOCK - 1) / PARTICLES_PER_BLOCK, 1);
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kx[box],
       vars->gpu_ky[box], vars->gpu_kz[box], atomNumber,
@@ -111,8 +112,9 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   dim3 threadsPerBlock(THREADS_PER_BLOCK, 1, 1);
-  dim3 blocksPerGrid(imageSize + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                    (atomNumber + PARTICLES_PER_BLOCK - 1) / PARTICLES_PER_BLOCK, 1);
+  dim3 blocksPerGrid(
+      (imageSize + threadsPerBlock.x - 1) / threadsPerBlock.x,
+      (atomNumber + PARTICLES_PER_BLOCK - 1) / PARTICLES_PER_BLOCK, 1);
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kxRef[box],
       vars->gpu_kyRef[box], vars->gpu_kzRef[box], atomNumber,
