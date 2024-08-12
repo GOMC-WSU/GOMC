@@ -119,6 +119,7 @@ public:
   double *gpu_diElectric_1;
   double *gpu_finalVal;
   double *gpu_x, *gpu_y, *gpu_z, *gpu_particleCharge;
+  int *gpu_particleKind, *gpu_particleMol;
   double *gpu_nx, *gpu_ny, *gpu_nz;
   double *gpu_dx, *gpu_dy, *gpu_dz;
   double **gpu_kx, **gpu_ky, **gpu_kz;

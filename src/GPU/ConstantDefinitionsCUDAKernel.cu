@@ -90,7 +90,10 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint maxAtomNumber,
   CUMALLOC((void **)&vars->gpu_x, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_y, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_z, maxAtomNumber * sizeof(double));
+
   CUMALLOC((void **)&vars->gpu_particleCharge, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_particleKind, maxAtomNumber * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_particleMol, maxAtomNumber * sizeof(double));
 
   CUMALLOC((void **)&vars->gpu_dx, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_dy, maxAtomNumber * sizeof(double));
@@ -413,6 +416,8 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_y);
   CUFREE(vars->gpu_z);
   CUFREE(vars->gpu_particleCharge);
+  CUFREE(vars->gpu_particleKind);
+  CUFREE(vars->gpu_particleMol);
   CUFREE(vars->gpu_dx);
   CUFREE(vars->gpu_dy);
   CUFREE(vars->gpu_dz);

@@ -25,10 +25,8 @@ using namespace cub;
 #define PARTICLES_PER_BLOCK 32
 #define THREADS_PER_BLOCK 128
 
-#define FULL_MASK 0xffffffff
-
 // Use this function when calculating the reciprocal terms
-// for a new volume. A change in box dimensions.
+// for a new volume. Such as a change in box dimensions.
 void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
                                double const *kx, double const *ky,
                                double const *kz,
@@ -62,8 +60,8 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   dim3 threadsPerBlock(THREADS_PER_BLOCK, 1, 1);
-  dim3 blocksPerGrid((int)(imageSize / threadsPerBlock.x) + 1,
-                     (int)(atomNumber / PARTICLES_PER_BLOCK) + 1, 1);
+  dim3 blocksPerGrid(imageSize + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                    (atomNumber + PARTICLES_PER_BLOCK - 1) / PARTICLES_PER_BLOCK, 1);
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kx[box],
       vars->gpu_ky[box], vars->gpu_kz[box], atomNumber,
@@ -113,8 +111,8 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   dim3 threadsPerBlock(THREADS_PER_BLOCK, 1, 1);
-  dim3 blocksPerGrid((int)(imageSize / threadsPerBlock.x) + 1,
-                     (int)(atomNumber / PARTICLES_PER_BLOCK) + 1, 1);
+  dim3 blocksPerGrid(imageSize + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                    (atomNumber + PARTICLES_PER_BLOCK - 1) / PARTICLES_PER_BLOCK, 1);
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kxRef[box],
       vars->gpu_kyRef[box], vars->gpu_kzRef[box], atomNumber,

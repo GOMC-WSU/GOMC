@@ -35,7 +35,6 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   int atomNumber = coords.Count();
   int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
-  int *gpu_particleKind, *gpu_particleMol;
   int *gpu_neighborList, *gpu_cellStartIndex;
 
   // Run the kernel
@@ -53,8 +52,6 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 
   CUMALLOC((void **)&gpu_neighborList, neighborListCount * sizeof(int));
   CUMALLOC((void **)&gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
-  CUMALLOC((void **)&gpu_particleKind, particleKind.size() * sizeof(int));
-  CUMALLOC((void **)&gpu_particleMol, particleMol.size() * sizeof(int));
   UpdateEnergyVecs(vars, energyVectorLen, electrostatic);
 
   // Copy necessary data to GPU
@@ -66,10 +63,10 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
              particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleKind, &particleKind[0],
+  cudaMemcpy(vars->gpu_particleKind, &particleKind[0],
              particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int),
-             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
+             particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
@@ -79,15 +76,12 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x, boxAxes.GetAxis(box).y,
                               boxAxes.GetAxis(box).z);
-
-  double3 halfAx =
-      make_double3(boxAxes.GetAxis(box).x * 0.5, boxAxes.GetAxis(box).y * 0.5,
-                   boxAxes.GetAxis(box).z * 0.5);
+  double3 halfAx = make_double3(axis.x * 0.5, axis.y * 0.5, axis.z * 0.5);
 
   BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(
       gpu_cellStartIndex, vars->gpu_cellVector, gpu_neighborList, numberOfCells,
       vars->gpu_x, vars->gpu_y, vars->gpu_z, axis, halfAx, electrostatic,
-      vars->gpu_particleCharge, gpu_particleKind, gpu_particleMol,
+      vars->gpu_particleCharge, vars->gpu_particleKind, vars->gpu_particleMol,
       vars->gpu_REn, vars->gpu_LJEn, vars->gpu_sigmaSq, vars->gpu_epsilon_Cn,
       vars->gpu_n, vars->gpu_VDW_Kind, vars->gpu_isMartini, vars->gpu_count,
       vars->gpu_rCut, vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn,
@@ -118,8 +112,6 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
     REn = 0.0;
   }
 
-  CUFREE(gpu_particleKind);
-  CUFREE(gpu_particleMol);
   CUFREE(gpu_neighborList);
   CUFREE(gpu_cellStartIndex);
 }
