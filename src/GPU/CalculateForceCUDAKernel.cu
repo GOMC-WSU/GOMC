@@ -28,11 +28,9 @@ void CallBoxInterForceGPU(
     const std::vector<std::vector<int>> &neighborList,
     const std::vector<int> &mapParticleToCell, XYZArray const &currentCoords,
     XYZArray const &currentCOM, BoxDimensions const &boxAxes,
-    bool electrostatic, const std::vector<double> &particleCharge,
-    const std::vector<int> &particleKind, const std::vector<int> &particleMol,
-    double &rT11, double &rT12, double &rT13, double &rT22, double &rT23,
-    double &rT33, double &vT11, double &vT12, double &vT13, double &vT22,
-    double &vT23, double &vT33, bool sc_coul, double sc_sigma_6,
+    bool electrostatic, double &rT11, double &rT12, double &rT13, double &rT22,
+    double &rT23, double &rT33, double &vT11, double &vT12, double &vT13,
+    double &vT22, double &vT23, double &vT33, bool sc_coul, double sc_sigma_6,
     double sc_alpha, uint sc_power, uint const box) {
   int atomNumber = currentCoords.Count();
   int molNumber = currentCOM.Count();
@@ -93,12 +91,6 @@ void CallBoxInterForceGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, currentCOM.z, molNumber * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
-             particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleKind, &particleKind[0],
-             particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
-             particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x, boxAxes.GetAxis(box).y,
                               boxAxes.GetAxis(box).z);
@@ -206,13 +198,10 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<std::vector<int>> &neighborList,
                      const std::vector<int> &mapParticleToCell,
                      XYZArray const &coords, BoxDimensions const &boxAxes,
-                     bool electrostatic,
-                     const std::vector<double> &particleCharge,
-                     const std::vector<int> &particleKind,
-                     const std::vector<int> &particleMol, double &REn,
-                     double &LJEn, double *aForcex, double *aForcey,
-                     double *aForcez, double *mForcex, double *mForcey,
-                     double *mForcez, int atomCount, int molCount, bool sc_coul,
+                     bool electrostatic, double &REn, double &LJEn,
+                     double *aForcex, double *aForcey, double *aForcez,
+                     double *mForcex, double *mForcey, double *mForcez,
+                     int atomCount, int molCount, bool sc_coul,
                      double sc_sigma_6, double sc_alpha, uint sc_power,
                      uint const box) {
   int atomNumber = coords.Count();
@@ -262,12 +251,6 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
              cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
-             particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleKind, &particleKind[0],
-             particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
-             particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
@@ -353,10 +336,10 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 
 void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
                              XYZArray const &currentCOMDiff,
-                             const std::vector<double> &particleCharge,
-                             double &rT11, double &rT12, double &rT13,
-                             double &rT22, double &rT23, double &rT33,
-                             uint imageSize, double constVal, uint box) {
+                             const std::vector<double> &molCharge, double &rT11,
+                             double &rT12, double &rT13, double &rT22,
+                             double &rT23, double &rT33, uint imageSize,
+                             double constVal, uint box) {
   int atomNumber = currentCoords.Count();
 
   cudaMemcpy(vars->gpu_x, currentCoords.x, atomNumber * sizeof(double),
@@ -371,8 +354,8 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_dz, currentCOMDiff.z, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
-             particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_molCharge, &molCharge[0],
+             molCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 
   // Initialize the real terms to zero
   cudaMemset(vars->gpu_virial_rT11, 0, imageSize * sizeof(double));
@@ -391,7 +374,7 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_dx, vars->gpu_dy,
       vars->gpu_dz, vars->gpu_kxRef[box], vars->gpu_kyRef[box],
       vars->gpu_kzRef[box], vars->gpu_prefactRef[box], vars->gpu_hsqrRef[box],
-      vars->gpu_sumRref[box], vars->gpu_sumIref[box], vars->gpu_particleCharge,
+      vars->gpu_sumRref[box], vars->gpu_sumIref[box], vars->gpu_molCharge,
       vars->gpu_virial_rT11, vars->gpu_virial_rT12, vars->gpu_virial_rT13,
       vars->gpu_virial_rT22, vars->gpu_virial_rT23, vars->gpu_virial_rT33,
       constVal, imageSize, atomNumber);
@@ -811,7 +794,7 @@ __global__ void VirialReciprocalGPU(
     double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_comDx,
     double *gpu_comDy, double *gpu_comDz, double *gpu_kxRef, double *gpu_kyRef,
     double *gpu_kzRef, double *gpu_prefactRef, double *gpu_hsqrRef,
-    double *gpu_sumRref, double *gpu_sumIref, double *gpu_particleCharge,
+    double *gpu_sumRref, double *gpu_sumIref, double *gpu_molCharge,
     double *gpu_rT11, double *gpu_rT12, double *gpu_rT13, double *gpu_rT22,
     double *gpu_rT23, double *gpu_rT33, double constVal, uint imageSize,
     uint atomNumber) {
@@ -834,7 +817,7 @@ __global__ void VirialReciprocalGPU(
     shared_coords[threadIdx.x * 7 + 5] =
         gpu_comDz[offset_coordinates_index + threadIdx.x];
     shared_coords[threadIdx.x * 7 + 6] =
-        gpu_particleCharge[offset_coordinates_index + threadIdx.x];
+        gpu_molCharge[offset_coordinates_index + threadIdx.x];
   }
 
   if (imageID >= imageSize)

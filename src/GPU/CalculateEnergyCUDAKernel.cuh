@@ -18,12 +18,9 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,
                      const std::vector<std::vector<int>> &neighborList,
                      XYZArray const &coords, BoxDimensions const &boxAxes,
-                     bool electrostatic,
-                     const std::vector<double> &particleCharge,
-                     const std::vector<int> &particleKind,
-                     const std::vector<int> &particleMol, double &REn,
-                     double &LJEn, bool sc_coul, double sc_sigma_6,
-                     double sc_alpha, uint sc_power, uint const box);
+                     bool electrostatic, double &REn, double &LJEn,
+                     bool sc_coul, double sc_sigma_6, double sc_alpha,
+                     uint sc_power, uint const box);
 
 __global__ void
 BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,

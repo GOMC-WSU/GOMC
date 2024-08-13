@@ -503,11 +503,11 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
     XYZArray molCoords = newMol.GetCoords();
     uint length = thisKind.NumAtoms();
 #ifdef GOMC_CUDA
-    std::vector<double> molCharges;
+    std::vector<double> molCharge;
     int charges = 0;
     for (uint p = 0; p < length; ++p) {
       if (thisKind.AtomCharge(p) != 0.0) {
-        molCharges.push_back(thisKind.AtomCharge(p));
+        molCharge.push_back(thisKind.AtomCharge(p));
         if (p > charges) {
           molCoords.Set(charges, molCoords[p]);
         }
@@ -521,7 +521,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
-      CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
+      CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharge,
                             imageSizeRef[box], energyRecipNew, box);
     }
 #else
@@ -695,12 +695,12 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
     XYZArray molCoords = oldMol.GetCoords();
     uint length = thisKind.NumAtoms();
 #ifdef GOMC_CUDA
-    std::vector<double> molCharges;
+    std::vector<double> molCharge;
     int charges = 0;
     for (uint p = 0; p < length; ++p) {
       if (thisKind.AtomCharge(p) != 0.0) {
         // Negate charge since we are removing this molecule
-        molCharges.push_back(-(thisKind.AtomCharge(p)));
+        molCharge.push_back(-(thisKind.AtomCharge(p)));
         if (p > charges) {
           molCoords.Set(charges, molCoords[p]);
         }
@@ -714,7 +714,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
-      CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharges,
+      CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharge,
                             imageSizeRef[box], energyRecipNew, box);
     }
 #else
@@ -772,7 +772,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
 
 #ifdef GOMC_CUDA
     // Build a vector of only the charged particles in the new and old molecules
-    std::vector<double> particleCharge;
+    std::vector<double> molCharge;
     // The maximum size of this array is all particles have charges
     XYZArray molCoords = XYZArray(lengthNew + lengthOld);
 
@@ -786,7 +786,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
         unsigned long currentAtom = mols.MolStart(moleculeIndex) + p;
         if (!particleHasNoCharge[currentAtom]) {
           molCoords.Set(numChargedParticles, currMolCoords[p]);
-          particleCharge.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
+          molCharge.push_back(thisKindNew.AtomCharge(p) * lambdaCoef);
           numChargedParticles++;
         }
       }
@@ -800,9 +800,9 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
         unsigned long currentAtom = mols.MolStart(moleculeIndex) + p;
         if (!particleHasNoCharge[currentAtom]) {
           molCoords.Set(numChargedParticles, currMolCoords[p]);
-          numChargedParticles++;
           // Invert these charges since we subtract them in the energy calc
-          particleCharge.push_back(thisKindOld.AtomCharge(p) * -lambdaCoef);
+          molCharge.push_back(thisKindOld.AtomCharge(p) * -lambdaCoef);
+          numChargedParticles++;
         }
       }
     }
@@ -820,9 +820,9 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     if (numChargedParticles == 0) {
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
-      CallMolExchangeReciprocalGPU(
-          ff.particles->getCUDAVars(), imageSizeRef[box], box, particleCharge,
-          numChargedParticles, energyRecipNew, molCoords);
+      CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(),
+                                   imageSizeRef[box], box, molCharge,
+                                   energyRecipNew, molCoords);
     }
 #else
 #ifdef _OPENMP

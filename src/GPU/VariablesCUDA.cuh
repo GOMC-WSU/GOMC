@@ -118,7 +118,8 @@ public:
   int *gpu_ewald;
   double *gpu_diElectric_1;
   double *gpu_finalVal;
-  double *gpu_x, *gpu_y, *gpu_z, *gpu_particleCharge;
+  double *gpu_x, *gpu_y, *gpu_z;
+  double *gpu_molCharge, *gpu_particleCharge;
   int *gpu_particleKind, *gpu_particleMol;
   double *gpu_nx, *gpu_ny, *gpu_nz;
   double *gpu_dx, *gpu_dy, *gpu_dz;

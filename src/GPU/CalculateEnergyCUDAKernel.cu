@@ -26,12 +26,9 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,
                      const std::vector<std::vector<int>> &neighborList,
                      XYZArray const &coords, BoxDimensions const &boxAxes,
-                     bool electrostatic,
-                     const std::vector<double> &particleCharge,
-                     const std::vector<int> &particleKind,
-                     const std::vector<int> &particleMol, double &REn,
-                     double &LJEn, bool sc_coul, double sc_sigma_6,
-                     double sc_alpha, uint sc_power, uint const box) {
+                     bool electrostatic, double &REn, double &LJEn,
+                     bool sc_coul, double sc_sigma_6, double sc_alpha,
+                     uint sc_power, uint const box) {
   int atomNumber = coords.Count();
   int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
@@ -61,12 +58,6 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
              cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
-             particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleKind, &particleKind[0],
-             particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
-             particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),

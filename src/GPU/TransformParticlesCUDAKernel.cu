@@ -254,8 +254,8 @@ void CallTranslateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mForceRecz, molForceRecRef.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
-             particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
+  // cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
+  // particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_isMoleculeInvolved, &isMoleculeInvolved[0],
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
@@ -336,8 +336,8 @@ void CallRotateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mTorquez, mTorquez, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
-             particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
+  // cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
+  // particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, newMolPos.x, atomCount * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, newMolPos.y, atomCount * sizeof(double),

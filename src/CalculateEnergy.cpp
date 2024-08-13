@@ -17,7 +17,7 @@ along with this program, also can be found at
 #include "EnsemblePreprocessor.h" //Flags
 #include "Ewald.h"                //for ewald calculation
 #include "EwaldCached.h"          //for ewald calculation
-#include "Forcefield.h"           //
+#include "Forcefield.h"
 #include "GeomLib.h"
 #include "MoleculeKind.h"
 #include "MoleculeLookup.h"
@@ -79,6 +79,8 @@ void CalculateEnergy::Init(System &sys) {
 #ifdef GOMC_CUDA
   InitCoordinatesCUDA(forcefield.particles->getCUDAVars(),
                       currentCoords.Count(), maxAtomInMol, currentCOM.Count());
+  InitPartVariablesCUDA(forcefield.particles->getCUDAVars(), particleKind,
+                        particleMol, particleCharge);
 #endif
 }
 
@@ -193,8 +195,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   CallBoxInterGPU(forcefield.particles->getCUDAVars(), cellVector,
                   cellStartIndex, neighborList, coords, boxAxes, electrostatic,
-                  particleCharge, particleKind, particleMol, tempREn, tempLJEn,
-                  forcefield.sc_coul, forcefield.sc_sigma_6,
+                  tempREn, tempLJEn, forcefield.sc_coul, forcefield.sc_sigma_6,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
@@ -316,9 +317,8 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 
   CallBoxForceGPU(forcefield.particles->getCUDAVars(), cellVector,
                   cellStartIndex, neighborList, mapParticleToCell, coords,
-                  boxAxes, electrostatic, particleCharge, particleKind,
-                  particleMol, tempREn, tempLJEn, aForcex, aForcey, aForcez,
-                  mForcex, mForcey, mForcez, atomCount, molCount,
+                  boxAxes, electrostatic, tempREn, tempLJEn, aForcex, aForcey,
+                  aForcez, mForcex, mForcey, mForcez, atomCount, molCount,
                   forcefield.sc_coul, forcefield.sc_sigma_6,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 
@@ -446,13 +446,12 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
                            NonOrthAxes->cellBasis_Inv[box].z);
   }
 
-  CallBoxInterForceGPU(forcefield.particles->getCUDAVars(), cellVector,
-                       cellStartIndex, neighborList, mapParticleToCell,
-                       currentCoords, currentCOM, currentAxes, electrostatic,
-                       particleCharge, particleKind, particleMol, rT11, rT12,
-                       rT13, rT22, rT23, rT33, vT11, vT12, vT13, vT22, vT23,
-                       vT33, forcefield.sc_coul, forcefield.sc_sigma_6,
-                       forcefield.sc_alpha, forcefield.sc_power, box);
+  CallBoxInterForceGPU(
+      forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
+      neighborList, mapParticleToCell, currentCoords, currentCOM, currentAxes,
+      electrostatic, rT11, rT12, rT13, rT22, rT23, rT33, vT11, vT12, vT13, vT22,
+      vT23, vT33, forcefield.sc_coul, forcefield.sc_sigma_6,
+      forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none) shared(cellStartIndex, cellVector, \

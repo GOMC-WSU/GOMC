@@ -33,6 +33,10 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint maxAtomNumber,
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
 void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
                            double *rMaxSq, uint size);
+void InitPartVariablesCUDA(VariablesCUDA *vars,
+                           const std::vector<int> &particleKind,
+                           const std::vector<int> &particleMol,
+                           const std::vector<double> &particleCharge);
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void CopyRefToNewCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);
