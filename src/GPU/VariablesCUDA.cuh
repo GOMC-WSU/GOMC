@@ -128,8 +128,6 @@ public:
   double **gpu_sumRnew, **gpu_sumInew, **gpu_sumRref, **gpu_sumIref;
   double **gpu_prefact, **gpu_prefactRef;
   double **gpu_hsqr, **gpu_hsqrRef;
-  double *gpu_virial_rT11, *gpu_virial_rT12, *gpu_virial_rT13;
-  double *gpu_virial_rT22, *gpu_virial_rT23, *gpu_virial_rT33;
   double *gpu_recipEnergies;
   double *gpu_comx, *gpu_comy, *gpu_comz;
   int gpu_energyVecLen;
@@ -138,6 +136,8 @@ public:
   double *gpu_rT22, *gpu_rT23, *gpu_rT33;
   double *gpu_vT11, *gpu_vT12, *gpu_vT13;
   double *gpu_vT22, *gpu_vT23, *gpu_vT33;
+  double *gpu_wT11, *gpu_wT12, *gpu_wT13;
+  double *gpu_wT22, *gpu_wT23, *gpu_wT33;
   double **gpu_cell_x, **gpu_cell_y, **gpu_cell_z;
   double **gpu_Invcell_x, **gpu_Invcell_y, **gpu_Invcell_z;
   int *gpu_nonOrth;

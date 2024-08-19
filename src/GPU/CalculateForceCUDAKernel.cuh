@@ -41,9 +41,9 @@ void CallBoxInterForceGPU(
 
 void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
                              XYZArray const &currentCOMDiff,
-                             const std::vector<double> &molCharge, double &rT11,
-                             double &rT12, double &rT13, double &rT22,
-                             double &rT23, double &rT33, uint imageSize,
+                             const std::vector<double> &molCharge, double &wT11,
+                             double &wT12, double &wT13, double &wT22,
+                             double &wT23, double &wT33, uint imageSize,
                              double constVal, uint box);
 
 __global__ void
@@ -91,8 +91,8 @@ __global__ void VirialReciprocalGPU(
     double *gpu_comDy, double *gpu_comDz, double *gpu_kxRef, double *gpu_kyRef,
     double *gpu_kzRef, double *gpu_prefactRef, double *gpu_hsqrRef,
     double *gpu_sumRref, double *gpu_sumIref, double *gpu_molCharge,
-    double *gpu_rT11, double *gpu_rT12, double *gpu_rT13, double *gpu_rT22,
-    double *gpu_rT23, double *gpu_rT33, double constVal, uint imageSize,
+    double *gpu_wT11, double *gpu_wT12, double *gpu_wT13, double *gpu_wT22,
+    double *gpu_wT23, double *gpu_wT33, double constVal, uint imageSize,
     uint atomNumber);
 
 __device__ double

@@ -219,12 +219,12 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal) {
     CUMALLOC((void **)&vars->gpu_hsqr[b], imageTotal * sizeof(double));
     CUMALLOC((void **)&vars->gpu_hsqrRef[b], imageTotal * sizeof(double));
   }
-  CUMALLOC((void **)&vars->gpu_virial_rT11, imageTotal * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_virial_rT12, imageTotal * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_virial_rT13, imageTotal * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_virial_rT22, imageTotal * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_virial_rT23, imageTotal * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_virial_rT33, imageTotal * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_wT11, imageTotal * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_wT12, imageTotal * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_wT13, imageTotal * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_wT22, imageTotal * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_wT23, imageTotal * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_wT33, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_recipEnergies, imageTotal * sizeof(double));
   // Allocate space for cub reduction operations on the Ewald arrays
   // Set to the maximum value
@@ -380,12 +380,12 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
     CUFREE(vars->gpu_hsqr[b]);
     CUFREE(vars->gpu_hsqrRef[b]);
   }
-  CUFREE(vars->gpu_virial_rT11);
-  CUFREE(vars->gpu_virial_rT12);
-  CUFREE(vars->gpu_virial_rT13);
-  CUFREE(vars->gpu_virial_rT22);
-  CUFREE(vars->gpu_virial_rT23);
-  CUFREE(vars->gpu_virial_rT33);
+  CUFREE(vars->gpu_wT11);
+  CUFREE(vars->gpu_wT12);
+  CUFREE(vars->gpu_wT13);
+  CUFREE(vars->gpu_wT22);
+  CUFREE(vars->gpu_wT23);
+  CUFREE(vars->gpu_wT33);
   CUFREE(vars->gpu_recipEnergies);
   CUFREE(vars->cub_reduce_storage);
 
