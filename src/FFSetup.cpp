@@ -19,7 +19,7 @@ along with this program, also can be found at
 // For Exotic style parameter header error checking
 #include <regex>
 
-const double EPSILON = 0.001;
+const double EPSILON = 1.0e-4;
 const uint FFSetup::CHARMM_ALIAS_IDX = 0;
 const uint FFSetup::EXOTIC_ALIAS_IDX = 1;
 const std::string FFSetup::paramFileAlias[] = {"CHARMM-Style parameter file",
@@ -186,6 +186,11 @@ std::string FFBase::ReadKind(Reader &param, std::string const &firstKindName) {
     param.file >> tmp;
     merged += tmp;
   }
+  // Skip duplicates unless we allow multiple entries, such as for dihedrals
+  if (!multi && std::find(name.begin(), name.end(), merged) != name.end())
+    std::cout << "Warning: Ignoring duplicate entry of " << merged
+              << ". Using first entry!\n";
+  // Might insert duplicates but they will be ignored during execution
   if (!multi || std::find(name.begin(), name.end(), merged) == name.end())
     name.push_back(merged);
   return merged;
@@ -237,7 +242,7 @@ void Particle::Read(Reader &param, std::string const &firstVar) {
   // computation. But need the exponents to be large enough that the arithmetic
   // or geometric mean of any pair > 6.0. See FFParticle::Blend() for underlying
   // math.
-  double smallVal = 1e-20;
+  double smallVal = 1.0e-20;
   if (std::fabs(e) < smallVal) {
     e = 0.0;
     expN = 12.0; // Set to default (LJ) exponent.
@@ -247,12 +252,11 @@ void Particle::Read(Reader &param, std::string const &firstVar) {
     expN_1_4 = 12.0; // Set to default (LJ) exponent.
   }
   if ((expN - 6.0) < smallVal) {
-    std::cout << "ERROR: Mie exponent must be > 6!" << std::endl;
+    std::cout << "ERROR: Mie exponent must be > 6!\n";
     exit(EXIT_FAILURE);
   }
   if ((expN_1_4 - 6.0) < smallVal) {
-    std::cout << "ERROR: Mie exponent for 1-4 interactions must be > 6!"
-              << std::endl;
+    std::cout << "ERROR: Mie exponent for 1-4 interactions must be > 6!\n";
     exit(EXIT_FAILURE);
   }
 
@@ -400,13 +404,13 @@ void Dihedral::Add(std::string const &merged, const double coeff,
     if (*it == index) {
       if (std::fabs(*Kchi_it - EnConvIfCHARMM(coeff)) > EPSILON ||
           std::fabs(*delta_it - geom::DegToRad(def)) > EPSILON) {
-        std::cout << "Error: Inconsistent Dihedral parameters were found in "
-                     "parameter file for dihedral "
-                  << merged << " with periodicity " << index << "!\n";
+        std::cout << "Error: Inconsistent dihedral parameters were found in "
+                  << "parameter file for dihedral " << merged << " with "
+                  << "periodicity " << index << "!\n";
         exit(EXIT_FAILURE);
       } else {
-        std::cout << "Warning: Skipping duplicate periodicity of " << index
-                  << " for dihedral " << merged << "!\n";
+        std::cout << "Warning: Ignoring duplicate periodicity of " << index
+                  << " for dihedral " << merged << ". Using first entry!\n";
         return;
       }
     }
@@ -424,7 +428,7 @@ void Improper::Read(Reader &param, std::string const &firstVar) {
   uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
-  if (validname(merged) == true) {
+  if (validname(merged)) {
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "
@@ -445,7 +449,7 @@ void CMap::Read(Reader &param, std::string const &firstVar) {
   uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
-  if (validname(merged) == true) {
+  if (validname(merged)) {
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "
@@ -455,19 +459,19 @@ void CMap::Read(Reader &param, std::string const &firstVar) {
     Add(coeff, def);
   }
 }
-// Currently dummy method, exact same as improper
+// Currently dummy method, exactly the same as improper
 void CMap::Add(const double coeff, const double def) {
   Komega.push_back(EnConvIfCHARMM(coeff));
   omega0.push_back(def);
 }
 
-// Currently dummy method, exact same as improper
+// Currently dummy method, exactly the same as improper
 void HBond::Read(Reader &param, std::string const &firstVar) {
   double coeff, def;
   uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
-  if (validname(merged) == true) {
+  if (validname(merged)) {
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "

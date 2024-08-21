@@ -40,7 +40,7 @@ public:
   std::string ReadKind(Reader &param, std::string const &firstKindName);
   std::vector<std::string> &getnamelist() { return name; }
 
-  bool validname(std::string &merged) {
+  bool validname(const std::string &merged) const {
     return (std::count(name.begin(), name.end(), merged) > 0);
   }
   std::string getname(const uint i) const { return name[i]; }
