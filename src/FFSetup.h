@@ -146,8 +146,8 @@ class Dihedral : public ReadableBaseWithFirst, public FFBase {
 public:
   Dihedral(void) : FFBase(4, true), last(""), countTerms(0) {}
   virtual void Read(Reader &param, std::string const &firstVar);
-  void Add(std::string const &merged, const double coeff, const uint index,
-           const double def);
+  void Add(const std::string &fileName, const std::string &merged,
+           const double coeff, const uint index, const double def);
   uint getTerms() const { return countTerms; }
   uint append(std::string &s, double *Kchi_in, double *delta_in, uint *n_in,
               uint count) const {

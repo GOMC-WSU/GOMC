@@ -187,9 +187,10 @@ std::string FFBase::ReadKind(Reader &param, std::string const &firstKindName) {
     merged += tmp;
   }
   // Skip duplicates unless we allow multiple entries, such as for dihedrals
-  if (!multi && std::find(name.begin(), name.end(), merged) != name.end())
-    std::cout << "Warning: Ignoring duplicate entry of " << merged
-              << ". Using first entry!\n";
+  if (!multi && std::find(name.begin(), name.end(), merged) != name.end()) {
+    std::cout << "Warning: Ignoring duplicate entry for " << merged << " in "
+              << param.getFileName().c_str() << ". Using first entry!\n";
+  }
   // Might insert duplicates but they will be ignored during execution
   if (!multi || std::find(name.begin(), name.end(), merged) == name.end())
     name.push_back(merged);
@@ -389,11 +390,11 @@ void Dihedral::Read(Reader &param, std::string const &firstVar) {
     // in force fields like TraPPE
     def = 90.00;
   }
-  Add(merged, coeff, index, def);
+  Add(param.getFileName(), merged, coeff, index, def);
   last = merged;
 }
-void Dihedral::Add(std::string const &merged, const double coeff,
-                   const uint index, const double def) {
+void Dihedral::Add(const std::string &fileName, const std::string &merged,
+                   const double coeff, const uint index, const double def) {
   // Check for (and skip) duplicate periodicities for the same dihedral
   // Generate an error and terminate if the duplicate dihedrals have different
   // parameters
@@ -405,12 +406,13 @@ void Dihedral::Add(std::string const &merged, const double coeff,
       if (std::fabs(*Kchi_it - EnConvIfCHARMM(coeff)) > EPSILON ||
           std::fabs(*delta_it - geom::DegToRad(def)) > EPSILON) {
         std::cout << "Error: Inconsistent dihedral parameters were found in "
-                  << "parameter file for dihedral " << merged << " with "
-                  << "periodicity " << index << "!\n";
+                  << fileName.c_str() << " for dihedral " << merged
+                  << " with periodicity " << index << "!\n";
         exit(EXIT_FAILURE);
       } else {
         std::cout << "Warning: Ignoring duplicate periodicity of " << index
-                  << " for dihedral " << merged << ". Using first entry!\n";
+                  << " for dihedral " << merged << " in "
+                  << fileName.c_str() << ". Using first entry!\n";
         return;
       }
     }
