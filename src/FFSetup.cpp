@@ -411,8 +411,8 @@ void Dihedral::Add(const std::string &fileName, const std::string &merged,
         exit(EXIT_FAILURE);
       } else {
         std::cout << "Warning: Ignoring duplicate periodicity of " << index
-                  << " for dihedral " << merged << " in "
-                  << fileName.c_str() << ". Using first entry.\n";
+                  << " for dihedral " << merged << " in " << fileName.c_str()
+                  << ".\n";
         return;
       }
     }
