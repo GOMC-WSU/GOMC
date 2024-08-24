@@ -189,7 +189,7 @@ std::string FFBase::ReadKind(Reader &param, std::string const &firstKindName) {
   // Skip duplicates unless we allow multiple entries, such as for dihedrals
   if (!multi && std::find(name.begin(), name.end(), merged) != name.end()) {
     std::cout << "Warning: Ignoring duplicate entry for " << merged << " in "
-              << param.getFileName().c_str() << ". Using first entry!\n";
+              << param.getFileName().c_str() << ". Using first entry.\n";
   }
   // Might insert duplicates but they will be ignored during execution
   if (!multi || std::find(name.begin(), name.end(), merged) == name.end())
@@ -412,7 +412,7 @@ void Dihedral::Add(const std::string &fileName, const std::string &merged,
       } else {
         std::cout << "Warning: Ignoring duplicate periodicity of " << index
                   << " for dihedral " << merged << " in "
-                  << fileName.c_str() << ". Using first entry!\n";
+                  << fileName.c_str() << ". Using first entry.\n";
         return;
       }
     }
