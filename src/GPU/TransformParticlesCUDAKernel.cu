@@ -126,7 +126,7 @@ __device__ inline double3 RandomCoordsOnSphereGPU(unsigned int counter,
   RNG::ctr_type r = philox4x64(c, k);
   // picking phi uniformly will cluster points at poles
   // pick u = cos(phi) uniformly instead
-  // start from r[1] because I used r[0] in GetSymRandom when called in
+  // start from r[1] because r[0] is used in GetSymRandom when called in
   // multiparticle
   double u = r123::uneg11<double>(r[1]);
   // theta must be [0, 2pi) !
@@ -254,8 +254,6 @@ void CallTranslateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mForceRecz, molForceRecRef.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  // cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
-  // particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_isMoleculeInvolved, &isMoleculeInvolved[0],
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
@@ -271,6 +269,7 @@ void CallTranslateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
+			 
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -336,8 +335,6 @@ void CallRotateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mTorquez, mTorquez, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  // cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
-  // particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, newMolPos.x, atomCount * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, newMolPos.y, atomCount * sizeof(double),
