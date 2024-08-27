@@ -1501,11 +1501,8 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     double constValue = ff.alpha[box] * M_2_SQRTPI;
 
 #ifdef GOMC_CUDA
-    bool *particleUsed;
-    particleUsed = new bool[atomForceRec.Count()];
-    memset((void *)particleUsed, false, atomForceRec.Count() * sizeof(bool));
+    std::vector<int> particleUsed;
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-    memset((void *)particleUsed, false, atomForceRec.Count() * sizeof(bool));
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     while (thisMol != end) {
@@ -1514,25 +1511,28 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
       uint start = mols.MolStart(molIndex);
       for (uint p = 0; p < length; p++) {
         atomForceRec.Set(start + p, 0.0, 0.0, 0.0);
-        particleUsed[start + p] = true;
+        // Need to include only the charged atoms
+        if (particleCharge[start + p] != 0.0)
+          particleUsed.push_back(start + p);
       }
       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
       thisMol++;
     }
 #else
     // Only one box, so clear all atoms and molecules and mark all particles as
-    // Used
+    // used
     atomForceRec.Reset();
     molForceRec.Reset();
-    memset((void *)particleUsed, true, atomForceRec.Count() * sizeof(bool));
+    for (auto i; i < atomForceRec.Count(); ++i) {
+       particleUsed.push_back(i);
+    }
 #endif
 
-    CallBoxForceReciprocalGPU(
-        ff.particles->getCUDAVars(), atomForceRec, molForceRec, particleCharge,
-        particleMol, particleHasNoCharge, particleUsed, startMol, lengthMol,
-        ff.alpha[box], ff.alphaSq[box], constValue, imageSizeRef[box],
-        molCoords, currentAxes, box);
-    delete[] particleUsed;
+    CallBoxForceReciprocalGPU(ff.particles->getCUDAVars(), atomForceRec,
+                              molForceRec, particleCharge, particleMol,
+                              particleUsed, startMol, lengthMol, ff.alpha[box],
+                              ff.alphaSq[box], constValue, imageSizeRef[box],
+                              molCoords, currentAxes, box);
 #else
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
