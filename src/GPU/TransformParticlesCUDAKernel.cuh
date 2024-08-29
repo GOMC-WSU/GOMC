@@ -35,7 +35,7 @@ void CallRotateParticlesGPU(
     XYZArray &newCOMs, double lambdaBETA, XYZArray &r_k);
 
 __global__ void TranslateParticlesKernel(
-    unsigned int numberOfMolecules, double t_max, double *molForcex,
+    double t_max, double *molForcex,
     double *molForcey, double *molForcez, int *inForceRange, ulong step,
     unsigned int key, ulong seed, double *gpu_x, double *gpu_y, double *gpu_z,
     int *gpu_particleMol, int atomCount, double xAxes, double yAxes,
@@ -47,7 +47,7 @@ __global__ void TranslateParticlesKernel(
     double *gpu_mForceRecy, double *gpu_mForceRecz);
 
 __global__ void RotateParticlesKernel(
-    unsigned int numberOfMolecules, double r_max, double *molTorquex,
+    double r_max, double *molTorquex,
     double *molTorquey, double *molTorquez, int *inForceRange, ulong step,
     unsigned int key, ulong seed, double *gpu_x, double *gpu_y, double *gpu_z,
     int *gpu_particleMol, int atomCount, double xAxes, double yAxes,

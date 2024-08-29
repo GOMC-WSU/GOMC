@@ -275,7 +275,7 @@ void CallTranslateParticlesGPU(
 #endif
 
   TranslateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(
-      molCount, t_max, vars->gpu_mForcex, vars->gpu_mForcey, vars->gpu_mForcez,
+      t_max, vars->gpu_mForcex, vars->gpu_mForcey, vars->gpu_mForcez,
       vars->gpu_inForceRange, step, key, seed, vars->gpu_x, vars->gpu_y,
       vars->gpu_z, vars->gpu_particleMol, atomCount, xAxes, yAxes, zAxes,
       vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_cell_x[box],
@@ -352,7 +352,7 @@ void CallRotateParticlesGPU(
              cudaMemcpyHostToDevice);
 
   RotateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(
-      molCount, r_max, vars->gpu_mTorquex, vars->gpu_mTorquey,
+      r_max, vars->gpu_mTorquex, vars->gpu_mTorquey,
       vars->gpu_mTorquez, vars->gpu_inForceRange, step, key, seed, vars->gpu_x,
       vars->gpu_y, vars->gpu_z, vars->gpu_particleMol, atomCount, xAxes, yAxes,
       zAxes, vars->gpu_comx, vars->gpu_comy, vars->gpu_comz,
@@ -386,7 +386,7 @@ void CallRotateParticlesGPU(
 }
 
 __global__ void TranslateParticlesKernel(
-    unsigned int numberOfMolecules, double t_max, double *molForcex,
+    double t_max, double *molForcex,
     double *molForcey, double *molForcez, int *gpu_inForceRange, ulong step,
     unsigned int key, ulong seed, double *gpu_x, double *gpu_y, double *gpu_z,
     int *gpu_particleMol, int atomCount, double xAxes, double yAxes,
@@ -415,18 +415,18 @@ __global__ void TranslateParticlesKernel(
   double lbmaxz = lbfz * t_max;
 
   double shiftx, shifty, shiftz;
-  bool forceInRange;
 
-  forceInRange =
-      (std::abs(lbmaxx) > MIN_FORCE && std::abs(lbmaxx) < MAX_FORCE &&
-       std::abs(lbmaxy) > MIN_FORCE && std::abs(lbmaxy) < MAX_FORCE &&
-       std::abs(lbmaxz) > MIN_FORCE && std::abs(lbmaxz) < MAX_FORCE);
+  //Per CUDA documention, use of std namespace math functions is not supported
+  bool forceInRange =
+      (fabs(lbmaxx) > MIN_FORCE && fabs(lbmaxx) < MAX_FORCE &&
+       fabs(lbmaxy) > MIN_FORCE && fabs(lbmaxy) < MAX_FORCE &&
+       fabs(lbmaxz) > MIN_FORCE && fabs(lbmaxz) < MAX_FORCE);
 
   if (forceInRange) {
     double3 randnums = randomCoordsGPU(molIndex, key, step, seed);
-    shiftx = log(exp(-1.0 * lbmaxx) + 2 * randnums.x * sinh(lbmaxx)) / lbfx;
-    shifty = log(exp(-1.0 * lbmaxy) + 2 * randnums.y * sinh(lbmaxy)) / lbfy;
-    shiftz = log(exp(-1.0 * lbmaxz) + 2 * randnums.z * sinh(lbmaxz)) / lbfz;
+    shiftx = (-lbmaxx + log1p(2.0 * randnums.x * exp(lbmaxx) * sinh(lbmaxx))) / lbfx;
+    shifty = (-lbmaxy + log1p(2.0 * randnums.y * exp(lbmaxy) * sinh(lbmaxy))) / lbfy;
+    shiftz = (-lbmaxz + log1p(2.0 * randnums.z * exp(lbmaxz) * sinh(lbmaxz))) / lbfz;
   } else {
     double3 randnums = SymRandomCoordsGPU(molIndex, key, step, seed);
     shiftx = t_max * randnums.x;
@@ -474,7 +474,7 @@ __global__ void TranslateParticlesKernel(
 }
 
 __global__ void RotateParticlesKernel(
-    unsigned int numberOfMolecules, double r_max, double *molTorquex,
+    double r_max, double *molTorquex,
     double *molTorquey, double *molTorquez, int *gpu_inForceRange, ulong step,
     unsigned int key, ulong seed, double *gpu_x, double *gpu_y, double *gpu_z,
     int *gpu_particleMol, int atomCount, double xAxes, double yAxes,
@@ -502,24 +502,24 @@ __global__ void RotateParticlesKernel(
 
   double rotx, roty, rotz, theta;
   double3 rotvec;
-  bool forceInRange;
 
-  forceInRange =
-      (std::abs(lbmaxx) > MIN_FORCE && std::abs(lbmaxx) < MAX_FORCE &&
-       std::abs(lbmaxy) > MIN_FORCE && std::abs(lbmaxy) < MAX_FORCE &&
-       std::abs(lbmaxz) > MIN_FORCE && std::abs(lbmaxz) < MAX_FORCE);
+  //Per CUDA documention, use of std namespace math functions is not supported
+  bool forceInRange =
+      (fabs(lbmaxx) > MIN_FORCE && fabs(lbmaxx) < MAX_FORCE &&
+       fabs(lbmaxy) > MIN_FORCE && fabs(lbmaxy) < MAX_FORCE &&
+       fabs(lbmaxz) > MIN_FORCE && fabs(lbmaxz) < MAX_FORCE);
 
   if (forceInRange) {
     double3 randnums = randomCoordsGPU(molIndex, key, step, seed);
-    rotx = log(exp(-1.0 * lbmaxx) + 2 * randnums.x * sinh(lbmaxx)) / lbtx;
-    roty = log(exp(-1.0 * lbmaxy) + 2 * randnums.y * sinh(lbmaxy)) / lbty;
-    rotz = log(exp(-1.0 * lbmaxz) + 2 * randnums.z * sinh(lbmaxz)) / lbtz;
+    rotx = (-lbmaxx + log1p(2.0 * randnums.x * exp(lbmaxx) * sinh(lbmaxx))) / lbtx;
+    roty = (-lbmaxy + log1p(2.0 * randnums.y * exp(lbmaxy) * sinh(lbmaxy))) / lbty;
+    rotz = (-lbmaxz + log1p(2.0 * randnums.z * exp(lbmaxz) * sinh(lbmaxz))) / lbtz;
     theta = sqrt(rotx * rotx + roty * roty + rotz * rotz);
     rotvec = make_double3(rotx * (1.0 / theta), roty * (1.0 / theta),
                           rotz * (1.0 / theta));
   } else {
     double3 randnums = RandomCoordsOnSphereGPU(molIndex, key, step, seed);
-    // These values are ignored if !forceInRange so just initialize to zero.
+    // These values are ignored if !forceInRange so just initialize to zero
     rotx = 0.0;
     roty = 0.0;
     rotz = 0.0;

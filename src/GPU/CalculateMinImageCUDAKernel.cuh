@@ -69,7 +69,8 @@ WrapPBCNonOrth3(double3 &v, const double3 &ax, const double *gpu_cell_x,
 
 __device__ inline void UnwrapPBC(double &v, const double &ref, const double &ax,
                                  const double &halfax) {
-  if (std::fabs(ref - v) > halfax) {
+  //Per CUDA documention, use of std namespace math functions is not supported
+  if (fabs(ref - v) > halfax) {
     if (ref < halfax)
       v -= ax;
     else
