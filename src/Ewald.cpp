@@ -369,12 +369,11 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
 //    volume. For these calls, need to total the sums with the new volume
 //    settings.
 // 2. During a Molecule Exchange or MultiParticle move, we need to recompute
-// these
-//    sums for the current volume, since the number and location of molecules
-//    could have changed since the volume was set. For these calls, we need to
-//    use the Reference settings, since these hold the information for the
-//    current box dimensions. Also called at the start of the simulation, after
-//    the Reference volume parameters have been set.
+//    these sums for the current volume, since the number and location of
+//    molecules could have changed since the volume was set. For these calls,
+//    we need to use the Reference settings, since these hold the information
+//    for the current box dimensions. Also called at the start of the
+//    simulation, after the Reference volume parameters have been set.
 double Ewald::BoxReciprocal(uint box, bool isNewVolume) const {
   double energyRecip = 0.0;
 
