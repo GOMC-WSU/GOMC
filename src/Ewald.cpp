@@ -29,6 +29,9 @@ along with this program, also can be found at
 #endif
 #include "GOMCEventsProfile.h"
 
+#include <iostream>
+#include <fstream>
+
 //
 //
 //    Energy Calculation functions for Ewald summation method
@@ -1496,6 +1499,9 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
                                XYZArray &atomForceRec, XYZArray &molForceRec,
                                uint box) {
   if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
+    std::ofstream countFile;
+    int whileLoop, for1, for2 = 0;
+
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_FORCE);
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = ff.alpha[box] * M_2_SQRTPI;
@@ -1539,6 +1545,7 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
     while (thisMol != end) {
+      whileLoop++;
       uint molIndex = *thisMol;
       uint length, start, p;
       double distSq;
@@ -1549,11 +1556,13 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
       double lambdaCoef = GetLambdaCoef(molIndex, box);
 
       for (p = start; p < start + length; p++) {
+        for1++;
         double X = 0.0, Y = 0.0, Z = 0.0;
 
         if (!particleHasNoCharge[p]) {
           // subtract the intra forces(correction)
           for (uint j = start; j < start + length; j++) {
+            for2++;
             // no self term in force
             if (p != j) {
               currentAxes.InRcut(distSq, distVect, molCoords, p, j, box);
@@ -1591,6 +1600,9 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_FORCE);
+    countFile.open("countOut.txt");
+    countFile << "While loop: " << whileLoop << "\n for1: " << for1 << "\n for2: " << for2;
+    countFile.close();
   }
 }
 
