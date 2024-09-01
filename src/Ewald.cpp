@@ -213,10 +213,12 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
-      for (uint j = 0; j < thisKind.NumAtoms(); j++) {
-        thisBoxCoords.Set(i, molCoords[mols.MolStart(*thisMol) + j]);
-        chargeBox.push_back(thisKind.AtomCharge(j) * lambdaCoef);
-        i++;
+      for (uint j = 0; j < thisKind.NumAtoms(); ++j) {
+        if (thisKind.AtomCharge(j) != 0.0) {
+          thisBoxCoords.Set(i, molCoords[mols.MolStart(*thisMol) + j]);
+          chargeBox.push_back(thisKind.AtomCharge(j) * lambdaCoef);
+          i++;
+        }
       }
       thisMol++;
     }
@@ -301,10 +303,12 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
-      for (uint j = 0; j < thisKind.NumAtoms(); j++) {
-        thisBoxCoords.Set(i, molCoords[mols.MolStart(*thisMol) + j]);
-        chargeBox.push_back(thisKind.AtomCharge(j) * lambdaCoef);
-        i++;
+      for (uint j = 0; j < thisKind.NumAtoms(); ++j) {
+        if (thisKind.AtomCharge(j) != 0.0) {
+          thisBoxCoords.Set(i, molCoords[mols.MolStart(*thisMol) + j]);
+          chargeBox.push_back(thisKind.AtomCharge(j) * lambdaCoef);
+          i++;
+        }
       }
       thisMol++;
     }

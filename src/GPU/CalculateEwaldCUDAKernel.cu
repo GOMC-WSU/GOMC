@@ -66,6 +66,8 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
+  // Fewer blocks are needed since we are doing one computation per image
+  blocksPerGrid = (imageSize + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
   BoxReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_prefact[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
       vars->gpu_recipEnergies, imageSize);
@@ -111,6 +113,8 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
+  // Fewer blocks are needed since we are doing one computation per image
+  blocksPerGrid = (imageSize + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
   BoxReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_prefactRef[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
       vars->gpu_recipEnergies, imageSize);
@@ -133,7 +137,7 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_sumRnew, double *gpu_sumInew) {
   int image = blockIdx.x;
   double sumR = 0.0, sumI = 0.0;
-#pragma unroll 8
+#pragma unroll 16
   for (int particleID = threadIdx.x; particleID < atomNumber; particleID += THREADS_PER_BLOCK) {
     double dot = DotProductGPU(gpu_kx[image], gpu_ky[image],
                                gpu_kz[image], gpu_x[particleID],
