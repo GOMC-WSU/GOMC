@@ -92,7 +92,7 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint maxAtomNumber,
   CUMALLOC((void **)&vars->gpu_z, maxAtomNumber * sizeof(double));
 
   // gpu_molCharge is used for a subset of the particles;
-  // gpu_particleCharge is used for all the particles
+  // gpu_particleCharge is used for all the particles and is loaded only once
   CUMALLOC((void **)&vars->gpu_molCharge, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_particleCharge, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_particleKind, maxAtomNumber * sizeof(int));
