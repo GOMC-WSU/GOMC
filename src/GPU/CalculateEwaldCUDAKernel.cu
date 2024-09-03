@@ -21,7 +21,8 @@ along with this program, also can be found at
 
 using namespace cub;
 
-#define THREADS_PER_BLOCK 128
+const int THREADS_PER_BLOCK = 128;
+const int THREADS_PER_BLOCK_SM = 64;
 
 // Use this function when calculating the reciprocal terms
 // for a new volume. Such as a change in box dimensions.
@@ -55,7 +56,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  int threadsPerBlock = THREADS_PER_BLOCK;
+  int threadsPerBlock = THREADS_PER_BLOCK_SM;
   int blocksPerGrid = imageSize;
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kx[box],
@@ -67,6 +68,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   // Fewer blocks are needed since we are doing one computation per image
+  threadsPerBlock = THREADS_PER_BLOCK;
   blocksPerGrid = (imageSize + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
   BoxReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_prefact[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
@@ -102,7 +104,7 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  int threadsPerBlock = THREADS_PER_BLOCK;
+  int threadsPerBlock = THREADS_PER_BLOCK_SM;
   int blocksPerGrid = imageSize;
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kxRef[box],
@@ -114,6 +116,7 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   // Fewer blocks are needed since we are doing one computation per image
+  threadsPerBlock = THREADS_PER_BLOCK;
   blocksPerGrid = (imageSize + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
   BoxReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_prefactRef[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
@@ -138,7 +141,7 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
   int image = blockIdx.x;
   double sumR = 0.0, sumI = 0.0;
 #pragma unroll 16
-  for (int particleID = threadIdx.x; particleID < atomNumber; particleID += THREADS_PER_BLOCK) {
+  for (int particleID = threadIdx.x; particleID < atomNumber; particleID += THREADS_PER_BLOCK_SM) {
     double dot = DotProductGPU(gpu_kx[image], gpu_ky[image],
                                gpu_kz[image], gpu_x[particleID],
                                gpu_y[particleID],
@@ -151,7 +154,7 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
   __syncthreads();
 
   // Specialize BlockReduce for a 1D block of threads of type double
-  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK>;
+  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK_SM>;
 
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage sumR_temp_storage;

@@ -15,11 +15,11 @@ along with this program, also can be found at
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#define GPU_VDW_STD_KIND 0
-#define GPU_VDW_SHIFT_KIND 1
-#define GPU_VDW_SWITCH_KIND 2
-#define GPU_VDW_EXP6_KIND 3
-#define MAX_PAIR_SIZE 10000000
+const int GPU_VDW_STD_KIND = 0;
+const int GPU_VDW_SHIFT_KIND = 1;
+const int GPU_VDW_SWITCH_KIND = 2;
+const int GPU_VDW_EXP6_KIND = 3;
+const int MAX_PAIR_SIZE = 10000000;
 
 void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
                      double *lambdaCoulomb, bool *isFraction);

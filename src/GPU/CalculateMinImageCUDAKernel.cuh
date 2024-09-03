@@ -5,9 +5,10 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#pragma once
-#ifdef GOMC_CUDA
+#ifndef CALCULATE_MINIMAGE_CUDA_KERNEL
+#define CALCULATE_MINIMAGE_CUDA_KERNEL
 
+#ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -276,6 +277,7 @@ static __inline__ __device__ double atomicAdd(double *address, double val) {
   } while (assumed != old);
   return __longlong_as_double(old);
 }
-#endif
+#endif /*CUDA_ARCH*/
 
 #endif /*GOMC_CUDA*/
+#endif /*CALCULATE_MINIMAGE_CUDA_KERNEL*/

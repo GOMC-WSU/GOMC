@@ -11,8 +11,8 @@ along with this program, also can be found at
 #include "Random123/boxmuller.hpp"
 #include "TransformParticlesCUDAKernel.cuh"
 
-#define MIN_FORCE 1E-12
-#define MAX_FORCE 30
+const double MIN_FORCE = 1.0e-12;
+const double MAX_FORCE = 30.0;
 
 __device__ inline double randomGPU(unsigned int counter, ulong step,
                                    ulong seed) {

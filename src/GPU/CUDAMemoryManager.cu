@@ -5,9 +5,10 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
+#ifdef GOMC_CUDA
+
 #include "CUDAMemoryManager.cuh"
 
-#ifdef GOMC_CUDA
 long long CUDAMemoryManager::totalAllocatedBytes = 0;
 std::unordered_map<void *, std::pair<unsigned int, std::string>>
     CUDAMemoryManager::allocatedPointers;

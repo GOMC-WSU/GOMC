@@ -5,9 +5,10 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#pragma once
-#ifdef GOMC_CUDA
+#ifndef VARIABLES_CUDA
+#define VARIABLES_CUDA
 
+#ifdef GOMC_CUDA
 #include "EnsemblePreprocessor.h"
 #include "NumLib.h"
 #include <cuda.h>
@@ -160,4 +161,6 @@ public:
   // new pair interaction calculation done on GPU
   int *gpu_cellVector, *gpu_mapParticleToCell;
 };
-#endif
+
+#endif /*GOMC_CUDA*/
+#endif /*VARIABLES_CUDA*/

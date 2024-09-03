@@ -17,8 +17,8 @@ along with this program, also can be found at
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "cub/cub.cuh"
 
-#define NUMBER_OF_NEIGHBOR_CELL 27
-#define THREADS_PER_BLOCK 128
+const int NUMBER_OF_NEIGHBOR_CELL = 27;
+const int THREADS_PER_BLOCK = 128;
 
 using namespace cub;
 
