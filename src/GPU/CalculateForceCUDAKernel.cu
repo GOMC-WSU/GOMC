@@ -772,9 +772,8 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   // Compute the block-wide sum for thread 0
   double aggregate1 = BlockReduce(LJEn_temp_storage).Sum(LJEn);
 
-  if (threadIdx.x == 0) {
+  if (threadIdx.x == 0)
     gpu_LJEn[blockIdx.x] = aggregate1;
-  }
 
   if (electrostatic) {
     // Need to sync the threads before reusing temp_storage
