@@ -23,18 +23,16 @@ void CallTranslateParticlesGPU(
     VariablesCUDA *vars, const std::vector<int8_t> &isMoleculeInvolved, int box,
     double t_max, double *mForcex, double *mForcey, double *mForcez,
     std::vector<int> &inForceRange, ulong step, unsigned int key, ulong seed,
-    const std::vector<int> &particleMol, int atomCount, int molCount,
-    double xAxes, double yAxes, double zAxes, XYZArray &newMolPos,
-    XYZArray &newCOMs, double lambdaBETA, XYZArray &t_k,
+    int atomCount, int molCount, double xAxes, double yAxes, double zAxes,
+    XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &t_k,
     XYZArray &molForceRecRef);
 
 void CallRotateParticlesGPU(
     VariablesCUDA *vars, const std::vector<int8_t> &isMoleculeInvolved, int box,
     double r_max, double *mTorquex, double *mTorquey, double *mTorquez,
     std::vector<int> &inForceRange, ulong step, unsigned int key, ulong seed,
-    const std::vector<int> &particleMol, int atomCount, int molCount,
-    double xAxes, double yAxes, double zAxes, XYZArray &newMolPos,
-    XYZArray &newCOMs, double lambdaBETA, XYZArray &r_k);
+    int atomCount, int molCount, double xAxes, double yAxes, double zAxes,
+    XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &r_k);
 
 __global__ void TranslateParticlesKernel(
     double t_max, double *molForcex,

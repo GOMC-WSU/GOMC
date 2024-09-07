@@ -58,7 +58,6 @@ private:
   const MoleculeLookup &molLookup;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
-  std::vector<int> particleMol;
 #endif
   Random123Wrapper &r123wrapper;
   const Molecules &mols;
@@ -114,16 +113,6 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV)
   multiParticleGas = sys.statV.multiParticleGas;
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
-
-  uint maxAtomInMol = 0;
-  for (uint m = 0; m < mols.count; ++m) {
-    const MoleculeKind &molKind = mols.GetKind(m);
-    if (molKind.NumAtoms() > maxAtomInMol)
-      maxAtomInMol = molKind.NumAtoms();
-    for (uint a = 0; a < molKind.NumAtoms(); ++a) {
-      particleMol.push_back(m);
-    }
-  }
 #endif
 }
 
@@ -351,7 +340,7 @@ inline uint MultiParticle::Transform() {
     CallRotateParticlesGPU(
         cudaVars, isMoleculeInvolved, bPick, r_max, molTorqueRef.x,
         molTorqueRef.y, molTorqueRef.z, inForceRange, r123wrapper.GetStep(),
-        r123wrapper.GetKeyValue(), r123wrapper.GetSeedValue(), particleMol,
+        r123wrapper.GetKeyValue(), r123wrapper.GetSeedValue(),
         newMolsPos.Count(), newCOMs.Count(), boxDimRef.GetAxis(bPick).x,
         boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z, newMolsPos,
         newCOMs, lambda * BETA, r_k);
@@ -360,7 +349,7 @@ inline uint MultiParticle::Transform() {
     CallTranslateParticlesGPU(
         cudaVars, isMoleculeInvolved, bPick, t_max, molForceRef.x,
         molForceRef.y, molForceRef.z, inForceRange, r123wrapper.GetStep(),
-        r123wrapper.GetKeyValue(), r123wrapper.GetSeedValue(), particleMol,
+        r123wrapper.GetKeyValue(), r123wrapper.GetSeedValue(),
         newMolsPos.Count(), newCOMs.Count(), boxDimRef.GetAxis(bPick).x,
         boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z, newMolsPos,
         newCOMs, lambda * BETA, t_k, molForceRecRef);

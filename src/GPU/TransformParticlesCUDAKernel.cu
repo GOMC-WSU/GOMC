@@ -231,9 +231,8 @@ void CallTranslateParticlesGPU(
     VariablesCUDA *vars, const std::vector<int8_t> &isMoleculeInvolved, int box,
     double t_max, double *mForcex, double *mForcey, double *mForcez,
     std::vector<int> &inForceRange, ulong step, unsigned int key, ulong seed,
-    const std::vector<int> &particleMol, int atomCount, int molCount,
-    double xAxes, double yAxes, double zAxes, XYZArray &newMolPos,
-    XYZArray &newCOMs, double lambdaBETA, XYZArray &t_k,
+    int atomCount, int molCount, double xAxes, double yAxes, double zAxes,
+    XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &t_k,
     XYZArray &molForceRecRef) {
   int8_t *gpu_isMoleculeInvolved;
   int threadsPerBlock = 256;
@@ -269,7 +268,7 @@ void CallTranslateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-			 
+
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -319,9 +318,8 @@ void CallRotateParticlesGPU(
     VariablesCUDA *vars, const std::vector<int8_t> &isMoleculeInvolved, int box,
     double r_max, double *mTorquex, double *mTorquey, double *mTorquez,
     std::vector<int> &inForceRange, ulong step, unsigned int key, ulong seed,
-    const std::vector<int> &particleMol, int atomCount, int molCount,
-    double xAxes, double yAxes, double zAxes, XYZArray &newMolPos,
-    XYZArray &newCOMs, double lambdaBETA, XYZArray &r_k) {
+    int atomCount, int molCount, double xAxes, double yAxes, double zAxes,
+    XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &r_k) {
   int8_t *gpu_isMoleculeInvolved;
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
