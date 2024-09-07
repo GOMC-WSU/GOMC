@@ -140,7 +140,7 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_sumRnew, double *gpu_sumInew) {
   int image = blockIdx.x;
   double sumR = 0.0, sumI = 0.0;
-#pragma unroll 16
+#pragma unroll 8
   for (int particleID = threadIdx.x; particleID < atomNumber; particleID += THREADS_PER_BLOCK_SM) {
     double dot = DotProductGPU(gpu_kx[image], gpu_ky[image],
                                gpu_kz[image], gpu_x[particleID],
