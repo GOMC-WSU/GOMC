@@ -29,6 +29,7 @@ along with this program, also can be found at
 #endif
 #include "GOMCEventsProfile.h"
 
+//writing to file for rory BoxForceReciprocal
 #include <iostream>
 #include <fstream>
 
@@ -1498,6 +1499,8 @@ void compareDouble(const double &x, const double &y, const int &i) {
 void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
                                XYZArray &atomForceRec, XYZArray &molForceRec,
                                uint box) {
+  
+  //std::cout << "box:" << box << std::endl;
   if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     std::ofstream countFile;
     int whileLoop, for1, for2 = 0;
@@ -1555,6 +1558,14 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
       start = mols.MolStart(molIndex);
       double lambdaCoef = GetLambdaCoef(molIndex, box);
 
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, p) reduction(+:X, Y, Z)
+#endif
+
+
+  
+ 
+      #pragma omp for
       for (p = start; p < start + length; p++) {
         for1++;
         double X = 0.0, Y = 0.0, Z = 0.0;
@@ -1577,9 +1588,9 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
               Z -= intraForce * distVect.z;
             }
           }
-#ifdef _OPENMP
-#pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, p) reduction(+:X, Y, Z)
-#endif
+
+          //omp was here
+
           for (int i = 0; i < (int)imageSizeRef[box]; i++) {
             double dot =
                 Dot(p, kxRef[box][i], kyRef[box][i], kzRef[box][i], molCoords);
@@ -1600,7 +1611,7 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_FORCE);
-    countFile.open("countOut.txt");
+    countFile.open("countOut.txt", std::ofstream::out | std::ofstream::app);
     countFile << "While loop: " << whileLoop << "\n for1: " << for1 << "\n for2: " << for2;
     countFile.close();
   }
