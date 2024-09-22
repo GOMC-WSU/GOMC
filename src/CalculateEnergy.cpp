@@ -376,6 +376,9 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
             forceLJ = virComponents * forcefield.particles->CalcVir(
                                           distSq, particleKind[currParticle],
                                           particleKind[nParticle], lambdaVDW);
+            // Negate the values for nParticle to reverse the orientation of
+            // the virComponents vector, since it should point in the opposite
+            // direction.
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
             aForcez[currParticle] += forceLJ.z + forceReal.z;
