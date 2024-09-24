@@ -160,7 +160,7 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
   __shared__ typename BlockReduce::TempStorage sumR_temp_storage;
   __shared__ typename BlockReduce::TempStorage sumI_temp_storage;
 
-  // Compute the block-wide sum for thread 0
+  // Compute the block-wide sums for thread 0
   double aggregateR = BlockReduce(sumR_temp_storage).Sum(sumR);
   double aggregateI = BlockReduce(sumI_temp_storage).Sum(sumI);
 
