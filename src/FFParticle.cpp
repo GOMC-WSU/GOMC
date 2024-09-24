@@ -436,9 +436,9 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
   if (forcefield.ewald) {
     // M_2_SQRTPI is 2/sqrt(PI)
     double alphaValue = forcefield.alpha[b] * M_2_SQRTPI;
-    alphaValue *= std::exp(-forcefield.alphaSq[b] * distSq);
-    alphaValue += std::erfc(forcefield.alpha[b] * dist) / dist;
-    return qi_qj * alphaValue / distSq;
+    double expValue = std::exp(-forcefield.alphaSq[b] * distSq);
+    double erfcValue = std::erfc(forcefield.alpha[b] * dist) / dist;
+    return qi_qj * (alphaValue * expValue + erfcValue) / distSq;
   } else {
     return qi_qj / (distSq * dist);
   }
