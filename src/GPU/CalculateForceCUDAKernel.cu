@@ -19,6 +19,7 @@ along with this program, also can be found at
 const int NUMBER_OF_NEIGHBOR_CELLS = 27;
 const int PARTICLES_PER_BLOCK = 32;
 const int THREADS_PER_BLOCK = 128;
+const int THREADS_PER_BLOCK_SM = 64;
 
 using namespace cub;
 
@@ -211,9 +212,9 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   double *gpu_REn, *gpu_LJEn;
   double cpu_final_REn = 0.0, cpu_final_LJEn = 0.0;
 
-  int threadsPerBlock = 128;
-  int blocksPerGrid = numberOfCellPairs;
-  int energyVectorLen = numberOfCellPairs;
+  int threadsPerBlock = THREADS_PER_BLOCK_SM;
+  int blocksPerGrid = numberOfCells;
+  int energyVectorLen = numberOfCells;
 
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(numberOfCellPairs);
@@ -646,125 +647,97 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
             int *gpu_molIndex, double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
             bool *gpu_isFraction, int box) {
   __shared__ double shr_cutoff;
-  __shared__ int shr_particlesInsideCurrentCell, shr_numberOfPairs;
-  __shared__ int shr_currentCellStartIndex, shr_neighborCellStartIndex;
-  __shared__ bool shr_sameCell;
+  __shared__ int shr_particlesInsideCurrentCell, shr_currentCellStartIndex;
   double REn = 0.0, LJEn = 0.0;
-
-  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
-  int neighborCell = gpu_neighborList[blockIdx.x];
-  if (currentCell > neighborCell) {
-    if (threadIdx.x == 0) {
-      gpu_LJEn[blockIdx.x] = 0.0;
-      if (electrostatic)
-        gpu_REn[blockIdx.x] = 0.0;
-    }
-    return;
-  }
+  int currentCell = blockIdx.x;
 
   if (threadIdx.x == 0) {
     // Calculate number of particles inside current Cell
     shr_currentCellStartIndex = gpu_cellStartIndex[currentCell];
     shr_particlesInsideCurrentCell =
         gpu_cellStartIndex[currentCell + 1] - shr_currentCellStartIndex;
-
-    // Calculate number of particles inside neighbor Cell
-    shr_neighborCellStartIndex = gpu_cellStartIndex[neighborCell];
-    int particlesInsideNeighboringCell =
-        gpu_cellStartIndex[neighborCell + 1] - shr_neighborCellStartIndex;
-
-    shr_sameCell = currentCell == neighborCell;
-    // Total number of pairs
-    shr_numberOfPairs =
-        shr_particlesInsideCurrentCell * particlesInsideNeighboringCell;
     shr_cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
   }
   __syncthreads();
 
-  for (int pairIndex = threadIdx.x; pairIndex < shr_numberOfPairs;
-       pairIndex += blockDim.x) {
-    int currentParticleIndex = pairIndex % shr_particlesInsideCurrentCell;
-    int neighborParticleIndex = pairIndex / shr_particlesInsideCurrentCell;
+  for (int particleIdx = threadIdx.x; particleIdx < shr_particlesInsideCurrentCell; particleIdx += blockDim.x) {
+    int particle = gpu_cellVector[shr_currentCellStartIndex + particleIdx];
+    int mA = gpu_particleMol[particle];
+    double3 forceComponents = make_double3(0.0, 0.0, 0.0);
+    for (int neighborCellIdx = 0; neighborCellIdx < NUMBER_OF_NEIGHBOR_CELLS; ++neighborCellIdx) {
+      int neighborCell = gpu_neighborList[currentCell * NUMBER_OF_NEIGHBOR_CELLS + neighborCellIdx];
+      // Calculate number of particles inside neighbor cell
+      int particlesInsideNeighboringCell =
+          gpu_cellStartIndex[neighborCell + 1] - gpu_cellStartIndex[neighborCell];
+      for (int neighborIdx = 0; neighborIdx < particlesInsideNeighboringCell; ++neighborIdx) {
+        int neighbor = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborIdx];
+        int mB = gpu_particleMol[neighbor];
+        // Check to be sure these are different molecules
+        if (mA != mB) {
+          double distSq;
+          double3 virComponents;
+          if (InRcutGPU(distSq, virComponents, gpu_x, gpu_y, gpu_z, particle,
+                        neighbor, axis, halfAx, shr_cutoff, gpu_nonOrth[0],
+                        gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x,
+                        gpu_Invcell_y, gpu_Invcell_z)) {
 
-    int currentParticle =
-        gpu_cellVector[shr_currentCellStartIndex + currentParticleIndex];
-    int neighborParticle =
-        gpu_cellVector[shr_neighborCellStartIndex + neighborParticleIndex];
+            double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
+                                                  gpu_molIndex, gpu_lambdaVDW);
 
-    // We don't process the same pair of cells twice, so we just need to check
-    // to be sure we have different molecules. The exception is when the two
-    // cells are the same, then we need to skip some pairs of molecules so we
-    // don't double count any pairs.
-    int mA = gpu_particleMol[currentParticle];
-    int mB = gpu_particleMol[neighborParticle];
-    bool skip = mA == mB || (shr_sameCell && mA > mB);
-    if (!skip) {
-      double distSq;
-      double3 virComponents;
-      if (InRcutGPU(distSq, virComponents, gpu_x, gpu_y, gpu_z, currentParticle,
-                    neighborParticle, axis, halfAx, shr_cutoff, gpu_nonOrth[0],
-                    gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x,
-                    gpu_Invcell_y, gpu_Invcell_z)) {
-
-        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
-                                              gpu_molIndex, gpu_lambdaVDW);
-
-        int kA = gpu_particleKind[currentParticle];
-        int kB = gpu_particleKind[neighborParticle];
-        LJEn += CalcEnGPU(
-            distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_VDW_Kind[0],
-            gpu_isMartini[0], gpu_rCut[0], gpu_rOn[0], gpu_count[0], lambdaVDW,
-            sc_sigma_6, sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
-        double forces = CalcEnForceGPU(
-            distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_rCut[0],
-            gpu_rOn[0], gpu_isMartini[0], gpu_VDW_Kind[0], gpu_count[0],
-            lambdaVDW, sc_sigma_6, sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq,
-            gpu_expConst);
-
-        if (electrostatic) {
-          double qi_qj_fact = gpu_particleCharge[currentParticle] *
-                              gpu_particleCharge[neighborParticle];
-          if (qi_qj_fact != 0.0) {
-            qi_qj_fact *= qqFactGPU;
-            double lambdaCoulomb = DeviceGetLambdaCoulomb(
-                mA, mB, box, gpu_isFraction, gpu_molIndex, gpu_lambdaCoulomb);
-            REn += CalcCoulombGPU(
-                distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0], gpu_ewald[0],
-                gpu_VDW_Kind[0], gpu_alpha[box], gpu_rCutCoulomb[box],
-                gpu_isMartini[0], gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
-                sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq, gpu_count[0]);
-
-            forces += CalcCoulombForceGPU(
-                distSq, qi_qj_fact, gpu_VDW_Kind[0], gpu_ewald[0],
-                gpu_isMartini[0], gpu_alpha[box], gpu_rCutCoulomb[box],
-                gpu_diElectric_1[0], gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
-                sc_power, lambdaCoulomb, gpu_count[0], kA, kB);
+            int kA = gpu_particleKind[particle];
+            int kB = gpu_particleKind[neighbor];
+            if (currentCell < neighborCell || (currentCell == neighborCell && particle < neighbor)) {
+              LJEn += CalcEnGPU(
+                  distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_VDW_Kind[0],
+                  gpu_isMartini[0], gpu_rCut[0], gpu_rOn[0], gpu_count[0], lambdaVDW,
+                  sc_sigma_6, sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
+            }
+            double forces = CalcEnForceGPU(
+                distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_rCut[0],
+                gpu_rOn[0], gpu_isMartini[0], gpu_VDW_Kind[0], gpu_count[0],
+                lambdaVDW, sc_sigma_6, sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq,
+                gpu_expConst);
+            double qi_qj_fact = 0.0;
+            if (electrostatic) {
+              qi_qj_fact = gpu_particleCharge[particle] *
+                                  gpu_particleCharge[neighbor];
+              if (qi_qj_fact != 0.0) {
+                qi_qj_fact *= qqFactGPU;
+                double lambdaCoulomb = DeviceGetLambdaCoulomb(
+                    mA, mB, box, gpu_isFraction, gpu_molIndex, gpu_lambdaCoulomb);
+                if (currentCell < neighborCell || (currentCell == neighborCell && particle < neighbor)) {
+                    REn += CalcCoulombGPU(
+                        distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0], gpu_ewald[0],
+                        gpu_VDW_Kind[0], gpu_alpha[box], gpu_rCutCoulomb[box],
+                        gpu_isMartini[0], gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
+                        sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq, gpu_count[0]);
+                }
+                forces += CalcCoulombForceGPU(
+                    distSq, qi_qj_fact, gpu_VDW_Kind[0], gpu_ewald[0],
+                    gpu_isMartini[0], gpu_alpha[box], gpu_rCutCoulomb[box],
+                    gpu_diElectric_1[0], gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
+                    sc_power, lambdaCoulomb, gpu_count[0], kA, kB);
+              }
+            }
+            forceComponents.x += forces * virComponents.x;
+            forceComponents.y += forces * virComponents.y;
+            forceComponents.z += forces * virComponents.z;
           }
         }
-
-        virComponents.x *= forces;
-        virComponents.y *= forces;
-        virComponents.z *= forces;
-        atomicAdd(&gpu_aForcex[currentParticle], virComponents.x);
-        atomicAdd(&gpu_aForcey[currentParticle], virComponents.y);
-        atomicAdd(&gpu_aForcez[currentParticle], virComponents.z);
-        atomicAdd(&gpu_aForcex[neighborParticle], -virComponents.x);
-        atomicAdd(&gpu_aForcey[neighborParticle], -virComponents.y);
-        atomicAdd(&gpu_aForcez[neighborParticle], -virComponents.z);
-
-        atomicAdd(&gpu_mForcex[mA], virComponents.x);
-        atomicAdd(&gpu_mForcey[mA], virComponents.y);
-        atomicAdd(&gpu_mForcez[mA], virComponents.z);
-        atomicAdd(&gpu_mForcex[mB], -virComponents.x);
-        atomicAdd(&gpu_mForcey[mB], -virComponents.y);
-        atomicAdd(&gpu_mForcez[mB], -virComponents.z);
       }
     }
+    gpu_aForcex[particle] = forceComponents.x;
+    gpu_aForcey[particle] = forceComponents.y;
+    gpu_aForcez[particle] = forceComponents.z;
+
+    atomicAdd(&gpu_mForcex[mA], forceComponents.x);
+    atomicAdd(&gpu_mForcey[mA], forceComponents.y);
+    atomicAdd(&gpu_mForcez[mA], forceComponents.z);
   }
   __syncthreads();
 
   // Specialize BlockReduce code
-  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK>;
+  using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK_SM>;
 
   // Allocating shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage LJEn_temp_storage;
@@ -773,7 +746,7 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   double aggregate1 = BlockReduce(LJEn_temp_storage).Sum(LJEn);
 
   if (threadIdx.x == 0)
-    gpu_LJEn[blockIdx.x] = aggregate1;
+    gpu_LJEn[currentCell] = aggregate1;
 
   if (electrostatic) {
     // Need to sync the threads before reusing temp_storage
@@ -784,7 +757,7 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
     double aggregate2 = BlockReduce(REn_temp_storage).Sum(REn);
 
     if (threadIdx.x == 0)
-      gpu_REn[blockIdx.x] = aggregate2;
+      gpu_REn[currentCell] = aggregate2;
   }
 }
 
@@ -941,18 +914,17 @@ __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
   }
 }
 
-__device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
-                                            int gpu_ewald, double gpu_alpha) {
-  double dist = sqrt(distSq);
+__device__ double CalcCoulombVirParticleGPU(const double distSq, const double qi_qj,
+                                            const int gpu_ewald, const double gpu_alpha) {
+  const double dist = sqrt(distSq);
   if (gpu_ewald) {
     // M_2_SQRTPI is 2/sqrt(PI)
-    double constValue = gpu_alpha * M_2_SQRTPI;
-    double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
-    double temp = 1.0 - erf(gpu_alpha * dist);
-    return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+    double alphaValue = gpu_alpha * M_2_SQRTPI;
+    double expValue = exp(-gpu_alpha * gpu_alpha * distSq);
+    double erfcValue = erfc(gpu_alpha * dist) / dist;
+    return qi_qj * (alphaValue * expValue + erfcValue) / distSq;
   } else {
-    double result = qi_qj / (distSq * dist);
-    return result;
+    return qi_qj / (distSq * dist);
   }
 }
 
@@ -990,7 +962,7 @@ __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = gpu_alpha * M_2_SQRTPI;
     double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
-    double temp = 1.0 - erf(gpu_alpha * dist);
+    double temp = erfc(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     return qi_qj / (distSq * dist);
@@ -1076,7 +1048,7 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = gpu_alpha * M_2_SQRTPI;
     double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
-    double temp = 1.0 - erf(gpu_alpha * dist);
+    double temp = erfc(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
@@ -1138,7 +1110,7 @@ __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = gpu_alpha * M_2_SQRTPI;
     double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
-    double temp = 1.0 - erf(gpu_alpha * dist);
+    double temp = erfc(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     double rCutSq = gpu_rCut * gpu_rCut;
