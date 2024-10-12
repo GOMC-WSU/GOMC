@@ -836,7 +836,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
     } else if (CheckString(line[0], "IntraMEMC-1Freq")) {
       if (stringtod(line[1]) > 0.0) {
         sys.moves.intraMemc = stringtod(line[1]);
-        printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+        printf("%-40s %-4.4f \n", "Info: IntraMEMC-1 move frequency",
                sys.moves.intraMemc);
         sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC1 = true;
