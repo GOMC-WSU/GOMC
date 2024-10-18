@@ -337,14 +337,38 @@ void UpdateEnergyVecs(VariablesCUDA *vars, int newVecLen, bool electrostatic) {
   // Free the current allocations if this isn't the first allocation
   if (vars->gpu_energyVecLen > 0) {
     CUFREE(vars->gpu_LJEn);
+    CUFREE(vars->gpu_vT11);
+    CUFREE(vars->gpu_vT12);
+    CUFREE(vars->gpu_vT13);
+    CUFREE(vars->gpu_vT22);
+    CUFREE(vars->gpu_vT23);
+    CUFREE(vars->gpu_vT33);
     if (electrostatic) {
       CUFREE(vars->gpu_REn);
+      CUFREE(vars->gpu_rT11);
+      CUFREE(vars->gpu_rT12);
+      CUFREE(vars->gpu_rT13);
+      CUFREE(vars->gpu_rT22);
+      CUFREE(vars->gpu_rT23);
+      CUFREE(vars->gpu_rT33);
     }
   }
   vars->gpu_energyVecLen = newVecLen;
-  CUMALLOC((void **)&vars->gpu_LJEn, vars->gpu_energyVecLen * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_LJEn, newVecLen * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_vT11, newVecLen * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_vT12, newVecLen * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_vT13, newVecLen * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_vT22, newVecLen * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_vT23, newVecLen * sizeof(double));
+  CUMALLOC((void **)&vars->gpu_vT33, newVecLen * sizeof(double));
   if (electrostatic) {
-    CUMALLOC((void **)&vars->gpu_REn, vars->gpu_energyVecLen * sizeof(double));
+    CUMALLOC((void **)&vars->gpu_REn, newVecLen * sizeof(double));
+    CUMALLOC((void **)&vars->gpu_rT11, newVecLen * sizeof(double));
+    CUMALLOC((void **)&vars->gpu_rT12, newVecLen * sizeof(double));
+    CUMALLOC((void **)&vars->gpu_rT13, newVecLen * sizeof(double));
+    CUMALLOC((void **)&vars->gpu_rT22, newVecLen * sizeof(double));
+    CUMALLOC((void **)&vars->gpu_rT23, newVecLen * sizeof(double));
+    CUMALLOC((void **)&vars->gpu_rT33, newVecLen * sizeof(double));
   }
 
   // Check if more temporary storage is needed for this larger reduction size.
@@ -445,6 +469,18 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_comz);
   CUFREE(vars->gpu_LJEn);
   CUFREE(vars->gpu_REn);
+  CUFREE(vars->gpu_rT11);
+  CUFREE(vars->gpu_rT12);
+  CUFREE(vars->gpu_rT13);
+  CUFREE(vars->gpu_rT22);
+  CUFREE(vars->gpu_rT23);
+  CUFREE(vars->gpu_rT33);
+  CUFREE(vars->gpu_vT11);
+  CUFREE(vars->gpu_vT12);
+  CUFREE(vars->gpu_vT13);
+  CUFREE(vars->gpu_vT22);
+  CUFREE(vars->gpu_vT23);
+  CUFREE(vars->gpu_vT33);
   CUFREE(vars->gpu_r_k_x);
   CUFREE(vars->gpu_r_k_y);
   CUFREE(vars->gpu_r_k_z);

@@ -92,6 +92,24 @@ public:
     gpu_energyVecLen = 0;
     gpu_LJEn = nullptr;
     gpu_REn = nullptr;
+    gpu_rT11 = nullptr;
+    gpu_rT12 = nullptr;
+    gpu_rT13 = nullptr;
+    gpu_rT22 = nullptr;
+    gpu_rT23 = nullptr;
+    gpu_rT33 = nullptr;
+    gpu_vT11 = nullptr;
+    gpu_vT12 = nullptr;
+    gpu_vT13 = nullptr;
+    gpu_vT22 = nullptr;
+    gpu_vT23 = nullptr;
+    gpu_vT33 = nullptr;
+    gpu_wT11 = nullptr;
+    gpu_wT12 = nullptr;
+    gpu_wT13 = nullptr;
+    gpu_wT22 = nullptr;
+    gpu_wT23 = nullptr;
+    gpu_wT33 = nullptr;
 
     // setting lambda values to nullptr
     gpu_molIndex = nullptr;
