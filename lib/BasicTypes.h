@@ -177,7 +177,7 @@ public:
   }
 
   double LengthSq() const { return x * x + y * y + z * z; }
-  double Length() const { return sqrt(LengthSq()); }
+  double Length() const { return std::sqrt(LengthSq()); }
 
   XYZ &Normalize() {
     *this *= (1.0 / Length());
