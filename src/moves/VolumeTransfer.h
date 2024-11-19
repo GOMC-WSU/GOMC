@@ -82,7 +82,7 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc) {
     if (fixBox0) {
       // For NPT-GEMC and when box0 is fixed, we cannot pick box 0
       while (box == 0) {
-        // To avoid infinite loop, we don't use sunDraw
+        // To avoid infinite loop, we don't use subDraw
         box = prng.randIntExc(BOX_TOTAL);
       }
     }
