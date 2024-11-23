@@ -114,9 +114,9 @@ int main(int argc, char *argv[]) {
     // Print OpenMP version if recognized or OpenMP date code if not recognized.
 #ifdef _OPENMP
     std::unordered_map<unsigned, std::string> omp_map{
-        {200505, "2.5"}, {200805, "3.0"}, {201107, "3.1"},
-        {201307, "4.0"}, {201511, "4.5"}, {201611, "5.0 Preview 1"},
-        {201811, "5.0"}};
+        {200505, "2.5"}, {200805, "3.0"}, {201107, "3.1"}, {201307, "4.0"},
+        {201511, "4.5"}, {201611, "5.0 Preview 1"}, {201811, "5.0"},
+        {202011, "5.1"}, {202111, "5.2"}, {202411, "6.0"}};
     std::unordered_map<unsigned, std::string>::const_iterator match =
         omp_map.find(_OPENMP);
     if (match == omp_map.end())
