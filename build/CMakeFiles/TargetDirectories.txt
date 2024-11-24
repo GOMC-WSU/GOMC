@@ -1,0 +1,6 @@
+/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/NVT.dir
+/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/GEMC.dir
+/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/GCMC.dir
+/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/NPT.dir
+/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/edit_cache.dir
+/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/rebuild_cache.dir

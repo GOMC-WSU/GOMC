@@ -41,3 +41,4 @@ cmake-build-debug
 .vscode
 output.txt
 *.orig
+GEMC

@@ -1,0 +1,87 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "GOMC",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "GCMC::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GCMC-Debug-360ebb603f731958dfb1.json",
+					"name" : "GCMC",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "GEMC::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GEMC-Debug-39c46a92ed9b1f6a79c9.json",
+					"name" : "GEMC",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NPT::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NPT-Debug-c6a55c93d82a61fafdb6.json",
+					"name" : "NPT",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NVT::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NVT-Debug-e0206f123467d0bcdf50.json",
+					"name" : "NVT",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/rory/Desktop/gomc-local/GOMC/build",
+		"source" : "/home/rory/Desktop/gomc-local/GOMC"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

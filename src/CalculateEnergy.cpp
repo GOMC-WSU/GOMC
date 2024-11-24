@@ -470,7 +470,10 @@ reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT
 reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
 #endif
 #endif
+
+//maybe can collapse
   for(int currParticleIdx = 0; currParticleIdx < (int) cellVector.size(); currParticleIdx++) {
+    //std::cout << "cellVector size: " + cellVector.size() << std::endl;
     int currParticle = cellVector[currParticleIdx];
     int currCell = mapParticleToCell[currParticle];
 
