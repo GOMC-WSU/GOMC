@@ -1129,3 +1129,71 @@ events:
         
       exitCode: 1
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "CMake/ThreadMPI.cmake:65 (try_compile)"
+      - "CMake/GOMCMPI.cmake:9 (include)"
+      - "CMakeLists.txt:33 (include)"
+    directories:
+      source: "/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/CMakeTmp"
+      binary: "/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/CMakeTmp"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_PROCESSOR_NUMBER"
+      cached: true
+      stdout: |
+        Change Dir: '/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/CMakeTmp'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_e8c0e
+        [1/2] /usr/bin/g++    -o CMakeFiles/cmTC_e8c0e.dir/TestWinProcNum.cpp.o -c /home/rory/Desktop/gomc-local/GOMC/CMake/TestWinProcNum.cpp
+        FAILED: CMakeFiles/cmTC_e8c0e.dir/TestWinProcNum.cpp.o 
+        /usr/bin/g++    -o CMakeFiles/cmTC_e8c0e.dir/TestWinProcNum.cpp.o -c /home/rory/Desktop/gomc-local/GOMC/CMake/TestWinProcNum.cpp
+        /home/rory/Desktop/gomc-local/GOMC/CMake/TestWinProcNum.cpp:2:10: fatal error: windows.h: No such file or directory
+            2 | #include <windows.h>
+              |          ^~~~~~~~~~~
+        compilation terminated.
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "CMake/ThreadMPI.cmake:65 (try_compile)"
+      - "CMake/GOMCMPI.cmake:9 (include)"
+      - "CMakeLists.txt:33 (include)"
+    directories:
+      source: "/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/CMakeTmp"
+      binary: "/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/CMakeTmp"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_PROCESSOR_NUMBER"
+      cached: true
+      stdout: |
+        Change Dir: '/home/rory/Desktop/gomc-local/GOMC/build/CMakeFiles/CMakeTmp'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_55e88
+        [1/2] /usr/bin/g++    -o CMakeFiles/cmTC_55e88.dir/TestWinProcNum.cpp.o -c /home/rory/Desktop/gomc-local/GOMC/CMake/TestWinProcNum.cpp
+        FAILED: CMakeFiles/cmTC_55e88.dir/TestWinProcNum.cpp.o 
+        /usr/bin/g++    -o CMakeFiles/cmTC_55e88.dir/TestWinProcNum.cpp.o -c /home/rory/Desktop/gomc-local/GOMC/CMake/TestWinProcNum.cpp
+        /home/rory/Desktop/gomc-local/GOMC/CMake/TestWinProcNum.cpp:2:10: fatal error: windows.h: No such file or directory
+            2 | #include <windows.h>
+              |          ^~~~~~~~~~~
+        compilation terminated.
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+...

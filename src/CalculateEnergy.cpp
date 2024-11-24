@@ -103,6 +103,7 @@ SystemPotential CalculateEnergy::SystemTotal()
       molID.push_back(*thisMol);
       ++thisMol;
     }
+    //std::cout << (int) molID.size() << std::endl;
 
 #ifdef _OPENMP
     #pragma omp parallel for default(none) private(bondEnergy) shared(b, molID) \
@@ -203,9 +204,10 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
 #else
+  //std::cout << cellVector.size() << std::endl;
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  #pragma omp parallel for collapse(2) default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, box, neighborList) \
 reduction(+:tempREn, tempLJEn)
 #else
@@ -214,13 +216,14 @@ reduction(+:tempREn, tempLJEn)
 reduction(+:tempREn, tempLJEn)
 #endif
 #endif
+
   // loop over all particles
   for(int currParticleIdx = 0; currParticleIdx < (int) cellVector.size(); currParticleIdx++) {
-    int currParticle = cellVector[currParticleIdx];
-    // find the which cell currParticle belong to
-    int currCell = mapParticleToCell[currParticle];
-    // loop over currCell neighboring cells
     for(int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
+      int currParticle = cellVector[currParticleIdx];
+      // find the which cell currParticle belong to
+      int currCell = mapParticleToCell[currParticle];
+      // loop over currCell neighboring cells
       // find the index of neighboring cell
       int neighborCell = neighborList[currCell][nCellIndex];
 
