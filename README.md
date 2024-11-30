@@ -41,11 +41,11 @@ To cite GOMC project, please cite the following papers:
 2.  Set the Source Folder to the GOMC root folder.
 3.  Set the Build Folder to your build folder.
 4.  Click Configure, select your compiler/environment.
-5.  Wait for CMake to finish the configuration.
-6.  Click Configure again and click Generate.
-7.  If your version of CUDA is older than CUDA 11, download the [CUB library](https://nvlabs.github.io/cub/download_cub.html).
-8.  If your version of CUDA is older than CUDA 11, extract the CUB library and copy the "cub" folder from the CUB library into the "lib" folder inside the GOMC directory.
-9.  Open the CMake-generated project/solution etc. in the desired IDE (e.g., Visual Studio).
+5.  Wait for CMake to finish creating the configuration.
+6.  Click Generate.
+7.  If building GPU executables and the CUDA version is older than CUDA 11, download the [CUB library](https://nvlabs.github.io/cub/download_cub.html).
+8.  If building GPU executables and the CUDA version is older than CUDA 11, extract the CUB library and copy the "cub" folder from the CUB library into the "lib" folder inside the GOMC directory.
+9.  Open the CMake-generated project/solution file, located in your Build Folder, in the desired IDE (e.g., Visual Studio).
 10. Using the solution in the IDE, build GOMC per the IDE's standard release compilation/executable generation methods.
 
 > NOTES: You can also use CMake from the Windows command line if its directory is added to the PATH environment variable.

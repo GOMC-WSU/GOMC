@@ -8,6 +8,10 @@ along with this program, also can be found at
 #ifndef RANDOM123_WRAPPER_H
 #define RANDOM123_WRAPPER_H
 
+#ifdef _MSC_VER
+#define R123_NO_SINCOS 1
+#endif
+
 #include "BasicTypes.h"
 #include "Random123/philox.h"
 typedef r123::Philox4x64 RNG;

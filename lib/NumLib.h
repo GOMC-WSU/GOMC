@@ -9,7 +9,6 @@ along with this program, also can be found at
 #define NUMERIC_LIB_H
 
 #include "BasicTypes.h" //For uint, XYZ
-#include <cmath>
 #include <iostream>
 #include <limits> //for double limits
 #include <vector> //for vector average
@@ -196,7 +195,8 @@ inline double POW(const double d2, const double d4, const double d6, uint e) {
 // Class to define the function used in Zbrent
 class Exp6Fun {
 public:
-  Exp6Fun(const double a, const double s) : sigma(s), alpha(a) {}
+  Exp6Fun(const float a, const float s, const float r = 0.0) : sigma(s),
+      alpha(a), rmin(r) {}
   virtual ~Exp6Fun(){};
   virtual float operator()(float x) = 0;
 
@@ -216,7 +216,7 @@ public:
 
 class RmaxFun : public Exp6Fun {
 public:
-  RmaxFun(double a, double s, double r) : Exp6Fun(a, s) { rmin = r; }
+  RmaxFun(double a, double s, double r) : Exp6Fun(a, s, r) {}
   virtual ~RmaxFun(){};
   virtual float operator()(float x) {
     double rep = (-1.0 / rmin) * exp(alpha * (1.0 - x / rmin));

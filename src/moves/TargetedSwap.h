@@ -809,7 +809,7 @@ void TargetedSwap::PrintTargetedSwapInfo() {
              tsp.subVolumeIdx);
       printf("%-40s %d \n", "      SubVolume Box:", b);
       if (tsp.calcSubVolCenter) {
-        printf("%-40s Using %lu defined atom indexes \n",
+        printf("%-40s Using %zu defined atom indexes \n",
                "      Calculating subVolume center:", tsp.atomList.size());
         int max = *std::max_element(tsp.atomList.begin(), tsp.atomList.end());
         if (max >= (int)coordCurrRef.Count()) {

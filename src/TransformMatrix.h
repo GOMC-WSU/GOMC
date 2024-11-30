@@ -9,8 +9,6 @@ along with this program, also can be found at
 #define TRANSFORM_MATRIX_H
 
 #include "BasicTypes.h"
-#define _USE_MATH_DEFINES
-#include <cmath> //cos and sin
 
 class TransformMatrix;
 typedef TransformMatrix RotationMatrix;

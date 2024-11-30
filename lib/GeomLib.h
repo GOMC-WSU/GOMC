@@ -11,13 +11,12 @@ along with this program, also can be found at
 // Standard way to get pi constant on most platforms
 // Needs to be defined _before_ including cmath
 // so that the PI constants come from cmath
-#define _USE_MATH_DEFINES
-
-#include <cmath>  //For sqrt, fabs, M_PI
-#include <limits> //for double limits
+//#define _USE_MATH_DEFINES
+//#include <cmath>  //For sqrt, fabs, M_PI
 
 #include "BasicTypes.h" //For uint, XYZ
 #include "XYZArray.h"
+#include <limits> //for double limits
 
 /////////////////////////////////////////////////////////////
 //  DEFINES  //
@@ -30,6 +29,10 @@ along with this program, also can be found at
 #define M_PI                                                                   \
   3.14159265358979323846264338327950288419716939937510582097494459230781640629
 #endif
+#ifndef M_1_PI
+// Reciprocal of PI:
+#define M_1_PI 1.0 / M_PI
+#endif
 #ifndef M_PI_2
 // From Mathematica:
 // N[Pi/2, 75]
@@ -39,6 +42,9 @@ along with this program, also can be found at
 #ifndef M_PI_4
 #define M_PI_4                                                                 \
   0.785398163397448309615660845819875721049292349843776455243736148076954101572
+#endif
+#ifndef M_2_SQRTPI
+#define M_2_SQRTPI 2.0 / std::sqrt(M_PI)
 #endif
 
 #define DEG_TO_RAD (M_PI / 180.0)

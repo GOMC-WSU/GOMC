@@ -43,7 +43,7 @@ template <typename T> T *TransferInto(T *array, const std::vector<T> &vec) {
 // overloaded because vector<bool> is a lie and copy may not be supported
 inline bool *transfer(const std::vector<bool> &vec) {
   bool *array = new bool[vec.size()];
-  for (unsigned int i = 0; i < vec.size(); ++i) {
+  for (size_t i = 0; i < vec.size(); ++i) {
     array[i] = vec[i];
   }
   return array;
