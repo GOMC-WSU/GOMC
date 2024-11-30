@@ -425,7 +425,7 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double *energyRecip = new double[lambdaSize];
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
-#if defined _OPENMP
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize) \
 reduction(+:energyRecip[:lambdaSize]) firstprivate(box, iState, molIndex)
 #endif
