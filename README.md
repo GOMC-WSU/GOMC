@@ -37,15 +37,14 @@ To cite GOMC project, please cite the following papers:
 > NOTES: Building GOMC requires [CMake](https://cmake.org/) version 3.18 or newer. CMake is available in most Linux package repositories (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/) "User Manual".
 
 ## Building GOMC on Windows:
-1.  Open the Windows-compatible CMake GUI.
-2.  Set the Source Folder to the GOMC root folder.
-3.  Set the Build Folder to your build folder.
-4.  Click Configure, select your compiler/environment.
-5.  Wait for CMake to finish creating the configuration.
-6.  Click Generate.
-7.  If building GPU executables and the CUDA version is older than CUDA 11, download the [CUB library](https://nvlabs.github.io/cub/download_cub.html).
-8.  If building GPU executables and the CUDA version is older than CUDA 11, extract the CUB library and copy the "cub" folder from the CUB library into the "lib" folder inside the GOMC directory.
-9.  Open the CMake-generated project/solution file, located in your Build Folder, in the desired IDE (e.g., Visual Studio).
+1.  If building GPU executables and the CUDA version is older than CUDA 11, download the [CUB library](https://nvlabs.github.io/cub/download_cub.html).
+2.  If building GPU executables and the CUDA version is older than CUDA 11, extract the CUB library and copy the "cub" folder from the CUB library into the "lib" folder inside the GOMC directory.
+3.  Open the Windows-compatible CMake GUI.
+4.  Set the Source Folder to the GOMC root folder.
+5.  Set the Build Folder to your build folder.
+6.  Click `Configure`, select your compiler/environment.
+8.  Click `Generate` after CMake finishes configurating the project.
+9.  Click `Open Project` after CMake finishes generating the project.
 10. Using the solution in the IDE, build GOMC per the IDE's standard release compilation/executable generation methods.
 
 > NOTES: You can also use CMake from the Windows command line if its directory is added to the PATH environment variable.
