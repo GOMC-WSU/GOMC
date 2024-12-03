@@ -8,8 +8,6 @@ along with this program, also can be found at
 #ifndef FF_DIHEDRALS_H
 #define FF_DIHEDRALS_H
 
-#include <cmath> //cos, pow
-
 #include "BasicTypes.h"      //For "uint"
 #include "FFConst.h"         //GetRot
 #include "NumLib.h"          //Sq

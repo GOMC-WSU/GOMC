@@ -40,7 +40,6 @@ struct TSwapParam {
 
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
 
-#include <cmath>
 #include <queue>
 
 #include "ConfigSetup.h"

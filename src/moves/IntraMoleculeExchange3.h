@@ -8,8 +8,6 @@ along with this program, also can be found at
 #ifndef INTRAMOLECULEEXCHANGE3_H
 #define INTRAMOLECULEEXCHANGE3_H
 
-#include <cmath>
-
 #include "GeomLib.h"
 #include "IntraMoleculeExchange1.h"
 #include "TrialMol.h"

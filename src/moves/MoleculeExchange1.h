@@ -9,9 +9,6 @@ along with this program, also can be found at
 #define MOLECULEEXCHANGE1_H
 
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
-
-#include <cmath>
-
 #include "GeomLib.h"
 #include "MoveBase.h"
 #include "TrialMol.h"

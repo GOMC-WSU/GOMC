@@ -11,8 +11,6 @@ along with this program, also can be found at
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>

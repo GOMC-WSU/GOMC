@@ -58,6 +58,10 @@
 #ifndef MERSENNETWISTER_H
 #define MERSENNETWISTER_H
 
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
+
 // Not thread safe (unless auto-initialization is avoided and each thread has
 // its own MTRand object)
 

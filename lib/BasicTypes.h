@@ -8,7 +8,13 @@ along with this program, also can be found at
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
+// Standard way to get pi constant on most platforms
+// Needs to be defined _before_ including cmath
+// so that the PI constants come from cmath
+#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
+#endif
+
 #include <cmath>
 #include <cstddef>
 #include <fstream>

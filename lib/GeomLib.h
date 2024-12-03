@@ -8,12 +8,6 @@ along with this program, also can be found at
 #ifndef GEOM_LIB_H
 #define GEOM_LIB_H
 
-// Standard way to get pi constant on most platforms
-// Needs to be defined _before_ including cmath
-// so that the PI constants come from cmath
-//#define _USE_MATH_DEFINES
-//#include <cmath>  //For sqrt, fabs, M_PI
-
 #include "BasicTypes.h" //For uint, XYZ
 #include "XYZArray.h"
 #include <limits> //for double limits
@@ -42,9 +36,6 @@ along with this program, also can be found at
 #ifndef M_PI_4
 #define M_PI_4                                                                 \
   0.785398163397448309615660845819875721049292349843776455243736148076954101572
-#endif
-#ifndef M_2_SQRTPI
-#define M_2_SQRTPI 2.0 / std::sqrt(M_PI)
 #endif
 
 #define DEG_TO_RAD (M_PI / 180.0)

@@ -5,11 +5,7 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#define _USE_MATH_DEFINES
 #include "DCRotateCOM.h"
-
-#include <cmath>
-
 #include "DCData.h"
 #include "Forcefield.h"
 #include "MolSetup.h"

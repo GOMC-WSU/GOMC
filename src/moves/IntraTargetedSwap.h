@@ -8,9 +8,6 @@ along with this program, also can be found at
 #ifndef INTRATARGETEDSWAP_H
 #define INTRATARGETEDSWAP_H
 
-#include <cmath>
-#include <queue>
-
 #include "ConfigSetup.h"
 #include "FloydWarshallCycle.h"
 #include "GeomLib.h"
@@ -18,6 +15,8 @@ along with this program, also can be found at
 #include "MoveBase.h"
 #include "TargetedSwap.h" // for enum PBC Struct TSwapParam defined in there
 #include "TrialMol.h"
+
+#include <queue>
 
 struct BondList;
 
