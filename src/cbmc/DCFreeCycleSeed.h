@@ -49,4 +49,4 @@ private:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCFREECYCLESEED_H*/

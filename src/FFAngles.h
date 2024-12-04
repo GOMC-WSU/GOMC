@@ -8,8 +8,6 @@ along with this program, also can be found at
 #ifndef FF_ANGLES_H
 #define FF_ANGLES_H
 
-#include <cmath>
-
 #include "BasicTypes.h" //For "uint"
 #include "FFSetup.h"    //For initialization data
 #include "NumLib.h"     //For "Sq" function

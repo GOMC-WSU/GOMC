@@ -256,4 +256,4 @@ private:
 };
 } // namespace cbmc
 
-#endif
+#endif /*TRIALMOL_H*/

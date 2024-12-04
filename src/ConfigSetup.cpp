@@ -442,7 +442,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeBox(idx, b);
         sys.intraTargetedSwapCollection.AddsubVolumeBox(idx, b);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 2 values for SubVolumeBox, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -457,7 +457,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeCenter(idx, temp);
         sys.intraTargetedSwapCollection.AddsubVolumeCenter(idx, temp);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 4 values for SubVolumeCenter, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -468,7 +468,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumePBC(idx, line[2]);
         sys.intraTargetedSwapCollection.AddsubVolumePBC(idx, line[2]);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 2 values for SubVolumePBC, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -483,7 +483,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeAtomList(idx, temp);
         sys.intraTargetedSwapCollection.AddsubVolumeAtomList(idx, temp);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected atleast 3 values for SubVolumeCenterList, but "
                "received",
                line.size() - 1);
@@ -499,7 +499,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeDimension(idx, temp);
         sys.intraTargetedSwapCollection.AddsubVolumeDimension(idx, temp);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 4 values for SubVolumeDim, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -515,7 +515,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
         sys.intraTargetedSwapCollection.AddsubVolumeResKind(idx, temp);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected atleast 2 values for SubVolumeResidueKind, but "
                "received",
                line.size() - 1);
@@ -528,7 +528,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
         sys.intraTargetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 2 values for SubVolumeRigidSwap, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -544,7 +544,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value,
                                                        isFugacity);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 3 values for SubVolumeChemPot, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -558,7 +558,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value,
                                                        isFugacity);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 3 values for SubVolumeFugacity, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);

@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CALCULATE_ENERGY_CUDA_KERNEL
-#define CALCULATE_ENERGY_CUDA_KERNEL
+#ifndef CALCULATE_ENERGY_CUDA_KERNEL_H
+#define CALCULATE_ENERGY_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
 #include "BoxDimensions.h"
@@ -157,4 +157,4 @@ __device__ double CalcEnSwitchGPUNoLambda(double distSq, int index,
                                           double gpu_rCut, double gpu_rOn);
 
 #endif /*GOMC_CUDA*/
-#endif /*CALCULATE_ENERGY_CUDA_KERNEL*/
+#endif /*CALCULATE_ENERGY_CUDA_KERNEL_H*/

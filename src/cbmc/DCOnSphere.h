@@ -41,4 +41,4 @@ private:
 };
 
 } // namespace cbmc
-#endif
+#endif /*DCONSPHERE_H*/

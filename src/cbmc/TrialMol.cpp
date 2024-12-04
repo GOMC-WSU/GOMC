@@ -8,15 +8,10 @@ along with this program, also can be found at
 #include "TrialMol.h"
 
 #include <algorithm>
-#include <cmath>   //for sin, cos, atan2
 #include <utility> //swap
 
-#include "BasicTypes.h"
 #include "BoxDimensions.h"
-#include "EnergyTypes.h"
 #include "GeomLib.h" //for Theta
-#include "MoleculeKind.h"
-#include "XYZArray.h"
 #ifndef NDEBUG
 #include <iostream>
 #endif

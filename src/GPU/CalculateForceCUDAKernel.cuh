@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CALCULATE_FORCE_CUDA_KERNEL
-#define CALCULATE_FORCE_CUDA_KERNEL
+#ifndef CALCULATE_FORCE_CUDA_KERNEL_H
+#define CALCULATE_FORCE_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
 #include "BoxDimensions.h"
@@ -233,4 +233,4 @@ CalcCoulombForceGPU(double distSq, double qi_qj, int gpu_VDW_Kind,
 }
 
 #endif /*GOMC_CUDA*/
-#endif /*CALCULATE_FORCE_CUDA_KERNEL*/
+#endif /*CALCULATE_FORCE_CUDA_KERNEL_H*/

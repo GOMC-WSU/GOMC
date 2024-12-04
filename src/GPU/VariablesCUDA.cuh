@@ -5,15 +5,15 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef VARIABLES_CUDA
-#define VARIABLES_CUDA
+#ifndef VARIABLES_CUDA_H
+#define VARIABLES_CUDA_H
 
 #ifdef GOMC_CUDA
+#include <cuda.h>
+#include <stdio.h>
+#include <cuda_runtime.h>
 #include "EnsemblePreprocessor.h"
 #include "NumLib.h"
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <stdio.h>
 
 // Need a separate float constant for device code with the MSVC compiler
 // See CUDA Programming Guide section I.4.13 for details
@@ -181,4 +181,4 @@ public:
 };
 
 #endif /*GOMC_CUDA*/
-#endif /*VARIABLES_CUDA*/
+#endif /*VARIABLES_CUDA_H*/

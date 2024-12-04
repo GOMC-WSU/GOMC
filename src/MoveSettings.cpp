@@ -6,9 +6,6 @@ along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #include "MoveSettings.h" //header spec
-
-#include <cmath>
-
 #include "BoxDimensions.h" //For axis sizes
 #include "BoxDimensionsNonOrth.h"
 #include "GeomLib.h"    //For M_PI

@@ -5,11 +5,9 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#define _USE_MATH_DEFINES
 #include "DCHedron.h"
 
 #include <cassert>
-#include <cmath>
 #include <numeric>
 
 #include "DCData.h"
@@ -91,7 +89,7 @@ void DCHedron::SetBondOld(double const *bondLen, double const &anchBond) {
   anchorBondOld = anchBond;
 }
 
-double DCHedron::GetWeight() {
+double DCHedron::GetWeight() const {
   double result = 1;
   for (uint i = 0; i < nBonds; ++i) {
     result *= thetaWeight[i];

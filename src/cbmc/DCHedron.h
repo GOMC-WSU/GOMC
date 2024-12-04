@@ -29,12 +29,12 @@ public:
   uint Bonded(uint i) const { return bonded[i]; }
   double Theta(uint i) const { return theta[i]; }
   double Phi(uint i) const { return phi[i]; }
-  double GetWeight();
-  double GetEnergy() { return bendEnergy; }
-  double GetNonBondedEn() { return oneThree; }
-  uint NumBond() { return nBonds; }
-  uint Focus() { return focus; }
-  uint Prev() { return prev; }
+  double GetWeight() const;
+  double GetEnergy() const { return bendEnergy; }
+  double GetNonBondedEn() const { return oneThree; }
+  uint NumBond() const { return nBonds; }
+  uint Focus() const { return focus; }
+  uint Prev() const { return prev; }
 
   // need to go to private
   uint bonded[MAX_BONDS];
@@ -69,4 +69,4 @@ private:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCHEDRON_H*/

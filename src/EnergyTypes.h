@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef ENERGYTYPES_H
-#define ENERGYTYPES_H
+#ifndef ENERGY_TYPES_H
+#define ENERGY_TYPES_H
 
 /*
  *    EnergyTypes.h
@@ -539,4 +539,4 @@ inline std::ostream &operator<<(std::ostream &out, Energy &en) {
 }
 #endif
 
-#endif
+#endif /*ENERGY_TYPES_H*/

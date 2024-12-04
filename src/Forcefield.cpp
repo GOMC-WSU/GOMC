@@ -12,8 +12,6 @@ along with this program, also can be found at
 #include "FFSwitch.h"
 #include "FFSwitchMartini.h"
 #include "Setup.h"
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 Forcefield::Forcefield() {
   particles = NULL;

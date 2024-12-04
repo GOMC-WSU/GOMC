@@ -8,8 +8,6 @@ along with this program, also can be found at
 #ifndef MULTIPARTICLEBROWNIANMOTION_H
 #define MULTIPARTICLEBROWNIANMOTION_H
 
-#include <cmath>
-
 #include "MoveBase.h"
 #include "Random123Wrapper.h"
 #include "StaticVals.h"

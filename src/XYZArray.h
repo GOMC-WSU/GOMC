@@ -12,7 +12,6 @@ along with this program, also can be found at
 #include <string.h> //for memset, memcpy, etc.
 
 #include <algorithm> //for swap pre-c++11 compilers
-#include <cmath>
 #include <utility> //for swap (most modern compilers)
 
 #include "BasicTypes.h"

@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef TRANSFORM_PARTICLES_CUDA_KERNEL
-#define TRANSFORM_PARTICLES_CUDA_KERNEL
+#ifndef TRANSFORM_PARTICLES_CUDA_KERNEL_H
+#define TRANSFORM_PARTICLES_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
 #include "Random123/philox.h"
@@ -94,5 +94,6 @@ __global__ void BrownianMotionTranslateKernel(
     double3 axis, double3 halfAx, int atomCount, double t_max, ulong step,
     unsigned int key, ulong seed, double BETA);
 
+<<<<<<< HEAD
 #endif /*GOMC_CUDA*/
-#endif /*TRANSFORM_PARTICLES_CUDA_KERNEL*/
+#endif /*TRANSFORM_PARTICLES_CUDA_KERNEL_H*/

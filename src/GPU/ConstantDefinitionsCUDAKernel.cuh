@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CONSTANT_DEFINITIONS_CUDA_KERNEL
-#define CONSTANT_DEFINITIONS_CUDA_KERNEL
+#ifndef CONSTANT_DEFINITIONS_CUDA_KERNEL_H
+#define CONSTANT_DEFINITIONS_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
 #include "EnsemblePreprocessor.h"
@@ -52,4 +52,4 @@ void DestroyExp6CUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
 
 #endif /*GOMC_CUDA*/
-#endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/
+#endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL_H*/

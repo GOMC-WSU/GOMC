@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CUDA_MEMORY_MANAGER
-#define CUDA_MEMORY_MANAGER
+#ifndef CUDA_MEMORY_MANAGER_H
+#define CUDA_MEMORY_MANAGER_H
 
 #ifdef GOMC_CUDA
 #include <cuda.h>
@@ -32,4 +32,4 @@ private:
 };
 
 #endif /*GOMC_CUDA*/
-#endif /*CUDA_MEMORY_MANAGER*/
+#endif /*CUDA_MEMORY_MANAGER_H*/

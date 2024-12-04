@@ -8,9 +8,6 @@ along with this program, also can be found at
 #ifndef MULTIPARTICLE_H
 #define MULTIPARTICLE_H
 
-#include <cmath>
-#include <fstream>
-
 #include "MoveBase.h"
 #include "Random123Wrapper.h"
 #include "StaticVals.h"
@@ -19,6 +16,7 @@ along with this program, also can be found at
 #include "TransformParticlesCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
 #endif
+#include <fstream>
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30

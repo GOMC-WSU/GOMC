@@ -53,4 +53,4 @@ private:
   uint bondKinds[MAX_BONDS];
 };
 } // namespace cbmc
-#endif
+#endif /*DCLINKEDHEDRON_H*/

@@ -112,4 +112,4 @@ void NAMD_bug(const char *err_msg);
 int NAMD_file_exists(const char *filename);
 void NAMD_backup_file(const char *filename, const char *extension);
 
-#endif /* ! DCDLIB_H */
+#endif /*DCDLIB_H*/

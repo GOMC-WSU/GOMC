@@ -51,4 +51,4 @@ private:
 };
 } // namespace cbmc
 
-#endif
+#endif /*DCFREECYCLE_H*/

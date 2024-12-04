@@ -5,8 +5,8 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CALCULATE_EWALD_CUDA_KERNEL
-#define CALCULATE_EWALD_CUDA_KERNEL
+#ifndef CALCULATE_EWALD_CUDA_KERNEL_H
+#define CALCULATE_EWALD_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
 #include "VariablesCUDA.cuh"
@@ -107,4 +107,4 @@ __global__ void BoxReciprocalGPU(double *gpu_prefact, double *gpu_sumRnew,
                                  int imageSize);
 
 #endif /*GOMC_CUDA*/
-#endif /*CALCULATE_EWALD_CUDA_KERNEL*/
+#endif /*CALCULATE_EWALD_CUDA_KERNEL_H*/
