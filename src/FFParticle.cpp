@@ -389,14 +389,12 @@ inline double FFParticle::CalcCoulomb(const double distSq, const uint kind1,
 inline double FFParticle::CalcCoulomb(const double distSq,
                                       const double qi_qj_Fact,
                                       const uint b) const {
+  double dist = sqrt(distSq);
+  double val = qi_qj_Fact;
   if (forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
-    return qi_qj_Fact * erfc(val) / dist;
-  } else {
-    double dist = sqrt(distSq);
-    return qi_qj_Fact / dist;
+    val *= erfc(forcefield.alpha[b] * dist);
   }
+  return val / dist;
 }
 
 inline double FFParticle::CalcCoulombVir(const double distSq, const uint kind1,
