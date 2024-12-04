@@ -103,7 +103,7 @@ void CheckpointSetup::SetCheckpointData(bool &parallelTemperingIsEnabled,
 void CheckpointSetup::SetStepNumber() { startStepRef = chkObj.stepNumber; }
 
 void CheckpointSetup::SetTrueStepNumber() {
-  printf("%-40s %-l64u \n", "Info: Loading true step from checkpoint",
+  printf("%-40s %-lu \n", "Info: Loading true step from checkpoint",
          chkObj.trueStepNumber);
   trueStepRef = chkObj.trueStepNumber;
 }
