@@ -94,6 +94,5 @@ __global__ void BrownianMotionTranslateKernel(
     double3 axis, double3 halfAx, int atomCount, double t_max, ulong step,
     unsigned int key, ulong seed, double BETA);
 
-<<<<<<< HEAD
 #endif /*GOMC_CUDA*/
 #endif /*TRANSFORM_PARTICLES_CUDA_KERNEL_H*/
