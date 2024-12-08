@@ -332,7 +332,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
             aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #else
-  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  #pragma omp parallel for collapse(3) schedule(dynamic) default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
 reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
             aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
