@@ -207,7 +207,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   //std::cout << cellVector.size() << std::endl;
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-  #pragma omp parallel for collapse(2) default(none) shared(boxAxes, cellStartIndex, \
+  #pragma omp parallel for collapse(2) schedule(dynamic) default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, box, neighborList) \
 reduction(+:tempREn, tempLJEn)
 #else
