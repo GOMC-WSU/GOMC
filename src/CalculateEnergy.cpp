@@ -266,15 +266,18 @@ reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
   return potential;
 }
 
-SystemPotential
-CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
-                          XYZArray &atomForce, XYZArray &molForce,
-                          BoxDimensions const &boxAxes, const uint box) {
-  // Handles reservoir box case, returning zeroed structure if
-  // interactions are off.
+SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
+    XYZArray const& coords,
+    XYZArray& atomForce,
+    XYZArray& molForce,
+    BoxDimensions const& boxAxes,
+    const uint box)
+{
+  //Handles reservoir box case, returning zeroed structure if
+  //interactions are off.
   if (box >= BOXES_WITH_U_NB)
     return potential;
-
+    
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_FORCE);
 
   double tempREn = 0.0, tempLJEn = 0.0;
@@ -292,22 +295,20 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   ResetForce(atomForce, molForce, box);
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
-  std::vector<std::vector<int>> neighborList;
-  cellList.GetCellListNeighbor(box, coords.Count(), cellVector, cellStartIndex,
-                               mapParticleToCell);
+  std::vector<std::vector<int> > neighborList;
+  cellList.GetCellListNeighbor(box, coords.Count(), cellVector, cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
 
 #ifdef GOMC_CUDA
-  // update unitcell in GPU
+  //update unitcell in GPU
   UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                       boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
                       boxAxes.cellBasis[box].z);
 
-  if (!boxAxes.orthogonal[box]) {
+  if(!boxAxes.orthogonal[box]) {
     // In this case, boxAxes is really an object of type BoxDimensionsNonOrth,
     // so cast and copy the additional data to the GPU
-    const BoxDimensionsNonOrth *NonOrthAxes =
-        static_cast<const BoxDimensionsNonOrth *>(&boxAxes);
+    const BoxDimensionsNonOrth *NonOrthAxes = static_cast<const BoxDimensionsNonOrth*>(&boxAxes);
     UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                            NonOrthAxes->cellBasis_Inv[box].x,
                            NonOrthAxes->cellBasis_Inv[box].y,
@@ -315,67 +316,62 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   }
 
   CallBoxForceGPU(forcefield.particles->getCUDAVars(), cellVector,
-                  cellStartIndex, neighborList, mapParticleToCell, coords,
-                  boxAxes, electrostatic, particleCharge, particleKind,
-                  particleMol, tempREn, tempLJEn, aForcex, aForcey, aForcez,
-                  mForcex, mForcey, mForcez, atomCount, molCount,
-                  forcefield.sc_coul, forcefield.sc_sigma_6,
-                  forcefield.sc_alpha, forcefield.sc_power, box);
+                  cellStartIndex, neighborList, mapParticleToCell,
+                  coords, boxAxes, electrostatic, particleCharge,
+                  particleKind, particleMol, tempREn, tempLJEn,
+                  aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
+                  atomCount, molCount, forcefield.sc_coul,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
+                  forcefield.sc_power, box);
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+#if GCC_VERSION >= 90000
+  #pragma omp parallel for collapse(3) schedule(dynamic) default(none) shared(boxAxes, cellStartIndex, \
+  cellVector, coords, mapParticleToCell, box, neighborList) \
+reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
+            aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+#else
+  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
-  firstprivate(box, atomCount, molCount, num::qqFact) \
-  reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
-            aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], \
-            mForcez[:molCount])
+reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
+            aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
-  for (int currParticleIdx = 0; currParticleIdx < (int)cellVector.size();
-       currParticleIdx++) {
-    int currParticle = cellVector[currParticleIdx];
-    int currCell = mapParticleToCell[currParticle];
+#endif
+  for(int currParticleIdx = 0; currParticleIdx < (int) cellVector.size(); currParticleIdx++) {
+    //int currCell = mapParticleToCell[currParticle];
 
-    for (int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL;
-         nCellIndex++) {
-      int neighborCell = neighborList[currCell][nCellIndex];
+    for(int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
+      //int neighborCell = neighborList[currCell][nCellIndex];
+      //int endIndex = cellStartIndex[neighborList[currCell][nCellIndex] + 1];
 
-      int endIndex = cellStartIndex[neighborCell + 1];
-      for (int nParticleIndex = cellStartIndex[neighborCell];
-           nParticleIndex < endIndex; nParticleIndex++) {
+      for(int nParticleIndex = cellStartIndex[neighborList[mapParticleToCell[cellVector[currParticleIdx]]][nCellIndex]];
+          nParticleIndex < cellStartIndex[neighborList[mapParticleToCell[cellVector[currParticleIdx]]][nCellIndex] + 1]; nParticleIndex++) {
         int nParticle = cellVector[nParticleIndex];
+        int currParticle = cellVector[currParticleIdx];
 
-        if (currParticle < nParticle &&
-            particleMol[currParticle] != particleMol[nParticle]) {
+        if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           double distSq;
           XYZ virComponents, forceLJ, forceReal;
-          if (boxAxes.InRcut(distSq, virComponents, coords, currParticle,
-                             nParticle, box)) {
-            double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
-                                            particleMol[nParticle], box);
+          if(boxAxes.InRcut(distSq, virComponents, coords, currParticle, nParticle, box)) {
+            double lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
             if (electrostatic) {
-              double lambdaCoulomb = GetLambdaCoulomb(
-                  particleMol[currParticle], particleMol[nParticle], box);
-              double qi_qj_fact = particleCharge[currParticle] *
-                                  particleCharge[nParticle] * num::qqFact;
+              double lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
+                                                      particleMol[nParticle], box);
+              double qi_qj_fact = particleCharge[currParticle] * particleCharge[nParticle] *
+                                  num::qqFact;
               if (qi_qj_fact != 0.0) {
-                tempREn += forcefield.particles->CalcCoulomb(
-                    distSq, particleKind[currParticle], particleKind[nParticle],
-                    qi_qj_fact, lambdaCoulomb, box);
+                tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[currParticle],
+                           particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
                 // Calculating the force
-                forceReal =
-                    virComponents * forcefield.particles->CalcCoulombVir(
-                                        distSq, particleKind[currParticle],
-                                        particleKind[nParticle], qi_qj_fact,
-                                        lambdaCoulomb, box);
+                forceReal = virComponents * forcefield.particles->CalcCoulombVir(distSq,
+                            particleKind[currParticle], particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
               }
             }
-            tempLJEn += forcefield.particles->CalcEn(
-                distSq, particleKind[currParticle], particleKind[nParticle],
-                lambdaVDW);
-            forceLJ = virComponents * forcefield.particles->CalcVir(
-                                          distSq, particleKind[currParticle],
-                                          particleKind[nParticle], lambdaVDW);
+            tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[currParticle],
+                        particleKind[nParticle], lambdaVDW);
+            forceLJ = virComponents * forcefield.particles->CalcVir(distSq, particleKind[currParticle],
+                      particleKind[nParticle], lambdaVDW);
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
             aForcez[currParticle] += forceLJ.z + forceReal.z;
@@ -403,6 +399,8 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_FORCE);
   return potential;
 }
+
+
 
 // NOTE: The calculation of W12, W13, and W23 is expensive and would not be
 // required for pressure and surface tension calculation. So, they have been
