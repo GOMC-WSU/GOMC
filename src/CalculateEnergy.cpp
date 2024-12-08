@@ -336,7 +336,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #if GCC_VERSION >= 90000
-  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  #pragma omp parallel for collapse(3) schedule(dynamic) default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, box, neighborList) \
 reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
             aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
@@ -348,16 +348,16 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
 #endif
 #endif
   for(int currParticleIdx = 0; currParticleIdx < (int) cellVector.size(); currParticleIdx++) {
-    int currParticle = cellVector[currParticleIdx];
-    int currCell = mapParticleToCell[currParticle];
+    //int currCell = mapParticleToCell[currParticle];
 
     for(int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
-      int neighborCell = neighborList[currCell][nCellIndex];
+      //int neighborCell = neighborList[currCell][nCellIndex];
+      //int endIndex = cellStartIndex[neighborList[currCell][nCellIndex] + 1];
 
-      int endIndex = cellStartIndex[neighborCell + 1];
-      for(int nParticleIndex = cellStartIndex[neighborCell];
-          nParticleIndex < endIndex; nParticleIndex++) {
+      for(int nParticleIndex = cellStartIndex[neighborList[mapParticleToCell[cellVector[currParticleIdx]]][nCellIndex]];
+          nParticleIndex < cellStartIndex[neighborList[mapParticleToCell[cellVector[currParticleIdx]]][nCellIndex] + 1]; nParticleIndex++) {
         int nParticle = cellVector[nParticleIndex];
+        int currParticle = cellVector[currParticleIdx];
 
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           double distSq;
