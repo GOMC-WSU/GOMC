@@ -626,17 +626,25 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   }
   __syncthreads();
 
-  for (int particleIdx = threadIdx.x; particleIdx < shr_particlesInsideCurrentCell; particleIdx += blockDim.x) {
+  for (int particleIdx = threadIdx.x;
+       particleIdx < shr_particlesInsideCurrentCell;
+       particleIdx += blockDim.x) {
     int particle = gpu_cellVector[shr_currentCellStartIndex + particleIdx];
     int mA = gpu_particleMol[particle];
     double3 forceComponents = make_double3(0.0, 0.0, 0.0);
-    for (int neighborCellIdx = 0; neighborCellIdx < NUMBER_OF_NEIGHBOR_CELLS; ++neighborCellIdx) {
-      int neighborCell = gpu_neighborList[currentCell * NUMBER_OF_NEIGHBOR_CELLS + neighborCellIdx];
+    for (int neighborCellIdx = 0; neighborCellIdx < NUMBER_OF_NEIGHBOR_CELLS;
+         ++neighborCellIdx) {
+      int neighborCell =
+          gpu_neighborList[currentCell * NUMBER_OF_NEIGHBOR_CELLS +
+                           neighborCellIdx];
       // Calculate number of particles inside neighbor cell
       int particlesInsideNeighboringCell =
-          gpu_cellStartIndex[neighborCell + 1] - gpu_cellStartIndex[neighborCell];
-      for (int neighborIdx = 0; neighborIdx < particlesInsideNeighboringCell; ++neighborIdx) {
-        int neighbor = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborIdx];
+          gpu_cellStartIndex[neighborCell + 1] -
+          gpu_cellStartIndex[neighborCell];
+      for (int neighborIdx = 0; neighborIdx < particlesInsideNeighboringCell;
+           ++neighborIdx) {
+        int neighbor =
+            gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborIdx];
         int mB = gpu_particleMol[neighbor];
         // Check to be sure these are different molecules
         if (mA != mB) {
@@ -652,11 +660,13 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
 
             int kA = gpu_particleKind[particle];
             int kB = gpu_particleKind[neighbor];
-            if (currentCell < neighborCell || (currentCell == neighborCell && particle < neighbor)) {
-              LJEn += CalcEnGPU(
-                  distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_VDW_Kind[0],
-                  gpu_isMartini[0], gpu_rCut[0], gpu_rOn[0], gpu_count[0], lambdaVDW,
-                  sc_sigma_6, sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
+            if (currentCell < neighborCell ||
+                (currentCell == neighborCell && particle < neighbor)) {
+              LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
+                                gpu_epsilon_Cn, gpu_VDW_Kind[0],
+                                gpu_isMartini[0], gpu_rCut[0], gpu_rOn[0],
+                                gpu_count[0], lambdaVDW, sc_sigma_6, sc_alpha,
+                                sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
             }
             double forces = CalcEnForceGPU(
                 distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_rCut[0],
@@ -665,24 +675,27 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
                 gpu_expConst);
             double qi_qj_fact = 0.0;
             if (electrostatic) {
-              qi_qj_fact = gpu_particleCharge[particle] *
-                                  gpu_particleCharge[neighbor];
+              qi_qj_fact =
+                  gpu_particleCharge[particle] * gpu_particleCharge[neighbor];
               if (qi_qj_fact != 0.0) {
                 qi_qj_fact *= qqFactGPU;
-                double lambdaCoulomb = DeviceGetLambdaCoulomb(
-                    mA, mB, box, gpu_isFraction, gpu_molIndex, gpu_lambdaCoulomb);
-                if (currentCell < neighborCell || (currentCell == neighborCell && particle < neighbor)) {
-                    REn += CalcCoulombGPU(
-                        distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0], gpu_ewald[0],
-                        gpu_VDW_Kind[0], gpu_alpha[box], gpu_rCutCoulomb[box],
-                        gpu_isMartini[0], gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
-                        sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq, gpu_count[0]);
+                double lambdaCoulomb =
+                    DeviceGetLambdaCoulomb(mA, mB, box, gpu_isFraction,
+                                           gpu_molIndex, gpu_lambdaCoulomb);
+                if (currentCell < neighborCell ||
+                    (currentCell == neighborCell && particle < neighbor)) {
+                  REn += CalcCoulombGPU(
+                      distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0], gpu_ewald[0],
+                      gpu_VDW_Kind[0], gpu_alpha[box], gpu_rCutCoulomb[box],
+                      gpu_isMartini[0], gpu_diElectric_1[0], lambdaCoulomb,
+                      sc_coul, sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
+                      gpu_count[0]);
                 }
                 forces += CalcCoulombForceGPU(
                     distSq, qi_qj_fact, gpu_VDW_Kind[0], gpu_ewald[0],
                     gpu_isMartini[0], gpu_alpha[box], gpu_rCutCoulomb[box],
-                    gpu_diElectric_1[0], gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
-                    sc_power, lambdaCoulomb, gpu_count[0], kA, kB);
+                    gpu_diElectric_1[0], gpu_sigmaSq, sc_coul, sc_sigma_6,
+                    sc_alpha, sc_power, lambdaCoulomb, gpu_count[0], kA, kB);
               }
             }
             forceComponents.x += forces * virComponents.x;
@@ -880,8 +893,10 @@ __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
   }
 }
 
-__device__ double CalcCoulombVirParticleGPU(const double distSq, const double qi_qj,
-                                            const int gpu_ewald, const double gpu_alpha) {
+__device__ double CalcCoulombVirParticleGPU(const double distSq,
+                                            const double qi_qj,
+                                            const int gpu_ewald,
+                                            const double gpu_alpha) {
   const double dist = sqrt(distSq);
   if (gpu_ewald) {
     // M_2_SQRTPI is 2/sqrt(PI)

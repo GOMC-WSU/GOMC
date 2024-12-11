@@ -350,14 +350,14 @@ void CallRotateParticlesGPU(
              cudaMemcpyHostToDevice);
 
   RotateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(
-      r_max, vars->gpu_mTorquex, vars->gpu_mTorquey,
-      vars->gpu_mTorquez, vars->gpu_inForceRange, step, key, seed, vars->gpu_x,
-      vars->gpu_y, vars->gpu_z, vars->gpu_particleMol, atomCount, xAxes, yAxes,
-      zAxes, vars->gpu_comx, vars->gpu_comy, vars->gpu_comz,
-      vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
-      vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
-      vars->gpu_Invcell_z[box], vars->gpu_nonOrth, lambdaBETA, vars->gpu_r_k_x,
-      vars->gpu_r_k_y, vars->gpu_r_k_z, gpu_isMoleculeInvolved);
+      r_max, vars->gpu_mTorquex, vars->gpu_mTorquey, vars->gpu_mTorquez,
+      vars->gpu_inForceRange, step, key, seed, vars->gpu_x, vars->gpu_y,
+      vars->gpu_z, vars->gpu_particleMol, atomCount, xAxes, yAxes, zAxes,
+      vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_cell_x[box],
+      vars->gpu_cell_y[box], vars->gpu_cell_z[box], vars->gpu_Invcell_x[box],
+      vars->gpu_Invcell_y[box], vars->gpu_Invcell_z[box], vars->gpu_nonOrth,
+      lambdaBETA, vars->gpu_r_k_x, vars->gpu_r_k_y, vars->gpu_r_k_z,
+      gpu_isMoleculeInvolved);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -384,15 +384,15 @@ void CallRotateParticlesGPU(
 }
 
 __global__ void TranslateParticlesKernel(
-    double t_max, double *molForcex,
-    double *molForcey, double *molForcez, int *gpu_inForceRange, ulong step,
-    unsigned int key, ulong seed, double *gpu_x, double *gpu_y, double *gpu_z,
-    int *gpu_particleMol, int atomCount, double xAxes, double yAxes,
-    double zAxes, double *gpu_comx, double *gpu_comy, double *gpu_comz,
-    double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
-    double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
-    int *gpu_nonOrth, double lambdaBETA, double *gpu_t_k_x, double *gpu_t_k_y,
-    double *gpu_t_k_z, int8_t *gpu_isMoleculeInvolved, double *gpu_mForceRecx,
+    double t_max, double *molForcex, double *molForcey, double *molForcez,
+    int *gpu_inForceRange, ulong step, unsigned int key, ulong seed,
+    double *gpu_x, double *gpu_y, double *gpu_z, int *gpu_particleMol,
+    int atomCount, double xAxes, double yAxes, double zAxes, double *gpu_comx,
+    double *gpu_comy, double *gpu_comz, double *gpu_cell_x, double *gpu_cell_y,
+    double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
+    double *gpu_Invcell_z, int *gpu_nonOrth, double lambdaBETA,
+    double *gpu_t_k_x, double *gpu_t_k_y, double *gpu_t_k_z,
+    int8_t *gpu_isMoleculeInvolved, double *gpu_mForceRecx,
     double *gpu_mForceRecy, double *gpu_mForceRecz) {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if (atomNumber >= atomCount)
@@ -414,17 +414,19 @@ __global__ void TranslateParticlesKernel(
 
   double shiftx, shifty, shiftz;
 
-  //Per CUDA documention, use of std namespace math functions is not supported
-  bool forceInRange =
-      (fabs(lbmaxx) > MIN_FORCE && fabs(lbmaxx) < MAX_FORCE &&
-       fabs(lbmaxy) > MIN_FORCE && fabs(lbmaxy) < MAX_FORCE &&
-       fabs(lbmaxz) > MIN_FORCE && fabs(lbmaxz) < MAX_FORCE);
+  // Per CUDA documention, use of std namespace math functions is not supported
+  bool forceInRange = (fabs(lbmaxx) > MIN_FORCE && fabs(lbmaxx) < MAX_FORCE &&
+                       fabs(lbmaxy) > MIN_FORCE && fabs(lbmaxy) < MAX_FORCE &&
+                       fabs(lbmaxz) > MIN_FORCE && fabs(lbmaxz) < MAX_FORCE);
 
   if (forceInRange) {
     double3 randnums = randomCoordsGPU(molIndex, key, step, seed);
-    shiftx = (-lbmaxx + log1p(2.0 * randnums.x * exp(lbmaxx) * sinh(lbmaxx))) / lbfx;
-    shifty = (-lbmaxy + log1p(2.0 * randnums.y * exp(lbmaxy) * sinh(lbmaxy))) / lbfy;
-    shiftz = (-lbmaxz + log1p(2.0 * randnums.z * exp(lbmaxz) * sinh(lbmaxz))) / lbfz;
+    shiftx =
+        (-lbmaxx + log1p(2.0 * randnums.x * exp(lbmaxx) * sinh(lbmaxx))) / lbfx;
+    shifty =
+        (-lbmaxy + log1p(2.0 * randnums.y * exp(lbmaxy) * sinh(lbmaxy))) / lbfy;
+    shiftz =
+        (-lbmaxz + log1p(2.0 * randnums.z * exp(lbmaxz) * sinh(lbmaxz))) / lbfz;
   } else {
     double3 randnums = SymRandomCoordsGPU(molIndex, key, step, seed);
     shiftx = t_max * randnums.x;
@@ -472,15 +474,15 @@ __global__ void TranslateParticlesKernel(
 }
 
 __global__ void RotateParticlesKernel(
-    double r_max, double *molTorquex,
-    double *molTorquey, double *molTorquez, int *gpu_inForceRange, ulong step,
-    unsigned int key, ulong seed, double *gpu_x, double *gpu_y, double *gpu_z,
-    int *gpu_particleMol, int atomCount, double xAxes, double yAxes,
-    double zAxes, double *gpu_comx, double *gpu_comy, double *gpu_comz,
-    double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
-    double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
-    int *gpu_nonOrth, double lambdaBETA, double *gpu_r_k_x, double *gpu_r_k_y,
-    double *gpu_r_k_z, int8_t *gpu_isMoleculeInvolved) {
+    double r_max, double *molTorquex, double *molTorquey, double *molTorquez,
+    int *gpu_inForceRange, ulong step, unsigned int key, ulong seed,
+    double *gpu_x, double *gpu_y, double *gpu_z, int *gpu_particleMol,
+    int atomCount, double xAxes, double yAxes, double zAxes, double *gpu_comx,
+    double *gpu_comy, double *gpu_comz, double *gpu_cell_x, double *gpu_cell_y,
+    double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
+    double *gpu_Invcell_z, int *gpu_nonOrth, double lambdaBETA,
+    double *gpu_r_k_x, double *gpu_r_k_y, double *gpu_r_k_z,
+    int8_t *gpu_isMoleculeInvolved) {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if (atomNumber >= atomCount)
     return;
@@ -501,17 +503,19 @@ __global__ void RotateParticlesKernel(
   double rotx, roty, rotz, theta;
   double3 rotvec;
 
-  //Per CUDA documention, use of std namespace math functions is not supported
-  bool forceInRange =
-      (fabs(lbmaxx) > MIN_FORCE && fabs(lbmaxx) < MAX_FORCE &&
-       fabs(lbmaxy) > MIN_FORCE && fabs(lbmaxy) < MAX_FORCE &&
-       fabs(lbmaxz) > MIN_FORCE && fabs(lbmaxz) < MAX_FORCE);
+  // Per CUDA documention, use of std namespace math functions is not supported
+  bool forceInRange = (fabs(lbmaxx) > MIN_FORCE && fabs(lbmaxx) < MAX_FORCE &&
+                       fabs(lbmaxy) > MIN_FORCE && fabs(lbmaxy) < MAX_FORCE &&
+                       fabs(lbmaxz) > MIN_FORCE && fabs(lbmaxz) < MAX_FORCE);
 
   if (forceInRange) {
     double3 randnums = randomCoordsGPU(molIndex, key, step, seed);
-    rotx = (-lbmaxx + log1p(2.0 * randnums.x * exp(lbmaxx) * sinh(lbmaxx))) / lbtx;
-    roty = (-lbmaxy + log1p(2.0 * randnums.y * exp(lbmaxy) * sinh(lbmaxy))) / lbty;
-    rotz = (-lbmaxz + log1p(2.0 * randnums.z * exp(lbmaxz) * sinh(lbmaxz))) / lbtz;
+    rotx =
+        (-lbmaxx + log1p(2.0 * randnums.x * exp(lbmaxx) * sinh(lbmaxx))) / lbtx;
+    roty =
+        (-lbmaxy + log1p(2.0 * randnums.y * exp(lbmaxy) * sinh(lbmaxy))) / lbty;
+    rotz =
+        (-lbmaxz + log1p(2.0 * randnums.z * exp(lbmaxz) * sinh(lbmaxz))) / lbtz;
     theta = sqrt(rotx * rotx + roty * roty + rotz * rotz);
     rotvec = make_double3(rotx * (1.0 / theta), roty * (1.0 / theta),
                           rotz * (1.0 / theta));

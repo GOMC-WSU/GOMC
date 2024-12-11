@@ -9,11 +9,11 @@ along with this program, also can be found at
 #define VARIABLES_CUDA_H
 
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <stdio.h>
-#include <cuda_runtime.h>
 #include "EnsemblePreprocessor.h"
 #include "NumLib.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <stdio.h>
 
 // Need a separate float constant for device code with the MSVC compiler
 // See CUDA Programming Guide section I.4.13 for details
