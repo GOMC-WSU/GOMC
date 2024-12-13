@@ -11,9 +11,6 @@ along with this program, also can be found at
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
 
 #include "BasicTypes.h"
 #include "BoxDimensions.h"

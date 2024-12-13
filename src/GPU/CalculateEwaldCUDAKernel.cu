@@ -558,14 +558,15 @@ __global__ void BoxForceReciprocalGPU(
     double *gpu_mForceRecx, double *gpu_mForceRecy, double *gpu_mForceRecz,
     double *gpu_particleCharge, int *gpu_particleMol,
     bool *gpu_particleHasNoCharge, bool *gpu_particleUsed, int *gpu_startMol,
-    int *gpu_lengthMol, double *gpu_alpha, double *gpu_alphaSq, double constValue,
-    int imageSize, double *gpu_kx, double *gpu_ky, double *gpu_kz,
-    double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_prefact,
-    double *gpu_sumRnew, double *gpu_sumInew, bool *gpu_isFraction,
-    int *gpu_molIndex, double *gpu_lambdaCoulomb, double *gpu_cell_x,
-    double *gpu_cell_y, double *gpu_cell_z, double *gpu_Invcell_x,
-    double *gpu_Invcell_y, double *gpu_Invcell_z, int *gpu_nonOrth, double axx,
-    double axy, double axz, int box, int atomCount) {
+    int *gpu_lengthMol, double *gpu_alpha, double *gpu_alphaSq,
+    double constValue, int imageSize, double *gpu_kx, double *gpu_ky,
+    double *gpu_kz, double *gpu_x, double *gpu_y, double *gpu_z,
+    double *gpu_prefact, double *gpu_sumRnew, double *gpu_sumInew,
+    bool *gpu_isFraction, int *gpu_molIndex, double *gpu_lambdaCoulomb,
+    double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
+    double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
+    int *gpu_nonOrth, double axx, double axy, double axz, int box,
+    int atomCount) {
   __shared__ double shared_kvector[IMAGES_PER_BLOCK * 3];
   int particleID = blockDim.x * blockIdx.x + threadIdx.x;
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
@@ -631,7 +632,8 @@ __global__ void BoxForceReciprocalGPU(
         double qiqj = gpu_particleCharge[particleID] *
                       gpu_particleCharge[otherParticle] * qqFactGPU;
         intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
-        intraForce *= ((erf(gpu_alpha[box] * dist) / dist) - constValue * expConstValue);
+        intraForce *=
+            ((erf(gpu_alpha[box] * dist) / dist) - constValue * expConstValue);
         forceX -= intraForce * distVect.x;
         forceY -= intraForce * distVect.y;
         forceZ -= intraForce * distVect.z;
