@@ -1897,7 +1897,6 @@ void ConfigSetup::verifyInputs(void) {
     std::cout << "ERROR: Impulse Pressure Correction cannot be "
               << "used with LJ long-range corrections." << std::endl;
     exit(EXIT_FAILURE);
-
   }
   if (((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
        (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND)) &&
@@ -1905,7 +1904,6 @@ void ConfigSetup::verifyInputs(void) {
     std::cout << "ERROR: Impulse Pressure Correction is not supported "
               << "for SWITCH or SHIFT potentials." << std::endl;
     exit(EXIT_FAILURE);
-
   }
   if (sys.ff.doImpulsePressureCorr && sys.ff.doTailCorr) {
     std::cout << "ERROR: Both LRC (Long Range Correction) and "
@@ -2104,9 +2102,10 @@ void ConfigSetup::verifyInputs(void) {
     if (in.restart.restartFromBinaryCoorFile) {
       for (i = 0; i < BOX_TOTAL; i++) {
         if (!in.files.binaryCoorInput.defined[i]) {
-          std::cout << "ERROR: Binary coordinate file was not specified for box "
-                       "number "
-                    << i << "!" << std::endl;
+          std::cout
+              << "ERROR: Binary coordinate file was not specified for box "
+                 "number "
+              << i << "!" << std::endl;
           exit(EXIT_FAILURE);
         }
       }
@@ -2174,25 +2173,30 @@ void ConfigSetup::verifyInputs(void) {
     if ((sys.memcVal.MEMC1 && sys.memcVal.MEMC2) ||
         (sys.memcVal.MEMC1 && sys.memcVal.MEMC3) ||
         (sys.memcVal.MEMC2 && sys.memcVal.MEMC3)) {
-      std::cout << "ERROR: Multiple MEMC methods were specified, but only one is allowed!\n";
+      std::cout << "ERROR: Multiple MEMC methods were specified, but only one "
+                   "is allowed!\n";
       exit(EXIT_FAILURE);
     }
     if ((sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC2) ||
         (sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC3) ||
         (sys.intraMemcVal.MEMC2 && sys.intraMemcVal.MEMC3)) {
-      std::cout << "ERROR: Multiple Intra-MEMC methods are specified, but only one is allowed!\n";
+      std::cout << "ERROR: Multiple Intra-MEMC methods are specified, but only "
+                   "one is allowed!\n";
       exit(EXIT_FAILURE);
     }
     if (!sys.memcVal.readVol || !sys.intraMemcVal.readVol) {
-      std::cout << "ERROR: In the MEMC method, the Sub-Volume was not specified!\n";
+      std::cout
+          << "ERROR: In the MEMC method, the Sub-Volume was not specified!\n";
       exit(EXIT_FAILURE);
     }
     if (!sys.memcVal.readRatio || !sys.intraMemcVal.readRatio) {
-      std::cout << "ERROR: In the MEMC method, Exchange Ratio was not specified!\n";
+      std::cout
+          << "ERROR: In the MEMC method, Exchange Ratio was not specified!\n";
       exit(EXIT_FAILURE);
     }
     if (sys.memcVal.largeKind.size() != sys.memcVal.exchangeRatio.size()) {
-      std::cout << "ERROR: In the MEMC method, the specified number of Large Kinds was "
+      std::cout << "ERROR: In the MEMC method, the specified number of Large "
+                   "Kinds was "
                 << sys.memcVal.largeKind.size() << ", but "
                 << sys.memcVal.exchangeRatio.size()
                 << " exchange ratio was specified!\n";
@@ -2209,49 +2213,52 @@ void ConfigSetup::verifyInputs(void) {
     if ((sys.memcVal.largeKind.size() != sys.memcVal.smallKind.size()) ||
         (sys.intraMemcVal.largeKind.size() !=
          sys.intraMemcVal.smallKind.size())) {
-      std::cout
-          << "ERROR: In the MEMC method, the specified number of Large Kinds is not "
-          << " equal as specified number of Small Kinds!\n";
+      std::cout << "ERROR: In the MEMC method, the specified number of Large "
+                   "Kinds is not "
+                << " equal as specified number of Small Kinds!\n";
       exit(EXIT_FAILURE);
     }
     if (!sys.memcVal.readLargeBB || !sys.intraMemcVal.readLargeBB) {
-      std::cout
-          << "ERROR: In the MEMC method, Large Kind BackBone was not specified!\n";
+      std::cout << "ERROR: In the MEMC method, Large Kind BackBone was not "
+                   "specified!\n";
       exit(EXIT_FAILURE);
     }
     if (sys.memcVal.largeKind.size() != sys.memcVal.largeBBAtom1.size()) {
-      std::cout << "ERROR: In the MEMC method, the specified number of Large Kinds was "
+      std::cout << "ERROR: In the MEMC method, the specified number of Large "
+                   "Kinds was "
                 << sys.memcVal.largeKind.size() << ", but "
                 << sys.memcVal.largeBBAtom1.size()
                 << " sets of Large Molecule BackBone was specified!\n";
       exit(EXIT_FAILURE);
     }
     if (sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
-      std::cout
-          << "ERROR: In the MEMC-2 method, Small Kind BackBone was not specified!\n";
+      std::cout << "ERROR: In the MEMC-2 method, Small Kind BackBone was not "
+                   "specified!\n";
       exit(EXIT_FAILURE);
     }
 
     if (sys.memcVal.MEMC2 &&
         (sys.memcVal.smallKind.size() != sys.memcVal.smallBBAtom1.size())) {
-      std::cout
-          << "ERROR: In the MEMC-2 method, the specified number of Small Kinds was "
-          << sys.memcVal.smallKind.size() << ", but "
-          << sys.memcVal.smallBBAtom1.size()
-          << " sets of Small Molecule BackBone was specified!\n";
+      std::cout << "ERROR: In the MEMC-2 method, the specified number of Small "
+                   "Kinds was "
+                << sys.memcVal.smallKind.size() << ", but "
+                << sys.memcVal.smallBBAtom1.size()
+                << " sets of Small Molecule BackBone was specified!\n";
       exit(EXIT_FAILURE);
     }
 
     if (sys.intraMemcVal.MEMC2 && !sys.intraMemcVal.readSmallBB) {
-      std::cout << "ERROR: In the Intra-MEMC-2 method, Small Kind BackBone was not "
-                   "specified!\n";
+      std::cout
+          << "ERROR: In the Intra-MEMC-2 method, Small Kind BackBone was not "
+             "specified!\n";
       exit(EXIT_FAILURE);
     }
     if (sys.memcVal.enable && sys.intraMemcVal.enable) {
       if ((sys.memcVal.MEMC1 && !sys.intraMemcVal.MEMC1) ||
           (sys.memcVal.MEMC2 && !sys.intraMemcVal.MEMC2) ||
           (sys.memcVal.MEMC3 && !sys.intraMemcVal.MEMC3)) {
-        std::cout << "ERROR: The selected intra-MEMC method was not same as the inter-MEMC method!\n";
+        std::cout << "ERROR: The selected intra-MEMC method was not same as "
+                     "the inter-MEMC method!\n";
         exit(EXIT_FAILURE);
       }
     }

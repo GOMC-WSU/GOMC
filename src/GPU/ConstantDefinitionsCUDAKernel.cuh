@@ -2,17 +2,18 @@
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
 Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
+along with this program, also can be found at
+<https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifndef CONSTANT_DEFINITIONS_CUDA_KERNEL_H
 #define CONSTANT_DEFINITIONS_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "EnsemblePreprocessor.h"
 #include "GeomLib.h"
 #include "VariablesCUDA.cuh"
-#include "EnsemblePreprocessor.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
 
 #define GPU_VDW_STD_KIND 0
 #define GPU_VDW_SHIFT_KIND 1
@@ -21,12 +22,12 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #define MAX_PAIR_SIZE 10000000
 
 void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
-                    double *lambdaCoulomb, bool *isFraction);
+                     double *lambdaCoulomb, bool *isFraction);
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
-                       double const *epsilon_Cn, double const *n,
-                       int VDW_Kind, int isMartini, int count,
-                       double Rcut, double RcutSq, double const *rCutCoulomb,
-                       double const *rCutCoulombSq, double RcutLow, double Ron, double const *alpha,
+                       double const *epsilon_Cn, double const *n, int VDW_Kind,
+                       int isMartini, int count, double Rcut, double RcutSq,
+                       double const *rCutCoulomb, double const *rCutCoulombSq,
+                       double RcutLow, double Ron, double const *alpha,
                        double const *alphaSq, int ewald, double diElectric_1);
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
                          uint maxAtomsInMol, uint maxMolNumber);
