@@ -65,10 +65,13 @@ public:
     gpu_isMartini = NULL;
     gpu_count = NULL;
     gpu_rCut = NULL;
+    gpu_rCutSq = NULL;
     gpu_rCutLow = NULL;
     gpu_rOn = NULL;
     gpu_alpha = NULL;
+    gpu_alphaSq = NULL;
     gpu_rCutCoulomb = NULL;
+    gpu_rCutCoulombSq = NULL;
     gpu_ewald = NULL;
     gpu_diElectric_1 = NULL;
     gpu_aForcex = NULL;
@@ -92,11 +95,11 @@ public:
   int *gpu_isMartini;
   int *gpu_count;
   int *gpu_startAtomIdx; //start atom index of the molecule
-  double *gpu_rCut;
-  double *gpu_rCutCoulomb;
+  double *gpu_rCut, *gpu_rCutSq;
+  double *gpu_rCutCoulomb, *gpu_rCutCoulombSq;
   double *gpu_rCutLow;
   double *gpu_rOn;
-  double *gpu_alpha;
+  double *gpu_alpha, *gpu_alphaSq;
   int *gpu_ewald;
   double *gpu_diElectric_1;
   double *gpu_x, *gpu_y, *gpu_z;

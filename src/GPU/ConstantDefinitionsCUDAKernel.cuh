@@ -4,8 +4,8 @@ Copyright (C) 2022 GOMC Group
 A copy of the MIT License can be found in License.txt
 along with this program, also can be found at <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
-#ifndef CONSTANT_DEFINITIONS_CUDA_KERNEL
-#define CONSTANT_DEFINITIONS_CUDA_KERNEL
+#ifndef CONSTANT_DEFINITIONS_CUDA_KERNEL_H
+#define CONSTANT_DEFINITIONS_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
 #include <cuda.h>
@@ -25,9 +25,9 @@ void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *epsilon_Cn, double const *n,
                        int VDW_Kind, int isMartini, int count,
-                       double Rcut, double const *rCutCoulomb,
-                       double RcutLow, double Ron, double const *alpha,
-                       int ewald, double diElectric_1);
+                       double Rcut, double RcutSq, double const *rCutCoulomb,
+                       double const *rCutCoulombSq, double RcutLow, double Ron, double const *alpha,
+                       double const *alphaSq, int ewald, double diElectric_1);
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
                          uint maxAtomsInMol, uint maxMolNumber);
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
@@ -47,4 +47,4 @@ void DestroyExp6CUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
 
 #endif /*GOMC_CUDA*/
-#endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/
+#endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL_H*/

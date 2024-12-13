@@ -125,7 +125,7 @@ void CallBoxInterForceGPU(
       vars->gpu_vT13, vars->gpu_vT22, vars->gpu_vT23, vars->gpu_vT33,
       vars->gpu_sigmaSq, vars->gpu_epsilon_Cn, vars->gpu_n, vars->gpu_VDW_Kind,
       vars->gpu_isMartini, vars->gpu_count, vars->gpu_rCut,
-      vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn, vars->gpu_alpha,
+      vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn, vars->gpu_alpha, vars->gpu_alphaSq,
       vars->gpu_ewald, vars->gpu_diElectric_1, vars->gpu_cell_x[box],
       vars->gpu_cell_y[box], vars->gpu_cell_z[box], vars->gpu_Invcell_x[box],
       vars->gpu_Invcell_y[box], vars->gpu_Invcell_z[box], vars->gpu_nonOrth,
@@ -302,7 +302,7 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
       gpu_particleKind, gpu_particleMol, gpu_REn, gpu_LJEn, vars->gpu_sigmaSq,
       vars->gpu_epsilon_Cn, vars->gpu_n, vars->gpu_VDW_Kind,
       vars->gpu_isMartini, vars->gpu_count, vars->gpu_rCut,
-      vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn, vars->gpu_alpha,
+      vars->gpu_rCutCoulomb, vars->gpu_rCutLow, vars->gpu_rOn, vars->gpu_alpha, vars->gpu_alphaSq,
       vars->gpu_ewald, vars->gpu_diElectric_1, vars->gpu_nonOrth,
       vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
       vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
@@ -469,7 +469,7 @@ __global__ void BoxInterForceGPU(
     double *gpu_vT33, double *gpu_sigmaSq, double *gpu_epsilon_Cn,
     double *gpu_n, int *gpu_VDW_Kind, int *gpu_isMartini, int *gpu_count,
     double *gpu_rCut, double *gpu_rCutCoulomb, double *gpu_rCutLow,
-    double *gpu_rOn, double *gpu_alpha, int *gpu_ewald,
+    double *gpu_rOn, double *gpu_alpha, double *gpu_alphaSq, int *gpu_ewald,
     double *gpu_diElectric_1, double *gpu_cell_x, double *gpu_cell_y,
     double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
     double *gpu_Invcell_z, int *gpu_nonOrth, bool sc_coul, double sc_sigma_6,
@@ -577,7 +577,7 @@ __global__ void BoxInterForceGPU(
                 mA, mB, box, gpu_isFraction, gpu_molIndex, gpu_lambdaCoulomb);
             double pRF = CalcCoulombForceGPU(
                 distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0], gpu_isMartini[0],
-                gpu_alpha[box], gpu_rCutCoulomb[box], gpu_diElectric_1[0],
+                gpu_alpha[box], gpu_alphaSq[box], gpu_rCutCoulomb[box], gpu_diElectric_1[0],
                 gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha, sc_power,
                 lambdaCoulomb, gpu_count[0], kA, kB);
 
@@ -608,7 +608,7 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
             double *gpu_LJEn, double *gpu_sigmaSq, double *gpu_epsilon_Cn,
             double *gpu_n, int *gpu_VDW_Kind, int *gpu_isMartini,
             int *gpu_count, double *gpu_rCut, double *gpu_rCutCoulomb,
-            double *gpu_rCutLow, double *gpu_rOn, double *gpu_alpha,
+            double *gpu_rCutLow, double *gpu_rOn, double *gpu_alpha, double *gpu_alphaSq,
             int *gpu_ewald, double *gpu_diElectric_1, int *gpu_nonOrth,
             double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
             double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
@@ -708,7 +708,7 @@ BoxForceGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
 
             forces += CalcCoulombForceGPU(
                 distSq, qi_qj_fact, gpu_VDW_Kind[0], gpu_ewald[0],
-                gpu_isMartini[0], gpu_alpha[box], gpu_rCutCoulomb[box],
+                gpu_isMartini[0], gpu_alpha[box], gpu_alphaSq[box], gpu_rCutCoulomb[box],
                 gpu_diElectric_1[0], gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
                 sc_power, lambdaCoulomb, gpu_count[0], kA, kB);
           }
@@ -868,12 +868,12 @@ CalcEnForceGPU(double distSq, int kind1, int kind2, double *gpu_sigmaSq,
 //**************************************************************//
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
                                             int gpu_ewald, double gpu_alpha,
-                                            int index, double gpu_sigmaSq,
+                                            double gpu_alphaSq, int index, double gpu_sigmaSq,
                                             bool sc_coul, double sc_sigma_6,
                                             double sc_alpha, uint sc_power,
                                             double gpu_lambdaCoulomb) {
   if (gpu_lambdaCoulomb >= 0.999999) {
-    return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
+    return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   }
 
   if (sc_coul) {
@@ -886,20 +886,20 @@ __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
     double softRsq = cbrt(softDist6);
     double correction = distSq / softRsq;
     return gpu_lambdaCoulomb * correction * correction *
-           CalcCoulombVirParticleGPU(softRsq, qi_qj, gpu_ewald, gpu_alpha);
+           CalcCoulombVirParticleGPU(softRsq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   } else {
     return gpu_lambdaCoulomb *
-           CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
+           CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   }
 }
 
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
-                                            int gpu_ewald, double gpu_alpha) {
+                                            int gpu_ewald, double gpu_alpha, double gpu_alphaSq) {
   double dist = sqrt(distSq);
   if (gpu_ewald) {
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = gpu_alpha * M_2_SQRTPI;
-    double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
+    double expConstValue = exp(-1.0 * gpu_alphaSq * distSq);
     double temp = 1.0 - erf(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
@@ -909,13 +909,13 @@ __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
 }
 
 __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
-                                         int gpu_ewald, double gpu_alpha,
+                                         int gpu_ewald, double gpu_alpha, double gpu_alphaSq,
                                          int index, double gpu_sigmaSq,
                                          bool sc_coul, double sc_sigma_6,
                                          double sc_alpha, uint sc_power,
                                          double gpu_lambdaCoulomb) {
   if (gpu_lambdaCoulomb >= 0.999999) {
-    return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
+    return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   }
 
   if (sc_coul) {
@@ -928,20 +928,20 @@ __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
     double softRsq = cbrt(softDist6);
     double correction = distSq / softRsq;
     return gpu_lambdaCoulomb * correction * correction *
-           CalcCoulombVirShiftGPU(softRsq, qi_qj, gpu_ewald, gpu_alpha);
+           CalcCoulombVirShiftGPU(softRsq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   } else {
     return gpu_lambdaCoulomb *
-           CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
+           CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   }
 }
 
 __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
-                                         int gpu_ewald, double gpu_alpha) {
+                                         int gpu_ewald, double gpu_alpha, double gpu_alphaSq) {
   double dist = sqrt(distSq);
   if (gpu_ewald) {
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = gpu_alpha * M_2_SQRTPI;
-    double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
+    double expConstValue = exp(-1.0 * gpu_alphaSq * distSq);
     double temp = 1.0 - erf(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
@@ -950,13 +950,13 @@ __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
 }
 
 __device__ double CalcCoulombVirExp6GPU(double distSq, double qi_qj,
-                                        int gpu_ewald, double gpu_alpha,
+                                        int gpu_ewald, double gpu_alpha, double gpu_alphaSq,
                                         int index, double gpu_sigmaSq,
                                         bool sc_coul, double sc_sigma_6,
                                         double sc_alpha, uint sc_power,
                                         double gpu_lambdaCoulomb) {
   if (gpu_lambdaCoulomb >= 0.999999) {
-    return CalcCoulombVirExp6GPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
+    return CalcCoulombVirExp6GPU(distSq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   }
   if (sc_coul) {
     double sigma6 = gpu_sigmaSq * gpu_sigmaSq * gpu_sigmaSq;
@@ -968,20 +968,20 @@ __device__ double CalcCoulombVirExp6GPU(double distSq, double qi_qj,
     double softRsq = cbrt(softDist6);
     double correction = distSq / softRsq;
     return gpu_lambdaCoulomb * correction * correction *
-           CalcCoulombVirExp6GPU(softRsq, qi_qj, gpu_ewald, gpu_alpha);
+           CalcCoulombVirExp6GPU(softRsq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   } else {
     return gpu_lambdaCoulomb *
-           CalcCoulombVirExp6GPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
+           CalcCoulombVirExp6GPU(distSq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq);
   }
 }
 
 __device__ double CalcCoulombVirExp6GPU(double distSq, double qi_qj,
-                                        int gpu_ewald, double gpu_alpha) {
+                                        int gpu_ewald, double gpu_alpha, double gpu_alphaSq) {
   double dist = sqrt(distSq);
   if (gpu_ewald) {
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = gpu_alpha * M_2_SQRTPI;
-    double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
+    double expConstValue = exp(-1.0 * gpu_alphaSq * distSq);
     double temp = erfc(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
@@ -990,12 +990,12 @@ __device__ double CalcCoulombVirExp6GPU(double distSq, double qi_qj,
 }
 
 __device__ double CalcCoulombVirSwitchMartiniGPU(
-    double distSq, double qi_qj, int gpu_ewald, double gpu_alpha,
+    double distSq, double qi_qj, int gpu_ewald, double gpu_alpha, double gpu_alphaSq,
     double gpu_rCut, double gpu_diElectric_1, int index, double gpu_sigmaSq,
     bool sc_coul, double sc_sigma_6, double sc_alpha, uint sc_power,
     double gpu_lambdaCoulomb) {
   if (gpu_lambdaCoulomb >= 0.999999) {
-    return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
+    return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq,
                                           gpu_rCut, gpu_diElectric_1);
   }
 
@@ -1009,11 +1009,11 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(
     double softRsq = cbrt(softDist6);
     double correction = distSq / softRsq;
     return gpu_lambdaCoulomb * correction * correction *
-           CalcCoulombVirSwitchMartiniGPU(softRsq, qi_qj, gpu_ewald, gpu_alpha,
+           CalcCoulombVirSwitchMartiniGPU(softRsq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq,
                                           gpu_rCut, gpu_diElectric_1);
   } else {
     return gpu_lambdaCoulomb *
-           CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
+           CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, gpu_alphaSq,
                                           gpu_rCut, gpu_diElectric_1);
   }
 }
@@ -1021,13 +1021,14 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(
 __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
                                                  int gpu_ewald,
                                                  double gpu_alpha,
+												 double gpu_alphaSq,
                                                  double gpu_rCut,
                                                  double gpu_diElectric_1) {
   double dist = sqrt(distSq);
   if (gpu_ewald) {
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = gpu_alpha * M_2_SQRTPI;
-    double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
+    double expConstValue = exp(-1.0 * gpu_alphaSq * distSq);
     double temp = 1.0 - erf(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
@@ -1053,7 +1054,7 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
 }
 
 __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
-                                          int gpu_ewald, double gpu_alpha,
+                                          int gpu_ewald, double gpu_alpha, double gpu_alphaSq,
                                           double gpu_rCut, int index,
                                           double gpu_sigmaSq, bool sc_coul,
                                           double sc_sigma_6, double sc_alpha,
@@ -1061,7 +1062,7 @@ __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
                                           double gpu_lambdaCoulomb) {
   if (gpu_lambdaCoulomb >= 0.999999) {
     return CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                   gpu_rCut);
+                                   gpu_alphaSq, gpu_rCut);
   }
 
   if (sc_coul) {
@@ -1075,21 +1076,21 @@ __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
     double correction = distSq / softRsq;
     return gpu_lambdaCoulomb * correction * correction *
            CalcCoulombVirSwitchGPU(softRsq, qi_qj, gpu_ewald, gpu_alpha,
-                                   gpu_rCut);
+                                   gpu_alphaSq, gpu_rCut);
   } else {
     return gpu_lambdaCoulomb * CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald,
-                                                       gpu_alpha, gpu_rCut);
+                                                       gpu_alpha, gpu_alphaSq, gpu_rCut);
   }
 }
 
 __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
                                           int gpu_ewald, double gpu_alpha,
-                                          double gpu_rCut) {
+                                          double gpu_alphaSq, double gpu_rCut) {
   double dist = sqrt(distSq);
   if (gpu_ewald) {
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = gpu_alpha * M_2_SQRTPI;
-    double expConstValue = exp(-1.0 * gpu_alpha * gpu_alpha * distSq);
+    double expConstValue = exp(-1.0 * gpu_alphaSq * distSq);
     double temp = 1.0 - erf(gpu_alpha * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
