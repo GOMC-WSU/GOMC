@@ -1610,9 +1610,8 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
 
     CallBoxForceReciprocalGPU(ff.particles->getCUDAVars(), atomForceRec,
                               molForceRec, particleCharge, particleMol,
-                              particleUsed, startMol, lengthMol, ff.alpha[box],
-                              ff.alphaSq[box], constValue, imageSizeRef[box],
-                              molCoords, currentAxes, box);
+                              particleUsed, startMol, lengthMol, constValue,
+                              imageSizeRef[box], molCoords, currentAxes, box);
 #else
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);

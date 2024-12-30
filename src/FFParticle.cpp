@@ -88,9 +88,10 @@ void FFParticle::Init(ff_setup::Particle const &mie,
   double diElectric_1 = 1.0 / forcefield.dielectric;
   InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, forcefield.vdwKind,
                     forcefield.isMartini, count, forcefield.rCut,
-                    forcefield.rCutCoulomb, forcefield.rCutLow,
-                    forcefield.rswitch, forcefield.alpha, forcefield.ewald,
-                    diElectric_1);
+                    forcefield.rCutSq, forcefield.rCutCoulomb,
+                    forcefield.rCutCoulombSq, forcefield.rCutLow,
+                    forcefield.rswitch, forcefield.alpha, forcefield.alphaSq,
+                    forcefield.ewald, diElectric_1);
 #endif
 }
 
