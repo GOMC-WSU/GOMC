@@ -326,7 +326,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
-  firstprivate(box, atomCount, molCount, num::qqFact) \
+  firstprivate(box, calcEnergies, atomCount, molCount, num::qqFact) \
   reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
             aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], \
             mForcez[:molCount])
