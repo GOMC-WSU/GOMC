@@ -61,9 +61,12 @@ public:
                            BoxDimensions const &boxAxes, const uint box);
 
   //! Calculates force of a single box in the system
+  //! We also calculate the LJ and real electrostatic energy term for new
+  //! coordinates, but not the old coordinates, hence the flag.
   SystemPotential BoxForce(SystemPotential potential, XYZArray const &coords,
                            XYZArray &atomForce, XYZArray &molForce,
-                           BoxDimensions const &boxAxes, const uint box);
+                           BoxDimensions const &boxAxes, const uint box,
+                           const bool calcEnergies = true);
 
   //! Calculate force and virial for the box
   Virial VirialCalc(const uint box);

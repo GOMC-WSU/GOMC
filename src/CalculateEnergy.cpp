@@ -270,7 +270,8 @@ reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
 SystemPotential
 CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                           XYZArray &atomForce, XYZArray &molForce,
-                          BoxDimensions const &boxAxes, const uint box) {
+                          BoxDimensions const &boxAxes, const uint box,
+                          const bool calcEnergies) {
   // Handles reservoir box case, returning zeroed structure if
   // interactions are off.
   if (box >= BOXES_WITH_U_NB)
@@ -288,9 +289,6 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   double *mForcez = molForce.z;
   int atomCount = atomForce.Count();
   int molCount = molForce.Count();
-
-  // Reset Force Arrays
-  ResetForce(atomForce, molForce, box);
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector<std::vector<int>> neighborList;
@@ -320,9 +318,11 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                   boxAxes, electrostatic, tempREn, tempLJEn, aForcex, aForcey,
                   aForcez, mForcex, mForcey, mForcez, atomCount, molCount,
                   forcefield.sc_coul, forcefield.sc_sigma_6,
-                  forcefield.sc_alpha, forcefield.sc_power, box);
+                  forcefield.sc_alpha, forcefield.sc_power, box, calcEnergies);
 
 #else
+  // Reset Force Arrays
+  ResetForce(atomForce, molForce, box);
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
@@ -359,9 +359,11 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
               double qi_qj_fact = particleCharge[currParticle] *
                                   particleCharge[nParticle] * num::qqFact;
               if (qi_qj_fact != 0.0) {
-                tempREn += forcefield.particles->CalcCoulomb(
-                    distSq, particleKind[currParticle], particleKind[nParticle],
-                    qi_qj_fact, lambdaCoulomb, box);
+                if (calcEnergies) {
+                  tempREn += forcefield.particles->CalcCoulomb(
+                      distSq, particleKind[currParticle],
+                      particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
+                }
                 // Calculating the force
                 forceReal =
                     virComponents * forcefield.particles->CalcCoulombVir(
@@ -370,9 +372,11 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                                         lambdaCoulomb, box);
               }
             }
-            tempLJEn += forcefield.particles->CalcEn(
-                distSq, particleKind[currParticle], particleKind[nParticle],
-                lambdaVDW);
+            if (calcEnergies) {
+              tempLJEn += forcefield.particles->CalcEn(
+                  distSq, particleKind[currParticle], particleKind[nParticle],
+                  lambdaVDW);
+            }
             forceLJ = virComponents * forcefield.particles->CalcVir(
                                           distSq, particleKind[currParticle],
                                           particleKind[nParticle], lambdaVDW);
@@ -398,11 +402,14 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   }
 #endif
 
-  // setting energy and virial of LJ interaction
-  potential.boxEnergy[box].inter = tempLJEn;
-  // setting energy and virial of coulomb interaction
-  potential.boxEnergy[box].real = tempREn;
-
+  // For the current system, we need to calculate the forces but not the
+  // system energies.
+  if (calcEnergies) {
+    // setting energy and virial of LJ interaction
+    potential.boxEnergy[box].inter = tempLJEn;
+    // setting energy and virial of coulomb interaction
+    potential.boxEnergy[box].real = tempREn;
+  }
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_FORCE);
   return potential;
 }
