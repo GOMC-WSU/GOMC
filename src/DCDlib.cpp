@@ -200,7 +200,7 @@ OFF_T NAMD_seek(int file, OFF_T offset, int whence) {
   if (whence == SEEK_SET && retval != offset) {
     char buf[256];
     sprintf(buf,
-            "seek failed while writing DCD file: SEEK_SET %lld returned %lld\n",
+            "seek failed while writing DCD file: SEEK_SET %ld returned %ld\n",
             offset, retval);
     NAMD_die(buf);
   }
