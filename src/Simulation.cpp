@@ -75,6 +75,14 @@ Simulation::~Simulation() {
 void Simulation::RunSimulation(void) {
   GOMC_EVENT_START(1, GomcProfileEvent::MC_RUN);
   double startEnergy = system->potential.totalEnergy.total;
+  if (!std::isfinite(startEnergy)) {
+    std::cout
+        << "Initial system has non-finite energy. This is usually caused"
+           " by two or more atoms in the initial configuration having "
+           "identical coordinates. Please correct your input file and rerun.\n";
+
+    exit(EXIT_FAILURE);
+  }
   if (totalSteps == 0) {
     for (int i = 0; i < (int)frameSteps.size(); i++) {
       if (i == 0) {
