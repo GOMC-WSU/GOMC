@@ -52,7 +52,7 @@ public:
   MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                         const std::vector<cbmc::TrialMol> &oldMol,
                         const std::vector<uint> &molIndexNew,
-                        const std::vector<uint> &molIndexOld);
+                        const std::vector<uint> &molIndexOld, bool first_call);
 
   // It's called in free energy calculation to calculate the change in
   // reciprocal energy in all lambda states

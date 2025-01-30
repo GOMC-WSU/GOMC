@@ -37,8 +37,8 @@ public:
 
   virtual ~BoxDimensions(){};
 
-  virtual BoxDimensions &operator=(BoxDimensions const &other);
-  virtual bool operator==(BoxDimensions const &other);
+  BoxDimensions &operator=(BoxDimensions const &other);
+  bool operator==(BoxDimensions const &other);
 
   virtual void Init(config_setup::RestartSettings const &restart,
                     config_setup::Volume const &confVolume,
@@ -52,12 +52,12 @@ public:
 
   virtual void SetVolume(const uint b, const double vol);
 
-  virtual uint ShiftVolume(BoxDimensions &newDim, XYZ &scale, const uint b,
-                           const double delta) const;
+  uint ShiftVolume(BoxDimensions &newDim, XYZ &scale, const uint b,
+                   const double delta) const;
 
   //! Calculate and execute volume exchange based on transfer
-  virtual uint ExchangeVolume(BoxDimensions &newDim, XYZ *scale,
-                              const double transfer, const uint *box) const;
+  uint ExchangeVolume(BoxDimensions &newDim, XYZ *scale, const double transfer,
+                      const uint *box) const;
 
   // Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVec, const uint b) const;

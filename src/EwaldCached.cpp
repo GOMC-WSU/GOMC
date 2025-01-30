@@ -394,7 +394,8 @@ double
 EwaldCached::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                    const std::vector<cbmc::TrialMol> &oldMol,
                                    const std::vector<uint> &molIndexNew,
-                                   const std::vector<uint> &molIndexOld) {
+                                   const std::vector<uint> &molIndexOld,
+                                   bool first_call) {
   // This function should not be called in IDExchange move
   std::cout << "Error: Cached Fourier method cannot be used while "
             << "performing Molecule Exchange move!" << std::endl;

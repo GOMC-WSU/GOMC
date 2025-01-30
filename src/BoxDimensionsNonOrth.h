@@ -29,8 +29,8 @@ public:
     }
   }
 
-  virtual BoxDimensionsNonOrth &operator=(BoxDimensionsNonOrth const &other);
-  virtual bool operator==(BoxDimensionsNonOrth const &other);
+  BoxDimensionsNonOrth &operator=(BoxDimensionsNonOrth const &other);
+  bool operator==(BoxDimensionsNonOrth const &other);
 
   virtual void Init(config_setup::RestartSettings const &restart,
                     config_setup::Volume const &confVolume,
@@ -38,12 +38,12 @@ public:
 
   virtual void SetVolume(const uint b, const double vol);
 
-  virtual uint ShiftVolume(BoxDimensionsNonOrth &newDim, XYZ &scale,
-                           const uint b, const double delta) const;
+  uint ShiftVolume(BoxDimensionsNonOrth &newDim, XYZ &scale, const uint b,
+                   const double delta) const;
 
   //! Calculate and execute volume exchange based on transfer
-  virtual uint ExchangeVolume(BoxDimensionsNonOrth &newDim, XYZ *scale,
-                              const double transfer, const uint *box) const;
+  uint ExchangeVolume(BoxDimensionsNonOrth &newDim, XYZ *scale,
+                      const double transfer, const uint *box) const;
 
   // Construct cell basis based on new axis dimension
   void CalcCellDimensions(const uint b);
@@ -59,16 +59,17 @@ public:
   virtual XYZ MinImage_Z(XYZ rawVec, const uint b) const;
 
   // wrap one coordinate
-  virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;
+  virtual void WrapPBC(double &x, double &y, double &z,
+                       const uint b) const override;
 
   // wrap one coordinate and check for PBC
   virtual void WrapPBC(double &x, double &y, double &z, const uint b,
                        const bool &pbcX, const bool &pbcY,
-                       const bool &pbcZ) const;
+                       const bool &pbcZ) const override;
 
   // Unwrap one coordinate
   virtual void UnwrapPBC(double &x, double &y, double &z, const uint b,
-                         XYZ const &ref) const;
+                         XYZ const &ref) const override;
 
   // Transform A to unslant coordinate
   XYZ TransformUnSlant(const XYZ &A, const uint b) const;
