@@ -29,7 +29,7 @@ double NoEwald::BoxReciprocal(uint box, bool isNewVolume) const { return 0.0; }
 // calculate reciprocal force term for a box with molCoords
 void NoEwald::BoxForceReciprocal(XYZArray const &molCoords,
                                  XYZArray &atomForceRec, XYZArray &molForceRec,
-                                 uint box) {
+                                 int moveType, uint box) {
   return;
 }
 

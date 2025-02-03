@@ -17,6 +17,7 @@ along with this program, also can be found at
 #include "CalculateEwaldCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#include "MoveSettings.h"
 #include "cub/cub.cuh"
 
 using namespace cub;
@@ -344,7 +345,7 @@ void CallBoxForceReciprocalGPU(
     const std::vector<int> &particleMol, const std::vector<int> &particleUsed,
     const std::vector<int> &startMol, const std::vector<int> &lengthMol,
     double constValue, uint imageSize, XYZArray const &molCoords,
-    BoxDimensions const &boxAxes, int box) {
+    BoxDimensions const &boxAxes, int moveType, int box) {
   int atomCount = atomForceRec.Count();
   int molCount = molForceRec.Count();
   int *gpu_particleUsed;
@@ -358,18 +359,11 @@ void CallBoxForceReciprocalGPU(
   CUMALLOC((void **)&gpu_startMol, startMol.size() * sizeof(int));
   CUMALLOC((void **)&gpu_lengthMol, lengthMol.size() * sizeof(int));
 
-  cudaMemcpy(vars->gpu_aForceRecx, atomForceRec.x, sizeof(double) * atomCount,
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_aForceRecy, atomForceRec.y, sizeof(double) * atomCount,
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_aForceRecz, atomForceRec.z, sizeof(double) * atomCount,
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mForceRecx, molForceRec.x, sizeof(double) * molCount,
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mForceRecy, molForceRec.y, sizeof(double) * molCount,
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mForceRecz, molForceRec.z, sizeof(double) * molCount,
-             cudaMemcpyHostToDevice);
+  if (moveType == mp::MPDISPLACE) {
+    cudaMemset(vars->gpu_mForceRecx, 0, molCount * sizeof(double));
+    cudaMemset(vars->gpu_mForceRecy, 0, molCount * sizeof(double));
+    cudaMemset(vars->gpu_mForceRecz, 0, molCount * sizeof(double));
+  }
   cudaMemcpy(gpu_particleUsed, &particleUsed[0],
              sizeof(int) * particleUsed.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, molCoords.x, sizeof(double) * atomCount,
@@ -399,24 +393,27 @@ void CallBoxForceReciprocalGPU(
       vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
       vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box], vars->gpu_nonOrth, boxAxes.GetAxis(box).x,
-      boxAxes.GetAxis(box).y, boxAxes.GetAxis(box).z, box);
+      boxAxes.GetAxis(box).y, boxAxes.GetAxis(box).z, moveType, box);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  cudaMemcpy(atomForceRec.x, vars->gpu_aForceRecx, sizeof(double) * atomCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(atomForceRec.y, vars->gpu_aForceRecy, sizeof(double) * atomCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(atomForceRec.z, vars->gpu_aForceRecz, sizeof(double) * atomCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(molForceRec.x, vars->gpu_mForceRecx, sizeof(double) * molCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(molForceRec.y, vars->gpu_mForceRecy, sizeof(double) * molCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(molForceRec.z, vars->gpu_mForceRecz, sizeof(double) * molCount,
-             cudaMemcpyDeviceToHost);
+  if (moveType == mp::MPROTATE) {
+    cudaMemcpy(atomForceRec.x, vars->gpu_aForceRecx, sizeof(double) * atomCount,
+               cudaMemcpyDeviceToHost);
+    cudaMemcpy(atomForceRec.y, vars->gpu_aForceRecy, sizeof(double) * atomCount,
+               cudaMemcpyDeviceToHost);
+    cudaMemcpy(atomForceRec.z, vars->gpu_aForceRecz, sizeof(double) * atomCount,
+               cudaMemcpyDeviceToHost);
+  } else if (moveType == mp::MPDISPLACE) {
+    cudaMemcpy(molForceRec.x, vars->gpu_mForceRecx, sizeof(double) * molCount,
+               cudaMemcpyDeviceToHost);
+    cudaMemcpy(molForceRec.y, vars->gpu_mForceRecy, sizeof(double) * molCount,
+               cudaMemcpyDeviceToHost);
+    cudaMemcpy(molForceRec.z, vars->gpu_mForceRecz, sizeof(double) * molCount,
+               cudaMemcpyDeviceToHost);
+  }
 
 #ifndef NDEBUG
   cudaDeviceSynchronize();
@@ -438,7 +435,7 @@ __global__ void BoxForceReciprocalGPU(
     double *gpu_lambdaCoulomb, double *gpu_cell_x, double *gpu_cell_y,
     double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
     double *gpu_Invcell_z, int *gpu_nonOrth, double axx, double axy, double axz,
-    int box) {
+    int moveType, int box) {
 
   __shared__ int particleID, moleculeID;
   __shared__ double x, y, z, lambdaCoef, fixed;
@@ -514,12 +511,15 @@ __global__ void BoxForceReciprocalGPU(
   double aggregateZ = BlockReduce(forceZ_temp_storage).Sum(forceZ);
 
   if (threadIdx.x == 0) {
-    gpu_aForceRecx[particleID] = aggregateX;
-    gpu_aForceRecy[particleID] = aggregateY;
-    gpu_aForceRecz[particleID] = aggregateZ;
-    atomicAdd(&gpu_mForceRecx[moleculeID], aggregateX);
-    atomicAdd(&gpu_mForceRecy[moleculeID], aggregateY);
-    atomicAdd(&gpu_mForceRecz[moleculeID], aggregateZ);
+    if (moveType == mp::MPROTATE) {
+      gpu_aForceRecx[particleID] = aggregateX;
+      gpu_aForceRecy[particleID] = aggregateY;
+      gpu_aForceRecz[particleID] = aggregateZ;
+    } else if (moveType == mp::MPDISPLACE) {
+      atomicAdd(&gpu_mForceRecx[moleculeID], aggregateX);
+      atomicAdd(&gpu_mForceRecy[moleculeID], aggregateY);
+      atomicAdd(&gpu_mForceRecz[moleculeID], aggregateZ);
+    }
   }
 }
 

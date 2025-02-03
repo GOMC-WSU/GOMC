@@ -40,8 +40,6 @@ public:
         boxDimRef(sys.boxDimRef), molRef(statV.mol),
         BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
         cellList(sys.cellList) {
-    atomForceNew.Init(sys.atomForceRef.Count());
-    molForceNew.Init(sys.molForceRef.Count());
     calcEwald = sys.GetEwald();
     molRemoved = false;
     overlap = false;
@@ -85,9 +83,7 @@ protected:
   CalculateEnergy &calcEnRef;
   Ewald *calcEwald;
   XYZArray &atomForceRef;
-  XYZArray atomForceNew;
   XYZArray &molForceRef;
-  XYZArray molForceNew;
   XYZArray &atomForceRecRef;
   XYZArray &molForceRecRef;
   Velocity &velocity;

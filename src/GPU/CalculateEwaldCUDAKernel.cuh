@@ -21,7 +21,7 @@ void CallBoxForceReciprocalGPU(
     const std::vector<int> &particleMol, const std::vector<int> &particleUsed,
     const std::vector<int> &startMol, const std::vector<int> &lengthMol,
     double constValue, uint imageSize, XYZArray const &molCoords,
-    BoxDimensions const &boxAxes, int box);
+    BoxDimensions const &boxAxes, int moveType, int box);
 
 void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
                                double const *kx, double const *ky,
@@ -66,7 +66,7 @@ __global__ void BoxForceReciprocalGPU(
     double *gpu_lambdaCoulomb, double *gpu_cell_x, double *gpu_cell_y,
     double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
     double *gpu_Invcell_z, int *gpu_nonOrth, double axx, double axy, double axz,
-    int box);
+    int moveType, int box);
 
 __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_z, double *gpu_kx,

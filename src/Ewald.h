@@ -155,7 +155,7 @@ public:
   // calculate reciprocal force term for a box with molCoords
   virtual void BoxForceReciprocal(XYZArray const &molCoords,
                                   XYZArray &atomForceRec, XYZArray &molForceRec,
-                                  uint box);
+                                  int moveType, uint box);
 
   double GetLambdaCoef(uint molA, uint box) const;
 

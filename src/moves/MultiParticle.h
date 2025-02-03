@@ -24,7 +24,7 @@ along with this program, also can be found at
 class MultiParticle : public MoveBase {
 public:
   MultiParticle(System &sys, StaticVals const &statV);
-  ~MultiParticle() {}
+  virtual ~MultiParticle() {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   // To relax the system in NE_MTMC move
@@ -38,12 +38,12 @@ public:
 private:
   uint bPick;
   double lambda;
-  bool initMol[BOX_TOTAL];
+  bool initMol; // Used for ensembles with only one box
   SystemPotential sysPotNew;
+  XYZArray molForceNew;
+  XYZArray molForceRecNew;
   XYZArray molTorqueRef;
   XYZArray molTorqueNew;
-  XYZArray atomForceRecNew;
-  XYZArray molForceRecNew;
   XYZArray t_k;
   XYZArray r_k;
   Coordinates newMolsPos;
@@ -52,13 +52,13 @@ private:
   bool allTranslate;
   bool multiParticleLiquid, multiParticleGas;
   std::vector<uint> moleculeIndex;
-  std::vector<int> inForceRange;
   const MoleculeLookup &molLookup;
+  std::vector<int> inForceRange;
+  Random123Wrapper &r123wrapper;
+  const Molecules &mols;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
 #endif
-  Random123Wrapper &r123wrapper;
-  const Molecules &mols;
 
   double GetCoeff();
   uint ChooseBox();
@@ -80,10 +80,10 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV)
       newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
       newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
       molLookup(sys.molLookup), r123wrapper(sys.r123wrapper), mols(statV.mol) {
+  molForceNew.Init(sys.com.Count());
+  molForceRecNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
   molTorqueNew.Init(sys.com.Count());
-  atomForceRecNew.Init(sys.coordinates.Count());
-  molForceRecNew.Init(sys.com.Count());
 
   t_k.Init(sys.com.Count());
   r_k.Init(sys.com.Count());
@@ -94,9 +94,7 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV)
   // set default value for r_max, t_max, and lambda
   // the value of lambda is based on the paper
   lambda = 0.5;
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    initMol[b] = false;
-  }
+  initMol = false;
 
   // Check to see if we have only monoatomic molecules or not
   allTranslate = false;
@@ -136,7 +134,8 @@ inline void MultiParticle::SetMolInBox(uint box) {
     thisMol++;
   }
 #else
-  if (!initMol[box]) {
+  // box is always 0 in NVT or NPT ensemble, initialize it once
+  if (!initMol) {
     moleculeIndex.clear();
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -147,9 +146,9 @@ inline void MultiParticle::SetMolInBox(uint box) {
       }
       thisMol++;
     }
+    initMol = true;
   }
 #endif
-  initMol[box] = true;
 }
 
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc) {
@@ -200,11 +199,11 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc) {
 
   // Calculate short range energy and force for old positions
   calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
-                     boxDimRef, bPick, false);
+                     boxDimRef, moveType, bPick, false);
 
   // Calculate long range electrostatic force for old positions
   calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
-                                bPick);
+                                moveType, bPick);
 
   if (moveType == mp::MPROTATE) {
     // Calculate Torque for old positions
@@ -212,7 +211,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc) {
                               atomForceRef, atomForceRecRef, molTorqueRef,
                               bPick);
   }
-  sysPotRef.Total();
+
   GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
 
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
@@ -250,11 +249,11 @@ inline uint MultiParticle::PrepNEMTMC(const uint box, const uint midx,
 
   // Calculate short range energy and force for old positions
   calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
-                     boxDimRef, bPick, false);
+                     boxDimRef, moveType, bPick, false);
 
   // Calculate long range electrostatic force for old positions
   calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
-                                bPick);
+                                moveType, bPick);
 
   if (moveType == mp::MPROTATE) {
     // Calculate Torque for old positions
@@ -262,7 +261,6 @@ inline uint MultiParticle::PrepNEMTMC(const uint box, const uint midx,
                               atomForceRef, atomForceRecRef, molTorqueRef,
                               bPick);
   }
-  sysPotRef.Total();
 
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
@@ -387,20 +385,20 @@ inline void MultiParticle::CalcEn() {
   // calculate short range energy and force
   // this updates the Lennard-Jones and real electrostatic energy and
   // assigns the result to the new system potential
-  sysPotNew = calcEnRef.BoxForce(sysPotRef, newMolsPos, atomForceNew,
-                                 molForceNew, boxDimRef, bPick, true);
+  sysPotNew = calcEnRef.BoxForce(sysPotRef, newMolsPos, atomForceRef,
+                                 molForceNew, boxDimRef, moveType, bPick, true);
 
   // calculate long range electrostatic energy for new positions
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick, false);
 
   // Calculate long range electrostatic force for new positions
-  calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
-                                bPick);
+  calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecRef, molForceRecNew,
+                                moveType, bPick);
 
   if (moveType == mp::MPROTATE) {
     // Calculate Torque for new positions
-    calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
-                              atomForceRecNew, molTorqueNew, bPick);
+    calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceRef,
+                              atomForceRecRef, molTorqueNew, bPick);
   }
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
@@ -411,14 +409,20 @@ inline double MultiParticle::CalculateWRatio(XYZ const &lb_new,
                                              double max) {
   double w_ratio = 1.0;
 
-  w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0 * sinh(lb_new.x * max));
-  w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0 * sinh(lb_old.x * max));
+  w_ratio *=
+      lb_new.x * std::exp(-lb_new.x * k.x) / (2.0 * std::sinh(lb_new.x * max));
+  w_ratio /=
+      lb_old.x * std::exp(lb_old.x * k.x) / (2.0 * std::sinh(lb_old.x * max));
 
-  w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0 * sinh(lb_new.y * max));
-  w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0 * sinh(lb_old.y * max));
+  w_ratio *=
+      lb_new.y * std::exp(-lb_new.y * k.y) / (2.0 * std::sinh(lb_new.y * max));
+  w_ratio /=
+      lb_old.y * std::exp(lb_old.y * k.y) / (2.0 * std::sinh(lb_old.y * max));
 
-  w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0 * sinh(lb_new.z * max));
-  w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0 * sinh(lb_old.z * max));
+  w_ratio *=
+      lb_new.z * std::exp(-lb_new.z * k.z) / (2.0 * std::sinh(lb_new.z * max));
+  w_ratio /=
+      lb_old.z * std::exp(lb_old.z * k.z) / (2.0 * std::sinh(lb_old.z * max));
 
   return w_ratio;
 }
@@ -514,9 +518,18 @@ inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb,
 
   if (forceInRange) {
     XYZ randnums = r123wrapper.GetRandomCoords(molIndex);
-    val.x = log(exp(-1.0 * lbmax.x) + 2.0 * randnums.x * sinh(lbmax.x)) / lb.x;
-    val.y = log(exp(-1.0 * lbmax.y) + 2.0 * randnums.y * sinh(lbmax.y)) / lb.y;
-    val.z = log(exp(-1.0 * lbmax.z) + 2.0 * randnums.z * sinh(lbmax.z)) / lb.z;
+    val.x =
+        (std::log1p(2.0 * randnums.x * std::exp(lbmax.x) * std::sinh(lbmax.x)) -
+         lbmax.x) /
+        lb.x;
+    val.y =
+        (std::log1p(2.0 * randnums.y * std::exp(lbmax.y) * std::sinh(lbmax.y)) -
+         lbmax.y) /
+        lb.y;
+    val.z =
+        (std::log1p(2.0 * randnums.z * std::exp(lbmax.z) * std::sinh(lbmax.z)) -
+         lbmax.z) /
+        lb.z;
   }
 
   return val;

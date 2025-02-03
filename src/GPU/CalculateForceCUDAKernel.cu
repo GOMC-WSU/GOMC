@@ -14,6 +14,7 @@ along with this program, also can be found at
 #include "CalculateForceCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#include "MoveSettings.h"
 #include "cub/cub.cuh"
 
 const int NUMBER_OF_NEIGHBOR_CELLS = 27;
@@ -170,7 +171,7 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      double *mForcex, double *mForcey, double *mForcez,
                      int atomCount, int molCount, bool sc_coul,
                      double sc_sigma_6, double sc_alpha, uint sc_power,
-                     uint const box, const bool calcEnergies) {
+                     int moveType, uint const box, const bool calcEnergies) {
   int atomNumber = coords.Count();
   int numberOfCells = neighborList.size();
   int numberOfCellPairs = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
@@ -193,13 +194,17 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   CUMALLOC((void **)&gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
   UpdateEnergyVecs(vars, energyVectorLen, electrostatic);
 
-  // Initialize atom and molecule force arrays
-  cudaMemset(vars->gpu_aForcex, 0, atomCount * sizeof(double));
-  cudaMemset(vars->gpu_aForcey, 0, atomCount * sizeof(double));
-  cudaMemset(vars->gpu_aForcez, 0, atomCount * sizeof(double));
-  cudaMemset(vars->gpu_mForcex, 0, molCount * sizeof(double));
-  cudaMemset(vars->gpu_mForcey, 0, molCount * sizeof(double));
-  cudaMemset(vars->gpu_mForcez, 0, molCount * sizeof(double));
+  // Initialize atom or molecule force arrays depending on what will be needed
+  // for the rest of the move
+  if (moveType == mp::MPROTATE) {
+    cudaMemset(vars->gpu_aForcex, 0, atomCount * sizeof(double));
+    cudaMemset(vars->gpu_aForcey, 0, atomCount * sizeof(double));
+    cudaMemset(vars->gpu_aForcez, 0, atomCount * sizeof(double));
+  } else if (moveType == mp::MPDISPLACE) {
+    cudaMemset(vars->gpu_mForcex, 0, molCount * sizeof(double));
+    cudaMemset(vars->gpu_mForcey, 0, molCount * sizeof(double));
+    cudaMemset(vars->gpu_mForcez, 0, molCount * sizeof(double));
+  }
 
   // Copy necessary data to GPU
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
@@ -243,8 +248,8 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
       vars->gpu_aForcez, vars->gpu_mForcex, vars->gpu_mForcey,
       vars->gpu_mForcez, sc_coul, sc_sigma_6, sc_alpha, sc_power,
       vars->gpu_rMin, vars->gpu_rMaxSq, vars->gpu_expConst, vars->gpu_molIndex,
-      vars->gpu_lambdaVDW, vars->gpu_lambdaCoulomb, vars->gpu_isFraction, box,
-      calcEnergies);
+      vars->gpu_lambdaVDW, vars->gpu_lambdaCoulomb, vars->gpu_isFraction,
+      moveType, box, calcEnergies);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -270,18 +275,21 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
     LJEn = cpu_final_LJEn;
   }
 
-  cudaMemcpy(aForcex, vars->gpu_aForcex, sizeof(double) * atomCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(aForcey, vars->gpu_aForcey, sizeof(double) * atomCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(aForcez, vars->gpu_aForcez, sizeof(double) * atomCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(mForcex, vars->gpu_mForcex, sizeof(double) * molCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(mForcey, vars->gpu_mForcey, sizeof(double) * molCount,
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(mForcez, vars->gpu_mForcez, sizeof(double) * molCount,
-             cudaMemcpyDeviceToHost);
+  if (moveType == mp::MPROTATE) {
+    cudaMemcpy(aForcex, vars->gpu_aForcex, sizeof(double) * atomCount,
+               cudaMemcpyDeviceToHost);
+    cudaMemcpy(aForcey, vars->gpu_aForcey, sizeof(double) * atomCount,
+               cudaMemcpyDeviceToHost);
+    cudaMemcpy(aForcez, vars->gpu_aForcez, sizeof(double) * atomCount,
+               cudaMemcpyDeviceToHost);
+  } else if (moveType == mp::MPDISPLACE) {
+    cudaMemcpy(mForcex, vars->gpu_mForcex, sizeof(double) * molCount,
+               cudaMemcpyDeviceToHost);
+    cudaMemcpy(mForcey, vars->gpu_mForcey, sizeof(double) * molCount,
+               cudaMemcpyDeviceToHost);
+    cudaMemcpy(mForcez, vars->gpu_mForcez, sizeof(double) * molCount,
+               cudaMemcpyDeviceToHost);
+  }
 #ifndef NDEBUG
   cudaDeviceSynchronize();
 #endif
@@ -602,7 +610,7 @@ __global__ void BoxForceGPU(
     double *gpu_mForcez, bool sc_coul, double sc_sigma_6, double sc_alpha,
     uint sc_power, double *gpu_rMin, double *gpu_rMaxSq, double *gpu_expConst,
     int *gpu_molIndex, double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
-    bool *gpu_isFraction, int box, const bool calcEnergies) {
+    bool *gpu_isFraction, int moveType, int box, const bool calcEnergies) {
   __shared__ double shr_cutoffSq;
   __shared__ int shr_particlesInsideCurrentCell, shr_numberOfPairs;
   __shared__ int shr_currentCellStartIndex, shr_neighborCellStartIndex;
@@ -709,19 +717,21 @@ __global__ void BoxForceGPU(
         virComponents.x *= forces;
         virComponents.y *= forces;
         virComponents.z *= forces;
-        atomicAdd(&gpu_aForcex[currentParticle], virComponents.x);
-        atomicAdd(&gpu_aForcey[currentParticle], virComponents.y);
-        atomicAdd(&gpu_aForcez[currentParticle], virComponents.z);
-        atomicAdd(&gpu_aForcex[neighborParticle], -virComponents.x);
-        atomicAdd(&gpu_aForcey[neighborParticle], -virComponents.y);
-        atomicAdd(&gpu_aForcez[neighborParticle], -virComponents.z);
-
-        atomicAdd(&gpu_mForcex[mA], virComponents.x);
-        atomicAdd(&gpu_mForcey[mA], virComponents.y);
-        atomicAdd(&gpu_mForcez[mA], virComponents.z);
-        atomicAdd(&gpu_mForcex[mB], -virComponents.x);
-        atomicAdd(&gpu_mForcey[mB], -virComponents.y);
-        atomicAdd(&gpu_mForcez[mB], -virComponents.z);
+        if (moveType == mp::MPROTATE) {
+          atomicAdd(&gpu_aForcex[currentParticle], virComponents.x);
+          atomicAdd(&gpu_aForcey[currentParticle], virComponents.y);
+          atomicAdd(&gpu_aForcez[currentParticle], virComponents.z);
+          atomicAdd(&gpu_aForcex[neighborParticle], -virComponents.x);
+          atomicAdd(&gpu_aForcey[neighborParticle], -virComponents.y);
+          atomicAdd(&gpu_aForcez[neighborParticle], -virComponents.z);
+        } else if (moveType == mp::MPDISPLACE) {
+          atomicAdd(&gpu_mForcex[mA], virComponents.x);
+          atomicAdd(&gpu_mForcey[mA], virComponents.y);
+          atomicAdd(&gpu_mForcez[mA], virComponents.z);
+          atomicAdd(&gpu_mForcex[mB], -virComponents.x);
+          atomicAdd(&gpu_mForcey[mB], -virComponents.y);
+          atomicAdd(&gpu_mForcez[mB], -virComponents.z);
+        }
       }
     }
   }

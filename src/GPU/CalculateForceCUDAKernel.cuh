@@ -26,7 +26,7 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      double *mForcex, double *mForcey, double *mForcez,
                      int atomCount, int molCount, bool sc_coul,
                      double sc_sigma_6, double sc_alpha, uint sc_power,
-                     uint const box, const bool calcEnergies);
+                     int moveType, uint const box, const bool calcEnergies);
 
 void CallBoxInterForceGPU(
     VariablesCUDA *vars, const std::vector<int> &cellVector,
@@ -64,7 +64,7 @@ __global__ void BoxForceGPU(
     double *gpu_mForcez, bool sc_coul, double sc_sigma_6, double sc_alpha,
     uint sc_power, double *gpu_rMin, double *gpu_rMaxSq, double *gpu_expConst,
     int *gpu_molIndex, double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
-    bool *gpu_isFraction, int box, const bool calcEnergies);
+    bool *gpu_isFraction, int moveType, int box, const bool calcEnergies);
 
 __global__ void BoxInterForceGPU(
     int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,

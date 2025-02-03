@@ -270,8 +270,8 @@ reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
 SystemPotential
 CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                           XYZArray &atomForce, XYZArray &molForce,
-                          BoxDimensions const &boxAxes, const uint box,
-                          const bool calcEnergies) {
+                          BoxDimensions const &boxAxes, int moveType,
+                          const uint box, const bool calcEnergies) {
   // Handles reservoir box case, returning zeroed structure if
   // interactions are off.
   if (box >= BOXES_WITH_U_NB)
@@ -313,12 +313,12 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                            NonOrthAxes->cellBasis_Inv[box].z);
   }
 
-  CallBoxForceGPU(forcefield.particles->getCUDAVars(), cellVector,
-                  cellStartIndex, neighborList, mapParticleToCell, coords,
-                  boxAxes, electrostatic, tempREn, tempLJEn, aForcex, aForcey,
-                  aForcez, mForcex, mForcey, mForcez, atomCount, molCount,
-                  forcefield.sc_coul, forcefield.sc_sigma_6,
-                  forcefield.sc_alpha, forcefield.sc_power, box, calcEnergies);
+  CallBoxForceGPU(
+      forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
+      neighborList, mapParticleToCell, coords, boxAxes, electrostatic, tempREn,
+      tempLJEn, aForcex, aForcey, aForcez, mForcex, mForcey, mForcez, atomCount,
+      molCount, forcefield.sc_coul, forcefield.sc_sigma_6, forcefield.sc_alpha,
+      forcefield.sc_power, moveType, box, calcEnergies);
 
 #else
   // Reset Force Arrays
@@ -1375,7 +1375,7 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
                                       XYZArray &molTorque, const uint box) {
   if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     GOMC_EVENT_START(1, GomcProfileEvent::BOX_TORQUE);
-    // make a pointer to mol torque for OpenMP
+    // make pointers to molTorque arrays for OpenMP
     double *torquex = molTorque.x;
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;

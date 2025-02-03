@@ -1574,7 +1574,7 @@ void compareDouble(const double &x, const double &y, const int &i) {
 // calculate reciprocal force term for a box with molCoords
 void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
                                XYZArray &atomForceRec, XYZArray &molForceRec,
-                               uint box) {
+                               int moveType, uint box) {
   if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_FORCE);
     // M_2_SQRTPI is 2/sqrt(PI)
@@ -1608,10 +1608,10 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     }
 #endif
 
-    CallBoxForceReciprocalGPU(ff.particles->getCUDAVars(), atomForceRec,
-                              molForceRec, particleCharge, particleMol,
-                              particleUsed, startMol, lengthMol, constValue,
-                              imageSizeRef[box], molCoords, currentAxes, box);
+    CallBoxForceReciprocalGPU(
+        ff.particles->getCUDAVars(), atomForceRec, molForceRec, particleCharge,
+        particleMol, particleUsed, startMol, lengthMol, constValue,
+        imageSizeRef[box], molCoords, currentAxes, moveType, box);
 #else
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);

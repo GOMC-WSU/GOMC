@@ -241,18 +241,6 @@ void CallTranslateParticlesGPU(
   CUMALLOC((void **)&gpu_isMoleculeInvolved,
            isMoleculeInvolved.size() * sizeof(int8_t));
 
-  cudaMemcpy(vars->gpu_mForcex, mForcex, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mForcey, mForcey, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mForcez, mForcez, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mForceRecx, molForceRecRef.x, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mForceRecy, molForceRecRef.y, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_mForceRecz, molForceRecRef.z, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_isMoleculeInvolved, &isMoleculeInvolved[0],
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
