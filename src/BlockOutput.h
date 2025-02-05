@@ -111,13 +111,13 @@ private:
     stepsPerOut = event.frequency;
     invSteps = 1.0 / stepsPerOut;
     firstInvSteps = invSteps;
-    //Handle the case where we are restarting from a checkpoint and the first
-    //interval is smaller than expected because we create a checkpoint more
-    //often than the Block output frequency.
+    // Handle the case where we are restarting from a checkpoint and the first
+    // interval is smaller than expected because we create a checkpoint more
+    // often than the Block output frequency.
     if (startStep != 0 && (startStep % stepsPerOut) != 0) {
       ulong diff;
       diff = stepsPerOut - (startStep % stepsPerOut);
-      firstInvSteps = 1.0/diff;
+      firstInvSteps = 1.0 / diff;
     }
     enableOut = event.enable;
   }
