@@ -1648,7 +1648,7 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
             }
           }
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, p) reduction(+:X, Y, Z)
+#pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, moveType, p) reduction(+:X, Y, Z)
 #endif
           for (int i = 0; i < (int)imageSizeRef[box]; i++) {
             double dot =
@@ -1663,8 +1663,12 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
             Z += factor * kzRef[box][i];
           }
         }
-        atomForceRec.Set(p, X, Y, Z);
-        molForceRec.Add(molIndex, X, Y, Z);
+        if (moveType == mp::MPROTATE) {
+          atomForceRec.Set(p, X, Y, Z);
+		}
+		else if (moveType == mp::MPDISPLACE) {
+          molForceRec.Add(molIndex, X, Y, Z);
+		}
       }
       thisMol++;
     }

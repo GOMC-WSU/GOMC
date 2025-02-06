@@ -326,7 +326,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
-  firstprivate(box, calcEnergies, atomCount, molCount, num::qqFact) \
+  firstprivate(box, calcEnergies, atomCount, molCount, moveType, num::qqFact) \
   reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
             aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], \
             mForcez[:molCount])
@@ -383,18 +383,22 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
             // Negate the values for nParticle to reverse the orientation of
             // the virComponents vector, since it should point in the opposite
             // direction.
-            aForcex[currParticle] += forceLJ.x + forceReal.x;
-            aForcey[currParticle] += forceLJ.y + forceReal.y;
-            aForcez[currParticle] += forceLJ.z + forceReal.z;
-            aForcex[nParticle] += -(forceLJ.x + forceReal.x);
-            aForcey[nParticle] += -(forceLJ.y + forceReal.y);
-            aForcez[nParticle] += -(forceLJ.z + forceReal.z);
-            mForcex[particleMol[currParticle]] += (forceLJ.x + forceReal.x);
-            mForcey[particleMol[currParticle]] += (forceLJ.y + forceReal.y);
-            mForcez[particleMol[currParticle]] += (forceLJ.z + forceReal.z);
-            mForcex[particleMol[nParticle]] += -(forceLJ.x + forceReal.x);
-            mForcey[particleMol[nParticle]] += -(forceLJ.y + forceReal.y);
-            mForcez[particleMol[nParticle]] += -(forceLJ.z + forceReal.z);
+            if (moveType == mp::MPROTATE) {
+              aForcex[currParticle] += forceLJ.x + forceReal.x;
+              aForcey[currParticle] += forceLJ.y + forceReal.y;
+              aForcez[currParticle] += forceLJ.z + forceReal.z;
+              aForcex[nParticle] += -(forceLJ.x + forceReal.x);
+              aForcey[nParticle] += -(forceLJ.y + forceReal.y);
+              aForcez[nParticle] += -(forceLJ.z + forceReal.z);
+			}
+			else if (moveType == mp::MPDISPLACE) {
+              mForcex[particleMol[currParticle]] += (forceLJ.x + forceReal.x);
+              mForcey[particleMol[currParticle]] += (forceLJ.y + forceReal.y);
+              mForcez[particleMol[currParticle]] += (forceLJ.z + forceReal.z);
+              mForcex[particleMol[nParticle]] += -(forceLJ.x + forceReal.x);
+              mForcey[particleMol[nParticle]] += -(forceLJ.y + forceReal.y);
+              mForcez[particleMol[nParticle]] += -(forceLJ.z + forceReal.z);
+			}
           }
         }
       }
