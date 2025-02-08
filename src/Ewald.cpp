@@ -32,7 +32,7 @@ along with this program, also can be found at
 //
 //
 //    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocal part of ewald
+//    Calculating self, correction and reciprocal part of Ewald
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
 //
@@ -125,6 +125,10 @@ void Ewald::Init() {
   }
 
   AllocMem();
+#ifdef GOMC_CUDA
+  InitEwaldVariablesCUDA(ff.particles->getCUDAVars(), startMol, lengthMol,
+                         imageTotal);
+#endif
   // initialize K vectors and reciprocal terms
   UpdateVectorsAndRecipTerms(true);
 }
@@ -184,10 +188,6 @@ void Ewald::AllocMem() {
     sumRref[b] = new double[imageTotal];
     sumIref[b] = new double[imageTotal];
   }
-
-#ifdef GOMC_CUDA
-  InitEwaldVariablesCUDA(ff.particles->getCUDAVars(), imageTotal);
-#endif
 }
 
 // calculate reciprocal terms for a box. Should be called only at
@@ -1665,10 +1665,9 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
         }
         if (moveType == mp::MPROTATE) {
           atomForceRec.Set(p, X, Y, Z);
-		}
-		else if (moveType == mp::MPDISPLACE) {
+        } else if (moveType == mp::MPDISPLACE) {
           molForceRec.Add(molIndex, X, Y, Z);
-		}
+        }
       }
       thisMol++;
     }

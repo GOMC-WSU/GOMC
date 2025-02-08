@@ -339,6 +339,9 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
              cudaMemcpyDeviceToHost);
 }
 
+// Note: This implementation assumes that this function is always called after
+// BoxForce, so the coordinates have already been copied to the GPU. Otherwise,
+// add cudaMemcpy calls to copy the coordinates to gpu_x, gpu_y, and gpu_z.
 void CallBoxForceReciprocalGPU(
     VariablesCUDA *vars, XYZArray &atomForceRec, XYZArray &molForceRec,
     const std::vector<double> &particleCharge,
@@ -348,34 +351,18 @@ void CallBoxForceReciprocalGPU(
     BoxDimensions const &boxAxes, int moveType, int box) {
   int atomCount = atomForceRec.Count();
   int molCount = molForceRec.Count();
-  int *gpu_particleUsed;
-  int *gpu_startMol, *gpu_lengthMol;
 
   // calculate block and grid sizes
   int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = particleUsed.size();
-
-  CUMALLOC((void **)&gpu_particleUsed, particleUsed.size() * sizeof(int));
-  CUMALLOC((void **)&gpu_startMol, startMol.size() * sizeof(int));
-  CUMALLOC((void **)&gpu_lengthMol, lengthMol.size() * sizeof(int));
 
   if (moveType == mp::MPDISPLACE) {
     cudaMemset(vars->gpu_mForceRecx, 0, molCount * sizeof(double));
     cudaMemset(vars->gpu_mForceRecy, 0, molCount * sizeof(double));
     cudaMemset(vars->gpu_mForceRecz, 0, molCount * sizeof(double));
   }
-  cudaMemcpy(gpu_particleUsed, &particleUsed[0],
+  cudaMemcpy(vars->gpu_particleUsed, &particleUsed[0],
              sizeof(int) * particleUsed.size(), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_x, molCoords.x, sizeof(double) * atomCount,
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_y, molCoords.y, sizeof(double) * atomCount,
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_z, molCoords.z, sizeof(double) * atomCount,
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_startMol, &startMol[0], sizeof(int) * startMol.size(),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lengthMol, &lengthMol[0], sizeof(int) * lengthMol.size(),
-             cudaMemcpyHostToDevice);
 
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -384,14 +371,14 @@ void CallBoxForceReciprocalGPU(
   BoxForceReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_aForceRecx, vars->gpu_aForceRecy, vars->gpu_aForceRecz,
       vars->gpu_mForceRecx, vars->gpu_mForceRecy, vars->gpu_mForceRecz,
-      vars->gpu_particleCharge, vars->gpu_particleMol, gpu_particleUsed,
-      gpu_startMol, gpu_lengthMol, vars->gpu_alpha, vars->gpu_alphaSq,
-      constValue, imageSize, vars->gpu_kxRef[box], vars->gpu_kyRef[box],
-      vars->gpu_kzRef[box], vars->gpu_x, vars->gpu_y, vars->gpu_z,
-      vars->gpu_prefactRef[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
-      vars->gpu_isFraction, vars->gpu_molIndex, vars->gpu_lambdaCoulomb,
-      vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
-      vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
+      vars->gpu_particleCharge, vars->gpu_particleMol, vars->gpu_particleUsed,
+      vars->gpu_startMol, vars->gpu_lengthMol, vars->gpu_alpha,
+      vars->gpu_alphaSq, constValue, imageSize, vars->gpu_kxRef[box],
+      vars->gpu_kyRef[box], vars->gpu_kzRef[box], vars->gpu_x, vars->gpu_y,
+      vars->gpu_z, vars->gpu_prefactRef[box], vars->gpu_sumRnew[box],
+      vars->gpu_sumInew[box], vars->gpu_isFraction, vars->gpu_molIndex,
+      vars->gpu_lambdaCoulomb, vars->gpu_cell_x[box], vars->gpu_cell_y[box],
+      vars->gpu_cell_z[box], vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box], vars->gpu_nonOrth, boxAxes.GetAxis(box).x,
       boxAxes.GetAxis(box).y, boxAxes.GetAxis(box).z, moveType, box);
 #ifndef NDEBUG
@@ -414,13 +401,6 @@ void CallBoxForceReciprocalGPU(
     cudaMemcpy(molForceRec.z, vars->gpu_mForceRecz, sizeof(double) * molCount,
                cudaMemcpyDeviceToHost);
   }
-
-#ifndef NDEBUG
-  cudaDeviceSynchronize();
-#endif
-  CUFREE(gpu_particleUsed);
-  CUFREE(gpu_startMol);
-  CUFREE(gpu_lengthMol);
 }
 
 __global__ void BoxForceReciprocalGPU(

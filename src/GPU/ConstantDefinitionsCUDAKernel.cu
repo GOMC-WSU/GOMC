@@ -195,7 +195,10 @@ void InitPartVariablesCUDA(VariablesCUDA *vars,
              particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 }
 
-void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal) {
+void InitEwaldVariablesCUDA(VariablesCUDA *vars,
+                            const std::vector<int> &startMol,
+                            const std::vector<int> &lengthMol,
+                            uint imageTotal) {
   vars->gpu_kx = new double *[BOX_TOTAL];
   vars->gpu_ky = new double *[BOX_TOTAL];
   vars->gpu_kz = new double *[BOX_TOTAL];
@@ -235,6 +238,15 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal) {
   CUMALLOC((void **)&vars->gpu_wT23, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_wT33, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_recipEnergies, imageTotal * sizeof(double));
+  // The size of startMol and lengthMol are both the number of atoms in the
+  // system
+  CUMALLOC((void **)&vars->gpu_startMol, startMol.size() * sizeof(int));
+  CUMALLOC((void **)&vars->gpu_lengthMol, lengthMol.size() * sizeof(int));
+  CUMALLOC((void **)&vars->gpu_particleUsed, lengthMol.size() * sizeof(int));
+  cudaMemcpy(vars->gpu_startMol, &startMol[0], startMol.size() * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_lengthMol, &lengthMol[0], lengthMol.size() * sizeof(int),
+             cudaMemcpyHostToDevice);
   // Allocate space for cub reduction operations on the Ewald arrays
   // Set to the maximum value
   cub::DeviceReduce::Sum(vars->cub_reduce_storage,
@@ -420,6 +432,9 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_wT23);
   CUFREE(vars->gpu_wT33);
   CUFREE(vars->gpu_recipEnergies);
+  CUFREE(vars->gpu_startMol);
+  CUFREE(vars->gpu_lengthMol);
+  CUFREE(vars->gpu_particleUsed);
   CUFREE(vars->cub_reduce_storage);
 
   delete[] vars->gpu_kx;
