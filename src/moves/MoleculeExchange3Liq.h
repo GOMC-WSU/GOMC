@@ -196,7 +196,13 @@ inline uint MoleculeExchange3Liq::PickMolInCav()
         molIndex[destBox].push_back(pickedL);
         kindIndex[destBox].push_back(kindL);
         // Find the center of large molecule in destBox
-        cavityCenter[destBox] = comCurrRef.Get(pickedL);
+        //cavityCenter[destBox] = comCurrRef.Get(pickedL);
+	//cavityCenter[destBox] = comCurrRef.Get(pickedL);
+        //2/10/2025: Borrowed this code from MEMC3  Need to use the atomic
+        //coordinate of the seed atom for regrowing the old molecule to generate
+        //correct rosenbluth weights.
+        uint start = molRef.MolStart(molIndex[destBox][0]) + largeBB[0];
+        cavityCenter[destBox] = coordCurrRef.Get(start);
         //Use random orientation for cavity in destBox
         
         SetBasis(cavityMatrix[destBox], prng.RandomUnitVect());
