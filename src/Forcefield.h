@@ -54,12 +54,12 @@ public:
   double tolerance;                // Ewald sum terms
   double rswitch;                  // Switch distance
   double dielectric;               // dielectric for martini
-  double scaling_14; //!< Scaling factor for 1-4 pairs' ewald interactions
+  double scaling_14; //!< Scaling factor for 1-4 pairs' Ewald interactions
   double sc_alpha;   // Free energy parameter
   double sc_sigma, sc_sigma_6; // Free energy parameter
 
   bool OneThree, OneFour, OneN; // To include 1-3, 1-4 and more interaction
-  bool electrostatic, ewald;    // To consider columb interaction
+  bool electrostatic, ewald;    // To consider coulomb interaction
   bool vdwGeometricSigma;       // For sigma combining rule
   bool isMartini;
   bool exp6;
