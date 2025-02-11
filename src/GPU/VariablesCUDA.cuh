@@ -94,7 +94,6 @@ public:
     gpu_mForcex = nullptr;
     gpu_mForcey = nullptr;
     gpu_mForcez = nullptr;
-    gpu_startAtomIdx = nullptr;
     gpu_energyVecLen = 0;
     gpu_LJEn = nullptr;
     gpu_REn = nullptr;
