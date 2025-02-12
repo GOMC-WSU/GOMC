@@ -51,8 +51,9 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
                            double &energyRecip, uint box);
 
 void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
-                                  std::vector<double> molCharge,
-                                  double &energyRecipNew, XYZArray molCoords);
+                                  const std::vector<double> &molCharge,
+                                  double &energyRecipNew,
+                                  XYZArray const &molCoords);
 
 __global__ void BoxForceReciprocalGPU(
     double *gpu_aForceRecx, double *gpu_aForceRecy, double *gpu_aForceRecz,

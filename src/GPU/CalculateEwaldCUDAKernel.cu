@@ -306,8 +306,9 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
 }
 
 void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
-                                  std::vector<double> molCharge,
-                                  double &energyRecipNew, XYZArray molCoords) {
+                                  const std::vector<double> &molCharge,
+                                  double &energyRecipNew,
+                                  XYZArray const &molCoords) {
   // Calculate atom number -- exclude uncharged particles
   int atomNumber = molCharge.size();
 
