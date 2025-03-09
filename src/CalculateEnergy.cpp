@@ -8,6 +8,7 @@ along with this program, also can be found at
 #include "CalculateEnergy.h" //header for this
 
 #include <cassert>
+#include <chrono>
 
 #include "BasicTypes.h" //uint
 #include "BoxDimensions.h"
@@ -274,7 +275,11 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   // interactions are off.
   if (box >= BOXES_WITH_U_NB)
     return potential;
+    
+  auto start = std::chrono::high_resolution_clock::now();
 
+
+  //printf("beginning of BoxForce method: %ld", start);
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_FORCE);
 
   double tempREn = 0.0, tempLJEn = 0.0;
@@ -401,6 +406,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   potential.boxEnergy[box].real = tempREn;
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_FORCE);
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+  std::cout << "running time in ms: " << duration << "\n";
+
   return potential;
 }
 
