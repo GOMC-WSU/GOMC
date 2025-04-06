@@ -167,6 +167,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     return potential;
 
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTER);
+  auto start = std::chrono::high_resolution_clock::now();
   double tempREn = 0.0, tempLJEn = 0.0;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
@@ -257,7 +258,11 @@ reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
   // setting energy and virial of coulomb interaction
   potential.boxEnergy[box].real = tempREn;
 
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_INTER);
+  std::cout << "running time of BoxInter: " << duration << " ms\n";
   // set correction energy and virial
   if (forcefield.useLRC) {
     EnergyCorrection(potential, boxAxes, box);
@@ -424,6 +429,7 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
     return tempVir;
 
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_VIRIAL);
+  auto start = std::chrono::high_resolution_clock::now();
 
   // tensors for VDW and real part of electrostatic
   double vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
@@ -572,7 +578,11 @@ reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT
   // setting virial of coulomb
   tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
 
+  auto end = std::chrono::high_resolution_clock::now();
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_VIRIAL);
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+  std::cout << "running time of ViralCalc in ms: " << duration << "\n";
+
 
   if (forcefield.useLRC || forcefield.useIPC) {
     VirialCorrection(tempVir, currentAxes, box);
@@ -1373,6 +1383,7 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
                                       XYZArray const &atomForce,
                                       XYZArray const &atomForceRec,
                                       XYZArray &molTorque, const uint box) {
+  auto start = std::chrono::high_resolution_clock::now();
   if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     GOMC_EVENT_START(1, GomcProfileEvent::BOX_TORQUE);
     // make a pointer to mol torque for OpenMP
@@ -1408,6 +1419,9 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::BOX_TORQUE);
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+  std::cout << "running time of CalculateTorque in ms: " << duration << "\n";
 }
 
 void CalculateEnergy::ResetForce(XYZArray &atomForce, XYZArray &molForce,
