@@ -26,10 +26,8 @@ along with this program, also can be found at
 void MoleculeLookup::Init(const Molecules &mols,
                           const pdb_setup::Atoms &atomData, Forcefield &ff,
                           bool restartFromCheckpoint) {
-  // If we restFromChk, this info comes from file
-  if (restartFromCheckpoint) {
-    // Do nothing
-  } else {
+  // If we restartFromCheckpoint, this info comes from a file
+  if (!restartFromCheckpoint) {
     // Always allocate the raw array memory
     numKinds = mols.GetKindsCount();
 
@@ -79,14 +77,13 @@ void MoleculeLookup::Init(const Molecules &mols,
       }
 
       /* We don't currently support hybrid molecules - part fixed part flexible
-        so we get a consensus based on the precendent of betas defined in this
-        method */
+        so we get a consensus based on the betas defined in this method */
       uint pStart = 0, pEnd = 0;
       mols.GetRangeStartStop(pStart, pEnd, m);
       fixedMolecule[m] = GetConsensusMolBeta(
           pStart, pEnd, atomData.beta, m, box, mols.kinds[mols.kIndex[m]].name);
 
-      // Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
+      // Find the kind that can be swapped (beta == 0) or moved (beta == 0 or 2)
       if (fixedMolecule[m] == 0) {
         if (std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
             canSwapKind.end())
@@ -116,7 +113,7 @@ void MoleculeLookup::Init(const Molecules &mols,
 
     boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
   }
-// allocate and set gpu variables
+// allocate and set GPU variables
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars = ff.particles->getCUDAVars();
   int numMol = mols.count + 1;
@@ -222,7 +219,7 @@ uint MoleculeLookup::GetConsensusMolBeta(const uint pStart, const uint pEnd,
                 << "\nConflicting Indices"
                 << "\nStarting Index : " << pStart
                 << "\nConflicting Index : " << p << std::endl;
-      /* A beta == 1 functions like multiplying any number  by 0,
+      /* A beta == 1 functions like multiplying any number by 0,
         even if there is only 1 atom with beta == 1,
         the entire molecule will be fixed */
       if (firstBeta == 1.0 || betas[p] == 1.0) {
@@ -277,66 +274,76 @@ MoleculeLookup &MoleculeLookup::operator=(const MoleculeLookup &rhs) {
 void MoleculeLookup::AllocateMemory(int molLookupCount, int atomCount,
                                     int boxAndKindStartLength,
                                     int boxAndKindSwappableLength) {
-  if (molLookup == NULL)
+  if (molLookup == nullptr)
     molLookup = new uint32_t[molLookupCount];
-  if (molIndex == NULL)
+  if (molIndex == nullptr)
     molIndex = new int32_t[atomCount];
-  if (atomIndex == NULL)
+  if (atomIndex == nullptr)
     atomIndex = new int32_t[atomCount];
-  if (molKind == NULL)
+  if (molKind == nullptr)
     molKind = new int32_t[atomCount];
-  if (atomKind == NULL)
+  if (atomKind == nullptr)
     atomKind = new int32_t[atomCount];
-  if (atomCharge == NULL)
+  if (atomCharge == nullptr)
     atomCharge = new double[atomCount];
-  if (boxAndKindStart == NULL)
+  if (boxAndKindStart == nullptr)
     boxAndKindStart = new uint32_t[boxAndKindStartLength];
-  if (boxAndKindSwappableCounts == NULL)
+  if (boxAndKindSwappableCounts == nullptr)
     boxAndKindSwappableCounts = new uint32_t[boxAndKindSwappableLength];
 }
 
 bool MoleculeLookup::operator==(const MoleculeLookup &rhs) {
   bool result = true;
-  result &= (molLookupCount == rhs.molLookupCount);
-  for (int index = 0; index < molLookupCount; ++index) {
-    result &= (molLookup[index] == rhs.molLookup[index]);
+  result &= molLookupCount == rhs.molLookupCount;
+  // Check only if the index is valid for both arrays
+  if (result) {
+    for (int index = 0; index < molLookupCount; ++index) {
+      result &= molLookup[index] == rhs.molLookup[index]);
+    }
   }
   // index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   // molLookup
   // index [BOX_TOTAL * kind + box + 1] is the element after the end
   // of that kind/box
-  result &= (boxAndKindStartLength == rhs.boxAndKindStartLength);
-  for (int index = 0; index < boxAndKindStartLength; ++index) {
-    result &= (boxAndKindStart[index] == rhs.boxAndKindStart[index]);
+  result &= boxAndKindStartLength == rhs.boxAndKindStartLength;
+  // Check only if the index is valid for both arrays and anyway skip if the
+  // result is guaranteed to be false
+  if (result) {
+    for (int index = 0; index < boxAndKindStartLength; ++index) {
+      result &= boxAndKindStart[index] == rhs.boxAndKindStart[index];
+    }
   }
-  result &= (boxAndKindSwappableLength == rhs.boxAndKindSwappableLength);
-  for (int index = 0; index < boxAndKindSwappableLength; ++index) {
-    result &= (boxAndKindSwappableCounts[index] ==
-               rhs.boxAndKindSwappableCounts[index]);
+  result &= boxAndKindSwappableLength == rhs.boxAndKindSwappableLength;
+  // Check only if the index is valid for both arrays and anyway skip if the
+  // result is guaranteed to be false
+  if (result) {
+    for (int index = 0; index < boxAndKindSwappableLength; ++index) {
+      result &= boxAndKindSwappableCounts[index] ==
+                rhs.boxAndKindSwappableCounts[index];
+    }
   }
-  result &= (numKinds == rhs.numKinds);
-  result &= (fixedMolecule == rhs.fixedMolecule);
-  result &= (canSwapKind ==
-             rhs.canSwapKind); // Kinds that can move intra and inter box
-  result &=
-      (canMoveKind == rhs.canMoveKind); // Kinds that can move intra box only
-  result &= (atomCount == rhs.atomCount);
-  for (int index = 0; index < atomCount; ++index) {
-    result &=
-        (molIndex[index] == rhs.molIndex[index]); // stores the molecule index
-                                                  // for global atom index
-    result &= (atomIndex[index] ==
-               rhs.atomIndex[index]); // stores the local atom index for global
-                                      // atom index
-    result &=
-        (molKind[index] ==
-         rhs.molKind[index]); // stores the molecule kind for global atom index
-    result &=
-        (atomKind[index] ==
-         rhs.atomKind[index]); // stores the atom kind for global atom index
-    result &= (atomCharge[index] ==
-               rhs.atomCharge[index]); // stores the atom's charge for global
-                                       // atom index
+  result &= numKinds == rhs.numKinds;
+  result &= fixedMolecule == rhs.fixedMolecule;
+  // Kinds that can move intra and inter box
+  result &= canSwapKind == rhs.canSwapKind;
+  // Kinds that can move intra box only
+  result &= canMoveKind == rhs.canMoveKind;
+  result &= atomCount == rhs.atomCount;
+  // Check only if the index is valid for both arrays and anyway skip if the
+  // result is guaranteed to be false
+  if (result) {
+    for (int index = 0; index < atomCount; ++index) {
+      // stores the molecule index for global atom index
+      result &= molIndex[index] == rhs.molIndex[index];
+      // stores the local atom index for global atom index
+      result &= atomIndex[index] == rhs.atomIndex[index];
+      // stores the molecule kind for global atom index
+      result &= molKind[index] == rhs.molKind[index];
+      // stores the atom kind for global atom index
+      result &= atomKind[index] == rhs.atomKind[index];
+      // stores the atom's charge for global atom index
+      result &= atomCharge[index] == rhs.atomCharge[index];
+    }
   }
   return result;
 }
