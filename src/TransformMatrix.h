@@ -199,12 +199,13 @@ inline TransformMatrix TransformMatrix::TensorProduct(const XYZ &u) {
 inline TransformMatrix
 TransformMatrix::FromAxisAngle(double theta, const TransformMatrix &cross,
                                const TransformMatrix &tensor) {
-  double c = cos(theta);
+  double c = std::cos(theta);
   TransformMatrix r(c);
-  double s = sin(theta);
+  double s = std::sin(theta);
   for (uint i = 0; i < N; ++i) {
     for (uint j = 0; j < N; ++j) {
-      r.matrix[i][j] += s * cross.matrix[i][j] + (1 - c) * tensor.matrix[i][j];
+      r.matrix[i][j] +=
+          s * cross.matrix[i][j] + (1.0 - c) * tensor.matrix[i][j];
     }
   }
   return r;
