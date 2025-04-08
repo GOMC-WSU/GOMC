@@ -298,7 +298,7 @@ bool MoleculeLookup::operator==(const MoleculeLookup &rhs) {
   // Check only if the index is valid for both arrays
   if (result) {
     for (int index = 0; index < molLookupCount; ++index) {
-      result &= molLookup[index] == rhs.molLookup[index]);
+      result &= molLookup[index] == rhs.molLookup[index];
     }
   }
   // index [BOX_TOTAL * kind + box] is the first element of that kind/box in
