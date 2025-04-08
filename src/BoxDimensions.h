@@ -60,7 +60,12 @@ public:
                       const uint *box) const;
 
   // Vector btwn two points, accounting for PBC, on an individual axis
-  virtual XYZ MinImage(XYZ rawVec, const uint b) const;
+  virtual XYZ MinImage(XYZ rawVec, const uint b) const {
+    rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
+    rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
+    rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
+    return rawVec;
+  }
 
   // Apply PBC, on X axis
   virtual XYZ MinImage_X(XYZ rawVec, const uint b) const;
@@ -163,7 +168,13 @@ public:
 
   // Dist. btwn two points, accounting for PBC, on an individual axis
   double MinImage(double &raw, const double ax, const double halfAx) const;
-  double MinImageSigned(double raw, double ax, double halfAx) const;
+  double MinImageSigned(double raw, double ax, double halfAx) const {
+    if (raw > halfAx)
+      raw -= ax;
+    else if (raw < -halfAx)
+      raw += ax;
+    return raw;
+  }
 
   double WrapPBC(double &v, const double ax) const;
 

@@ -312,13 +312,6 @@ double BoxDimensions::UnwrapPBC(double &v, const double ref, const double ax,
 #endif
 }
 
-XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const {
-  rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
-  rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
-  rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
-  return rawVec;
-}
-
 XYZ BoxDimensions::MinImage_X(XYZ rawVec, const uint b) const {
   rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
   return rawVec;
@@ -351,13 +344,4 @@ double BoxDimensions::MinImage(double &raw, const double ax,
     raw = ax - raw;
   return raw; //...just pass back if distance is already minimum
 #endif
-}
-
-double BoxDimensions::MinImageSigned(double raw, double ax,
-                                     double halfAx) const {
-  if (raw > halfAx)
-    raw -= ax;
-  else if (raw < -halfAx)
-    raw += ax;
-  return raw;
 }
