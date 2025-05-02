@@ -104,9 +104,9 @@ int main(int argc, char *argv[]) {
     // SET NUMBER OF THREADS
 #ifdef _OPENMP
     omp_set_num_threads(numThreads);
-    printf("%-40s %-d \n", "Info: Number of threads", numThreads);
+    printf("%-40s %-d \n", "Info: Number of OpenMP threads:", numThreads);
 #else
-    printf("%-40s %-d \n", "Info: Number of threads", 1);
+    printf("%-40s %-d \n", "Info: Number of OpenMP threads", 1);
 #endif
 #if defined _OPENMP && _OPENMP < 201511
     printf("Warning: OpenMP version < 4.5. GOMC will not run optimally!\n");
@@ -114,15 +114,16 @@ int main(int argc, char *argv[]) {
     // Print the OpenMP version if recognized or instead the OpenMP date code.
 #ifdef _OPENMP
     std::unordered_map<int, std::string> omp_map{
-        {200505, "2.5"}, {200805, "3.0"}, {201107, "3.1"}, {201307, "4.0"},
-        {201511, "4.5"}, {201611, "5.0 Preview 1"}, {201811, "5.0"},
-        {202011, "5.1"}, {202111, "5.2"}, {202411, "6.0"}};
+        {200505, "2.5"}, {200805, "3.0"}, {201107, "3.1"},
+        {201307, "4.0"}, {201511, "4.5"}, {201611, "5.0 Preview 1"},
+        {201811, "5.0"}, {202011, "5.1"}, {202111, "5.2"},
+        {202411, "6.0"}};
     auto match = omp_map.find(_OPENMP);
     if (match == omp_map.end())
-      printf("%-40s %u\n", "Info: Compiled with OpenMP Version", _OPENMP);
+      printf("%-40s %u\n", "Info: Compiled with OpenMP Version:", _OPENMP);
     else
-      printf("%-40s %s\n", "Info: Compiled with OpenMP Version",
-             match->second.c_str());
+      printf("%-40s %s\n",
+             "Info: Compiled with OpenMP Version:", match->second.c_str());
 #endif
 
     // OPEN FILE
@@ -182,12 +183,11 @@ bool CheckAndPrintEnsemble() {
 #elif ENSEMBLE == NPT
   std::cout << "ISOBARIC-ISOTHERMAL";
 #else
-  std::cerr << "CRITICAL ERROR! Preprocessor value ENSEMBLE is "
-            << "invalid or undefined." << std::endl
-            << "Code will exit.";
+  std::cerr << "CRITICAL ERROR! Preprocessor value ENSEMBLE is invalid or "
+               "undefined.\nCode will exit.\n";
   healthy = false;
 #endif
-  std::cout << " ENSEMBLE." << std::endl;
+  std::cout << " ENSEMBLE.\n";
   return healthy;
 }
 
@@ -259,31 +259,28 @@ uint ReadNum(char *argv) {
 void PrintHardwareInfo() {
 #ifdef __linux__
   struct sysinfo mem;
-  const double megabyte = 1024 * 1024;
   struct utsname name;
   uname(&name);
   printf("CPU information:\n");
   std::cout << std::setprecision(1) << std::fixed;
-  std::cout << "Info: Total number of CPUs: " << get_nprocs() << std::endl;
-  std::cout << "Info: Total number of CPUs available: "
-            << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
+  std::cout << "Info: Total number of CPU cores: " << get_nprocs() << "\n";
+  std::cout << "Info: Total number of CPU cores available: "
+            << sysconf(_SC_NPROCESSORS_ONLN) << "\n";
   std::cout << "Info: Model name:" << std::flush;
   if (system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo") == -1)
-    std::cout << "Error: Couldn't retrieve CPU information" << std::endl;
-  std::cout << "Info: System name: " << name.sysname << std::endl;
-  std::cout << "Info: Release: " << name.release << std::endl;
-  std::cout << "Info: Version: " << name.version << std::endl;
-  std::cout << "Info: Kernel Architecture: " << name.machine << std::endl;
+    std::cout << "Error: Couldn't retrieve CPU information\n";
+  std::cout << "Info: System name: " << name.sysname << "\n";
+  std::cout << "Info: Release: " << name.release << "\n";
+  std::cout << "Info: Version: " << name.version << "\n";
+  std::cout << "Info: Kernel Architecture: " << name.machine << "\n";
   if (sysinfo(&mem) == 0) {
-    std::cout << "Info: Total Ram: " << mem.totalram / megabyte << "MB"
-              << std::endl;
-    std::cout << "Info: Used Ram: "
-              << mem.totalram / megabyte - mem.freeram / megabyte << "MB"
-              << std::endl;
+    const double megabyte = 1024 * 1024;
+    std::cout << "Info: Total Ram: " << mem.totalram / megabyte << "MB\n";
+    std::cout << "Info: Used Ram: " << (mem.totalram - mem.freeram) / megabyte
+              << "MB\n";
   }
   char *pathname = get_current_dir_name();
-  std::cout << "Info: Working in the current directory: " << pathname;
-  std::cout << std::endl;
+  std::cout << "Info: Working in the current directory: " << pathname << "\n";
   free(pathname);
 #endif
 }
