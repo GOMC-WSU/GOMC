@@ -8,7 +8,7 @@ along with this program, also can be found at
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
-// Standard way to get pi constant on most platforms
+// Standard way to get PI constants on most platforms
 // Needs to be defined _before_ including cmath
 // so that the PI constants come from cmath
 #ifndef _USE_MATH_DEFINES
@@ -19,6 +19,8 @@ along with this program, also can be found at
 #include <cstddef>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <string>
 #include <vector>
 
 typedef unsigned long int ulong;
@@ -102,7 +104,7 @@ inline void record_debug(uint *x, uint len, std::string filename,
   out << "\n";
 }
 
-//******************************************************************************
+//*****************************************************************************
 
 // single XYZ coordinate for use as a temporary and return type
 class XYZ {
@@ -111,7 +113,7 @@ public:
   XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
 
   friend inline std::ostream &operator<<(std::ostream &stream, const XYZ &p);
-  
+
   inline double getX() const { return x; }
   inline double getY() const { return y; }
   inline double getZ() const { return z; }
@@ -168,12 +170,20 @@ public:
     return *this;
   }
 
-  XYZ operator+(XYZ const &rhs) const { return XYZ(x+rhs.x, y+rhs.y, z+rhs.z); }
-  XYZ operator-(XYZ const &rhs) const { return XYZ(x-rhs.x, y-rhs.y, z-rhs.z); }
-  XYZ operator*(XYZ const &rhs) const { return XYZ(x*rhs.x, y*rhs.y, z*rhs.z); }
-  XYZ operator/(XYZ const &rhs) const { return XYZ(x/rhs.x, y/rhs.y, z/rhs.z); }
+  XYZ operator+(XYZ const &rhs) const {
+    return XYZ(x + rhs.x, y + rhs.y, z + rhs.z);
+  }
+  XYZ operator-(XYZ const &rhs) const {
+    return XYZ(x - rhs.x, y - rhs.y, z - rhs.z);
+  }
+  XYZ operator*(XYZ const &rhs) const {
+    return XYZ(x * rhs.x, y * rhs.y, z * rhs.z);
+  }
+  XYZ operator/(XYZ const &rhs) const {
+    return XYZ(x / rhs.x, y / rhs.y, z / rhs.z);
+  }
 
-  XYZ operator*(const double a) const { return XYZ(x*a, y*a, z*a); }
+  XYZ operator*(const double a) const { return XYZ(x * a, y * a, z * a); }
 
   XYZ operator-() const { return XYZ(-x, -y, -z); }
 
@@ -216,6 +226,42 @@ public:
 inline std::ostream &operator<<(std::ostream &stream, const XYZ &p) {
   stream << "[" << p.x << ", " << p.y << ", " << p.z << "]";
   return stream;
+}
+
+//*****************************************************************************
+
+// Print an XYZ coordinate in hexadecimal for low-level debugging
+inline void hexPrint(const XYZ &value, const std::string &str) {
+  union heXYZ {
+    double val[3];
+    uint64_t vali[3];
+  };
+  heXYZ hexPart;
+  hexPart.val[0] = value.getX();
+  hexPart.val[1] = value.getY();
+  hexPart.val[2] = value.getZ();
+  char fillchar = std::cout.fill();
+  std::cout << std::setfill('0');
+  std::cout << str << " is " << std::dec << value << " or (0x" << std::hex
+            << std::setw(16) << hexPart.vali[0] << ", 0x" << std::setw(16)
+            << hexPart.vali[1] << ", 0x" << std::setw(16) << hexPart.vali[2]
+            << ")\n";
+  std::cout << std::dec << std::setfill(fillchar);
+}
+
+// Print a double in hexadecimal for low-level debugging
+inline void hexPrint(const double value, const std::string &str) {
+  union heXYZ {
+    double val;
+    uint64_t vali;
+  };
+  heXYZ hexPart;
+  hexPart.val = value;
+  char fillchar = std::cout.fill();
+  std::cout << std::setfill('0');
+  std::cout << str << " is " << std::dec << value << " or (0x" << std::hex
+            << std::setw(16) << hexPart.vali << ")\n";
+  std::cout << std::dec << std::setfill(fillchar);
 }
 
 #endif /*BASIC_TYPES_H*/
