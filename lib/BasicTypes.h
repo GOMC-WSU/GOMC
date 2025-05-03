@@ -17,6 +17,7 @@ along with this program, also can be found at
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
