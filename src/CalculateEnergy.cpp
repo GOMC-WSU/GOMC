@@ -26,6 +26,7 @@ along with this program, also can be found at
 #include "StaticVals.h" //For init
 #include "System.h"     //For init
 #include "TrialMol.h"
+#include "chrono"
 #ifdef GOMC_CUDA
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
@@ -275,6 +276,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   if (box >= BOXES_WITH_U_NB)
     return potential;
 
+  auto t_start = std::chrono::high_resolution_clock::now();
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_FORCE);
 
   double tempREn = 0.0, tempLJEn = 0.0;
@@ -324,7 +326,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+#pragma omp parallel for collapse(1) default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
   firstprivate(box, atomCount, molCount, num::qqFact) \
   reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
@@ -333,58 +335,55 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 #endif
   for (int currParticleIdx = 0; currParticleIdx < (int)cellVector.size();
        currParticleIdx++) {
-    int currParticle = cellVector[currParticleIdx];
-    int currCell = mapParticleToCell[currParticle];
-
     for (int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL;
          nCellIndex++) {
-      int neighborCell = neighborList[currCell][nCellIndex];
+      int neighborCell = neighborList[mapParticleToCell[cellVector[currParticleIdx]]][nCellIndex];
 
       int endIndex = cellStartIndex[neighborCell + 1];
       for (int nParticleIndex = cellStartIndex[neighborCell];
            nParticleIndex < endIndex; nParticleIndex++) {
         int nParticle = cellVector[nParticleIndex];
 
-        if (currParticle < nParticle &&
-            particleMol[currParticle] != particleMol[nParticle]) {
+        if (cellVector[currParticleIdx] < nParticle &&
+            particleMol[cellVector[currParticleIdx]] != particleMol[nParticle]) {
           double distSq;
           XYZ virComponents, forceLJ, forceReal;
-          if (boxAxes.InRcut(distSq, virComponents, coords, currParticle,
+          if (boxAxes.InRcut(distSq, virComponents, coords, cellVector[currParticleIdx],
                              nParticle, box)) {
-            double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
+            double lambdaVDW = GetLambdaVDW(particleMol[cellVector[currParticleIdx]],
                                             particleMol[nParticle], box);
             if (electrostatic) {
               double lambdaCoulomb = GetLambdaCoulomb(
-                  particleMol[currParticle], particleMol[nParticle], box);
-              double qi_qj_fact = particleCharge[currParticle] *
+                  particleMol[cellVector[currParticleIdx]], particleMol[nParticle], box);
+              double qi_qj_fact = particleCharge[cellVector[currParticleIdx]] *
                                   particleCharge[nParticle] * num::qqFact;
               if (qi_qj_fact != 0.0) {
                 tempREn += forcefield.particles->CalcCoulomb(
-                    distSq, particleKind[currParticle], particleKind[nParticle],
+                    distSq, particleKind[cellVector[currParticleIdx]], particleKind[nParticle],
                     qi_qj_fact, lambdaCoulomb, box);
                 // Calculating the force
                 forceReal =
                     virComponents * forcefield.particles->CalcCoulombVir(
-                                        distSq, particleKind[currParticle],
+                                        distSq, particleKind[cellVector[currParticleIdx]],
                                         particleKind[nParticle], qi_qj_fact,
                                         lambdaCoulomb, box);
               }
             }
             tempLJEn += forcefield.particles->CalcEn(
-                distSq, particleKind[currParticle], particleKind[nParticle],
+                distSq, particleKind[cellVector[currParticleIdx]], particleKind[nParticle],
                 lambdaVDW);
             forceLJ = virComponents * forcefield.particles->CalcVir(
-                                          distSq, particleKind[currParticle],
+                                          distSq, particleKind[cellVector[currParticleIdx]],
                                           particleKind[nParticle], lambdaVDW);
-            aForcex[currParticle] += forceLJ.x + forceReal.x;
-            aForcey[currParticle] += forceLJ.y + forceReal.y;
-            aForcez[currParticle] += forceLJ.z + forceReal.z;
+            aForcex[cellVector[currParticleIdx]] += forceLJ.x + forceReal.x;
+            aForcey[cellVector[currParticleIdx]] += forceLJ.y + forceReal.y;
+            aForcez[cellVector[currParticleIdx]] += forceLJ.z + forceReal.z;
             aForcex[nParticle] += -(forceLJ.x + forceReal.x);
             aForcey[nParticle] += -(forceLJ.y + forceReal.y);
             aForcez[nParticle] += -(forceLJ.z + forceReal.z);
-            mForcex[particleMol[currParticle]] += (forceLJ.x + forceReal.x);
-            mForcey[particleMol[currParticle]] += (forceLJ.y + forceReal.y);
-            mForcez[particleMol[currParticle]] += (forceLJ.z + forceReal.z);
+            mForcex[particleMol[cellVector[currParticleIdx]]] += (forceLJ.x + forceReal.x);
+            mForcey[particleMol[cellVector[currParticleIdx]]] += (forceLJ.y + forceReal.y);
+            mForcez[particleMol[cellVector[currParticleIdx]]] += (forceLJ.z + forceReal.z);
             mForcex[particleMol[nParticle]] += -(forceLJ.x + forceReal.x);
             mForcey[particleMol[nParticle]] += -(forceLJ.y + forceReal.y);
             mForcez[particleMol[nParticle]] += -(forceLJ.z + forceReal.z);
@@ -401,6 +400,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   potential.boxEnergy[box].real = tempREn;
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_FORCE);
+  auto t_end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start);
+  std::cout << "duration of BoxForce in ms: " << duration.count() << std::endl;
+
   return potential;
 }
 
