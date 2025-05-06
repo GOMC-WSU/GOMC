@@ -114,17 +114,17 @@ void Coordinates::RotateRand(XYZArray &dest, uint &pStart, uint &pLen,
   RotationMatrix matrix = RotationMatrix::FromAxisAngle(theta, axis);
 
   XYZ center = comRef.Get(m);
+  XYZ CoMoffset = center - matrix.Apply(center);
   uint stop = 0;
   molRef.GetRange(pStart, stop, pLen, m);
   // Copy coordinates
   CopyRange(dest, pStart, 0, pLen);
 
   boxDimRef.UnwrapPBC(dest, b, center);
-  // Do rotation
-  for (uint p = 0; p < pLen; p++) { // Rotate each point.
-    dest.Add(p, -center);
+  // Computing the rotation this way has less round off than other methods
+  for (uint p = 0; p < pLen; ++p) { // Rotate each atom in the molecule
     dest.Set(p, matrix.Apply(dest.Get(p)));
-    dest.Add(p, center);
+    dest.Add(p, CoMoffset);
   }
   boxDimRef.WrapPBC(dest, b);
 }
@@ -139,7 +139,7 @@ void Coordinates::VolumeTransferTranslate(uint &state, Coordinates &dest,
 
   // Scale cell
   state = boxDimRef.ExchangeVolume(newDim, scale, transfer, box);
-  // If scaling succeeded (if it wouldn't take the box to below 2*rcut, cont.
+  // If scaling succeeded, if it wouldn't take the box to below 2*rcut, cont.
   if (state == mv::fail_state::NO_FAIL) {
     for (uint b = 0; b < 2; ++b) {
       TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);

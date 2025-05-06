@@ -598,6 +598,7 @@ inline void MultiParticle::RotateForceBiased(uint molIndex) {
   matrix = RotationMatrix::FromAxisAngle(rotLen, cross, tensor);
 
   XYZ center = comCurrRef.Get(molIndex);
+  XYZ CoMoffset = center - matrix.Apply(center);
   uint start, stop, len;
   molRef.GetRange(start, stop, len, molIndex);
 
@@ -606,11 +607,10 @@ inline void MultiParticle::RotateForceBiased(uint molIndex) {
   newMolsPos.CopyRange(temp, start, 0, len);
   boxDimRef.UnwrapPBC(temp, bPick, center);
 
-  // Do Rotation
-  for (uint p = 0; p < len; p++) {
-    temp.Add(p, -center);
+  // Computing the rotation this way has less round off than other methods
+  for (uint p = 0; p < len; ++p) { // Rotate each atom in the molecule
     temp.Set(p, matrix.Apply(temp[p]));
-    temp.Add(p, center);
+    temp.Add(p, CoMoffset);
   }
   boxDimRef.WrapPBC(temp, bPick);
   // Copy back the result
