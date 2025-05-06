@@ -736,7 +736,7 @@ __global__ void BoxForceGPU(
     }
   }
 
-  // This is true or not for the entire kernel, so it's OK to have the
+  // calcEnergies has the same value for all threads, so it's OK to have the
   // __syncthreads inside the if block
   if (calcEnergies) {
     __syncthreads();
