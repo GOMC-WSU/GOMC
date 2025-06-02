@@ -508,28 +508,21 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step) {
 
 inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb,
                                               double const max, uint molIndex) {
-  XYZ lbmax = lb * max;
+  XYZ lbmx = lb * max;
   // XYZ default constructor initializes to (0.0, 0.0, 0.0)
   XYZ val;
-  forceInRange =
-      std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE &&
-      std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE &&
-      std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE;
+  forceInRange = std::abs(lbmx.x) > MIN_FORCE && std::abs(lbmx.x) < MAX_FORCE &&
+                 std::abs(lbmx.y) > MIN_FORCE && std::abs(lbmx.y) < MAX_FORCE &&
+                 std::abs(lbmx.z) > MIN_FORCE && std::abs(lbmx.z) < MAX_FORCE;
 
   if (forceInRange) {
     XYZ randnums = r123wrapper.GetRandomCoords(molIndex);
-    val.x =
-        (std::log1p(2.0 * randnums.x * std::exp(lbmax.x) * std::sinh(lbmax.x)) -
-         lbmax.x) /
-        lb.x;
-    val.y =
-        (std::log1p(2.0 * randnums.y * std::exp(lbmax.y) * std::sinh(lbmax.y)) -
-         lbmax.y) /
-        lb.y;
-    val.z =
-        (std::log1p(2.0 * randnums.z * std::exp(lbmax.z) * std::sinh(lbmax.z)) -
-         lbmax.z) /
-        lb.z;
+    val.x = std::log(std::exp(-lbmx.x) + 2.0 * randnums.x * std::sinh(lbmx.x)) /
+            lb.x;
+    val.y = std::log(std::exp(-lbmx.y) + 2.0 * randnums.y * std::sinh(lbmx.y)) /
+            lb.y;
+    val.z = std::log(std::exp(-lbmx.z) + 2.0 * randnums.z * std::sinh(lbmx.z)) /
+            lb.z;
   }
 
   return val;

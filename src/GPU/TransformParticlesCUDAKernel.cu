@@ -409,12 +409,9 @@ __global__ void TranslateParticlesKernel(
 
   if (forceInRange) {
     double3 randnums = randomCoordsGPU(molIndex, key, step, seed);
-    shiftx =
-        (-lbmaxx + log1p(2.0 * randnums.x * exp(lbmaxx) * sinh(lbmaxx))) / lbfx;
-    shifty =
-        (-lbmaxy + log1p(2.0 * randnums.y * exp(lbmaxy) * sinh(lbmaxy))) / lbfy;
-    shiftz =
-        (-lbmaxz + log1p(2.0 * randnums.z * exp(lbmaxz) * sinh(lbmaxz))) / lbfz;
+    shiftx = log(exp(-lbmaxx) + 2.0 * randnums.x * sinh(lbmaxx)) / lbfx;
+    shifty = log(exp(-lbmaxy) + 2.0 * randnums.y * sinh(lbmaxy)) / lbfy;
+    shiftz = log(exp(-lbmaxz) + 2.0 * randnums.z * sinh(lbmaxz)) / lbfz;
   } else {
     double3 randnums = SymRandomCoordsGPU(molIndex, key, step, seed);
     shiftx = t_max * randnums.x;
@@ -498,12 +495,9 @@ __global__ void RotateParticlesKernel(
 
   if (forceInRange) {
     double3 randnums = randomCoordsGPU(molIndex, key, step, seed);
-    rotx =
-        (-lbmaxx + log1p(2.0 * randnums.x * exp(lbmaxx) * sinh(lbmaxx))) / lbtx;
-    roty =
-        (-lbmaxy + log1p(2.0 * randnums.y * exp(lbmaxy) * sinh(lbmaxy))) / lbty;
-    rotz =
-        (-lbmaxz + log1p(2.0 * randnums.z * exp(lbmaxz) * sinh(lbmaxz))) / lbtz;
+    rotx = log(exp(-lbmaxx) + 2.0 * randnums.x * sinh(lbmaxx)) / lbtx;
+    roty = log(exp(-lbmaxy) + 2.0 * randnums.y * sinh(lbmaxy)) / lbty;
+    rotz = log(exp(-lbmaxz) + 2.0 * randnums.z * sinh(lbmaxz)) / lbtz;
     theta = sqrt(rotx * rotx + roty * roty + rotz * rotz);
     rotvec = make_double3(rotx * (1.0 / theta), roty * (1.0 / theta),
                           rotz * (1.0 / theta));
