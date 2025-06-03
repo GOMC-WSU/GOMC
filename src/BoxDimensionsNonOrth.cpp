@@ -7,7 +7,6 @@ along with this program, also can be found at
 ********************************************************************************/
 #include "BoxDimensionsNonOrth.h"
 
-#include "BoxDimensions.h"
 #include "GeomLib.h"
 #include "MoveConst.h" //For cutoff-related fail condition
 
