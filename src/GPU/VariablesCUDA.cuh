@@ -133,7 +133,7 @@ public:
   int *gpu_VDW_Kind;
   int *gpu_isMartini;
   int *gpu_count;
-  int *gpu_startAtomIdx; // start atom index of the molecule
+  int *gpu_startAtomIdx; // index of first atom in each molecule
   double *gpu_rCut, *gpu_rCutSq;
   double *gpu_rCutCoulomb, *gpu_rCutCoulombSq;
   double *gpu_rCutLow;

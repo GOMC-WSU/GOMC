@@ -11,6 +11,7 @@ along with this program, also can be found at
 #ifdef GOMC_CUDA
 #include "EnsemblePreprocessor.h"
 #include "GeomLib.h"
+#include "Molecules.h"
 #include "VariablesCUDA.cuh"
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -36,6 +37,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars,
                             const std::vector<int> &lengthMol, uint imageTotal);
 void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
                            double *rMaxSq, uint size);
+void InitMoleculeVariablesCUDA(VariablesCUDA *vars, const Molecules &mols);
 void InitPartVariablesCUDA(VariablesCUDA *vars,
                            const std::vector<int> &particleKind,
                            const std::vector<int> &particleMol,

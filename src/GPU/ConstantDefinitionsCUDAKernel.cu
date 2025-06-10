@@ -183,6 +183,15 @@ void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
 #endif
 }
 
+void InitMoleculeVariablesCUDA(VariablesCUDA *vars, const Molecules &mols) {
+  const int numMol = mols.count + 1;
+  // allocate memory to store molecule start atom index
+  CUMALLOC((void **)&vars->gpu_startAtomIdx, numMol * sizeof(int));
+  // copy start atom index
+  cudaMemcpy(vars->gpu_startAtomIdx, mols.start, numMol * sizeof(int),
+             cudaMemcpyHostToDevice);
+}
+
 void InitPartVariablesCUDA(VariablesCUDA *vars,
                            const std::vector<int> &particleKind,
                            const std::vector<int> &particleMol,

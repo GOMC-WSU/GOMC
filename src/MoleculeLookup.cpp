@@ -12,15 +12,11 @@ along with this program, also can be found at
 #include <utility>
 
 #include "EnsemblePreprocessor.h" //For box total
-#include "Molecules.h"            //For init.
-#include "PDBSetup.h"             //For init.
+#include "Molecules.h"            //For init
+#include "PDBSetup.h"             //For init
 #include "PRNG.h"                 //For index selection
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
-
-#include "CUDAMemoryManager.cuh"
-#include "VariablesCUDA.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
 void MoleculeLookup::Init(const Molecules &mols,
@@ -115,13 +111,7 @@ void MoleculeLookup::Init(const Molecules &mols,
   }
 // allocate and set GPU variables
 #ifdef GOMC_CUDA
-  VariablesCUDA *cudaVars = ff.particles->getCUDAVars();
-  int numMol = mols.count + 1;
-  // allocate memory to store molecule start atom index
-  CUMALLOC((void **)&cudaVars->gpu_startAtomIdx, numMol * sizeof(int));
-  // copy start atom index
-  cudaMemcpy(cudaVars->gpu_startAtomIdx, mols.start, numMol * sizeof(int),
-             cudaMemcpyHostToDevice);
+  InitMoleculeVariablesCUDA(ff.particles->getCUDAVars(), mols);
 #endif
 }
 
