@@ -579,7 +579,7 @@ void BrownianMotionRotateParticlesGPU(
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, r_max, step, key,
         seed, BETA);
   else
-    BrownianMotionRotateKernel<true><<<blocksPerGrid, threadsPerBlock>>>(
+    BrownianMotionRotateKernel<false><<<blocksPerGrid, threadsPerBlock>>>(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
         vars->gpu_mTorquex, vars->gpu_mTorquey, vars->gpu_mTorquez,
         vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_r_k_x,
