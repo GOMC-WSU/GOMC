@@ -85,8 +85,6 @@ public:
     gpu_ewald = nullptr;
     gpu_diElectric_1 = nullptr;
     gpu_finalVal = nullptr;
-    gpu_startMol = nullptr;
-    gpu_lengthMol = nullptr;
     gpu_particleUsed = nullptr;
     gpu_aForcex = nullptr;
     gpu_aForcey = nullptr;
@@ -145,7 +143,6 @@ public:
   double *gpu_x, *gpu_y, *gpu_z;
   double *gpu_molCharge, *gpu_particleCharge;
   int *gpu_particleKind, *gpu_particleMol, *gpu_particleUsed;
-  int *gpu_startMol, *gpu_lengthMol;
   double *gpu_nx, *gpu_ny, *gpu_nz;
   double *gpu_dx, *gpu_dy, *gpu_dz;
   double **gpu_kx, **gpu_ky, **gpu_kz;

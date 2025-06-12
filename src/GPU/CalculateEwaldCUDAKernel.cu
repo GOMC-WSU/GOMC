@@ -347,7 +347,6 @@ void CallBoxForceReciprocalGPU(
     VariablesCUDA *vars, XYZArray &atomForceRec, XYZArray &molForceRec,
     const std::vector<double> &particleCharge,
     const std::vector<int> &particleMol, const std::vector<int> &particleUsed,
-    const std::vector<int> &startMol, const std::vector<int> &lengthMol,
     double constValue, uint imageSize, XYZArray const &molCoords,
     BoxDimensions const &boxAxes, int moveType, int box) {
   int atomCount = atomForceRec.Count();
@@ -373,13 +372,13 @@ void CallBoxForceReciprocalGPU(
       vars->gpu_aForceRecx, vars->gpu_aForceRecy, vars->gpu_aForceRecz,
       vars->gpu_mForceRecx, vars->gpu_mForceRecy, vars->gpu_mForceRecz,
       vars->gpu_particleCharge, vars->gpu_particleMol, vars->gpu_particleUsed,
-      vars->gpu_startMol, vars->gpu_lengthMol, vars->gpu_alpha,
-      vars->gpu_alphaSq, constValue, imageSize, vars->gpu_kxRef[box],
-      vars->gpu_kyRef[box], vars->gpu_kzRef[box], vars->gpu_x, vars->gpu_y,
-      vars->gpu_z, vars->gpu_prefactRef[box], vars->gpu_sumRnew[box],
-      vars->gpu_sumInew[box], vars->gpu_isFraction, vars->gpu_molIndex,
-      vars->gpu_lambdaCoulomb, vars->gpu_cell_x[box], vars->gpu_cell_y[box],
-      vars->gpu_cell_z[box], vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
+      vars->gpu_startAtomIdx, vars->gpu_alpha, vars->gpu_alphaSq, constValue,
+      imageSize, vars->gpu_kxRef[box], vars->gpu_kyRef[box],
+      vars->gpu_kzRef[box], vars->gpu_x, vars->gpu_y, vars->gpu_z,
+      vars->gpu_prefactRef[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
+      vars->gpu_isFraction, vars->gpu_molIndex, vars->gpu_lambdaCoulomb,
+      vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
+      vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box], vars->gpu_nonOrth, boxAxes.GetAxis(box).x,
       boxAxes.GetAxis(box).y, boxAxes.GetAxis(box).z, moveType, box);
 #ifndef NDEBUG
@@ -407,16 +406,16 @@ void CallBoxForceReciprocalGPU(
 __global__ void BoxForceReciprocalGPU(
     double *gpu_aForceRecx, double *gpu_aForceRecy, double *gpu_aForceRecz,
     double *gpu_mForceRecx, double *gpu_mForceRecy, double *gpu_mForceRecz,
-    double *gpu_particleCharge, int *gpu_particleMol,
-    const int *gpu_particleUsed, int *gpu_startMol, int *gpu_lengthMol,
-    double *gpu_alpha, double *gpu_alphaSq, double constValue, int imageSize,
-    double *gpu_kx, double *gpu_ky, double *gpu_kz, double *gpu_x,
-    double *gpu_y, double *gpu_z, double *gpu_prefact, double *gpu_sumRnew,
-    double *gpu_sumInew, bool *gpu_isFraction, int *gpu_molIndex,
-    double *gpu_lambdaCoulomb, double *gpu_cell_x, double *gpu_cell_y,
-    double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
-    double *gpu_Invcell_z, int *gpu_nonOrth, double axx, double axy, double axz,
-    int moveType, int box) {
+    const double *gpu_particleCharge, const int *gpu_particleMol,
+    const int *gpu_particleUsed, const int *gpu_startAtomIdx, double *gpu_alpha,
+    double *gpu_alphaSq, double constValue, int imageSize, double *gpu_kx,
+    double *gpu_ky, double *gpu_kz, double *gpu_x, double *gpu_y, double *gpu_z,
+    double *gpu_prefact, double *gpu_sumRnew, double *gpu_sumInew,
+    bool *gpu_isFraction, int *gpu_molIndex, double *gpu_lambdaCoulomb,
+    double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
+    double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
+    int *gpu_nonOrth, double axx, double axy, double axz, int moveType,
+    int box) {
 
   __shared__ int particleID, moleculeID;
   __shared__ double x, y, z, lambdaCoef, fixed;
@@ -453,10 +452,8 @@ __global__ void BoxForceReciprocalGPU(
   if (threadIdx.x == THREADS_PER_BLOCK - 1) {
     double intraForce = 0.0, distSq = 0.0, dist = 0.0;
     double3 distVect;
-    int lastParticleWithinSameMolecule =
-        gpu_startMol[particleID] + gpu_lengthMol[particleID];
-    for (int otherParticle = gpu_startMol[particleID];
-         otherParticle < lastParticleWithinSameMolecule; ++otherParticle) {
+    for (int otherParticle = gpu_startAtomIdx[moleculeID];
+         otherParticle < gpu_startAtomIdx[moleculeID + 1]; ++otherParticle) {
       if (particleID != otherParticle) {
         DeviceInRcut(distSq, distVect, gpu_x, gpu_y, gpu_z, particleID,
                      otherParticle, axx, axy, axz, *gpu_nonOrth, gpu_cell_x,

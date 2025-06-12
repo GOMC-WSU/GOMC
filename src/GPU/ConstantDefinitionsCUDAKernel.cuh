@@ -32,9 +32,7 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *alphaSq, int ewald, double diElectric_1);
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint maxAtomNumber,
                          uint maxAtomsInMol, uint maxMolNumber);
-void InitEwaldVariablesCUDA(VariablesCUDA *vars,
-                            const std::vector<int> &startMol,
-                            const std::vector<int> &lengthMol, uint imageTotal);
+void InitEwaldVariablesCUDA(VariablesCUDA *vars, int numAtoms, uint imageTotal);
 void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
                            double *rMaxSq, uint size);
 void InitMoleculeVariablesCUDA(VariablesCUDA *vars, const Molecules &mols);

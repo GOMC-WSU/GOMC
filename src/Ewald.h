@@ -215,10 +215,6 @@ protected:
   std::vector<int> particleKind;
   std::vector<int> particleMol;
 
-  // starting index of molecule
-  std::vector<int> startMol;
-  // length of each molecule
-  std::vector<int> lengthMol;
   // starting atom index of each box
   int boxStart[BOX_TOTAL];
   // ending atom index of each box

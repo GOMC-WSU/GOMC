@@ -115,18 +115,9 @@ void Ewald::Init() {
     }
   }
 
-  // initialize starting index and length index of each molecule
-  startMol.resize(currentCoords.Count());
-  lengthMol.resize(currentCoords.Count());
-
-  for (int atom = 0; atom < (int)currentCoords.Count(); atom++) {
-    startMol[atom] = mols.MolStart(particleMol[atom]);
-    lengthMol[atom] = mols.MolLength(particleMol[atom]);
-  }
-
   AllocMem();
 #ifdef GOMC_CUDA
-  InitEwaldVariablesCUDA(ff.particles->getCUDAVars(), startMol, lengthMol,
+  InitEwaldVariablesCUDA(ff.particles->getCUDAVars(), currentCoords.Count(),
                          imageTotal);
 #endif
   // initialize K vectors and reciprocal terms
@@ -1608,10 +1599,10 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     }
 #endif
 
-    CallBoxForceReciprocalGPU(
-        ff.particles->getCUDAVars(), atomForceRec, molForceRec, particleCharge,
-        particleMol, particleUsed, startMol, lengthMol, constValue,
-        imageSizeRef[box], molCoords, currentAxes, moveType, box);
+    CallBoxForceReciprocalGPU(ff.particles->getCUDAVars(), atomForceRec,
+                              molForceRec, particleCharge, particleMol,
+                              particleUsed, constValue, imageSizeRef[box],
+                              molCoords, currentAxes, moveType, box);
 #else
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
