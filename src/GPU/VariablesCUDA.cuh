@@ -171,8 +171,7 @@ public:
   double *gpu_mForceRecx, *gpu_mForceRecy, *gpu_mForceRecz;
   double *gpu_rMin, *gpu_expConst, *gpu_rMaxSq;
 
-  double *gpu_r_k_x, *gpu_r_k_y, *gpu_r_k_z;
-  double *gpu_t_k_x, *gpu_t_k_y, *gpu_t_k_z;
+  double *gpu_rt_k_x, *gpu_rt_k_y, *gpu_rt_k_z;
 
   // lambda structure
   int *gpu_molIndex;

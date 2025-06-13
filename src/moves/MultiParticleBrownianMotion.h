@@ -43,8 +43,7 @@ private:
   XYZArray molForceRecNew;
   XYZArray molTorqueRef;
   XYZArray molTorqueNew;
-  XYZArray t_k;
-  XYZArray r_k;
+  XYZArray rt_k;
   Coordinates newMolsPos;
   COM newCOMs;
   int moveType;
@@ -80,8 +79,7 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys,
   molTorqueRef.Init(sys.com.Count());
   molTorqueNew.Init(sys.com.Count());
 
-  t_k.Init(sys.com.Count());
-  r_k.Init(sys.com.Count());
+  rt_k.Init(sys.com.Count());
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(sys.com.Count());
 
@@ -297,7 +295,7 @@ inline uint MultiParticleBrownian::Transform() {
   if (moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
     BrownianMotionRotateParticlesGPU(
-        cudaVars, moleculeIndex, molTorqueRef, newMolsPos, newCOMs, r_k,
+        cudaVars, moleculeIndex, molTorqueRef, newMolsPos, newCOMs, rt_k,
         boxDimRef.GetAxis(bPick), BETA, r_max, r123wrapper.GetStep(),
         r123wrapper.GetKeyValue(), r123wrapper.GetSeedValue(), bPick,
         isOrthogonal);
@@ -305,7 +303,7 @@ inline uint MultiParticleBrownian::Transform() {
     double t_max = moveSetRef.GetTMAX(bPick);
     BrownianMotionTranslateParticlesGPU(
         cudaVars, moleculeIndex, molForceRef, molForceRecRef, newMolsPos,
-        newCOMs, t_k, boxDimRef.GetAxis(bPick), BETA, t_max,
+        newCOMs, rt_k, boxDimRef.GetAxis(bPick), BETA, t_max,
         r123wrapper.GetStep(), r123wrapper.GetKeyValue(),
         r123wrapper.GetSeedValue(), bPick, isOrthogonal);
   }
@@ -317,11 +315,8 @@ inline uint MultiParticleBrownian::Transform() {
   // Do error checking and skip if there is an invalid transform amount.
   for (int m = 0; m < (int)moleculeIndex.size(); m++) {
     uint molIndex = moleculeIndex[m];
-    XYZ num;
-    if (moveType == mp::MPROTATE) // rotate
-      num = r_k.Get(molIndex);
-    else { // displace
-      num = t_k.Get(molIndex);
+    XYZ num = rt_k.Get(molIndex);
+    if (moveType == mp::MPDISPLACE) { // displace
       // check for PBC error and bad initial configuration
       if (num > boxDimRef.GetHalfAxis(bPick)) {
         std::cout << "Warning: Trial Displacement exceeds half of the box "
@@ -436,7 +431,7 @@ inline double MultiParticleBrownian::GetCoeff() {
       // rotate, bt_ = BETA * force * maxForce
       XYZ bt_old = molTorqueRef.Get(molNumber) * BETA * r_max;
       XYZ bt_new = molTorqueNew.Get(molNumber) * BETA * r_max;
-      w_ratio += CalculateWRatio(bt_new, bt_old, r_k.Get(molNumber), r_max4);
+      w_ratio += CalculateWRatio(bt_new, bt_old, rt_k.Get(molNumber), r_max4);
     }
   } else { // displace
 #ifdef _OPENMP
@@ -451,7 +446,7 @@ inline double MultiParticleBrownian::GetCoeff() {
       XYZ bf_new =
           (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) * BETA *
           t_max;
-      w_ratio += CalculateWRatio(bf_new, bf_old, t_k.Get(molNumber), t_max4);
+      w_ratio += CalculateWRatio(bf_new, bf_old, rt_k.Get(molNumber), t_max4);
     }
   }
 
@@ -504,10 +499,10 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb,
 inline void MultiParticleBrownian::CalculateTrialDistRot() {
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
+  double *x = rt_k.x;
+  double *y = rt_k.y;
+  double *z = rt_k.z;
   if (moveType == mp::MPROTATE) { // rotate
-    double *x = r_k.x;
-    double *y = r_k.y;
-    double *z = r_k.z;
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(r_max, x, y, z)
 #endif
@@ -521,9 +516,6 @@ inline void MultiParticleBrownian::CalculateTrialDistRot() {
       RotateForceBiased(molIndex);
     }
   } else { // displace
-    double *x = t_k.x;
-    double *y = t_k.y;
-    double *z = t_k.z;
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(t_max, x, y, z)
 #endif
@@ -541,7 +533,7 @@ inline void MultiParticleBrownian::CalculateTrialDistRot() {
 }
 
 inline void MultiParticleBrownian::RotateForceBiased(uint molIndex) {
-  XYZ rot = r_k.Get(molIndex);
+  XYZ rot = rt_k.Get(molIndex);
   double rotLen = rot.Length();
   RotationMatrix matrix;
 
@@ -568,7 +560,7 @@ inline void MultiParticleBrownian::RotateForceBiased(uint molIndex) {
 }
 
 inline void MultiParticleBrownian::TranslateForceBiased(uint molIndex) {
-  XYZ shift = t_k.Get(molIndex);
+  XYZ shift = rt_k.Get(molIndex);
 
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;

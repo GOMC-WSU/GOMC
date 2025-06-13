@@ -232,7 +232,7 @@ void CallTranslateParticlesGPU(
     double t_max, double *mForcex, double *mForcey, double *mForcez,
     std::vector<int> &inForceRange, ulong step, unsigned int key, ulong seed,
     int atomCount, int molCount, double xAxes, double yAxes, double zAxes,
-    XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &t_k,
+    XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &rt_k,
     XYZArray &molForceRecRef) {
   int8_t *gpu_isMoleculeInvolved;
   int threadsPerBlock = 256;
@@ -268,7 +268,7 @@ void CallTranslateParticlesGPU(
       vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_cell_x[box],
       vars->gpu_cell_y[box], vars->gpu_cell_z[box], vars->gpu_Invcell_x[box],
       vars->gpu_Invcell_y[box], vars->gpu_Invcell_z[box], vars->gpu_nonOrth,
-      lambdaBETA, vars->gpu_t_k_x, vars->gpu_t_k_y, vars->gpu_t_k_z,
+      lambdaBETA, vars->gpu_rt_k_x, vars->gpu_rt_k_y, vars->gpu_rt_k_z,
       gpu_isMoleculeInvolved, vars->gpu_mForceRecx, vars->gpu_mForceRecy,
       vars->gpu_mForceRecz);
 #ifndef NDEBUG
@@ -288,11 +288,11 @@ void CallTranslateParticlesGPU(
              cudaMemcpyDeviceToHost);
   cudaMemcpy(newCOMs.z, vars->gpu_comz, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(t_k.x, vars->gpu_t_k_x, molCount * sizeof(double),
+  cudaMemcpy(rt_k.x, vars->gpu_rt_k_x, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(t_k.y, vars->gpu_t_k_y, molCount * sizeof(double),
+  cudaMemcpy(rt_k.y, vars->gpu_rt_k_y, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(t_k.z, vars->gpu_t_k_z, molCount * sizeof(double),
+  cudaMemcpy(rt_k.z, vars->gpu_rt_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(&inForceRange[0], vars->gpu_inForceRange, molCount * sizeof(int),
              cudaMemcpyDeviceToHost);
@@ -307,7 +307,7 @@ void CallRotateParticlesGPU(
     double r_max, double *mTorquex, double *mTorquey, double *mTorquez,
     std::vector<int> &inForceRange, ulong step, unsigned int key, ulong seed,
     int atomCount, int molCount, double xAxes, double yAxes, double zAxes,
-    XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &r_k) {
+    XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &rt_k) {
   int8_t *gpu_isMoleculeInvolved;
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
@@ -344,7 +344,7 @@ void CallRotateParticlesGPU(
       vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_cell_x[box],
       vars->gpu_cell_y[box], vars->gpu_cell_z[box], vars->gpu_Invcell_x[box],
       vars->gpu_Invcell_y[box], vars->gpu_Invcell_z[box], vars->gpu_nonOrth,
-      lambdaBETA, vars->gpu_r_k_x, vars->gpu_r_k_y, vars->gpu_r_k_z,
+      lambdaBETA, vars->gpu_rt_k_x, vars->gpu_rt_k_y, vars->gpu_rt_k_z,
       gpu_isMoleculeInvolved);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
@@ -357,11 +357,11 @@ void CallRotateParticlesGPU(
              cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.z, vars->gpu_z, atomCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(r_k.x, vars->gpu_r_k_x, molCount * sizeof(double),
+  cudaMemcpy(rt_k.x, vars->gpu_rt_k_x, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(r_k.y, vars->gpu_r_k_y, molCount * sizeof(double),
+  cudaMemcpy(rt_k.y, vars->gpu_rt_k_y, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(r_k.z, vars->gpu_r_k_z, molCount * sizeof(double),
+  cudaMemcpy(rt_k.z, vars->gpu_rt_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(&inForceRange[0], vars->gpu_inForceRange, molCount * sizeof(int),
              cudaMemcpyDeviceToHost);
@@ -379,7 +379,7 @@ __global__ void TranslateParticlesKernel(
     double *gpu_comy, double *gpu_comz, double *gpu_cell_x, double *gpu_cell_y,
     double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
     double *gpu_Invcell_z, int *gpu_nonOrth, double lambdaBETA,
-    double *gpu_t_k_x, double *gpu_t_k_y, double *gpu_t_k_z,
+    double *gpu_rt_k_x, double *gpu_rt_k_y, double *gpu_rt_k_z,
     int8_t *gpu_isMoleculeInvolved, double *gpu_mForceRecx,
     double *gpu_mForceRecy, double *gpu_mForceRecz) {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
@@ -451,9 +451,9 @@ __global__ void TranslateParticlesKernel(
     gpu_comx[molIndex] = com.x;
     gpu_comy[molIndex] = com.y;
     gpu_comz[molIndex] = com.z;
-    gpu_t_k_x[molIndex] = shiftx;
-    gpu_t_k_y[molIndex] = shifty;
-    gpu_t_k_z[molIndex] = shiftz;
+    gpu_rt_k_x[molIndex] = shiftx;
+    gpu_rt_k_y[molIndex] = shifty;
+    gpu_rt_k_z[molIndex] = shiftz;
     gpu_inForceRange[molIndex] = forceInRange;
   }
 }
@@ -466,7 +466,7 @@ __global__ void RotateParticlesKernel(
     double *gpu_comy, double *gpu_comz, double *gpu_cell_x, double *gpu_cell_y,
     double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
     double *gpu_Invcell_z, int *gpu_nonOrth, double lambdaBETA,
-    double *gpu_r_k_x, double *gpu_r_k_y, double *gpu_r_k_z,
+    double *gpu_rt_k_x, double *gpu_rt_k_y, double *gpu_rt_k_z,
     int8_t *gpu_isMoleculeInvolved) {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if (atomNumber >= atomCount)
@@ -512,9 +512,9 @@ __global__ void RotateParticlesKernel(
   }
 
   if (updateMol) {
-    gpu_r_k_x[molIndex] = rotx;
-    gpu_r_k_y[molIndex] = roty;
-    gpu_r_k_z[molIndex] = rotz;
+    gpu_rt_k_x[molIndex] = rotx;
+    gpu_rt_k_y[molIndex] = roty;
+    gpu_rt_k_z[molIndex] = rotz;
     gpu_inForceRange[molIndex] = forceInRange;
   }
 
@@ -530,7 +530,7 @@ __global__ void RotateParticlesKernel(
 
 void BrownianMotionRotateParticlesGPU(
     VariablesCUDA *vars, const std::vector<unsigned int> &moleculeInvolved,
-    XYZArray &mTorque, XYZArray &newMolPos, XYZArray &newCOMs, XYZArray &r_k,
+    XYZArray &mTorque, XYZArray &newMolPos, XYZArray &newCOMs, XYZArray &rt_k,
     const XYZ &boxAxes, const double BETA, const double r_max, ulong step,
     unsigned int key, ulong seed, const int box, const bool isOrthogonal) {
   int atomCount = newMolPos.Count();
@@ -572,8 +572,8 @@ void BrownianMotionRotateParticlesGPU(
     BrownianMotionRotateKernel<true><<<blocksPerGrid, threadsPerBlock>>>(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
         vars->gpu_mTorquex, vars->gpu_mTorquey, vars->gpu_mTorquez,
-        vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_r_k_x,
-        vars->gpu_r_k_y, vars->gpu_r_k_z, gpu_moleculeInvolved,
+        vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_rt_k_x,
+        vars->gpu_rt_k_y, vars->gpu_rt_k_z, gpu_moleculeInvolved,
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, r_max, step, key,
@@ -582,8 +582,8 @@ void BrownianMotionRotateParticlesGPU(
     BrownianMotionRotateKernel<false><<<blocksPerGrid, threadsPerBlock>>>(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
         vars->gpu_mTorquex, vars->gpu_mTorquey, vars->gpu_mTorquez,
-        vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_r_k_x,
-        vars->gpu_r_k_y, vars->gpu_r_k_z, gpu_moleculeInvolved,
+        vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_rt_k_x,
+        vars->gpu_rt_k_y, vars->gpu_rt_k_z, gpu_moleculeInvolved,
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, r_max, step, key,
@@ -599,11 +599,11 @@ void BrownianMotionRotateParticlesGPU(
              cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.z, vars->gpu_z, atomCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(r_k.x, vars->gpu_r_k_x, molCount * sizeof(double),
+  cudaMemcpy(rt_k.x, vars->gpu_rt_k_x, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(r_k.y, vars->gpu_r_k_y, molCount * sizeof(double),
+  cudaMemcpy(rt_k.y, vars->gpu_rt_k_y, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(r_k.z, vars->gpu_r_k_z, molCount * sizeof(double),
+  cudaMemcpy(rt_k.z, vars->gpu_rt_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
   CUFREE(gpu_moleculeInvolved);
 #ifndef NDEBUG
@@ -615,8 +615,8 @@ template <const bool isOrthogonal>
 __global__ void BrownianMotionRotateKernel(
     int *startAtomIdx, double *gpu_x, double *gpu_y, double *gpu_z,
     double *molTorquex, double *molTorquey, double *molTorquez,
-    double *gpu_comx, double *gpu_comy, double *gpu_comz, double *gpu_r_k_x,
-    double *gpu_r_k_y, double *gpu_r_k_z, int *moleculeInvolved,
+    double *gpu_comx, double *gpu_comy, double *gpu_comz, double *gpu_rt_k_x,
+    double *gpu_rt_k_y, double *gpu_rt_k_z, int *moleculeInvolved,
     double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     double3 axis, double3 halfAx, int atomCount, double r_max, ulong step,
@@ -646,9 +646,9 @@ __global__ void BrownianMotionRotateKernel(
     double rot_y = btm_y + randnums.y;
     double rot_z = btm_z + randnums.z;
     // update the trial torque
-    gpu_r_k_x[molIndex] = rot_x;
-    gpu_r_k_y[molIndex] = rot_y;
-    gpu_r_k_z[molIndex] = rot_z;
+    gpu_rt_k_x[molIndex] = rot_x;
+    gpu_rt_k_y[molIndex] = rot_y;
+    gpu_rt_k_z[molIndex] = rot_z;
     // build rotation matrix
     double cross[3][3], tensor[3][3];
     double rotLen = sqrt(rot_x * rot_x + rot_y * rot_y + rot_z * rot_z);
@@ -741,7 +741,7 @@ __global__ void BrownianMotionRotateKernel(
 void BrownianMotionTranslateParticlesGPU(
     VariablesCUDA *vars, const std::vector<unsigned int> &moleculeInvolved,
     XYZArray &mForce, XYZArray &mForceRec, XYZArray &newMolPos,
-    XYZArray &newCOMs, XYZArray &t_k, const XYZ &boxAxes, const double BETA,
+    XYZArray &newCOMs, XYZArray &rt_k, const XYZ &boxAxes, const double BETA,
     const double t_max, ulong step, unsigned int key, ulong seed, const int box,
     const bool isOrthogonal) {
   int atomCount = newMolPos.Count();
@@ -790,8 +790,8 @@ void BrownianMotionTranslateParticlesGPU(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
         vars->gpu_mForcex, vars->gpu_mForcey, vars->gpu_mForcez,
         vars->gpu_mForceRecx, vars->gpu_mForceRecy, vars->gpu_mForceRecz,
-        vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_t_k_x,
-        vars->gpu_t_k_y, vars->gpu_t_k_z, gpu_moleculeInvolved,
+        vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_rt_k_x,
+        vars->gpu_rt_k_y, vars->gpu_rt_k_z, gpu_moleculeInvolved,
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, t_max, step, key,
@@ -801,8 +801,8 @@ void BrownianMotionTranslateParticlesGPU(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
         vars->gpu_mForcex, vars->gpu_mForcey, vars->gpu_mForcez,
         vars->gpu_mForceRecx, vars->gpu_mForceRecy, vars->gpu_mForceRecz,
-        vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_t_k_x,
-        vars->gpu_t_k_y, vars->gpu_t_k_z, gpu_moleculeInvolved,
+        vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_rt_k_x,
+        vars->gpu_rt_k_y, vars->gpu_rt_k_z, gpu_moleculeInvolved,
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, t_max, step, key,
@@ -824,11 +824,11 @@ void BrownianMotionTranslateParticlesGPU(
              cudaMemcpyDeviceToHost);
   cudaMemcpy(newCOMs.z, vars->gpu_comz, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(t_k.x, vars->gpu_t_k_x, molCount * sizeof(double),
+  cudaMemcpy(rt_k.x, vars->gpu_rt_k_x, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(t_k.y, vars->gpu_t_k_y, molCount * sizeof(double),
+  cudaMemcpy(rt_k.y, vars->gpu_rt_k_y, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(t_k.z, vars->gpu_t_k_z, molCount * sizeof(double),
+  cudaMemcpy(rt_k.z, vars->gpu_rt_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
   CUFREE(gpu_moleculeInvolved);
 #ifndef NDEBUG
@@ -841,8 +841,8 @@ __global__ void BrownianMotionTranslateKernel(
     int *startAtomIdx, double *gpu_x, double *gpu_y, double *gpu_z,
     double *molForcex, double *molForcey, double *molForcez,
     double *molForceRecx, double *molForceRecy, double *molForceRecz,
-    double *gpu_comx, double *gpu_comy, double *gpu_comz, double *gpu_t_k_x,
-    double *gpu_t_k_y, double *gpu_t_k_z, int *moleculeInvolved,
+    double *gpu_comx, double *gpu_comy, double *gpu_comz, double *gpu_rt_k_x,
+    double *gpu_rt_k_y, double *gpu_rt_k_z, int *moleculeInvolved,
     double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     double3 axis, double3 halfAx, int atomCount, double t_max, ulong step,
@@ -874,9 +874,9 @@ __global__ void BrownianMotionTranslateKernel(
     shift.y = bfm_y + randnums.y;
     shift.z = bfm_z + randnums.z;
     // update the trial translate
-    gpu_t_k_x[molIndex] = shift.x;
-    gpu_t_k_y[molIndex] = shift.y;
-    gpu_t_k_z[molIndex] = shift.z;
+    gpu_rt_k_x[molIndex] = shift.x;
+    gpu_rt_k_y[molIndex] = shift.y;
+    gpu_rt_k_z[molIndex] = shift.z;
     // shift COM
     com.x += shift.x;
     com.y += shift.y;

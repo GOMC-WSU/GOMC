@@ -44,8 +44,7 @@ private:
   XYZArray molForceRecNew;
   XYZArray molTorqueRef;
   XYZArray molTorqueNew;
-  XYZArray t_k;
-  XYZArray r_k;
+  XYZArray rt_k;
   Coordinates newMolsPos;
   COM newCOMs;
   int moveType;
@@ -85,8 +84,7 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV)
   molTorqueRef.Init(sys.com.Count());
   molTorqueNew.Init(sys.com.Count());
 
-  t_k.Init(sys.com.Count());
-  r_k.Init(sys.com.Count());
+  rt_k.Init(sys.com.Count());
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(sys.com.Count());
   inForceRange.resize(sys.com.Count(), false);
@@ -317,7 +315,7 @@ inline uint MultiParticle::Transform() {
         r123wrapper.GetKeyValue(), r123wrapper.GetSeedValue(),
         newMolsPos.Count(), newCOMs.Count(), boxDimRef.GetAxis(bPick).x,
         boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z, newMolsPos,
-        newCOMs, lambda * BETA, r_k);
+        newCOMs, lambda * BETA, rt_k);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
     CallTranslateParticlesGPU(
@@ -326,7 +324,7 @@ inline uint MultiParticle::Transform() {
         r123wrapper.GetKeyValue(), r123wrapper.GetSeedValue(),
         newMolsPos.Count(), newCOMs.Count(), boxDimRef.GetAxis(bPick).x,
         boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z, newMolsPos,
-        newCOMs, lambda * BETA, t_k, molForceRecRef);
+        newCOMs, lambda * BETA, rt_k, molForceRecRef);
   }
 #else
   // Calculate trial translate and rotate
@@ -337,11 +335,8 @@ inline uint MultiParticle::Transform() {
   // Do error checking and skip if there is an invalid transform amount.
   for (int m = 0; m < (int)moleculeIndex.size(); m++) {
     uint molIndex = moleculeIndex[m];
-    XYZ num;
-    if (moveType == mp::MPROTATE) // rotate
-      num = r_k.Get(molIndex);
-    else { // displace
-      num = t_k.Get(molIndex);
+    XYZ num = rt_k.Get(molIndex);
+    if (moveType == mp::MPDISPLACE) { // displace
       // check for PBC error and bad initial configuration
       if (num > boxDimRef.GetHalfAxis(bPick)) {
         std::cout << "Warning: Trial Displacement exceeds half the box length "
@@ -446,7 +441,7 @@ inline double MultiParticle::GetCoeff() {
         // rotate: lbt_old, lbt_new are lambda * BETA * torque
         XYZ lbt_old = molTorqueRef.Get(molNumber) * lBeta;
         XYZ lbt_new = molTorqueNew.Get(molNumber) * lBeta;
-        w_ratio *= CalculateWRatio(lbt_new, lbt_old, r_k.Get(molNumber), r_max);
+        w_ratio *= CalculateWRatio(lbt_new, lbt_old, rt_k.Get(molNumber), r_max);
       }
     }
   } else {
@@ -465,7 +460,7 @@ inline double MultiParticle::GetCoeff() {
         XYZ lbf_new =
             (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
             lBeta;
-        w_ratio *= CalculateWRatio(lbf_new, lbf_old, t_k.Get(molNumber), t_max);
+        w_ratio *= CalculateWRatio(lbf_new, lbf_old, rt_k.Get(molNumber), t_max);
       }
     }
   }
@@ -532,10 +527,11 @@ inline void MultiParticle::CalculateTrialDistRot() {
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
 
+  double *x = rt_k.x;
+  double *y = rt_k.y;
+  double *z = rt_k.z;
+
   if (moveType == mp::MPROTATE) { // rotate
-    double *x = r_k.x;
-    double *y = r_k.y;
-    double *z = r_k.z;
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(r_max, x, y, z)
 #endif
@@ -555,9 +551,6 @@ inline void MultiParticle::CalculateTrialDistRot() {
       }
     }
   } else { // displace
-    double *x = t_k.x;
-    double *y = t_k.y;
-    double *z = t_k.z;
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(t_max, x, y, z)
 #endif
@@ -581,7 +574,7 @@ inline void MultiParticle::CalculateTrialDistRot() {
 }
 
 inline void MultiParticle::RotateForceBiased(uint molIndex) {
-  XYZ rot = r_k.Get(molIndex);
+  XYZ rot = rt_k.Get(molIndex);
   double rotLen = rot.Length();
   RotationMatrix matrix;
 
@@ -611,7 +604,7 @@ inline void MultiParticle::RotateForceBiased(uint molIndex) {
 }
 
 inline void MultiParticle::TranslateForceBiased(uint molIndex) {
-  XYZ shift = t_k.Get(molIndex);
+  XYZ shift = rt_k.Get(molIndex);
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
   molRef.GetRange(start, stop, len, molIndex);
