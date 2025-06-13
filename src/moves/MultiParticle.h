@@ -52,7 +52,7 @@ private:
   bool multiParticleLiquid, multiParticleGas;
   std::vector<uint> moleculeIndex;
   const MoleculeLookup &molLookup;
-  std::vector<int> inForceRange;
+  std::vector<int8_t> inForceRange;
   Random123Wrapper &r123wrapper;
   const Molecules &mols;
 #ifdef GOMC_CUDA
@@ -441,7 +441,8 @@ inline double MultiParticle::GetCoeff() {
         // rotate: lbt_old, lbt_new are lambda * BETA * torque
         XYZ lbt_old = molTorqueRef.Get(molNumber) * lBeta;
         XYZ lbt_new = molTorqueNew.Get(molNumber) * lBeta;
-        w_ratio *= CalculateWRatio(lbt_new, lbt_old, rt_k.Get(molNumber), r_max);
+        w_ratio *=
+            CalculateWRatio(lbt_new, lbt_old, rt_k.Get(molNumber), r_max);
       }
     }
   } else {
@@ -460,7 +461,8 @@ inline double MultiParticle::GetCoeff() {
         XYZ lbf_new =
             (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
             lBeta;
-        w_ratio *= CalculateWRatio(lbf_new, lbf_old, rt_k.Get(molNumber), t_max);
+        w_ratio *=
+            CalculateWRatio(lbf_new, lbf_old, rt_k.Get(molNumber), t_max);
       }
     }
   }

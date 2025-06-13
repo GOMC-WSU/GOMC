@@ -148,7 +148,8 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint maxAtomNumber,
   CUMALLOC((void **)&vars->gpu_mTorquex, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mTorquey, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_mTorquez, maxMolNumber * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_inForceRange, maxMolNumber * sizeof(int));
+  CUMALLOC((void **)&vars->gpu_inForceRange, maxMolNumber * sizeof(int8_t));
+  CUMALLOC((void **)&vars->gpu_isMolInvolved, maxMolNumber * sizeof(int8_t));
   CUMALLOC((void **)&vars->gpu_aForceRecx, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_aForceRecy, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_aForceRecz, maxAtomNumber * sizeof(double));
@@ -514,6 +515,7 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_mTorquey);
   CUFREE(vars->gpu_mTorquez);
   CUFREE(vars->gpu_inForceRange);
+  CUFREE(vars->gpu_isMolInvolved);
   CUFREE(vars->gpu_aForceRecx);
   CUFREE(vars->gpu_aForceRecy);
   CUFREE(vars->gpu_aForceRecz);
