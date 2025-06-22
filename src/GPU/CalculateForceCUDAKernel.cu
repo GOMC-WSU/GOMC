@@ -54,7 +54,7 @@ void CallBoxInterForceGPU(
 
   CUMALLOC((void **)&gpu_neighborList, numberOfCellPairs * sizeof(int));
   CUMALLOC((void **)&gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
-  UpdateEnergyVecs(vars, energyVectorLen, electrostatic);
+  UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -192,7 +192,7 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 
   CUMALLOC((void **)&gpu_neighborList, numberOfCellPairs * sizeof(int));
   CUMALLOC((void **)&gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
-  UpdateEnergyVecs(vars, energyVectorLen, electrostatic);
+  UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
 
   // Initialize atom or molecule force arrays depending on what will be needed
   // for the rest of the move

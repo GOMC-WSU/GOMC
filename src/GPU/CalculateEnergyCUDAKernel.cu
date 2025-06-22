@@ -49,7 +49,7 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 
   CUMALLOC((void **)&gpu_neighborList, neighborListCount * sizeof(int));
   CUMALLOC((void **)&gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
-  UpdateEnergyVecs(vars, energyVectorLen, electrostatic);
+  UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
 
   // Copy necessary data to GPU
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0],
