@@ -51,12 +51,13 @@ System::System(StaticVals &statics, Setup &set, ulong &startStep,
 #if GOMC_LIB_MPI
       ms(multisim),
 #endif
-      moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
+      moveSettings(boxDimRef),
       coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
       com(boxDimRef, coordinates, molLookupRef, statics.mol),
       calcEnergy(statics, *this),
       checkpointSet(startStep, trueStep, molLookupRef, moveSettings,
                     statics.mol, prng, r123wrapper, set),
+      cellList(statics.forcefield, statics.mol, boxDimRef),
       vel(statics.forcefield, molLookupRef, statics.mol, prng),
       restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
       startStepRef(startStep), trueStep(0) {
@@ -120,7 +121,7 @@ void System::Init(Setup &set) {
   // Allocate space for reciprocal force
   atomForceRecRef.Init(set.pdb.atoms.beta.size());
   molForceRecRef.Init(com.Count());
-  cellList.SetCutoff();
+  cellList.Init();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
   // check if we have to use cached version of Ewald or not.

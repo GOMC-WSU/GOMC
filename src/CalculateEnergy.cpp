@@ -194,8 +194,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
 
   CallBoxInterGPU(forcefield.particles->getCUDAVars(), cellVector,
-                  cellStartIndex, neighborList, coords, boxAxes, electrostatic,
-                  tempREn, tempLJEn, forcefield.sc_coul, forcefield.sc_sigma_6,
+                  cellStartIndex, coords, boxAxes, electrostatic, tempREn,
+                  tempLJEn, forcefield.sc_coul, forcefield.sc_sigma_6,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
@@ -315,9 +315,9 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 
   CallBoxForceGPU(
       forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
-      neighborList, mapParticleToCell, coords, boxAxes, electrostatic, tempREn,
-      tempLJEn, aForcex, aForcey, aForcez, mForcex, mForcey, mForcez, atomCount,
-      molCount, forcefield.sc_coul, forcefield.sc_sigma_6, forcefield.sc_alpha,
+      mapParticleToCell, coords, boxAxes, electrostatic, tempREn, tempLJEn,
+      aForcex, aForcey, aForcez, mForcex, mForcey, mForcez, atomCount, molCount,
+      forcefield.sc_coul, forcefield.sc_sigma_6, forcefield.sc_alpha,
       forcefield.sc_power, moveType, box, calcEnergies);
 
 #else
@@ -459,12 +459,12 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
                            NonOrthAxes->cellBasis_Inv[box].z);
   }
 
-  CallBoxInterForceGPU(
-      forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
-      neighborList, mapParticleToCell, currentCoords, currentCOM, currentAxes,
-      electrostatic, rT11, rT12, rT13, rT22, rT23, rT33, vT11, vT12, vT13, vT22,
-      vT23, vT33, forcefield.sc_coul, forcefield.sc_sigma_6,
-      forcefield.sc_alpha, forcefield.sc_power, box);
+  CallBoxInterForceGPU(forcefield.particles->getCUDAVars(), cellVector,
+                       cellStartIndex, mapParticleToCell, currentCoords,
+                       currentCOM, currentAxes, electrostatic, rT11, rT12, rT13,
+                       rT22, rT23, rT33, vT11, vT12, vT13, vT22, vT23, vT33,
+                       forcefield.sc_coul, forcefield.sc_sigma_6,
+                       forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none) shared(cellStartIndex, cellVector, \
@@ -1382,13 +1382,12 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
     double *torquex = molTorque.x;
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;
-
 #if defined _OPENMP
 #pragma omp parallel for default(none)                                         \
     shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  \
            torquey, torquez) firstprivate(box)
 #endif
-    for (int m = 0; m < (int)moleculeIndex.size(); m++) {
+    for (int m = 0; m < (int)moleculeIndex.size(); ++m) {
       int mIndex = moleculeIndex[m];
       int length = mols.GetKind(mIndex).NumAtoms();
       int start = mols.MolStart(mIndex);
@@ -1396,7 +1395,7 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
       double ty = 0.0;
       double tz = 0.0;
       // atom iterator
-      for (int p = start; p < start + length; p++) {
+      for (int p = start; p < start + length; ++p) {
         XYZ distFromCOM = coordinates.Difference(p, com, mIndex);
         distFromCOM = currentAxes.MinImage(distFromCOM, box);
         XYZ tempTorque = Cross(distFromCOM, atomForce[p] + atomForceRec[p]);

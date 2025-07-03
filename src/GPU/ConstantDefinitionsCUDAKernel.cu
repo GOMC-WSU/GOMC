@@ -189,6 +189,17 @@ void InitMoleculeVariablesCUDA(VariablesCUDA *vars, const Molecules &mols) {
              cudaMemcpyHostToDevice);
 }
 
+void InitNeighborListVarsCUDA(VariablesCUDA *vars) {
+  vars->gpu_neighborListMaxSz = new int[BOX_TOTAL];
+  vars->gpu_neighborList = new int *[BOX_TOTAL];
+  vars->gpu_cellStartIndex = new int *[BOX_TOTAL];
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    vars->gpu_neighborListMaxSz[b] = 0;
+    vars->gpu_neighborList[b] = nullptr;
+    vars->gpu_cellStartIndex[b] = nullptr;
+  }
+}
+
 void InitPartVariablesCUDA(VariablesCUDA *vars,
                            const std::vector<int> &particleKind,
                            const std::vector<int> &particleMol,
@@ -346,7 +357,8 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
 #endif
 }
 
-void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen, bool electrostatic) {
+void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
+                          bool electrostatic) {
   // If we haven't exceeded the previous maximum size, we can reuse the storage
   if (vars->gpu_energyVecLen >= newVecLen)
     return;
@@ -402,6 +414,46 @@ void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen, bool electrostatic
     vars->cub_energyVec_storage_size = temp_storage_bytes;
     CUMALLOC(&(vars->cub_energyVec_storage), vars->cub_energyVec_storage_size);
   }
+}
+
+void RebuildNeighborsCUDA(VariablesCUDA *vars,
+                          std::vector<std::vector<int>> &neighbors,
+                          const uint b) {
+  int numCells = neighbors.size();
+  int numCellPairs = numCells * NUMBER_OF_NEIGHBOR_CELLS;
+  // If we need more space for the neighbor list
+  if (numCells > vars->gpu_neighborListMaxSz[b]) {
+    // If the neighbor list exists, free the memory before reallocating
+    if (vars->gpu_neighborListMaxSz[b] > 0) {
+      CUFREE(vars->gpu_neighborList[b]);
+      CUFREE(vars->gpu_cellStartIndex[b]);
+    }
+    CUMALLOC((void **)&vars->gpu_neighborList[b], numCellPairs * sizeof(int));
+    CUMALLOC((void **)&vars->gpu_cellStartIndex[b],
+             (numCells + 1) * sizeof(int));
+    vars->gpu_neighborListMaxSz[b] = numCells;
+  }
+  // Flatten neighbor list to 1D array
+  std::vector<int> neighborlist1D(numCellPairs);
+  for (int i = 0; i < numCells; ++i) {
+    for (int j = 0; j < NUMBER_OF_NEIGHBOR_CELLS; ++j) {
+      neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELLS + j] = neighbors[i][j];
+    }
+  }
+  cudaMemcpy(vars->gpu_neighborList[b], &neighborlist1D[0],
+             numCellPairs * sizeof(int), cudaMemcpyHostToDevice);
+}
+
+void DestroyNeighborListCUDAVars(VariablesCUDA *vars) {
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    if (vars->gpu_neighborListMaxSz[b] > 0) {
+      CUFREE(vars->gpu_neighborList[b]);
+      CUFREE(vars->gpu_cellStartIndex[b]);
+    }
+  }
+  delete[] vars->gpu_neighborListMaxSz;
+  delete[] vars->gpu_neighborList;
+  delete[] vars->gpu_cellStartIndex;
 }
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars) {

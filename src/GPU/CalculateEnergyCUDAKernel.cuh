@@ -18,7 +18,6 @@ along with this program, also can be found at
 
 void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,
-                     const std::vector<std::vector<int>> &neighborList,
                      XYZArray const &coords, BoxDimensions const &boxAxes,
                      bool electrostatic, double &REn, double &LJEn,
                      bool sc_coul, double sc_sigma_6, double sc_alpha,

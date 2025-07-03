@@ -18,7 +18,6 @@ along with this program, also can be found at
 
 void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,
-                     const std::vector<std::vector<int>> &neighborList,
                      const std::vector<int> &mapParticleToCell,
                      XYZArray const &coords, BoxDimensions const &boxAxes,
                      bool electrostatic, double &REn, double &LJEn,
@@ -31,7 +30,6 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 void CallBoxInterForceGPU(
     VariablesCUDA *vars, const std::vector<int> &cellVector,
     const std::vector<int> &cellStartIndex,
-    const std::vector<std::vector<int>> &neighborList,
     const std::vector<int> &mapParticleToCell, XYZArray const &currentCoords,
     XYZArray const &currentCOM, BoxDimensions const &boxAxes,
     bool electrostatic, double &rT11, double &rT12, double &rT13, double &rT22,

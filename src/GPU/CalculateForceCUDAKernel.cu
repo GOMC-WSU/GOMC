@@ -17,7 +17,6 @@ along with this program, also can be found at
 #include "MoveSettings.h"
 #include "cub/cub.cuh"
 
-const int NUMBER_OF_NEIGHBOR_CELLS = 27;
 const int PARTICLES_PER_BLOCK = 32;
 const int THREADS_PER_BLOCK = 128;
 
@@ -26,7 +25,6 @@ using namespace cub;
 void CallBoxInterForceGPU(
     VariablesCUDA *vars, const std::vector<int> &cellVector,
     const std::vector<int> &cellStartIndex,
-    const std::vector<std::vector<int>> &neighborList,
     const std::vector<int> &mapParticleToCell, XYZArray const &currentCoords,
     XYZArray const &currentCOM, BoxDimensions const &boxAxes,
     bool electrostatic, double &rT11, double &rT12, double &rT13, double &rT22,
@@ -35,25 +33,14 @@ void CallBoxInterForceGPU(
     double sc_alpha, uint sc_power, uint const box) {
   int atomNumber = currentCoords.Count();
   int molNumber = currentCOM.Count();
-  int numberOfCells = neighborList.size();
+  int numberOfCells = cellStartIndex.size() - 1;
   int numberOfCellPairs = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
-  int *gpu_neighborList, *gpu_cellStartIndex;
 
   // Run the kernel...
-  int threadsPerBlock = 128;
+  int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = numberOfCellPairs;
   int energyVectorLen = blocksPerGrid;
 
-  // Convert neighbor list to 1D array
-  std::vector<int> neighborlist1D(numberOfCellPairs);
-  for (int i = 0; i < numberOfCells; i++) {
-    for (int j = 0; j < NUMBER_OF_NEIGHBOR_CELLS; j++) {
-      neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELLS + j] = neighborList[i][j];
-    }
-  }
-
-  CUMALLOC((void **)&gpu_neighborList, numberOfCellPairs * sizeof(int));
-  CUMALLOC((void **)&gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
   UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -61,9 +48,7 @@ void CallBoxInterForceGPU(
 
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
              atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_neighborList, &neighborlist1D[0],
-             numberOfCellPairs * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0],
+  cudaMemcpy(vars->gpu_cellStartIndex[box], &cellStartIndex[0],
              cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int),
              cudaMemcpyHostToDevice);
@@ -88,9 +73,10 @@ void CallBoxInterForceGPU(
                    boxAxes.GetAxis(box).z * 0.5);
 
   BoxInterForceGPU<<<blocksPerGrid, threadsPerBlock>>>(
-      gpu_cellStartIndex, vars->gpu_cellVector, gpu_neighborList, numberOfCells,
-      atomNumber, vars->gpu_mapParticleToCell, vars->gpu_x, vars->gpu_y,
-      vars->gpu_z, vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, axis, halfAx,
+      vars->gpu_cellStartIndex[box], vars->gpu_cellVector,
+      vars->gpu_neighborList[box], numberOfCells, atomNumber,
+      vars->gpu_mapParticleToCell, vars->gpu_x, vars->gpu_y, vars->gpu_z,
+      vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, axis, halfAx,
       electrostatic, vars->gpu_particleCharge, vars->gpu_particleKind,
       vars->gpu_particleMol, vars->gpu_rT11, vars->gpu_rT12, vars->gpu_rT13,
       vars->gpu_rT22, vars->gpu_rT23, vars->gpu_rT33, vars->gpu_vT11,
@@ -156,14 +142,10 @@ void CallBoxInterForceGPU(
     cudaMemcpy(&rT33, vars->gpu_finalVal, sizeof(double),
                cudaMemcpyDeviceToHost);
   }
-
-  CUFREE(gpu_neighborList);
-  CUFREE(gpu_cellStartIndex);
 }
 
 void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,
-                     const std::vector<std::vector<int>> &neighborList,
                      const std::vector<int> &mapParticleToCell,
                      XYZArray const &coords, BoxDimensions const &boxAxes,
                      bool electrostatic, double &REn, double &LJEn,
@@ -173,25 +155,14 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      double sc_sigma_6, double sc_alpha, uint sc_power,
                      int moveType, uint const box, const bool calcEnergies) {
   int atomNumber = coords.Count();
-  int numberOfCells = neighborList.size();
+  int numberOfCells = cellStartIndex.size() - 1;
   int numberOfCellPairs = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
-  int *gpu_neighborList, *gpu_cellStartIndex;
   double cpu_final_REn = 0.0, cpu_final_LJEn = 0.0;
 
   int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = numberOfCellPairs;
   int energyVectorLen = numberOfCellPairs;
 
-  // Convert neighbor list to 1D array
-  std::vector<int> neighborlist1D(numberOfCellPairs);
-  for (int i = 0; i < numberOfCells; i++) {
-    for (int j = 0; j < NUMBER_OF_NEIGHBOR_CELLS; j++) {
-      neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELLS + j] = neighborList[i][j];
-    }
-  }
-
-  CUMALLOC((void **)&gpu_neighborList, numberOfCellPairs * sizeof(int));
-  CUMALLOC((void **)&gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
   UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
 
   // Initialize atom or molecule force arrays depending on what will be needed
@@ -209,9 +180,7 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   // Copy necessary data to GPU
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
              atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_neighborList, &neighborlist1D[0],
-             numberOfCellPairs * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0],
+  cudaMemcpy(vars->gpu_cellStartIndex[box], &cellStartIndex[0],
              cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int),
              cudaMemcpyHostToDevice);
@@ -233,23 +202,23 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                    boxAxes.GetAxis(box).z * 0.5);
 
   BoxForceGPU<<<blocksPerGrid, threadsPerBlock>>>(
-      gpu_cellStartIndex, vars->gpu_cellVector, gpu_neighborList, numberOfCells,
-      atomNumber, vars->gpu_mapParticleToCell, vars->gpu_x, vars->gpu_y,
-      vars->gpu_z, axis, halfAx, electrostatic, vars->gpu_particleCharge,
-      vars->gpu_particleKind, vars->gpu_particleMol, vars->gpu_REn,
-      vars->gpu_LJEn, vars->gpu_sigmaSq, vars->gpu_epsilon_Cn, vars->gpu_n,
-      vars->gpu_VDW_Kind, vars->gpu_isMartini, vars->gpu_count, vars->gpu_rCut,
-      vars->gpu_rCutSq, vars->gpu_rCutCoulomb, vars->gpu_rCutCoulombSq,
-      vars->gpu_rCutLow, vars->gpu_rOn, vars->gpu_alpha, vars->gpu_alphaSq,
-      vars->gpu_ewald, vars->gpu_diElectric_1, vars->gpu_nonOrth,
-      vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
-      vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
-      vars->gpu_Invcell_z[box], vars->gpu_aForcex, vars->gpu_aForcey,
-      vars->gpu_aForcez, vars->gpu_mForcex, vars->gpu_mForcey,
-      vars->gpu_mForcez, sc_coul, sc_sigma_6, sc_alpha, sc_power,
-      vars->gpu_rMin, vars->gpu_rMaxSq, vars->gpu_expConst, vars->gpu_molIndex,
-      vars->gpu_lambdaVDW, vars->gpu_lambdaCoulomb, vars->gpu_isFraction,
-      moveType, box, calcEnergies);
+      vars->gpu_cellStartIndex[box], vars->gpu_cellVector,
+      vars->gpu_neighborList[box], numberOfCells, atomNumber,
+      vars->gpu_mapParticleToCell, vars->gpu_x, vars->gpu_y, vars->gpu_z, axis,
+      halfAx, electrostatic, vars->gpu_particleCharge, vars->gpu_particleKind,
+      vars->gpu_particleMol, vars->gpu_REn, vars->gpu_LJEn, vars->gpu_sigmaSq,
+      vars->gpu_epsilon_Cn, vars->gpu_n, vars->gpu_VDW_Kind,
+      vars->gpu_isMartini, vars->gpu_count, vars->gpu_rCut, vars->gpu_rCutSq,
+      vars->gpu_rCutCoulomb, vars->gpu_rCutCoulombSq, vars->gpu_rCutLow,
+      vars->gpu_rOn, vars->gpu_alpha, vars->gpu_alphaSq, vars->gpu_ewald,
+      vars->gpu_diElectric_1, vars->gpu_nonOrth, vars->gpu_cell_x[box],
+      vars->gpu_cell_y[box], vars->gpu_cell_z[box], vars->gpu_Invcell_x[box],
+      vars->gpu_Invcell_y[box], vars->gpu_Invcell_z[box], vars->gpu_aForcex,
+      vars->gpu_aForcey, vars->gpu_aForcez, vars->gpu_mForcex,
+      vars->gpu_mForcey, vars->gpu_mForcez, sc_coul, sc_sigma_6, sc_alpha,
+      sc_power, vars->gpu_rMin, vars->gpu_rMaxSq, vars->gpu_expConst,
+      vars->gpu_molIndex, vars->gpu_lambdaVDW, vars->gpu_lambdaCoulomb,
+      vars->gpu_isFraction, moveType, box, calcEnergies);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -293,9 +262,6 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 #ifndef NDEBUG
   cudaDeviceSynchronize();
 #endif
-
-  CUFREE(gpu_neighborList);
-  CUFREE(gpu_cellStartIndex);
 }
 
 void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,

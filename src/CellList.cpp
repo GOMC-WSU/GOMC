@@ -9,15 +9,18 @@ along with this program, also can be found at
 
 #include <algorithm>
 
-#include "BoxDimensions.h"
-#include "BoxDimensionsNonOrth.h"
 #include "MoleculeLookup.h"
 #include "Molecules.h"
 #include "XYZArray.h"
+#ifdef GOMC_CUDA
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#endif
 
 const int CellList::END_CELL;
 
-CellList::CellList(const Molecules &mols, BoxDimensions &dims) : mols(&mols) {
+CellList::CellList(Forcefield &forcefield, const Molecules &mols,
+                   BoxDimensions &dims)
+    : mols(&mols), ff(forcefield) {
   dimensions = &dims;
   isBuilt = false;
   for (uint b = 0; b < BOX_TOTAL; b++) {
@@ -25,7 +28,7 @@ CellList::CellList(const Molecules &mols, BoxDimensions &dims) : mols(&mols) {
   }
 }
 
-CellList::CellList(const CellList &other) : mols(other.mols) {
+CellList::CellList(const CellList &other) : mols(other.mols), ff(other.ff) {
   dimensions = other.dimensions;
   isBuilt = true;
   for (uint b = 0; b < BOX_TOTAL; b++) {
@@ -33,30 +36,48 @@ CellList::CellList(const CellList &other) : mols(other.mols) {
     edgeCells[b][1] = other.edgeCells[b][1];
     edgeCells[b][2] = other.edgeCells[b][2];
   }
+  // #ifdef GOMC_CUDA
+  // InitNeighborListVarsCUDA(ff.particles->getCUDAVars());
+  // #endif
 
+  list = other.list;
   for (uint b = 0; b < BOX_TOTAL; b++) {
     RebuildNeighbors(b);
+    head[b] = other.head[b];
   }
 
-  list.resize(other.list.size());
+  // list.resize(other.list.size());
 
-  for (size_t i = 0; i < other.list.size(); i++) {
-    list[i] = other.list[i];
-  }
+  // for (size_t i = 0; i < other.list.size(); i++) {
+  // list[i] = other.list[i];
+  // }
 
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    for (size_t i = 0; i < other.neighbors[b].size(); i++) {
-      neighbors[b][i] = other.neighbors[b][i];
-    }
-  }
+  // for (uint b = 0; b < BOX_TOTAL; b++) {
+  // for (size_t i = 0; i < other.neighbors[b].size(); i++) {
+  // neighbors[b][i] = other.neighbors[b][i];
+  // }
+  // }
 
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    for (size_t i = 0; i < other.head[b].size(); i++) {
-      head[b][i] = other.head[b][i];
-    }
-  }
+  // for (uint b = 0; b < BOX_TOTAL; b++) {
+  // for (size_t i = 0; i < other.head[b].size(); i++) {
+  // head[b][i] = other.head[b][i];
+  // }
+  // }
   // neighbors(other.neighbors);
   // head(other.head);
+}
+
+CellList::~CellList() {
+#ifdef GOMC_CUDA
+  DestroyNeighborListCUDAVars(ff.particles->getCUDAVars());
+#endif
+}
+
+void CellList::Init() {
+#ifdef GOMC_CUDA
+  InitNeighborListVarsCUDA(ff.particles->getCUDAVars());
+#endif
+  SetCutoff();
 }
 
 void CellList::SetCutoff() {
@@ -90,7 +111,7 @@ void CellList::RemoveMol(const int molIndex, const int box,
     int at = head[box][cell];
 
     // If particle we're looking for is at head of list assign its
-    // pointed at index (should be -1) to head.... this is the case
+    // pointed at index (should be -1) to head ... this is the case
     // for removing the head molecule in the cell, which is often when
     // we're removing the last molecule/particle from a particular cell.
     //
@@ -164,7 +185,7 @@ void CellList::ResizeGrid(const BoxDimensions &dims) {
   isBuilt = true;
 }
 
-// Resize one boxes to match current axes
+// Resize one box to match current axes
 void CellList::ResizeGridBox(const BoxDimensions &dims, const uint b) {
   XYZ sides = dims.axis[b];
   bool rebuild = false;
@@ -190,7 +211,7 @@ void CellList::ResizeGridBox(const BoxDimensions &dims, const uint b) {
   isBuilt = true;
 }
 
-void CellList::RebuildNeighbors(int b) {
+void CellList::RebuildNeighbors(const uint b) {
   int *eCells = edgeCells[b];
   int nCells = eCells[0] * eCells[1] * eCells[2];
   head[b].resize(nCells);
@@ -217,6 +238,9 @@ void CellList::RebuildNeighbors(int b) {
       }
     }
   }
+#ifdef GOMC_CUDA
+  RebuildNeighborsCUDA(ff.particles->getCUDAVars(), neighbors[b], b);
+#endif
 }
 
 void CellList::GridAll(BoxDimensions &dims, const XYZArray &pos,

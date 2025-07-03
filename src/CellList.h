@@ -15,16 +15,21 @@ along with this program, also can be found at
 #include "BoxDimensions.h"
 #include "BoxDimensionsNonOrth.h"
 #include "EnsemblePreprocessor.h"
+#include "Forcefield.h"
 
 class Molecules;
 class XYZArray;
 class BoxDimensions;
 class MoleculeLookup;
+class Forcefield;
 
 class CellList {
 public:
-  explicit CellList(const Molecules &mols, BoxDimensions &dims);
+  explicit CellList(Forcefield &forcefield, const Molecules &mols,
+                    BoxDimensions &dims);
   CellList(const CellList &other);
+  ~CellList();
+  void Init();
   void SetCutoff();
 
   void RemoveMol(const int molIndex, const int box, const XYZArray &pos);
@@ -74,10 +79,10 @@ private:
 
   // Resize all boxes to match current axes
   void ResizeGrid(const BoxDimensions &dims);
-  // Resize one boxes to match current axes
+  // Resize one box to match current axes
   void ResizeGridBox(const BoxDimensions &dims, const uint b);
   // Rebuild head/neighbor lists in box b to match current grid
-  void RebuildNeighbors(int b);
+  void RebuildNeighbors(const uint b);
 
   XYZ cellSize[BOX_TOTAL];
   int edgeCells[BOX_TOTAL][3];
@@ -85,10 +90,11 @@ private:
   BoxDimensions *dimensions;
   double cutoff[BOX_TOTAL];
   bool isBuilt;
+  const Forcefield &ff;
 };
 
 inline int CellList::PositionToCell(const XYZ &posRef, int box) const {
-  // Transfer to unslant coordinate to find the neighbor
+  // Transfer to unslant coordinates to find the neighbor
   XYZ pos = dimensions->TransformUnSlant(posRef, box);
   int x = (int)(pos.x / cellSize[box].x);
   int y = (int)(pos.y / cellSize[box].y);

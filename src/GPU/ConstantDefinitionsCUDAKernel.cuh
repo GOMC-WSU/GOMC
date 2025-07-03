@@ -21,6 +21,7 @@ const int GPU_VDW_SHIFT_KIND = 1;
 const int GPU_VDW_SWITCH_KIND = 2;
 const int GPU_VDW_EXP6_KIND = 3;
 const int MAX_PAIR_SIZE = 10000000;
+const int NUMBER_OF_NEIGHBOR_CELLS = 27;
 
 void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
                      double *lambdaCoulomb, bool *isFraction);
@@ -36,6 +37,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, int numAtoms, uint imageTotal);
 void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
                            double *rMaxSq, uint size);
 void InitMoleculeVariablesCUDA(VariablesCUDA *vars, const Molecules &mols);
+void InitNeighborListVarsCUDA(VariablesCUDA *vars);
 void InitPartVariablesCUDA(VariablesCUDA *vars,
                            const std::vector<int> &particleKind,
                            const std::vector<int> &particleMol,
@@ -49,7 +51,12 @@ void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
 void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
                             double *invCellBasis_x, double *invCellBasis_y,
                             double *invCellBasis_z);
-void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen, bool electrostatic);
+void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
+                          bool electrostatic);
+void RebuildNeighborsCUDA(VariablesCUDA *vars,
+                          std::vector<std::vector<int>> &neighbors,
+                          const uint b);
+void DestroyNeighborListCUDAVars(VariablesCUDA *vars);
 void DestroyEwaldCUDAVars(VariablesCUDA *vars);
 void DestroyExp6CUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);

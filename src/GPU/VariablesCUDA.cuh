@@ -148,6 +148,7 @@ public:
   double **gpu_kx, **gpu_ky, **gpu_kz;
   double **gpu_kxRef, **gpu_kyRef, **gpu_kzRef;
   double **gpu_sumRnew, **gpu_sumInew, **gpu_sumRref, **gpu_sumIref;
+  int *gpu_neighborListMaxSz, **gpu_neighborList, **gpu_cellStartIndex;
   double **gpu_prefact, **gpu_prefactRef;
   double **gpu_hsqr, **gpu_hsqrRef;
   double *gpu_recipEnergies;
