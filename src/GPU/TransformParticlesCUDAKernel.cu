@@ -252,7 +252,6 @@ void CallTranslateParticlesGPU(
   cudaMemcpy(vars->gpu_isMolInvolved, &isMoleculeInvolved[0],
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
-
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -327,6 +326,9 @@ void CallRotateParticlesGPU(
   cudaMemcpy(vars->gpu_isMolInvolved, &isMoleculeInvolved[0],
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   RotateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(
       r_max, vars->gpu_mTorquex, vars->gpu_mTorquey, vars->gpu_mTorquez,
@@ -526,12 +528,9 @@ void BrownianMotionRotateParticlesGPU(
   int atomCount = newMolPos.Count();
   int molCount = newCOMs.Count();
   int molCountInBox = moleculeInvolved.size();
-  int *gpu_moleculeInvolved;
   // Each block would handle one molecule
   int threadsPerBlock = 32;
   int blocksPerGrid = molCountInBox;
-
-  CUMALLOC((void **)&gpu_moleculeInvolved, molCountInBox * sizeof(int));
 
   cudaMemcpy(vars->gpu_mTorquex, mTorque.x, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -551,8 +550,11 @@ void BrownianMotionRotateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_moleculeInvolved, &moleculeInvolved[0],
+  cudaMemcpy(vars->gpu_molInvolved, &moleculeInvolved[0],
              molCountInBox * sizeof(int), cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   double3 axis = make_double3(boxAxes.x, boxAxes.y, boxAxes.z);
   double3 halfAx =
@@ -563,7 +565,7 @@ void BrownianMotionRotateParticlesGPU(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
         vars->gpu_mTorquex, vars->gpu_mTorquey, vars->gpu_mTorquez,
         vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_rt_k_x,
-        vars->gpu_rt_k_y, vars->gpu_rt_k_z, gpu_moleculeInvolved,
+        vars->gpu_rt_k_y, vars->gpu_rt_k_z, vars->gpu_molInvolved,
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, r_max, step, key,
@@ -573,7 +575,7 @@ void BrownianMotionRotateParticlesGPU(
         vars->gpu_startAtomIdx, vars->gpu_x, vars->gpu_y, vars->gpu_z,
         vars->gpu_mTorquex, vars->gpu_mTorquey, vars->gpu_mTorquez,
         vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_rt_k_x,
-        vars->gpu_rt_k_y, vars->gpu_rt_k_z, gpu_moleculeInvolved,
+        vars->gpu_rt_k_y, vars->gpu_rt_k_z, vars->gpu_molInvolved,
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, r_max, step, key,
@@ -595,7 +597,6 @@ void BrownianMotionRotateParticlesGPU(
              cudaMemcpyDeviceToHost);
   cudaMemcpy(rt_k.z, vars->gpu_rt_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  CUFREE(gpu_moleculeInvolved);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -737,12 +738,9 @@ void BrownianMotionTranslateParticlesGPU(
   int atomCount = newMolPos.Count();
   int molCount = newCOMs.Count();
   int molCountInBox = moleculeInvolved.size();
-  int *gpu_moleculeInvolved;
   // Each block would handle one molecule
   int threadsPerBlock = 32;
   int blocksPerGrid = molCountInBox;
-
-  CUMALLOC((void **)&gpu_moleculeInvolved, molCountInBox * sizeof(int));
 
   cudaMemcpy(vars->gpu_mForcex, mForce.x, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -768,8 +766,11 @@ void BrownianMotionTranslateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_moleculeInvolved, &moleculeInvolved[0],
+  cudaMemcpy(vars->gpu_molInvolved, &moleculeInvolved[0],
              molCountInBox * sizeof(int), cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   double3 axis = make_double3(boxAxes.x, boxAxes.y, boxAxes.z);
   double3 halfAx =
@@ -781,7 +782,7 @@ void BrownianMotionTranslateParticlesGPU(
         vars->gpu_mForcex, vars->gpu_mForcey, vars->gpu_mForcez,
         vars->gpu_mForceRecx, vars->gpu_mForceRecy, vars->gpu_mForceRecz,
         vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_rt_k_x,
-        vars->gpu_rt_k_y, vars->gpu_rt_k_z, gpu_moleculeInvolved,
+        vars->gpu_rt_k_y, vars->gpu_rt_k_z, vars->gpu_molInvolved,
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, t_max, step, key,
@@ -792,7 +793,7 @@ void BrownianMotionTranslateParticlesGPU(
         vars->gpu_mForcex, vars->gpu_mForcey, vars->gpu_mForcez,
         vars->gpu_mForceRecx, vars->gpu_mForceRecy, vars->gpu_mForceRecz,
         vars->gpu_comx, vars->gpu_comy, vars->gpu_comz, vars->gpu_rt_k_x,
-        vars->gpu_rt_k_y, vars->gpu_rt_k_z, gpu_moleculeInvolved,
+        vars->gpu_rt_k_y, vars->gpu_rt_k_z, vars->gpu_molInvolved,
         vars->gpu_cell_x[box], vars->gpu_cell_y[box], vars->gpu_cell_z[box],
         vars->gpu_Invcell_x[box], vars->gpu_Invcell_y[box],
         vars->gpu_Invcell_z[box], axis, halfAx, atomCount, t_max, step, key,
@@ -820,7 +821,6 @@ void BrownianMotionTranslateParticlesGPU(
              cudaMemcpyDeviceToHost);
   cudaMemcpy(rt_k.z, vars->gpu_rt_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  CUFREE(gpu_moleculeInvolved);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif

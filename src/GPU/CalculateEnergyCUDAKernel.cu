@@ -48,6 +48,9 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x, boxAxes.GetAxis(box).y,
                               boxAxes.GetAxis(box).z);
@@ -88,6 +91,9 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   } else {
     REn = 0.0;
   }
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 __global__ void

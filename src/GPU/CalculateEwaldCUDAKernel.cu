@@ -84,6 +84,9 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
                     vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecip, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 // Use this function when calculating the reciprocal terms
@@ -132,6 +135,9 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
                     vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecip, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
@@ -207,6 +213,9 @@ void CallMolReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nz, newCoords.z, CoordsNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = (imageSize + threadsPerBlock - 1) / threadsPerBlock;
@@ -227,6 +236,9 @@ void CallMolReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
                     vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 // Calculate reciprocal term for lambdaNew and Old with same coordinates
@@ -248,6 +260,9 @@ void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   threadsPerBlock = THREADS_PER_BLOCK;
   blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
@@ -267,6 +282,9 @@ void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
                     vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
@@ -284,6 +302,9 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nz, coords.z, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = (imageSize + threadsPerBlock - 1) / threadsPerBlock;
@@ -303,6 +324,9 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
                     vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
@@ -320,6 +344,9 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, &molCoords.z[0], atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = (imageSize + threadsPerBlock - 1) / threadsPerBlock;
@@ -338,6 +365,9 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
                     vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 // Note: This implementation assumes that this function is always called after
@@ -363,7 +393,6 @@ void CallBoxForceReciprocalGPU(
   }
   cudaMemcpy(vars->gpu_particleUsed, &particleUsed[0],
              sizeof(int) * particleUsed.size(), cudaMemcpyHostToDevice);
-
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -401,6 +430,9 @@ void CallBoxForceReciprocalGPU(
     cudaMemcpy(molForceRec.z, vars->gpu_mForceRecz, sizeof(double) * molCount,
                cudaMemcpyDeviceToHost);
   }
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 __global__ void BoxForceReciprocalGPU(

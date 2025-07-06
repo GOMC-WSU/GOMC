@@ -28,6 +28,9 @@ void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(bool),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
@@ -150,6 +153,7 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint maxAtomNumber,
   CUMALLOC((void **)&vars->gpu_mTorquez, maxMolNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_inForceRange, maxMolNumber * sizeof(int8_t));
   CUMALLOC((void **)&vars->gpu_isMolInvolved, maxMolNumber * sizeof(int8_t));
+  CUMALLOC((void **)&vars->gpu_molInvolved, maxMolNumber * sizeof(int));
   CUMALLOC((void **)&vars->gpu_aForceRecx, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_aForceRecy, maxAtomNumber * sizeof(double));
   CUMALLOC((void **)&vars->gpu_aForceRecz, maxAtomNumber * sizeof(double));
@@ -187,6 +191,9 @@ void InitMoleculeVariablesCUDA(VariablesCUDA *vars, const Molecules &mols) {
   // copy start atom index
   cudaMemcpy(vars->gpu_startAtomIdx, mols.start, numMol * sizeof(int),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void InitNeighborListVarsCUDA(VariablesCUDA *vars) {
@@ -210,6 +217,9 @@ void InitPartVariablesCUDA(VariablesCUDA *vars,
              particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
              particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, int numAtoms,
@@ -414,6 +424,9 @@ void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
     vars->cub_energyVec_storage_size = temp_storage_bytes;
     CUMALLOC(&(vars->cub_energyVec_storage), vars->cub_energyVec_storage_size);
   }
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void RebuildNeighborsCUDA(VariablesCUDA *vars,
@@ -442,6 +455,9 @@ void RebuildNeighborsCUDA(VariablesCUDA *vars,
   }
   cudaMemcpy(vars->gpu_neighborList[b], &neighborlist1D[0],
              numCellPairs * sizeof(int), cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void DestroyNeighborListCUDAVars(VariablesCUDA *vars) {
@@ -454,6 +470,9 @@ void DestroyNeighborListCUDAVars(VariablesCUDA *vars) {
   delete[] vars->gpu_neighborListMaxSz;
   delete[] vars->gpu_neighborList;
   delete[] vars->gpu_cellStartIndex;
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
@@ -497,12 +516,18 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
   delete[] vars->gpu_prefactRef;
   delete[] vars->gpu_hsqr;
   delete[] vars->gpu_hsqrRef;
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void DestroyExp6CUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_rMin);
   CUFREE(vars->gpu_rMaxSq);
   CUFREE(vars->gpu_expConst);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void DestroyCUDAVars(VariablesCUDA *vars) {
@@ -568,6 +593,7 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_mTorquez);
   CUFREE(vars->gpu_inForceRange);
   CUFREE(vars->gpu_isMolInvolved);
+  CUFREE(vars->gpu_molInvolved);
   CUFREE(vars->gpu_aForceRecx);
   CUFREE(vars->gpu_aForceRecy);
   CUFREE(vars->gpu_aForceRecz);
@@ -599,6 +625,9 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   delete[] vars->gpu_Invcell_x;
   delete[] vars->gpu_Invcell_y;
   delete[] vars->gpu_Invcell_z;
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 #endif /*GOMC_CUDA*/

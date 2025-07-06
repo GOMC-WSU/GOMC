@@ -42,9 +42,6 @@ void CallBoxInterForceGPU(
   int energyVectorLen = blocksPerGrid;
 
   UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
-#ifndef NDEBUG
-  checkLastErrorCUDA(__FILE__, __LINE__);
-#endif
 
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
              atomNumber * sizeof(int), cudaMemcpyHostToDevice);
@@ -64,6 +61,9 @@ void CallBoxInterForceGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, currentCOM.z, molNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x, boxAxes.GetAxis(box).y,
                               boxAxes.GetAxis(box).z);
@@ -142,6 +142,9 @@ void CallBoxInterForceGPU(
     cudaMemcpy(&rT33, vars->gpu_finalVal, sizeof(double),
                cudaMemcpyDeviceToHost);
   }
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
@@ -260,7 +263,7 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                cudaMemcpyDeviceToHost);
   }
 #ifndef NDEBUG
-  cudaDeviceSynchronize();
+  checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 }
 
@@ -294,6 +297,9 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
   cudaMemset(vars->gpu_wT22, 0, imageSize * sizeof(double));
   cudaMemset(vars->gpu_wT23, 0, imageSize * sizeof(double));
   cudaMemset(vars->gpu_wT33, 0, imageSize * sizeof(double));
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 
   dim3 threadsPerBlock(128, 1, 1);
   int blocksPerGridX = (imageSize + threadsPerBlock.x - 1) / threadsPerBlock.x;
@@ -331,6 +337,9 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                     vars->gpu_wT33, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&wT33, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+#ifndef NDEBUG
+  checkLastErrorCUDA(__FILE__, __LINE__);
+#endif
 }
 
 __global__ void BoxInterForceGPU(
