@@ -50,7 +50,7 @@ private:
   int moveType;
   bool allTranslate;
   bool multiParticleLiquid, multiParticleGas;
-  std::vector<uint> moleculeIndex;
+  std::vector<int> moleculeIndex;
   const MoleculeLookup &molLookup;
   std::vector<int8_t> inForceRange;
   Random123Wrapper &r123wrapper;
@@ -62,13 +62,13 @@ private:
   double GetCoeff();
   uint ChooseBox();
   void CalculateTrialDistRot();
-  void RotateForceBiased(uint molIndex);
-  void TranslateForceBiased(uint molIndex);
-  void RotateRandom(uint molIndex);
-  void TranslateRandom(uint molIndex);
+  void RotateForceBiased(int molIndex);
+  void TranslateForceBiased(int molIndex);
+  void RotateRandom(int molIndex);
+  void TranslateRandom(int molIndex);
   void SetMolInBox(uint box);
   XYZ CalcRandomTransform(bool &forceInRange, XYZ const &lb, double const max,
-                          uint molIndex);
+                          int molIndex);
   double CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old, XYZ const &k,
                          double max);
 };
@@ -112,15 +112,15 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV)
 
 inline void MultiParticle::PrintAcceptKind() {
   printf("%-37s", "% Accepted MultiParticle ");
-  for (uint b = 0; b < BOX_TOTAL; b++) {
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
     printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::MULTIPARTICLE));
   }
   std::cout << std::endl;
 }
 
 inline void MultiParticle::SetMolInBox(uint box) {
-  // NEED to check if atom is not fixed!
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
+  // need to be initialized for every move since the number of atoms is changing
   moleculeIndex.clear();
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
   MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -185,8 +185,8 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc) {
   // reset all inForceRange vector to false.
   std::fill(inForceRange.begin(), inForceRange.end(), false);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: MultiParticle move has no particles to move. "
-                 "Skipping...\n";
+    std::cout << "Warning: MultiParticle move has no particles to move."
+                 " Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
   }
@@ -236,8 +236,8 @@ inline uint MultiParticle::PrepNEMTMC(const uint box, const uint midx,
 
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: MultiParticle move has no particles to move. "
-                 "Skipping...\n";
+    std::cout << "Warning: MultiParticle move has no particles to move."
+                 " Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
   }
@@ -300,8 +300,8 @@ inline uint MultiParticle::Transform() {
 #ifdef GOMC_CUDA
   // One CoM per molecule, so use this to set the vector size.
   std::vector<int8_t> isMoleculeInvolved(newCOMs.Count(), 0);
-  // find the IDs of molecules in moleculeIndex
-  for (int m = 0; m < (int)moleculeIndex.size(); m++) {
+  // Find the IDs of molecules in moleculeIndex
+  for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
     int mol = moleculeIndex[m];
     isMoleculeInvolved[mol] = 1;
   }
@@ -333,8 +333,8 @@ inline uint MultiParticle::Transform() {
 #endif
 
   // Do error checking and skip if there is an invalid transform amount.
-  for (int m = 0; m < (int)moleculeIndex.size(); m++) {
-    uint molIndex = moleculeIndex[m];
+  for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
+    int molIndex = moleculeIndex[m];
     XYZ num = rt_k.Get(molIndex);
     if (moveType == mp::MPDISPLACE) { // displace
       // check for PBC error and bad initial configuration
@@ -368,8 +368,8 @@ inline uint MultiParticle::Transform() {
 inline void MultiParticle::CalcEn() {
   GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
   // Calculate the new force and energy and we will compare that to the
-  // reference values in Accept() function
-  cellList.GridAll(boxDimRef, newMolsPos, molLookup);
+  // reference values in the Accept() function
+  cellList.GridBox(boxDimRef, newMolsPos, molLookup, bPick);
 
   // back up cached Fourier term
   calcEwald->backupMolCache();
@@ -383,7 +383,7 @@ inline void MultiParticle::CalcEn() {
   sysPotNew = calcEnRef.BoxForce(sysPotRef, newMolsPos, atomForceRef,
                                  molForceNew, boxDimRef, moveType, bPick, true);
 
-  // calculate long range electrostatic energy for new positions
+  // Calculate long range electrostatic energy for new positions
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick, false);
 
   // Calculate long range electrostatic force for new positions
@@ -433,8 +433,8 @@ inline double MultiParticle::GetCoeff() {
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
 #endif
-    for (int m = 0; m < (int)moleculeIndex.size(); m++) {
-      uint molNumber = moleculeIndex[m];
+    for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
+      int molNumber = moleculeIndex[m];
       // If force or torque was not in the range, no need to calculate weight
       // ratio it's simply 1.0
       if (inForceRange[molNumber]) {
@@ -449,8 +449,8 @@ inline double MultiParticle::GetCoeff() {
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
 #endif
-    for (int m = 0; m < (int)moleculeIndex.size(); m++) {
-      uint molNumber = moleculeIndex[m];
+    for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
+      int molNumber = moleculeIndex[m];
       // If force or torque was not in the range, no need to calculate weight
       // ratio it's simply 1.0
       if (inForceRange[molNumber]) {
@@ -467,7 +467,7 @@ inline double MultiParticle::GetCoeff() {
     }
   }
 
-  // In case where force or torque is a large negative number (ex. -800) the
+  // In cases where force or torque is a large negative number (ex. -800) the
   // exp value becomes inf. In these situations we return 0.0 to reject the move
   if (!std::isfinite(w_ratio)) {
     w_ratio = 0.0;
@@ -494,7 +494,7 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step) {
     // Update the velocity in box
     velocity.UpdateBoxVelocity(bPick);
   } else {
-    cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
+    cellList.GridBox(boxDimRef, coordCurrRef, molLookup, bPick);
     calcEwald->exgMolCache();
   }
 
@@ -504,7 +504,7 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step) {
 }
 
 inline XYZ MultiParticle::CalcRandomTransform(bool &forceInRange, XYZ const &lb,
-                                              double const max, uint molIndex) {
+                                              double const max, int molIndex) {
   XYZ lbmx = lb * max;
   // XYZ default constructor initializes to (0.0, 0.0, 0.0)
   XYZ val;
@@ -537,8 +537,8 @@ inline void MultiParticle::CalculateTrialDistRot() {
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(r_max, x, y, z)
 #endif
-    for (uint m = 0; m < moleculeIndex.size(); m++) {
-      uint molIndex = moleculeIndex[m];
+    for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
+      int molIndex = moleculeIndex[m];
       XYZ lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
       bool forceInRange;
       XYZ val = CalcRandomTransform(forceInRange, lbt, r_max, molIndex);
@@ -556,8 +556,8 @@ inline void MultiParticle::CalculateTrialDistRot() {
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(t_max, x, y, z)
 #endif
-    for (uint m = 0; m < moleculeIndex.size(); m++) {
-      uint molIndex = moleculeIndex[m];
+    for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
+      int molIndex = moleculeIndex[m];
       XYZ lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
                 lambda * BETA;
       bool forceInRange;
@@ -575,7 +575,7 @@ inline void MultiParticle::CalculateTrialDistRot() {
   }
 }
 
-inline void MultiParticle::RotateForceBiased(uint molIndex) {
+inline void MultiParticle::RotateForceBiased(int molIndex) {
   XYZ rot = rt_k.Get(molIndex);
   double rotLen = rot.Length();
   RotationMatrix matrix;
@@ -596,7 +596,8 @@ inline void MultiParticle::RotateForceBiased(uint molIndex) {
   boxDimRef.UnwrapPBC(temp, bPick, center);
 
   // Computing the rotation this way has less round off than other methods
-  for (uint p = 0; p < len; ++p) { // Rotate each atom in the molecule
+  // Rotate each atom in the molecule
+  for (int p = 0; p < static_cast<int>(len); ++p) {
     temp.Set(p, matrix.Apply(temp[p]));
     temp.Add(p, CoMoffset);
   }
@@ -605,7 +606,7 @@ inline void MultiParticle::RotateForceBiased(uint molIndex) {
   temp.CopyRange(newMolsPos, 0, start, len);
 }
 
-inline void MultiParticle::TranslateForceBiased(uint molIndex) {
+inline void MultiParticle::TranslateForceBiased(int molIndex) {
   XYZ shift = rt_k.Get(molIndex);
   XYZ newcom = comCurrRef.Get(molIndex);
   uint stop, start, len;
@@ -624,13 +625,14 @@ inline void MultiParticle::TranslateForceBiased(uint molIndex) {
   newCOMs.Set(molIndex, newcom);
 }
 
-inline void MultiParticle::RotateRandom(uint molIndex) {
+inline void MultiParticle::RotateRandom(int molIndex) {
   double r_max = moveSetRef.GetRMAX(bPick);
   double symRand = r123wrapper.GetSymRandom(molIndex, r_max);
   XYZ sphereCoords = r123wrapper.GetRandomCoordsOnSphere(molIndex);
   RotationMatrix matrix = RotationMatrix::FromAxisAngle(symRand, sphereCoords);
 
   XYZ center = comCurrRef.Get(molIndex);
+  XYZ CoMoffset = center - matrix.Apply(center);
   uint start, stop, len;
   molRef.GetRange(start, stop, len, molIndex);
 
@@ -639,18 +641,18 @@ inline void MultiParticle::RotateRandom(uint molIndex) {
   newMolsPos.CopyRange(temp, start, 0, len);
   boxDimRef.UnwrapPBC(temp, bPick, center);
 
-  // Do Rotation
-  for (uint p = 0; p < len; p++) {
-    temp.Add(p, -center);
+  // Computing the rotation this way has less round off than other methods
+  // Rotate each atom in the molecule
+  for (int p = 0; p < static_cast<int>(len); ++p) {
     temp.Set(p, matrix.Apply(temp[p]));
-    temp.Add(p, center);
+    temp.Add(p, CoMoffset);
   }
   boxDimRef.WrapPBC(temp, bPick);
   // Copy back the result
   temp.CopyRange(newMolsPos, 0, start, len);
 }
 
-inline void MultiParticle::TranslateRandom(uint molIndex) {
+inline void MultiParticle::TranslateRandom(int molIndex) {
   double t_max = moveSetRef.GetTMAX(bPick);
   XYZ shift = r123wrapper.GetSymRandomCoords(molIndex, t_max);
   XYZ newcom = comCurrRef.Get(molIndex);

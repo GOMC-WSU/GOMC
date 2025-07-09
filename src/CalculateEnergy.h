@@ -156,7 +156,7 @@ public:
   double IntraEnergy_1_4(const double distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
   //! Calculate Torque
-  void CalculateTorque(std::vector<uint> &moleculeIndex,
+  void CalculateTorque(std::vector<int> &moleculeIndex,
                        XYZArray const &coordinates, XYZArray const &com,
                        XYZArray const &atomForce, XYZArray const &atomForceRec,
                        XYZArray &molTorque, const uint box);

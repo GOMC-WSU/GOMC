@@ -521,7 +521,7 @@ __global__ void RotateParticlesKernel(
 // CUDA implementation of MultiParticle Brownian transformation
 
 void BrownianMotionRotateParticlesGPU(
-    VariablesCUDA *vars, const std::vector<unsigned int> &moleculeInvolved,
+    VariablesCUDA *vars, const std::vector<int> &moleculeInvolved,
     XYZArray &mTorque, XYZArray &newMolPos, XYZArray &newCOMs, XYZArray &rt_k,
     const XYZ &boxAxes, const double BETA, const double r_max, ulong step,
     unsigned int key, ulong seed, const int box, const bool isOrthogonal) {
@@ -730,7 +730,7 @@ __global__ void BrownianMotionRotateKernel(
 }
 
 void BrownianMotionTranslateParticlesGPU(
-    VariablesCUDA *vars, const std::vector<unsigned int> &moleculeInvolved,
+    VariablesCUDA *vars, const std::vector<int> &moleculeInvolved,
     XYZArray &mForce, XYZArray &mForceRec, XYZArray &newMolPos,
     XYZArray &newCOMs, XYZArray &rt_k, const XYZ &boxAxes, const double BETA,
     const double t_max, ulong step, unsigned int key, ulong seed, const int box,

@@ -1370,7 +1370,7 @@ void CalculateEnergy::VirialCorrection(Virial &virial,
 }
 
 //! Calculate Torque
-void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
+void CalculateEnergy::CalculateTorque(std::vector<int> &moleculeIndex,
                                       XYZArray const &coordinates,
                                       XYZArray const &com,
                                       XYZArray const &atomForce,
