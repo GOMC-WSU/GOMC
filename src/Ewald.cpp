@@ -1594,7 +1594,7 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
     // used
     atomForceRec.Reset();
     molForceRec.Reset();
-    for (auto i; i < atomForceRec.Count(); ++i) {
+    for (auto i = 0; i < atomForceRec.Count(); ++i) {
       particleUsed.push_back(i);
     }
 #endif
