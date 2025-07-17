@@ -100,13 +100,11 @@ void Simulation::RunSimulation(void) {
 
 #ifndef NDEBUG
     Energy en0 = system->potential.boxEnergy[0];
-    std::cout << "Step " << step + 1 << std::fixed << std::setprecision(7)
-              << ": Box 0 Energies" << std::endl;
+    std::cout << "Step " << step + 1 << ": Box 0 Energies" << std::endl;
     std::cout << en0 << std::endl;
     if (BOXES_WITH_U_NB > 1) {
       Energy en1 = system->potential.boxEnergy[1];
-      std::cout << "Step " << step + 1 << std::fixed << std::setprecision(7)
-                << ": Box 1 Energies" << std::endl;
+      std::cout << "Step " << step + 1 << ": Box 1 Energies" << std::endl;
       std::cout << en1 << std::endl;
     }
 #endif
