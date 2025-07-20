@@ -27,6 +27,7 @@ along with this program, also can be found at
 #include "System.h"     //For init
 #include "TrialMol.h"
 #include "chrono"
+#include "thread"
 #ifdef GOMC_CUDA
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
@@ -326,7 +327,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for collapse(1) default(none) shared(boxAxes, cellStartIndex, \
+#pragma omp parallel for collapse(2) default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
   firstprivate(box, atomCount, molCount, num::qqFact) \
   reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
@@ -403,7 +404,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   auto t_end = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start);
   std::cout << "duration of BoxForce in ms: " << duration.count() << std::endl;
-
+  std::this_thread::sleep_for(std::chrono::seconds(2));
   return potential;
 }
 
