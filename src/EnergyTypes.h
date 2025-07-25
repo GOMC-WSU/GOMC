@@ -533,7 +533,7 @@ inline std::ostream &operator<<(std::ostream &out, Energy &en) {
   }
 
   // Restore ostream settings to prior value
-  out << std::setprecision(ss);
+  out.precision(ss);
   out.flags(ff);
   return out;
 }
