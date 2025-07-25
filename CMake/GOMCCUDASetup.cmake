@@ -3,8 +3,8 @@ set(CMAKE_CUDA_COMP_FLAGS -DGOMC_CUDA -DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT)
 set(CMAKE_HOST_COMP_FLAGS ${CMAKE_COMP_FLAGS} -DGOMC_CUDA)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    message("-- Debug build type detected, passing '-g -G --keep' to nvcc")
-    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} -g -G --keep)
+    message("-- Debug build type detected, passing '-g -lineinfo --keep' to nvcc")
+    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} -g -lineinfo --keep)
     set(CMAKE_CUDA_LINK_FLAGS -g -G --keep)
 endif()
 
