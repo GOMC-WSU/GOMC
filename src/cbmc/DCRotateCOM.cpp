@@ -213,11 +213,17 @@ void DCRotateCOM::BuildNew(TrialMol &newMol, uint molIndex) {
 
   double stepWeight = 0.0;
   for (uint lj = 0; lj < totalTrials; ++lj) {
-    ljWeights[lj] = exp(-ff.beta * (inter[lj] + real[lj]));
-    stepWeight += ljWeights[lj];
+    // Skip exp() calculation for small values for efficiency and to avoid
+    // subnormal values that contribute to differences between processors.
+    // Value chosen mathematically: See cppreference.com exp function notes.
+    // Note: ljWeights prefilled with 0.0, so don't need to initialize it.
+    double betaWeight = -ff.beta * (inter[lj] + real[lj]);
+    if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
+      ljWeights[lj] = std::exp(betaWeight);
+      stepWeight += ljWeights[lj];
+    }
   }
   uint winner = prng.PickWeighted(ljWeights, totalTrials, stepWeight);
-
   for (uint a = 0; a < atomNumber; ++a) {
     newMol.AddAtom(a, multiPosRotions[a][winner]);
   }
@@ -326,7 +332,15 @@ void DCRotateCOM::BuildOld(TrialMol &oldMol, uint molIndex) {
 
   double stepWeight = 0.0;
   for (uint lj = 0; lj < totalTrials; ++lj) {
-    stepWeight += exp(-ff.beta * (inter[lj] + real[lj]));
+    // Skip exp() calculation for small values for efficiency and to avoid
+    // subnormal values that contribute to differences between processors.
+    // Value chosen mathematically: See cppreference.com exp function notes.
+    // Note: ljWeights prefilled with 0.0, so don't need to initialize it.
+    double betaWeight = -ff.beta * (inter[lj] + real[lj]);
+    if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
+      ljWeights[lj] = std::exp(betaWeight);
+      stepWeight += ljWeights[lj];
+    }
   }
 
   for (uint a = 0; a < atomNumber; ++a) {

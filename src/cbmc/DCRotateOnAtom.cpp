@@ -179,7 +179,7 @@ void DCRotateOnAtom::BuildOld(TrialMol &oldMol, uint molIndex) {
   double *inter = data->inter;
   double *real = data->real;
   bool *overlap = data->overlap;
-  double stepWeight = 0;
+  double stepWeight = 0.0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
@@ -229,9 +229,16 @@ void DCRotateOnAtom::BuildOld(TrialMol &oldMol, uint molIndex) {
   }
 
   for (uint trial = 0; trial < nLJTrials; ++trial) {
-    ljWeights[trial] *= exp(-1 * data->ff.beta *
-                            (inter[trial] + real[trial] + nonbonded[trial]));
-    stepWeight += ljWeights[trial];
+    // Skip exp() calculation for small values for efficiency and to avoid
+    // subnormal values that contribute to differences between processors.
+    // Value chosen mathematically: See cppreference.com exp function notes.
+    // Note: ljWeights prefilled with 0.0, so don't need to initialize it.
+    double betaWeight =
+        -data->ff.beta * (inter[trial] + real[trial] + nonbonded[trial]);
+    if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
+      ljWeights[trial] = std::exp(betaWeight);
+      stepWeight += ljWeights[trial];
+    }
   }
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.MultWeight(stepWeight / nLJTrials);
@@ -256,7 +263,7 @@ void DCRotateOnAtom::BuildNew(TrialMol &newMol, uint molIndex) {
   double *inter = data->inter;
   double *real = data->real;
   bool *overlap = data->overlap;
-  double stepWeight = 0;
+  double stepWeight = 0.0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
@@ -300,9 +307,16 @@ void DCRotateOnAtom::BuildNew(TrialMol &newMol, uint molIndex) {
   }
 
   for (uint trial = 0; trial < nLJTrials; trial++) {
-    ljWeights[trial] *= exp(-1 * data->ff.beta *
-                            (inter[trial] + real[trial] + nonbonded[trial]));
-    stepWeight += ljWeights[trial];
+    // Skip exp() calculation for small values for efficiency and to avoid
+    // subnormal values that contribute to differences between processors.
+    // Value chosen mathematically: See cppreference.com exp function notes.
+    // Note: ljWeights prefilled with 0.0, so don't need to initialize it.
+    double betaWeight =
+        -data->ff.beta * (inter[trial] + real[trial] + nonbonded[trial]);
+    if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
+      ljWeights[trial] = std::exp(betaWeight);
+      stepWeight += ljWeights[trial];
+    }
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   newMol.UpdateOverlap(overlap[winner]);
@@ -335,7 +349,7 @@ void DCRotateOnAtom::ChooseTorsion(TrialMol &mol, uint molIndex,
     }
     double en = CalcIntraBonded(mol, molIndex);
     torEnergy[tor] = en;
-    torWeights[tor] = exp(-1 * data->ff.beta * en);
+    torWeights[tor] = std::exp(-data->ff.beta * en);
   }
 }
 
@@ -360,7 +374,7 @@ void DCRotateOnAtom::ChooseTorsionOld(TrialMol &mol, uint molIndex,
     }
     double en = CalcIntraBonded(mol, molIndex);
     torEnergy[tor] = en;
-    torWeights[tor] = exp(-1 * data->ff.beta * en);
+    torWeights[tor] = std::exp(-data->ff.beta * en);
   }
 }
 

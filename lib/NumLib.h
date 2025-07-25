@@ -21,8 +21,8 @@ along with this program, also can be found at
 #define SMALL_WEIGHT 1.0e-38
 #endif
 namespace num {
-static const double dbl_margin = 0.00001;
 static const double qqFact = 167103.208067979;
+static const double MIN_EXP_NONZERO_VAL = -708.4;
 static const double BIGNUM = DBL_MAX;
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
