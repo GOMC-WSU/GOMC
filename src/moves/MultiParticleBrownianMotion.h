@@ -316,7 +316,7 @@ inline uint MultiParticleBrownian::Transform() {
       // check for PBC error and bad initial configuration
       if (num > boxDimRef.GetHalfAxis(bPick)) {
         std::cout << "Warning: Trial Displacement exceeds half the box length "
-                     "in Multiparticle Brownian Motion move!\n";
+                     "in the Multiparticle Brownian Motion move!\n";
         std::cout << "         Trial transformation vector: " << num << "\n";
         std::cout << "         Box Dimensions: " << boxDimRef.GetAxis(bPick);
         std::cout << "\n\n";
@@ -324,11 +324,11 @@ inline uint MultiParticleBrownian::Transform() {
         std::cout << "Problem with molecule " << molIndex << std::endl;
 #endif
         std::cout << "This might be due to a bad initial configuration, where "
-                     "atoms of the molecules\n"
-                  << "are too close to each other or overlap. Please "
-                     "equilibrate your system using\n"
-                  << "rigid body translation or rotation MC moves before using "
-                     "the Multiparticle Brownian Motion move.\n\n";
+                     "atoms of the molecules are too\n"
+                  << "close to each other or overlap. Please equilibrate your "
+                     "system using rigid body\n"
+                  << "translation or rotation MC moves before using the "
+                     "Multiparticle Brownian Motion move.\n\n";
         state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
         break;
       }
