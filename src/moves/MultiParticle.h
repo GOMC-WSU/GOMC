@@ -177,7 +177,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc) {
   else if (moveType == mp::MPROTATE)
     std::cout << "   MultiParticle Rotation\n";
   else
-    std::cout << "   MultiParticle move type not recognized! Update "
+    std::cout << "   MultiParticle move type not recognized. Update "
                  "MultiParticle.h\n";
 #endif
 
@@ -340,23 +340,23 @@ inline uint MultiParticle::Transform() {
       // check for PBC error and bad initial configuration
       if (num > boxDimRef.GetHalfAxis(bPick)) {
         std::cout << "Warning: Trial Displacement exceeds half the box length "
-                     "in Multiparticle move!\n";
+                     "in Multiparticle move.\n";
         std::cout << "         Trial transformation vector: " << num << "\n";
         std::cout << "         Box Dimensions: " << boxDimRef.GetAxis(bPick);
         std::cout << "\n\n";
         std::cout << "This might be due to a bad initial configuration, where "
-                     "atoms of the molecules\n"
-                  << "are too close to each other or overlap. Please "
-                     "equilibrate your system using\n"
-                  << "rigid body translation or rotation MC moves before using "
-                     "the Multiparticle move.\n\n";
+                     "atoms of the molecules overlap\n"
+                  << "or are too close to each other. Please equilibrate your "
+                     "system using rigid body\n"
+                  << "translation or rotation MC moves before using the "
+                     "Multiparticle move.\n\n";
         state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
         break;
       }
     }
     if (!std::isfinite(num.Length())) {
       std::cout << "Trial Displacement is not a finite number in MultiParticle";
-      std::cout << " move.\nTrial transform: " << num << "\n";
+      std::cout << " move.\nTrial transformation vector: " << num << "\n";
       state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
       break;
     }

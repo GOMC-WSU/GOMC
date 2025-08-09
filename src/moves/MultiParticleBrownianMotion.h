@@ -166,13 +166,13 @@ inline uint MultiParticleBrownian::Prep(const double subDraw,
   else if (moveType == mp::MPROTATE)
     std::cout << "   MultiParticle Rotation\n";
   else
-    std::cout << "   MultiParticle move type not recognized! Update "
+    std::cout << "   MultiParticle move type not recognized. Update "
                  "MultiParticleBrownianMotion.h\n";
 #endif
 
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: MultiParticleBrownian move has no particles to move."
+    std::cout << "Warning: Brownian Motion MultiParticle move has no particles to move."
                  " Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
@@ -223,7 +223,7 @@ inline uint MultiParticleBrownian::PrepNEMTMC(const uint box, const uint midx,
 
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: MultiParticleBrownian move has no particles to move."
+    std::cout << "Warning: Brownian Motion MultiParticle move has no particles to move."
                  " Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
@@ -316,7 +316,7 @@ inline uint MultiParticleBrownian::Transform() {
       // check for PBC error and bad initial configuration
       if (num > boxDimRef.GetHalfAxis(bPick)) {
         std::cout << "Warning: Trial Displacement exceeds half the box length "
-                     "in the Multiparticle Brownian Motion move!\n";
+                     "in the Brownian Motion Multiparticle move.\n";
         std::cout << "         Trial transformation vector: " << num << "\n";
         std::cout << "         Box Dimensions: " << boxDimRef.GetAxis(bPick);
         std::cout << "\n\n";
@@ -324,11 +324,11 @@ inline uint MultiParticleBrownian::Transform() {
         std::cout << "Problem with molecule " << molIndex << std::endl;
 #endif
         std::cout << "This might be due to a bad initial configuration, where "
-                     "atoms of the molecules are too\n"
-                  << "close to each other or overlap. Please equilibrate your "
+                     "atoms of the molecules overlap\n"
+                  << "or are too close to each other. Please equilibrate your "
                      "system using rigid body\n"
                   << "translation or rotation MC moves before using the "
-                     "Multiparticle Brownian Motion move.\n\n";
+                     "Brownian Motion Multiparticle move.\n\n";
         state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
         break;
       }
@@ -336,7 +336,7 @@ inline uint MultiParticleBrownian::Transform() {
     if (!std::isfinite(num.Length())) {
       std::cout << "Trial Displacement is not a finite number in Brownian"
                    " Motion Multiparticle move.\n";
-      std::cout << "         Trial transform: " << num << "\n";
+      std::cout << "         Trial transformation vector: " << num << "\n";
       state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
       break;
     }
