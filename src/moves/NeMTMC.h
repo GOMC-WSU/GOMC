@@ -15,8 +15,6 @@ along with this program, also can be found at
 #include "MoveBase.h"
 #include "TrialMol.h"
 
-using std::vector;
-
 class NEMTMC : public MoveBase {
 public:
   NEMTMC(System &sys, StaticVals const &statV)
@@ -24,7 +22,7 @@ public:
         ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
         backUpCoordinate(boxDimRef, backUpCOM, molLookRef, sys.prng, statV.mol),
         backUpCOM(boxDimRef, backUpCoordinate, molLookRef, statV.mol),
-        backUpMoveSetting(sys.boxDimRef), propagationMove(NULL),
+        backUpMoveSetting(sys.boxDimRef), propagationMove(nullptr),
         r123wrapper(sys.r123wrapper) {
     if (statV.neMTMCVal.enable) {
       conformationProb = statV.neMTMCVal.conformationProb;
@@ -78,7 +76,7 @@ private:
   uint molIndex, kindIndex;
   int lambdaIdxOld, lambdaIdxNew;
   uint relaxSteps, lambdaWindow;
-  vector<vector<uint>> kCount;
+  std::vector<std::vector<uint>> kCount;
 
   double work;
   double conformationProb, lambdaLimit;
@@ -86,7 +84,7 @@ private:
   double correctDiffSource, correctDiffDest, selfDiffSource, selfDiffDest;
   double recipDiffSource, recipDiffDest, tcDiffSource, tcDiffDest;
   double molInSourceBox, molInDestBox;
-  vector<double> lambdaCoulomb, lambdaVDW;
+  std::vector<double> lambdaCoulomb, lambdaVDW;
 
   // variable needs for relaxing
   bool MPEnable, BrownianDynamicEnable;
@@ -473,7 +471,7 @@ inline void NEMTMC::RelaxingTransform(uint box) {
       if (rejectState == mv::fail_state::NO_FAIL) {
         molRef.GetRangeStartLength(pStart, pLen, m);
         if (pLen == 1) {
-          // We do displacement if we have single site atom
+          // We do displacement if we have a single site atom
           propagationMove = systemRef.GetMoveObject(mv::DISPLACE);
         } else {
           // get the displace/rotate move to propagate with 50% probability
