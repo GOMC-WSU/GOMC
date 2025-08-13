@@ -249,7 +249,6 @@ void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
                                       const double lambdaCoef, uint box) {
   // Calculate atom number -- exclude uncharged particles
   int atomNumber = molCharge.size();
-  int blocksPerGrid, threadsPerBlock;
 
   cudaMemcpy(vars->gpu_molCharge, &molCharge[0],
              molCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
@@ -264,8 +263,8 @@ void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  threadsPerBlock = THREADS_PER_BLOCK;
-  blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
+  int threadsPerBlock = THREADS_PER_BLOCK;
+  int blocksPerGrid = (imageSize + threadsPerBlock - 1) / threadsPerBlock;
   ChangeLambdaMolReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kxRef[box],
       vars->gpu_kyRef[box], vars->gpu_kzRef[box], atomNumber,
@@ -645,20 +644,21 @@ __global__ void ChangeLambdaMolReciprocalGPU(
   if (threadID >= imageSize)
     return;
 
-  double sumRealNew = 0.0, sumImaginaryNew = 0.0;
+  double sumReal = 0.0, sumImaginary = 0.0;
 
-  for (int p = 0; p < atomNumber; p++) {
-    double dotProductNew =
+#pragma unroll 6
+  for (int p = 0; p < atomNumber; ++p) {
+    double dotProduct =
         DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
                       gpu_x[p], gpu_y[p], gpu_z[p]);
     double newsin, newcos;
-    sincos(dotProductNew, &newsin, &newcos);
-    sumRealNew += gpu_molCharge[p] * newcos;
-    sumImaginaryNew += gpu_molCharge[p] * newsin;
+    sincos(dotProduct, &newsin, &newcos);
+    sumReal += gpu_molCharge[p] * newcos;
+    sumImaginary += gpu_molCharge[p] * newsin;
   }
 
-  gpu_sumRnew[threadID] = gpu_sumRref[threadID] + lambdaCoef * sumRealNew;
-  gpu_sumInew[threadID] = gpu_sumIref[threadID] + lambdaCoef * sumImaginaryNew;
+  gpu_sumRnew[threadID] = gpu_sumRref[threadID] + lambdaCoef * sumReal;
+  gpu_sumInew[threadID] = gpu_sumIref[threadID] + lambdaCoef * sumImaginary;
 
   gpu_recipEnergies[threadID] =
       (gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +

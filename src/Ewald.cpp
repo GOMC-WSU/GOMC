@@ -566,15 +566,31 @@ double Ewald::ChangeLambdaRecip(XYZArray const &molCoords,
     MoleculeKind const &thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
-    double lambdaCoef = sqrt(lambdaNew) - sqrt(lambdaOld);
+    double lambdaCoef = std::sqrt(lambdaNew) - std::sqrt(lambdaOld);
 #ifdef GOMC_CUDA
-    std::vector<double> MolCharge;
-    for (uint p = 0; p < length; p++) {
-      MolCharge.push_back(thisKind.AtomCharge(p));
+    XYZArray newCoords = molCoords;
+    std::vector<double> molCharge;
+    int charges = 0;
+    for (uint p = 0; p < length; ++p) {
+      if (thisKind.AtomCharge(p) != 0.0) {
+        molCharge.push_back(thisKind.AtomCharge(p));
+        if (p > charges) {
+          newCoords.Set(charges, molCoords[p]);
+        }
+        charges++;
+      }
     }
-    CallChangeLambdaMolReciprocalGPU(ff.particles->getCUDAVars(), molCoords,
-                                     MolCharge, imageSizeRef[box],
+    // If there are no charged particles, the energy doesn't change, but we need
+    // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
+    // in case the move is accepted
+    if (charges == 0) {
+      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
+      energyRecipNew = sysPotRef.boxEnergy[box].recip;
+    } else {
+        CallChangeLambdaMolReciprocalGPU(ff.particles->getCUDAVars(), newCoords,
+                                     molCharge, imageSizeRef[box],
                                      energyRecipNew, lambdaCoef, box);
+    }
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(lambdaCoef, molCoords, thisKind) \
