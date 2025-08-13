@@ -57,6 +57,7 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   CUMALLOC((void **)&vars.gpu_ewald, sizeof(int));
   CUMALLOC((void **)&vars.gpu_diElectric_1, sizeof(double));
   CUMALLOC((void **)&vars.gpu_finalVal, sizeof(double));
+  CUMALLOC((void **)&vars.gpu_LJEn, sizeof(double));
 
   // allocate GPU memory for lambda variables
   CUMALLOC((void **)&vars.gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
@@ -256,6 +257,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, int numAtoms,
     CUMALLOC((void **)&vars->gpu_hsqr[b], imageTotal * sizeof(double));
     CUMALLOC((void **)&vars->gpu_hsqrRef[b], imageTotal * sizeof(double));
   }
+  CUMALLOC((void **)&vars->gpu_REn, sizeof(double));
   CUMALLOC((void **)&vars->gpu_wT11, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_wT12, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_wT13, imageTotal * sizeof(double));
@@ -375,7 +377,6 @@ void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
 
   // Free the current allocations if this isn't the first allocation
   if (vars->gpu_energyVecLen > 0) {
-    CUFREE(vars->gpu_LJEn);
     CUFREE(vars->gpu_vT11);
     CUFREE(vars->gpu_vT12);
     CUFREE(vars->gpu_vT13);
@@ -383,7 +384,6 @@ void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
     CUFREE(vars->gpu_vT23);
     CUFREE(vars->gpu_vT33);
     if (electrostatic) {
-      CUFREE(vars->gpu_REn);
       CUFREE(vars->gpu_rT11);
       CUFREE(vars->gpu_rT12);
       CUFREE(vars->gpu_rT13);
@@ -393,7 +393,6 @@ void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
     }
   }
   vars->gpu_energyVecLen = newVecLen;
-  CUMALLOC((void **)&vars->gpu_LJEn, newVecLen * sizeof(double));
   CUMALLOC((void **)&vars->gpu_vT11, newVecLen * sizeof(double));
   CUMALLOC((void **)&vars->gpu_vT12, newVecLen * sizeof(double));
   CUMALLOC((void **)&vars->gpu_vT13, newVecLen * sizeof(double));
@@ -401,7 +400,6 @@ void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
   CUMALLOC((void **)&vars->gpu_vT23, newVecLen * sizeof(double));
   CUMALLOC((void **)&vars->gpu_vT33, newVecLen * sizeof(double));
   if (electrostatic) {
-    CUMALLOC((void **)&vars->gpu_REn, newVecLen * sizeof(double));
     CUMALLOC((void **)&vars->gpu_rT11, newVecLen * sizeof(double));
     CUMALLOC((void **)&vars->gpu_rT12, newVecLen * sizeof(double));
     CUMALLOC((void **)&vars->gpu_rT13, newVecLen * sizeof(double));
@@ -414,7 +412,7 @@ void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
   // If so, free and malloc a new array for the additional space.
   void *d_temp_storage = nullptr;
   size_t temp_storage_bytes = 0;
-  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_LJEn,
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_vT11,
                          vars->gpu_finalVal, vars->gpu_energyVecLen);
   if (temp_storage_bytes > vars->cub_energyVec_storage_size) {
     // Free the current allocation if this isn't the first allocation

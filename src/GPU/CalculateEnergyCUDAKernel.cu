@@ -33,9 +33,12 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   // Run the kernel
   int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
-  int energyVectorLen = blocksPerGrid;
 
-  UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
+  // Initialize the energy values
+  cudaMemset(vars->gpu_LJEn, 0, sizeof(double));
+  if (electrostatic) {
+    cudaMemset(vars->gpu_REn, 0, sizeof(double));
+  }
 
   // Copy necessary data to GPU
   cudaMemcpy(vars->gpu_cellStartIndex[box], &cellStartIndex[0],
@@ -76,20 +79,9 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  // ReduceSum
-  DeviceReduce::Sum(vars->cub_energyVec_storage,
-                    vars->cub_energyVec_storage_size, vars->gpu_LJEn,
-                    vars->gpu_finalVal, energyVectorLen);
-  cudaMemcpy(&LJEn, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&LJEn, vars->gpu_LJEn, sizeof(double), cudaMemcpyDeviceToHost);
   if (electrostatic) {
-    // Real Term ReduceSum
-    DeviceReduce::Sum(vars->cub_energyVec_storage,
-                      vars->cub_energyVec_storage_size, vars->gpu_REn,
-                      vars->gpu_finalVal, energyVectorLen);
-    cudaMemcpy(&REn, vars->gpu_finalVal, sizeof(double),
-               cudaMemcpyDeviceToHost);
-  } else {
-    REn = 0.0;
+    cudaMemcpy(&REn, vars->gpu_REn, sizeof(double), cudaMemcpyDeviceToHost);
   }
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -125,11 +117,6 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   int neighborCell = gpu_neighborList[nCellIndex];
 
   if (currentCell > neighborCell) {
-    if (threadIdx.x == 0) {
-      gpu_LJEn[blockIdx.x] = 0.0;
-      if (electrostatic)
-        gpu_REn[blockIdx.x] = 0.0;
-    }
     return;
   }
 
@@ -215,18 +202,22 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
   // Compute the block-wide sum for thread 0
   double aggregate1 = BlockReduce(LJEn_temp_storage).Sum(LJEn);
 
-  if (threadIdx.x == 0) {
-    gpu_LJEn[blockIdx.x] = aggregate1;
+  // Gas box may be sparse enough that energy is zero
+  if (threadIdx.x == 0 && aggregate1 != 0.0) {
+    atomicAdd(&gpu_LJEn[0], aggregate1);
   }
 
   if (electrostatic) {
     // Need to sync the threads before reusing temp_storage
     // so using different variables
     __shared__ typename BlockReduce::TempStorage REn_temp_storage;
+
     // Compute the block-wide sum for thread 0
     double aggregate2 = BlockReduce(REn_temp_storage).Sum(REn);
-    if (threadIdx.x == 0)
-      gpu_REn[blockIdx.x] = aggregate2;
+
+    // Gas box may be sparse enough that energy is zero
+    if (threadIdx.x == 0 && aggregate2 != 0.0)
+      atomicAdd(&gpu_REn[0], aggregate2);
   }
 }
 

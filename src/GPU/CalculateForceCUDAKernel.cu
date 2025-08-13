@@ -160,13 +160,17 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   int atomNumber = coords.Count();
   int numberOfCells = cellStartIndex.size() - 1;
   int numberOfCellPairs = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
-  double cpu_final_REn = 0.0, cpu_final_LJEn = 0.0;
 
   int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = numberOfCellPairs;
-  int energyVectorLen = numberOfCellPairs;
 
-  UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
+  // Initialize the energy values
+  if (calcEnergies) {
+    cudaMemset(vars->gpu_LJEn, 0, sizeof(double));
+    if (electrostatic) {
+      cudaMemset(vars->gpu_REn, 0, sizeof(double));
+    }
+  }
 
   // Initialize atom or molecule force arrays depending on what will be needed
   // for the rest of the move
@@ -228,23 +232,10 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 #endif
 
   if (calcEnergies) {
-    // LJ ReduceSum
-    DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                      vars->gpu_LJEn, vars->gpu_finalVal, energyVectorLen);
-    // Copy the result back to CPU ! :)
-    cudaMemcpy(&cpu_final_LJEn, vars->gpu_finalVal, sizeof(double),
-               cudaMemcpyDeviceToHost);
+    cudaMemcpy(&LJEn, vars->gpu_LJEn, sizeof(double), cudaMemcpyDeviceToHost);
     if (electrostatic) {
-      // Real Term ReduceSum
-      DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                        vars->gpu_REn, vars->gpu_finalVal, energyVectorLen);
-      // Copy the result back to CPU ! :)
-      cudaMemcpy(&cpu_final_REn, vars->gpu_finalVal, sizeof(double),
-                 cudaMemcpyDeviceToHost);
+      cudaMemcpy(&REn, vars->gpu_REn, sizeof(double), cudaMemcpyDeviceToHost);
     }
-
-    REn = cpu_final_REn;
-    LJEn = cpu_final_LJEn;
   }
 
   if (moveType == mp::MPROTATE) {
@@ -595,11 +586,6 @@ __global__ void BoxForceGPU(
   int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
   int neighborCell = gpu_neighborList[blockIdx.x];
   if (currentCell > neighborCell) {
-    if (threadIdx.x == 0 && calcEnergies) {
-      gpu_LJEn[blockIdx.x] = 0.0;
-      if (electrostatic)
-        gpu_REn[blockIdx.x] = 0.0;
-    }
     return;
   }
 
@@ -711,7 +697,7 @@ __global__ void BoxForceGPU(
     }
   }
 
-  // calcEnergies has the same value for all threads, so it's OK to have the
+  // calcEnergies has the same value for all threads, so it's OK to place the
   // __syncthreads inside the if block
   if (calcEnergies) {
     __syncthreads();
@@ -725,9 +711,10 @@ __global__ void BoxForceGPU(
     // Compute the block-wide sum for thread 0
     double aggregate1 = BlockReduce(LJEn_temp_storage).Sum(LJEn);
 
-    if (threadIdx.x == 0)
-      gpu_LJEn[blockIdx.x] = aggregate1;
-
+    // Gas box may be sparse enough that energy is zero
+    if (threadIdx.x == 0 && aggregate1 != 0.0) {
+      atomicAdd(&gpu_LJEn[0], aggregate1);
+    }
     if (electrostatic) {
       // Need to sync the threads before reusing temp_storage
       // so using different variables
@@ -736,8 +723,9 @@ __global__ void BoxForceGPU(
       // Compute the block-wide sum for thread 0
       double aggregate2 = BlockReduce(REn_temp_storage).Sum(REn);
 
-      if (threadIdx.x == 0)
-        gpu_REn[blockIdx.x] = aggregate2;
+      // Gas box may be sparse enough that energy is zero
+      if (threadIdx.x == 0 && aggregate2 != 0.0)
+        atomicAdd(&gpu_REn[0], aggregate2);
     }
   }
 }
