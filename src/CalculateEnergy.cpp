@@ -387,16 +387,16 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
               aForcex[currParticle] += forceLJ.x + forceReal.x;
               aForcey[currParticle] += forceLJ.y + forceReal.y;
               aForcez[currParticle] += forceLJ.z + forceReal.z;
-              aForcex[nParticle] += -(forceLJ.x + forceReal.x);
-              aForcey[nParticle] += -(forceLJ.y + forceReal.y);
-              aForcez[nParticle] += -(forceLJ.z + forceReal.z);
+              aForcex[nParticle] -= forceLJ.x + forceReal.x;
+              aForcey[nParticle] -= forceLJ.y + forceReal.y;
+              aForcez[nParticle] -= forceLJ.z + forceReal.z;
             } else if (moveType == mp::MPDISPLACE) {
-              mForcex[particleMol[currParticle]] += (forceLJ.x + forceReal.x);
-              mForcey[particleMol[currParticle]] += (forceLJ.y + forceReal.y);
-              mForcez[particleMol[currParticle]] += (forceLJ.z + forceReal.z);
-              mForcex[particleMol[nParticle]] += -(forceLJ.x + forceReal.x);
-              mForcey[particleMol[nParticle]] += -(forceLJ.y + forceReal.y);
-              mForcez[particleMol[nParticle]] += -(forceLJ.z + forceReal.z);
+              mForcex[particleMol[currParticle]] += forceLJ.x + forceReal.x;
+              mForcey[particleMol[currParticle]] += forceLJ.y + forceReal.y;
+              mForcez[particleMol[currParticle]] += forceLJ.z + forceReal.z;
+              mForcex[particleMol[nParticle]] -= forceLJ.x + forceReal.x;
+              mForcey[particleMol[nParticle]] -= forceLJ.y + forceReal.y;
+              mForcez[particleMol[nParticle]] -= forceLJ.z + forceReal.z;
             }
           }
         }
