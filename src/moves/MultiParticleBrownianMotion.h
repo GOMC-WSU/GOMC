@@ -59,7 +59,7 @@ private:
   void RotateForceBiased(int molIndex);
   void TranslateForceBiased(int molIndex);
   void SetMolInBox(uint box);
-  XYZ CalcRandomTransform(XYZ const &lb, double const max, int molIndex);
+  XYZ CalcRandomTransform(XYZ const &lb, double const rt_max, int molIndex);
   double CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old, XYZ const &k,
                          double max4);
 };
@@ -308,13 +308,14 @@ inline uint MultiParticleBrownian::Transform() {
   CalculateTrialDistRot();
 #endif
 
-  // Do error checking and skip if there is an invalid transform amount.
+  // Do error checking and skip if there is an invalid transform amount
+  const XYZ halfAx = boxDimRef.GetHalfAxis(bPick);
   for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
     int molIndex = moleculeIndex[m];
     XYZ num = rt_k.Get(molIndex);
     if (moveType == mp::MPDISPLACE) { // displace
       // check for PBC error and bad initial configuration
-      if (num > boxDimRef.GetHalfAxis(bPick)) {
+      if (num > halfAx || (-num) > halfAx) {
         std::cout << "Warning: Trial Displacement exceeds half the box length "
                      "in the Brownian Motion Multiparticle move.\n";
         std::cout << "         Trial transformation vector: " << num << "\n";
@@ -329,7 +330,7 @@ inline uint MultiParticleBrownian::Transform() {
                      "system using rigid body\n"
                   << "translation or rotation MC moves before using the "
                      "Brownian Motion Multiparticle move.\n\n";
-        state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+        state = mv::fail_state::INVALID_MP_MOVE_DIST;
         break;
       }
     }
@@ -337,7 +338,7 @@ inline uint MultiParticleBrownian::Transform() {
       std::cout << "Trial Displacement is not a finite number in Brownian"
                    " Motion Multiparticle move.\n";
       std::cout << "         Trial transformation vector: " << num << "\n";
-      state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+      state = mv::fail_state::INVALID_MP_MOVE_DIST;
       break;
     }
   }
@@ -465,17 +466,15 @@ inline void MultiParticleBrownian::Accept(const uint rejectState,
 }
 
 inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb,
-                                                      double const max,
+                                                      double const rt_max,
                                                       int molIndex) {
-  XYZ lbmax = lb * max;
-  XYZ num, randnums;
+  XYZ num = lb * (BETA * rt_max);
+  XYZ randnums;
   // variance is 2A according to the paper, so stdDev is sqrt(variance)
-  double stdDev = sqrt(2.0 * max);
+  double stdDev = std::sqrt(2.0 * rt_max);
 
   randnums = r123wrapper.GetGaussianCoords(molIndex, 0.0, stdDev);
-  num.x = lbmax.x + randnums.x;
-  num.y = lbmax.y + randnums.y;
-  num.z = lbmax.z + randnums.z;
+  num += randnums;
 
   return num;
 }
@@ -492,7 +491,7 @@ inline void MultiParticleBrownian::CalculateTrialDistRot() {
 #endif
     for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
       int molIndex = moleculeIndex[m];
-      XYZ bt = molTorqueRef.Get(molIndex) * BETA;
+      XYZ bt = molTorqueRef.Get(molIndex);
       XYZ val = CalcRandomTransform(bt, r_max, molIndex);
       x[molIndex] = val.x;
       y[molIndex] = val.y;
@@ -505,8 +504,7 @@ inline void MultiParticleBrownian::CalculateTrialDistRot() {
 #endif
     for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
       int molIndex = moleculeIndex[m];
-      XYZ bf =
-          (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) * BETA;
+      XYZ bf = molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex);
       XYZ val = CalcRandomTransform(bf, t_max, molIndex);
       x[molIndex] = val.x;
       y[molIndex] = val.y;
