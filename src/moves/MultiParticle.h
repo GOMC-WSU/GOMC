@@ -333,12 +333,13 @@ inline uint MultiParticle::Transform() {
 #endif
 
   // Do error checking and skip if there is an invalid transform amount.
+  const XYZ halfAx = boxDimRef.GetHalfAxis(bPick);
   for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
     int molIndex = moleculeIndex[m];
     XYZ num = rt_k.Get(molIndex);
     if (moveType == mp::MPDISPLACE) { // displace
       // check for PBC error and bad initial configuration
-      if (num > boxDimRef.GetHalfAxis(bPick)) {
+      if (num > halfAx || (-num) > halfAx) {
         std::cout << "Warning: Trial Displacement exceeds half the box length "
                      "in Multiparticle move.\n";
         std::cout << "         Trial transformation vector: " << num << "\n";
@@ -350,14 +351,14 @@ inline uint MultiParticle::Transform() {
                      "system using rigid body\n"
                   << "translation or rotation MC moves before using the "
                      "Multiparticle move.\n\n";
-        state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+        state = mv::fail_state::INVALID_MP_MOVE_DIST;
         break;
       }
     }
     if (!std::isfinite(num.Length())) {
       std::cout << "Trial Displacement is not a finite number in MultiParticle";
       std::cout << " move.\nTrial transformation vector: " << num << "\n";
-      state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+      state = mv::fail_state::INVALID_MP_MOVE_DIST;
       break;
     }
   }
