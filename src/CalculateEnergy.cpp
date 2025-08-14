@@ -201,17 +201,20 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for collapse(2) default(none) shared(boxAxes, cellStartIndex, \
+#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
 reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
 #endif
   // loop over all particles
   for (int currParticleIdx = 0; currParticleIdx < (int)cellVector.size();
        currParticleIdx++) {
+    // old pre-collapse changes
+    int currParticle = cellVector[currParticleIdx];
+    int currCell = mapParticleToCell[currParticle];
     for (int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL;
          nCellIndex++) {
       // find the index of neighboring cell
-      int neighborCell = neighborList[mapParticleToCell[cellVector[currParticleIdx]]][nCellIndex];
+      int neighborCell = neighborList[currCell][nCellIndex];
 
       // find the ending index in neighboring cell
       int endIndex = cellStartIndex[neighborCell + 1];
@@ -221,27 +224,27 @@ reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
         int nParticle = cellVector[nParticleIndex];
 
         // avoid same particles and duplicate work
-        if (cellVector[currParticleIdx] < nParticle &&
-            particleMol[cellVector[currParticleIdx]] != particleMol[nParticle]) {
+        if (currParticle < nParticle &&
+            particleMol[currParticle] != particleMol[nParticle]) {
           double distSq;
           XYZ virComponents;
-          if (boxAxes.InRcut(distSq, virComponents, coords, cellVector[currParticleIdx],
+          if (boxAxes.InRcut(distSq, virComponents, coords, currParticle,
                              nParticle, box)) {
-            double lambdaVDW = GetLambdaVDW(particleMol[cellVector[currParticleIdx]],
+            double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
                                             particleMol[nParticle], box);
             if (electrostatic) {
               double lambdaCoulomb = GetLambdaCoulomb(
-                  particleMol[cellVector[currParticleIdx]], particleMol[nParticle], box);
-              double qi_qj_fact = particleCharge[cellVector[currParticleIdx]] *
+                  particleMol[currParticle], particleMol[nParticle], box);
+              double qi_qj_fact = particleCharge[currParticle] *
                                   particleCharge[nParticle] * num::qqFact;
               if (qi_qj_fact != 0.0) {
                 tempREn += forcefield.particles->CalcCoulomb(
-                    distSq, particleKind[cellVector[currParticleIdx]], particleKind[nParticle],
+                    distSq, particleKind[currParticle], particleKind[nParticle],
                     qi_qj_fact, lambdaCoulomb, box);
               }
             }
             tempLJEn += forcefield.particles->CalcEn(
-                distSq, particleKind[cellVector[currParticleIdx]], particleKind[nParticle],
+                distSq, particleKind[currParticle], particleKind[nParticle],
                 lambdaVDW);
           }
         }
