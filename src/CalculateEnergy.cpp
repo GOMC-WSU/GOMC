@@ -32,6 +32,8 @@ along with this program, also can be found at
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 #include "GOMCEventsProfile.h"
+#include <chrono> // For timing
+#include <thread> // For sleep
 #define NUMBER_OF_NEIGHBOR_CELL 27
 
 //
@@ -165,6 +167,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   if (box >= BOXES_WITH_U_NB)
     return potential;
 
+  auto t_start = std::chrono::high_resolution_clock::now();
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTER);
   double tempREn = 0.0, tempLJEn = 0.0;
 
@@ -198,21 +201,17 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+#pragma omp parallel for collapse(2) default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
 reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
 #endif
   // loop over all particles
   for (int currParticleIdx = 0; currParticleIdx < (int)cellVector.size();
        currParticleIdx++) {
-    int currParticle = cellVector[currParticleIdx];
-    // find the which cell currParticle belong to
-    int currCell = mapParticleToCell[currParticle];
-    // loop over currCell neighboring cells
     for (int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL;
          nCellIndex++) {
       // find the index of neighboring cell
-      int neighborCell = neighborList[currCell][nCellIndex];
+      int neighborCell = neighborList[mapParticleToCell[cellVector[currParticleIdx]]][nCellIndex];
 
       // find the ending index in neighboring cell
       int endIndex = cellStartIndex[neighborCell + 1];
@@ -222,27 +221,27 @@ reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
         int nParticle = cellVector[nParticleIndex];
 
         // avoid same particles and duplicate work
-        if (currParticle < nParticle &&
-            particleMol[currParticle] != particleMol[nParticle]) {
+        if (cellVector[currParticleIdx] < nParticle &&
+            particleMol[cellVector[currParticleIdx]] != particleMol[nParticle]) {
           double distSq;
           XYZ virComponents;
-          if (boxAxes.InRcut(distSq, virComponents, coords, currParticle,
+          if (boxAxes.InRcut(distSq, virComponents, coords, cellVector[currParticleIdx],
                              nParticle, box)) {
-            double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
+            double lambdaVDW = GetLambdaVDW(particleMol[cellVector[currParticleIdx]],
                                             particleMol[nParticle], box);
             if (electrostatic) {
               double lambdaCoulomb = GetLambdaCoulomb(
-                  particleMol[currParticle], particleMol[nParticle], box);
-              double qi_qj_fact = particleCharge[currParticle] *
+                  particleMol[cellVector[currParticleIdx]], particleMol[nParticle], box);
+              double qi_qj_fact = particleCharge[cellVector[currParticleIdx]] *
                                   particleCharge[nParticle] * num::qqFact;
               if (qi_qj_fact != 0.0) {
                 tempREn += forcefield.particles->CalcCoulomb(
-                    distSq, particleKind[currParticle], particleKind[nParticle],
+                    distSq, particleKind[cellVector[currParticleIdx]], particleKind[nParticle],
                     qi_qj_fact, lambdaCoulomb, box);
               }
             }
             tempLJEn += forcefield.particles->CalcEn(
-                distSq, particleKind[currParticle], particleKind[nParticle],
+                distSq, particleKind[cellVector[currParticleIdx]], particleKind[nParticle],
                 lambdaVDW);
           }
         }
@@ -257,6 +256,10 @@ reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
   potential.boxEnergy[box].real = tempREn;
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_INTER);
+  auto t_end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start);
+  std::cout << "duration of BoxForce in ms: " << duration.count() << std::endl;
+  std::this_thread::sleep_for(std::chrono::seconds(2));
   // set correction energy and virial
   if (forcefield.useLRC) {
     EnergyCorrection(potential, boxAxes, box);
