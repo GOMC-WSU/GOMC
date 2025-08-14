@@ -29,7 +29,7 @@ public:
                     BoxDimensions &dims);
   // Disallow the creation of multiple cell lists (for the same box).
   CellList(const CellList &other) = delete;
-  CellList & operator=(const CellList &other) = delete;
+  CellList &operator=(const CellList &other) = delete;
   ~CellList();
   void Init();
   void SetCutoff();

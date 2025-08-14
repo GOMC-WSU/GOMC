@@ -172,7 +172,8 @@ public:
     double draw = rand(totalWeight);
     // Handle subnormal values to reduce differences between processors.
     // Treat them as zeroes, so pick the first weight, which is >= 0.0.
-    if (draw < std::numeric_limits<double>::min()) return 0;
+    if (draw < std::numeric_limits<double>::min())
+      return 0;
 
     double sum = 0.0;
     for (uint i = 0; i < n; ++i) {

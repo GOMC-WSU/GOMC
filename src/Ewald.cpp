@@ -587,9 +587,9 @@ double Ewald::ChangeLambdaRecip(XYZArray const &molCoords,
       CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
-        CallChangeLambdaMolReciprocalGPU(ff.particles->getCUDAVars(), newCoords,
-                                     molCharge, imageSizeRef[box],
-                                     energyRecipNew, lambdaCoef, box);
+      CallChangeLambdaMolReciprocalGPU(ff.particles->getCUDAVars(), newCoords,
+                                       molCharge, imageSizeRef[box],
+                                       energyRecipNew, lambdaCoef, box);
     }
 #else
 #ifdef _OPENMP

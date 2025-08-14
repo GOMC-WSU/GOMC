@@ -172,7 +172,8 @@ inline uint MultiParticleBrownian::Prep(const double subDraw,
 
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: Brownian Motion MultiParticle move has no particles to move."
+    std::cout << "Warning: Brownian Motion MultiParticle move has no particles "
+                 "to move."
                  " Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
@@ -223,7 +224,8 @@ inline uint MultiParticleBrownian::PrepNEMTMC(const uint box, const uint midx,
 
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: Brownian Motion MultiParticle move has no particles to move."
+    std::cout << "Warning: Brownian Motion MultiParticle move has no particles "
+                 "to move."
                  " Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
