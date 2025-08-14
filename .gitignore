@@ -41,3 +41,9 @@ cmake-build-debug
 .vscode
 output.txt
 *.orig
+
+# ensembles
+GEMC
+
+# build output
+build
