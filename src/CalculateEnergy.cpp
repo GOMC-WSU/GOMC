@@ -201,24 +201,25 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+#pragma omp parallel for collapse(2) default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
 reduction(+:tempREn, tempLJEn) firstprivate(box, num::qqFact)
 #endif
   // loop over all particles
   for (int currParticleIdx = 0; currParticleIdx < (int)cellVector.size();
        currParticleIdx++) {
-    // old pre-collapse changes
-    int currParticle = cellVector[currParticleIdx];
-    int currCell = mapParticleToCell[currParticle];
-    for (int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL;
-         nCellIndex++) {
-      // find the index of neighboring cell
-      int neighborCell = neighborList[currCell][nCellIndex];
+      for (int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL;
+      nCellIndex++) {
+        // old pre-collapse changes
+        int currParticle = cellVector[currParticleIdx];
+        int currCell = mapParticleToCell[currParticle];
 
-      // find the ending index in neighboring cell
-      int endIndex = cellStartIndex[neighborCell + 1];
-      // loop over particle inside neighboring cell
+        // find the index of neighboring cell
+        int neighborCell = neighborList[currCell][nCellIndex];
+            
+        // find the ending index in neighboring cell
+        int endIndex = cellStartIndex[neighborCell + 1];
+        // loop over particle inside neighboring cell
       for (int nParticleIndex = cellStartIndex[neighborCell];
            nParticleIndex < endIndex; nParticleIndex++) {
         int nParticle = cellVector[nParticleIndex];
