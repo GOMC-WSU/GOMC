@@ -8,7 +8,7 @@ use_gcc=0
 use_clang=0
 use_mpi=0
 use_asan=0
-use_opt=1
+use_opt=0
 use_debug=0
 ENSEMBLES=""
 CMAKEARGS=""
@@ -85,8 +85,8 @@ while getopts 'acdglmnpt' opt; do
         m)
             use_mpi=1
             CMAKEARGS+="-DGOMC_MPI=on ";;
-        n)
-            use_opt=0;;
+        O)
+            use_opt=1;;
         p)
             use_profiler=1;;
         t)
@@ -100,7 +100,7 @@ while getopts 'acdglmnpt' opt; do
             echo "-g, use the GNU compiler"
 			echo "-l, use the Clang compiler"
             echo "-m, enables MPI support (Required for Parallel Tempering)"
-            echo "-n, disables most compiler optimization flags"
+            echo "-O, enables compiler optimization flags"
             echo "-p enables GPU code profiling (NVTX tags)"
             echo "-t disables Intel compiler to allow GTests to compile"
             echo "For combined usage, concatenate flags, e.g.: -ptmg"
