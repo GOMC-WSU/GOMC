@@ -177,6 +177,8 @@ set(headers
    src/moves/MoleculeExchange1.h
    src/moves/MoleculeExchange2.h
    src/moves/MoleculeExchange3.h
+   src/moves/MoleculeExchange2Liq.h
+   src/moves/MoleculeExchange3Liq.h
    src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
    src/moves/MultiParticle.h
