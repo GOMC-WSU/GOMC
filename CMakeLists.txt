@@ -46,7 +46,7 @@ else()
    set(CMAKE_GNU_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -m64")
    set(CMAKE_GNU_LINK_FLAGS -m64)
    set(CMAKE_CLANG_COMP_FLAGS -O3)
-   set(CMAKE_CLANG_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler)
+   set(CMAKE_CLANG_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3")
    set(CMAKE_CLANG_LINK_FLAGS -O3)
 endif()
 
