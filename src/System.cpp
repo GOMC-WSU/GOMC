@@ -22,7 +22,9 @@ along with this program, also can be found at
 #include "IntraTargetedSwap.h"
 #include "MoleculeExchange1.h"
 #include "MoleculeExchange2.h"
+#include "MoleculeExchange2Liq.h"
 #include "MoleculeExchange3.h"
+#include "MoleculeExchange3Liq.h"
 #include "MoleculeTransfer.h"
 #include "Molecules.h" //For indexing molecules.
 #include "MoveBase.h"  //For move bases....
@@ -183,6 +185,10 @@ void System::InitMoves(Setup const &set) {
     moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
   } else if (set.config.sys.memcVal.MEMC2) {
     moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+  } else if (set.config.sys.memcVal.MEMC2Liq) {
+    moves[mv::MEMC] = new MoleculeExchange2Liq(*this, statV);
+  } else if (set.config.sys.memcVal.MEMC3Liq) {
+    moves[mv::MEMC] = new MoleculeExchange3Liq(*this, statV);
   } else {
     moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
   }
