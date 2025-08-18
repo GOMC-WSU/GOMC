@@ -251,9 +251,13 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind) {
         scale[box][move][kind] *= 0.5;
       }
     }
-    // Warning: This will lead to have acceptance > 50%
+    // Warning: This could lead to an acceptance rate of > 50%
     double maxVolExchange = boxDimRef.volume[box] - boxDimRef.minVol[box];
-    num::Bound<double>(scale[box][move][kind], 0.001, maxVolExchange - 0.001);
+    // Cap maximum volume exchanged to 1/3rd of the maximum amount so we
+    // never try to exchange so much volume in one move that the box volume
+    // would drop below 2*Rcutoff. Without this patch, this could happen if
+    // we tried a large volume transfer after accepting some smaller ones.
+    num::Bound<double>(scale[box][move][kind], 0.001, 0.34 * maxVolExchange);
   }
 #endif
   tempAccepted[box][move][kind] = 0;
