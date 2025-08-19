@@ -70,7 +70,7 @@ then
 	fi
 fi
 
-while getopts 'acdglmnpt' opt; do
+while getopts 'acdglmOpt' opt; do
     case "$opt" in
         a)
             use_asan=1;;
@@ -100,7 +100,7 @@ while getopts 'acdglmnpt' opt; do
             echo "-g, use the GNU compiler"
 			echo "-l, use the Clang compiler"
             echo "-m, enables MPI support (Required for Parallel Tempering)"
-            echo "-O, enables compiler optimization flags"
+            echo "-O, enables architecture-specific compiler optimization flags"
             echo "-p enables GPU code profiling (NVTX tags)"
             echo "-t disables Intel compiler to allow GTests to compile"
             echo "For combined usage, concatenate flags, e.g.: -ptmg"
