@@ -33,9 +33,9 @@ set(GPU_GC_name "GOMC_GPU_GCMC")
 set(GPU_NPT_flags "-DENSEMBLE=4")
 set(GPU_NPT_name "GOMC_GPU_NPT")
 
-set(CMAKE_CUDA_STANDARD 14)
+set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED true)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # Disable the warning on deprecated GPU targets
