@@ -147,14 +147,14 @@ cd bin
 
 if (( !use_gtest )); then
     if (( !use_gcc && !use_clang )); then
-        if (( !use_cuda )) || [ $nvcc_version -ge 13 ]; then
-            ICC_PATH="$(which icx 2> /dev/null)"
-            ICPC_PATH="$(which icpx 2> /dev/null)"
-		fi
-        if [ -z "$ICC_PATH" ]; then
-            ICC_PATH="$(which icc 2> /dev/null)"
-            ICPC_PATH="$(which icpc 2> /dev/null)"
-		fi
+        # if (( !use_cuda )) || [ $nvcc_version -ge 13 ]; then
+            # ICC_PATH="$(which icx 2> /dev/null)"
+            # ICPC_PATH="$(which icpx 2> /dev/null)"
+		# fi
+        # if [ -z "$ICC_PATH" ]; then
+        ICC_PATH="$(which icc 2> /dev/null)"
+        ICPC_PATH="$(which icpc 2> /dev/null)"
+		# fi
         if [ -z "$ICC_PATH" ]; then
             export CC="$(which gcc 2> /dev/null)"
             export CXX="$(which g++ 2> /dev/null)"
