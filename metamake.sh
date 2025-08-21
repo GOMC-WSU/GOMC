@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Initialize the commandline options and flags
+# Initialize the command-line options and flags
 use_cuda=0
 use_profiler=0
 use_gtest=0
@@ -12,19 +12,18 @@ use_opt=0
 use_debug=0
 ENSEMBLES=""
 CMAKEARGS=""
+ICC_PATH=""
+ICPC_PATH=""
 
 
 # Check if nvcc is available
-if command -v nvcc &> /dev/null
-then
+if command -v nvcc &> /dev/null; then
 	use_cuda=1
 	nvcc_version=($(python scripts/get_cuda_version.py))
-	if [ -z "$nvcc_version" ]
-	then
+	if [ -z "$nvcc_version" ]; then
 		echo "python command not on path. trying python3"
 		nvcc_version=($(python3 scripts/get_cuda_version.py))
-		if [ -z "$nvcc_version" ]
-		then
+		if [ -z "$nvcc_version" ]; then
 			echo "python3 command not on path. Please install/add to path. Exiting..."
 			exit 1
 		else
@@ -32,8 +31,8 @@ then
 		fi
 	fi
 	# Check cuda version, if less than 11 then download CUB, otherwise skip
-	if [[ "$nvcc_version" < "11" ]]
-	then
+    # if (( $(echo $nvcc_version 11.0 | awk '{if ($1 < $2) print 1;}') )); then
+	if [ $nvcc_version -lt 11 ]; then
 		# Check if ./lib/cub exists
 		if [ ! -d "./lib/cub" ]; then
 			cd lib
@@ -136,11 +135,9 @@ done
 
 # If user hasn't specified any ensemble, cmake automatically compiles all ensembles.
 # This will ensure we don't print empty for ensembles.
-if [ -z "$ENSEMBLES" ];
-then
+if [ -z "$ENSEMBLES" ]; then
 	ENSEMBLES="NVT NPT GCMC GEMC "
-	if (( use_cuda ))
-	then
+	if (( use_cuda )); then
 		ENSEMBLES+="GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC "
 	fi
 fi
@@ -149,33 +146,30 @@ mkdir -p bin
 cd bin
 
 if (( !use_gtest )); then
-    if (( !use_gcc && !use_clang ));
-    then
-# comment out this check until CUDA supports the newer Intel Compiler
-#        ICC_PATH="$(which icx 2> /dev/null)"
-#        ICPC_PATH="$(which icpx 2> /dev/null)"
-#        if [ -z "$ICC_PATH" ]
-#        then
+    if (( !use_gcc && !use_clang )); then
+        if (( !use_cuda )) || [ $nvcc_version -ge 13 ]; then
+            ICC_PATH="$(which icx 2> /dev/null)"
+            ICPC_PATH="$(which icpx 2> /dev/null)"
+		fi
+        if [ -z "$ICC_PATH" ]; then
             ICC_PATH="$(which icc 2> /dev/null)"
             ICPC_PATH="$(which icpc 2> /dev/null)"
-#		fi
-        if [ -z "$ICC_PATH" ]
-        then
+		fi
+        if [ -z "$ICC_PATH" ]; then
             export CC="$(which gcc 2> /dev/null)"
             export CXX="$(which g++ 2> /dev/null)"
         else
             if (( use_asan )); then
-				echo "Warning: Address sanitizer unset. Not compatible with the Intel compiler."
-				use_asan=0
+	            echo "Warning: Address sanitizer unset. Not compatible with the Intel compiler."
+			    use_asan=0
 			fi
             export CC=${ICC_PATH}
             export CXX=${ICPC_PATH}
-        fi
+		fi
 	elif (( use_clang )); then
         CLANG_PATH="$(which clang 2> /dev/null)"
         CLANGXX_PATH="$(which clang++ 2> /dev/null)"
-        if [ -z "$CLANG_PATH" ]
-        then
+        if [ -z "$CLANG_PATH" ]; then
             export CC="$(which gcc 2> /dev/null)"
             export CXX="$(which g++ 2> /dev/null)"
 	    else
@@ -187,8 +181,7 @@ if (( !use_gtest )); then
         export CXX="$(which g++ 2> /dev/null)"
 	fi
 else
-    if (( use_mpi )); 
-    then
+    if (( use_mpi )); then
         TESTENS=""
         for ENS in $ENSEMBLES
         do
