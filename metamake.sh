@@ -133,7 +133,7 @@ while [ "$#" -ne 0 ]; do
     shift
 done
 
-# If user hasn't specified any ensemble, cmake automatically compiles all ensembles.
+# If user hasn't specified any ensemble, CMake automatically compiles all ensembles.
 # This will ensure we don't print empty for ensembles.
 if [ -z "$ENSEMBLES" ]; then
 	ENSEMBLES="NVT NPT GCMC GEMC "
@@ -145,16 +145,23 @@ fi
 mkdir -p bin
 cd bin
 
+# Clear use_cuda flag if no GPU executable is being built
+if [[ $ENSEMBLES != *"GPU"* ]]; then
+    use_cuda=0
+fi
+
 if (( !use_gtest )); then
     if (( !use_gcc && !use_clang )); then
+        # Replace with correct version once nvcc supports intel llvm
         # if (( !use_cuda )) || [ $nvcc_version -ge 13 ]; then
-            # ICC_PATH="$(which icx 2> /dev/null)"
-            # ICPC_PATH="$(which icpx 2> /dev/null)"
-		# fi
-        # if [ -z "$ICC_PATH" ]; then
+        if (( !use_cuda )); then
+            ICC_PATH="$(which icx 2> /dev/null)"
+            ICPC_PATH="$(which icpx 2> /dev/null)"
+		fi
+        if [ -z "$ICC_PATH" ]; then
         ICC_PATH="$(which icc 2> /dev/null)"
         ICPC_PATH="$(which icpc 2> /dev/null)"
-		# fi
+		fi
         if [ -z "$ICC_PATH" ]; then
             export CC="$(which gcc 2> /dev/null)"
             export CXX="$(which g++ 2> /dev/null)"
