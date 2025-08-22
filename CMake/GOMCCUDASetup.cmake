@@ -1,11 +1,11 @@
 # Find CUDA is enabled, set it up
-set(CMAKE_CUDA_COMP_FLAGS -DGOMC_CUDA -DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT)
+set(CMAKE_CUDA_COMP_FLAGS -DGOMC_CUDA)
 set(CMAKE_HOST_COMP_FLAGS ${CMAKE_COMP_FLAGS} -DGOMC_CUDA)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("-- Debug build type detected, passing '-g -lineinfo --keep' to nvcc")
-    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} -g -lineinfo --keep)
-    set(CMAKE_CUDA_LINK_FLAGS -g -G --keep)
+    set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} "SHELL:-Xcompiler -rdynamic" -g -lineinfo --keep)
+    set(CMAKE_CUDA_LINK_FLAGS "SHELL:-Xcompiler -rdynamic" -g -lineinfo --keep)
 endif()
 
 if(GOMC_NVTX_ENABLED)
@@ -19,7 +19,19 @@ endif()
 if (CMAKE_MAJOR_VERSION VERSION_GREATER 3 OR CMAKE_MINOR_VERSION VERSION_GREATER_EQUAL 23)
     set(CMAKE_CUDA_ARCHITECTURES all)
 else()
-    set(CMAKE_CUDA_ARCHITECTURES 60;70;75;80)
+# set the CUDA architectures based on the version of CUDA being used
+    execute_process(COMMAND python ../scripts/get_cuda_full_version.py OUTPUT_VARIABLE NVCC_VERSION)
+	if(NVCC_VERSION LESS 11.0)
+        set(CMAKE_CUDA_ARCHITECTURES 35;37;50;52;53;60;61;70)
+	elseif (NVCC_VERSION LESS 11.1)
+        set(CMAKE_CUDA_ARCHITECTURES 52;53;60;61;70;75;80)
+	elseif(NVCC_VERSION LESS 11.8)
+        set(CMAKE_CUDA_ARCHITECTURES 52;53;60;61;70;75;80;86)
+	elseif(NVCC_VERSION LESS 12.8)
+        set(CMAKE_CUDA_ARCHITECTURES 52;53;60;61;70;75;80;86;89;90)
+	else()
+        set(CMAKE_CUDA_ARCHITECTURES 75;80;86;89;90;100;120)
+	endif()
 endif()
 
 include_directories(src/GPU)
@@ -33,9 +45,9 @@ set(GPU_GC_name "GOMC_GPU_GCMC")
 set(GPU_NPT_flags "-DENSEMBLE=4")
 set(GPU_NPT_name "GOMC_GPU_NPT")
 
-set(CMAKE_CUDA_STANDARD 14)
+set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED true)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # Disable the warning on deprecated GPU targets
