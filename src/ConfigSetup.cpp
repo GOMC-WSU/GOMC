@@ -904,19 +904,19 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.memcVal.enable = true;
         sys.memcVal.MEMC3 = true;
       }
-    } else if(CheckString(line[0], "MEMC-2-LiqFreq")) {
-      if(stringtod(line[1]) > 0.0){
+    } else if (CheckString(line[0], "MEMC-2-LiqFreq")) {
+      if (stringtod(line[1]) > 0.0) {
         sys.moves.memc = stringtod(line[1]);
         printf("%-40s %-4.4f \n", "Info: MEMC-2-Liq move frequency",
-            sys.moves.memc);
+               sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC2Liq = true;
       }
-    } else if(CheckString(line[0], "MEMC-3-LiqFreq")) {
-      if(stringtod(line[1]) > 0.0){
+    } else if (CheckString(line[0], "MEMC-3-LiqFreq")) {
+      if (stringtod(line[1]) > 0.0) {
         sys.moves.memc = stringtod(line[1]);
         printf("%-40s %-4.4f \n", "Info: MEMC-3-Liq move frequency",
-            sys.moves.memc);
+               sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC3Liq = true;
       }
@@ -2270,16 +2270,19 @@ void ConfigSetup::verifyInputs(void) {
                 << " sets of Small Molecule BackBone was specified!\n";
       exit(EXIT_FAILURE);
     }
-    if(sys.memcVal.MEMC2Liq && !sys.memcVal.readSmallBB) {
-      std::cout << "Error: In MEMC-2-Liq method, Small Kind BackBone is not specified!\n";
+    if (sys.memcVal.MEMC2Liq && !sys.memcVal.readSmallBB) {
+      std::cout << "Error: In MEMC-2-Liq method, Small Kind BackBone is not "
+                   "specified!\n";
       exit(EXIT_FAILURE);
     }
 
-    if(sys.memcVal.MEMC2Liq && (sys.memcVal.smallKind.size() !=
-                             sys.memcVal.smallBBAtom1.size())) {
-      std::cout << "Error: In MEMC-2-Liq method, specified number of Small Kinds is " <<
-                sys.memcVal.smallKind.size() << ", but " << sys.memcVal.smallBBAtom1.size()
-                << " sets of Small Molecule BackBone is specified!\n";
+    if (sys.memcVal.MEMC2Liq &&
+        (sys.memcVal.smallKind.size() != sys.memcVal.smallBBAtom1.size())) {
+      std::cout
+          << "Error: In MEMC-2-Liq method, specified number of Small Kinds is "
+          << sys.memcVal.smallKind.size() << ", but "
+          << sys.memcVal.smallBBAtom1.size()
+          << " sets of Small Molecule BackBone is specified!\n";
       exit(EXIT_FAILURE);
     }
 
