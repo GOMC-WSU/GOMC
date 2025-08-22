@@ -113,7 +113,6 @@ public:
   void print_allswitchind(FILE *fplog, int n, const std::vector<int> &pind,
                           const std::vector<int> &allswaps,
                           const std::vector<int> &tmpswap);
-#endif
 
 private:
   MultiSim const *const &ms;
@@ -151,6 +150,8 @@ private:
 #else
   std::vector<std::vector<double>> global_energies;
 #endif
+
+#endif /* GOMC_LIB_MPI */
 };
 
 #endif /*ParallelTemperingUtilities_H*/
