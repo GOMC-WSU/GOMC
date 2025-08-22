@@ -34,6 +34,14 @@ along with this program, also can be found at
 #define HOSTNAME
 #endif
 
+// Need the NVCC compiler version for PrintGPUHardwareInfo
+#ifdef __NVCOMPILER
+#define FMT_NVCOMPILER_VERSION                                                 \
+  (__NVCOMPILER_MAJOR__ * 100 + __NVCOMPILER_MINOR__)
+#else
+#define FMT_NVCOMPILER_VERSION 0
+#endif
+
 namespace {
 std::ostream &PrintTime(std::ostream &stream);
 std::ostream &PrintHostname(std::ostream &stream);
@@ -288,6 +296,7 @@ void PrintHardwareInfo() {
 #ifdef GOMC_CUDA
 void PrintGPUHardwareInfo() {
   int nDevices;
+  int memoryClockRate;
   int fast = 0;
   int fastIndex = 0;
 
@@ -300,17 +309,23 @@ void PrintGPUHardwareInfo() {
 
   if (nDevices <= 4) {
     printf("GPU information:\n");
-    for (int i = 0; i < nDevices; i++) {
+    for (int i = 0; i < nDevices; ++i) {
       cudaDeviceProp prop;
       cudaGetDeviceProperties(&prop, i);
       printf("Info: Device Number: %d\n", i);
       printf("Info: Device name: %s\n", prop.name);
-      printf("Info: Memory Clock Rate (KHz): %d\n", prop.memoryClockRate);
+      // CUDA 13 moved this value to a different structure
+#if FMT_NVCOMPILER_VERSION < 1300
+      memoryClockRate = prop.memoryClockRate;
+#else
+      cudaDeviceGetAttribute(&memoryClockRate, cudaDevAttrMemoryClockRate, i);
+#endif
+      printf("Info: Memory Clock Rate (KHz): %d\n", memoryClockRate);
       printf("Info: Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
       printf("Info: Peak Memory Bandwidth (GB/s): %f\n",
-             2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
-      if (prop.memoryClockRate > fast) {
-        fast = prop.memoryClockRate;
+             2.0 * memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
+      if (memoryClockRate > fast) {
+        fast = memoryClockRate;
         fastIndex = i;
       }
     }
