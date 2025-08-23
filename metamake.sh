@@ -152,12 +152,14 @@ fi
 
 if (( !use_gtest )); then
     if (( !use_gcc && !use_clang )); then
+        # Use one of these if statements to avoid handing nvcc an unsupported compiler
         # Replace with correct version once nvcc supports intel llvm
         # if (( !use_cuda )) || [ $nvcc_version -ge 13 ]; then
-        if (( !use_cuda )); then
-            ICC_PATH="$(which icx 2> /dev/null)"
-            ICPC_PATH="$(which icpx 2> /dev/null)"
-		fi
+        # or use this if statement for the CPU builds
+        # if (( !use_cuda )); then
+        ICC_PATH="$(which icx 2> /dev/null)"
+        ICPC_PATH="$(which icpx 2> /dev/null)"
+		# fi
         if [ -z "$ICC_PATH" ]; then
         ICC_PATH="$(which icc 2> /dev/null)"
         ICPC_PATH="$(which icpc 2> /dev/null)"
