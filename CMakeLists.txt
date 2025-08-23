@@ -94,7 +94,7 @@ include_directories("${PROJECT_BINARY_DIR}")
 # Set compiler flags now that all the options have been specified
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
     set(CMAKE_COMP_FLAGS "${CMAKE_INTEL_COMP_FLAGS}")
-    set(CMAKE_GPU_COMP_FLAGS "${CMAKE_INTEL_CUDA_COMP_FLAGS}")
+    set(CMAKE_GPU_COMP_FLAGS "${CMAKE_INTEL_CUDA_COMP_FLAGS}" -allow-unsupported-compiler)
     set(CMAKE_LINK_FLAGS "${CMAKE_INTEL_LINK_FLAGS}")
 elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(CMAKE_COMP_FLAGS "${CMAKE_GNU_COMP_FLAGS}")
