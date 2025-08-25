@@ -817,14 +817,6 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
       }
     }
 
-    // Depending on the move, we could call this function twice. If so, we don't
-    // want to double count the existing (reference) sums, so we copy them only
-    // for the first call and then add to them inside the function based on the
-    // delta values for the move.
-    if (first_call) {
-      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
-    }
-
     // If there are no charged particles, the energy doesn't change, so no need
     // to call the function
     if (numChargedParticles == 0) {
@@ -832,7 +824,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     } else {
       CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(),
                                    imageSizeRef[box], box, molCharge,
-                                   energyRecipNew, molCoords);
+                                   energyRecipNew, molCoords, first_call);
     }
 #else
 #ifdef _OPENMP

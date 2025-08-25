@@ -597,7 +597,10 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
       sysPotRef.boxEnergy[sourceBox].correction += correctDiff;
 
       // Update reciprocal
-      calcEwald->UpdateRecip(sourceBox);
+      // If recip energy is unchanged, the SumI and SumR arrays are unchanged
+      if (recipDiff != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+      }
 
       // molA and molB already added to cellList
 

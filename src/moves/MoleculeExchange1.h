@@ -774,10 +774,15 @@ inline void MoleculeExchange1::Accept(const uint rejectState,
       sysPotRef.boxEnergy[destBox].self += self_newA;
       sysPotRef.boxEnergy[destBox].self -= self_oldB;
 
-      calcEwald->UpdateRecip(sourceBox);
-      calcEwald->UpdateRecip(destBox);
-      // molA and molB already transferred to destBox and added to cellist
-      // Retotal
+      // If recip energy is unchanged, the SumI and SumR arrays are unchanged
+      if (recipSource != 0.0 || recipDest != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+        calcEwald->UpdateRecip(destBox);
+      }
+
+      // molA and molB already transferred to destBox and added to cellList
+
+      // Recalculate total
       sysPotRef.Total();
 
       // Update the velocity

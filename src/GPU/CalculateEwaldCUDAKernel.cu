@@ -331,7 +331,7 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
 void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
                                   const std::vector<double> &molCharge,
                                   double &energyRecipNew,
-                                  XYZArray const &molCoords) {
+                                  XYZArray const &molCoords, bool first_call) {
   // Calculate atom number -- exclude uncharged particles
   int atomNumber = molCharge.size();
 
@@ -351,9 +351,10 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
   int blocksPerGrid = (imageSize + threadsPerBlock - 1) / threadsPerBlock;
   MolExchangeReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
       imageSize, vars->gpu_kxRef[box], vars->gpu_kyRef[box],
-      vars->gpu_kzRef[box], vars->gpu_prefactRef[box], vars->gpu_sumRnew[box],
-      vars->gpu_sumInew[box], vars->gpu_molCharge, atomNumber, vars->gpu_x,
-      vars->gpu_y, vars->gpu_z, vars->gpu_recipEnergies);
+      vars->gpu_kzRef[box], vars->gpu_prefactRef[box], vars->gpu_sumRref[box],
+      vars->gpu_sumIref[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
+      vars->gpu_molCharge, atomNumber, vars->gpu_x, vars->gpu_y, vars->gpu_z,
+      vars->gpu_recipEnergies, first_call);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -568,14 +569,22 @@ __global__ void SwapReciprocalGPU(
 
 __global__ void MolExchangeReciprocalGPU(
     int imageSize, double *gpu_kx, double *gpu_ky, double *gpu_kz,
-    double *gpu_prefactRef, double *gpu_sumRnew, double *gpu_sumInew,
-    double *gpu_molCharge, int numChargedParticles, double *gpu_x,
-    double *gpu_y, double *gpu_z, double *gpu_recipEnergies) {
+    double *gpu_prefactRef, double *gpu_sumRref, double *gpu_sumIref,
+    double *gpu_sumRnew, double *gpu_sumInew, double *gpu_molCharge,
+    int numChargedParticles, double *gpu_x, double *gpu_y, double *gpu_z,
+    double *gpu_recipEnergies, bool first_call) {
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   if (imageID >= imageSize)
     return;
 
-  double sumRnew = gpu_sumRnew[imageID], sumInew = gpu_sumInew[imageID];
+  double sumRnew, sumInew;
+  if (first_call) {
+    sumRnew = gpu_sumRref[imageID];
+    sumInew = gpu_sumIref[imageID];
+  } else {
+    sumRnew = gpu_sumRnew[imageID];
+    sumInew = gpu_sumInew[imageID];
+  }
 #pragma unroll 6
   for (int p = 0; p < numChargedParticles; ++p) {
     double dotProduct =

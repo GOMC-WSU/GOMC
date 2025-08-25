@@ -587,10 +587,18 @@ inline void MoleculeExchange3Liq::Accept(const uint rejectState,
       sysPotRef.boxEnergy[destBox].self += self_newA;
       sysPotRef.boxEnergy[destBox].self -= self_oldB;
 
-      calcEwald->UpdateRecip(sourceBox);
-      calcEwald->UpdateRecip(destBox);
-      // small and large molecule have  already transferred to destBox and added
-      // to cellist Retotal
+      // If recip energy is unchanged, the SumI and SumR arrays are unchanged
+      if (recipSource != 0.0 || recipDest != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+        calcEwald->UpdateRecip(destBox);
+      }
+
+      // small and large molecule have already been transferred to destBox and
+      // added to cellList, so don't need to update the cellList
+
+      // Recalculate total
+      //
+      // Retotal
       sysPotRef.Total();
 
       // Update the velocity
