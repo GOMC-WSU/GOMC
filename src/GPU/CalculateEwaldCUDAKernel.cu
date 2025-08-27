@@ -614,7 +614,7 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
   if (threadID >= imageSize)
     return;
 
-  double sumReal = 0.0, sumImaginary = 0.0;
+  double sumReal = gpu_sumRref[threadID], sumImaginary = gpu_sumIref[threadID];
 
 #pragma unroll 4
   for (int p = 0; p < atomNumber; ++p) {
@@ -634,8 +634,8 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
     sumImaginary += gpu_molCharge[p] * newsin;
   }
 
-  gpu_sumRnew[threadID] = gpu_sumRref[threadID] + sumReal;
-  gpu_sumInew[threadID] = gpu_sumIref[threadID] + sumImaginary;
+  gpu_sumRnew[threadID] = sumReal;
+  gpu_sumInew[threadID] = sumImaginary;
 
   gpu_recipEnergies[threadID] =
       ((gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
