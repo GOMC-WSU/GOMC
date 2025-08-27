@@ -110,7 +110,9 @@ inline void Rotate::Accept(const uint rejectState, const ulong step) {
 
     // Copy coords
     newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
-    calcEwald->UpdateRecip(b);
+    if (recip.energy != 0.0) {
+      calcEwald->UpdateRecip(b);
+    }
 
     sysPotRef.Total();
     // Update the velocity

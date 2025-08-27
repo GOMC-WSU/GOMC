@@ -175,7 +175,9 @@ inline void IntraSwap::Accept(const uint rejectState, const ulong step) {
         sysPotRef.boxVirial[sourceBox].real = 0;
       }
 
-      calcEwald->UpdateRecip(destBox);
+      if (recipDiff.energy != 0.0) {
+        calcEwald->UpdateRecip(destBox);
+      }
 
       // Retotal
       sysPotRef.Total();

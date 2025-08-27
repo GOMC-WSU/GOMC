@@ -119,8 +119,9 @@ inline void Translate::Accept(const uint rejectState, const ulong step) {
     // Copy coords
     newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
     comCurrRef.Set(m, newCOM);
-    calcEwald->UpdateRecip(b);
-
+    if (recip.energy != 0.0) {
+      calcEwald->UpdateRecip(b);
+    }
     sysPotRef.Total();
     // Update the velocity
     velocity.UpdateMolVelocity(m, b);

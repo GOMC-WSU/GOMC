@@ -737,8 +737,12 @@ inline void TargetedSwap::Accept(const uint rejectState, const ulong step) {
         sysPotRef.boxVirial[sourceBox].real = 0;
       }
 
-      calcEwald->UpdateRecip(sourceBox);
-      calcEwald->UpdateRecip(destBox);
+      if (recipLose.energy != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+      }
+      if (recipGain.energy != 0.0) {
+        calcEwald->UpdateRecip(destBox);
+      }
 
       // Retotal
       sysPotRef.Total();

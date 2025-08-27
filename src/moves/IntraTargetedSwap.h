@@ -590,7 +590,9 @@ inline void IntraTargetedSwap::Accept(const uint rejectState,
         sysPotRef.boxVirial[box].real = 0;
       }
 
-      calcEwald->UpdateRecip(box);
+      if (recipDiff.energy != 0.0) {
+        calcEwald->UpdateRecip(box);
+      }
 
       // Retotal
       sysPotRef.Total();

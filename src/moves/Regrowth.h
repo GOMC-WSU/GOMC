@@ -170,7 +170,9 @@ inline void Regrowth::Accept(const uint rejectState, const ulong step) {
         sysPotRef.boxVirial[sourceBox].real = 0.0;
       }
 
-      calcEwald->UpdateRecip(sourceBox);
+      if (recipDiff.energy != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+      }
 
       // Retotal
       sysPotRef.Total();

@@ -428,11 +428,8 @@ double Ewald::MolReciprocal(XYZArray const &molCoords, const uint molIndex,
       }
     }
 
-    // If there are no charged particles, the energy doesn't change, but we need
-    // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
-    // in case the move is accepted
+    // If there are no charged particles, the energy doesn't change
     if (charges == 0) {
-      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
       CallMolReciprocalGPU(ff.particles->getCUDAVars(), cCoords, nCoords,
@@ -508,11 +505,8 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
         charges++;
       }
     }
-    // If there are no charged particles, the energy doesn't change, but we need
-    // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
-    // in case the move is accepted
+    // If there are no charged particles, the energy doesn't change
     if (charges == 0) {
-      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
       CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharge,
@@ -580,11 +574,8 @@ double Ewald::ChangeLambdaRecip(XYZArray const &molCoords,
         charges++;
       }
     }
-    // If there are no charged particles, the energy doesn't change, but we need
-    // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
-    // in case the move is accepted
+    // If there are no charged particles, the energy doesn't change
     if (charges == 0) {
-      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
       CallChangeLambdaMolReciprocalGPU(ff.particles->getCUDAVars(), newCoords,
@@ -717,11 +708,8 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box,
         charges++;
       }
     }
-    // If there are no charged particles, the energy doesn't change, but we need
-    // to copy the sumRref and sumIref arrays to the sumRnew and sumInew arrays
-    // in case the move is accepted
+    // If there are no charged particles, the energy doesn't change
     if (charges == 0) {
-      CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
       CallSwapReciprocalGPU(ff.particles->getCUDAVars(), molCoords, molCharge,
