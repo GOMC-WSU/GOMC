@@ -544,9 +544,9 @@ __global__ void SwapReciprocalGPU(
   if (threadID >= imageSize)
     return;
 
-  double sumReal = gpu_sumRref[threadID], sumImaginary = gpu_sumIref[threadID];
+  double sumReal = gpu_sumRref[threadID], sumImag = gpu_sumIref[threadID];
 
-#pragma unroll 4
+#pragma unroll 6
   for (int p = 0; p < atomNumber; ++p) {
     double dotProduct =
         DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
@@ -554,17 +554,15 @@ __global__ void SwapReciprocalGPU(
     double dotsin, dotcos;
     sincos(dotProduct, &dotsin, &dotcos);
     // We negated the charge for molecule removals, so always add the charge
+    sumImag += gpu_molCharge[p] * dotsin;
     sumReal += gpu_molCharge[p] * dotcos;
-    sumImaginary += gpu_molCharge[p] * dotsin;
   }
 
   gpu_sumRnew[threadID] = sumReal;
-  gpu_sumInew[threadID] = sumImaginary;
+  gpu_sumInew[threadID] = sumImag;
 
   gpu_recipEnergies[threadID] =
-      ((gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
-        gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
-       gpu_prefactRef[threadID]);
+      ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[threadID]);
 }
 
 __global__ void MolExchangeReciprocalGPU(
@@ -577,13 +575,13 @@ __global__ void MolExchangeReciprocalGPU(
   if (imageID >= imageSize)
     return;
 
-  double sumRnew, sumInew;
+  double sumReal, sumImag;
   if (first_call) {
-    sumRnew = gpu_sumRref[imageID];
-    sumInew = gpu_sumIref[imageID];
+    sumReal = gpu_sumRref[imageID];
+    sumImag = gpu_sumIref[imageID];
   } else {
-    sumRnew = gpu_sumRnew[imageID];
-    sumInew = gpu_sumInew[imageID];
+    sumReal = gpu_sumRnew[imageID];
+    sumImag = gpu_sumInew[imageID];
   }
 #pragma unroll 6
   for (int p = 0; p < numChargedParticles; ++p) {
@@ -592,14 +590,14 @@ __global__ void MolExchangeReciprocalGPU(
                       gpu_x[p], gpu_y[p], gpu_z[p]);
     double dotsin, dotcos;
     sincos(dotProduct, &dotsin, &dotcos);
-    sumRnew += gpu_molCharge[p] * dotcos;
-    sumInew += gpu_molCharge[p] * dotsin;
+    sumImag += gpu_molCharge[p] * dotsin;
+    sumReal += gpu_molCharge[p] * dotcos;
   }
 
-  gpu_sumRnew[imageID] = sumRnew;
-  gpu_sumInew[imageID] = sumInew;
+  gpu_sumRnew[imageID] = sumReal;
+  gpu_sumInew[imageID] = sumImag;
   gpu_recipEnergies[imageID] =
-      (sumRnew * sumRnew + sumInew * sumInew) * gpu_prefactRef[imageID];
+      (sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[imageID];
 }
 
 __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
@@ -614,7 +612,7 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
   if (threadID >= imageSize)
     return;
 
-  double sumReal = gpu_sumRref[threadID], sumImaginary = gpu_sumIref[threadID];
+  double sumReal = gpu_sumRref[threadID], sumImag = gpu_sumIref[threadID];
 
 #pragma unroll 4
   for (int p = 0; p < atomNumber; ++p) {
@@ -626,21 +624,17 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                       gpu_nx[p], gpu_ny[p], gpu_nz[p]);
     double oldsin, oldcos;
     sincos(dotProductOld, &oldsin, &oldcos);
-    sumReal -= gpu_molCharge[p] * oldcos;
-    sumImaginary -= gpu_molCharge[p] * oldsin;
     double newsin, newcos;
     sincos(dotProductNew, &newsin, &newcos);
-    sumReal += gpu_molCharge[p] * newcos;
-    sumImaginary += gpu_molCharge[p] * newsin;
+    sumImag += gpu_molCharge[p] * (newsin - oldsin);
+    sumReal += gpu_molCharge[p] * (newcos - oldcos);
   }
 
   gpu_sumRnew[threadID] = sumReal;
-  gpu_sumInew[threadID] = sumImaginary;
+  gpu_sumInew[threadID] = sumImag;
 
   gpu_recipEnergies[threadID] =
-      ((gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
-        gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
-       gpu_prefactRef[threadID]);
+      ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[threadID]);
 }
 
 __global__ void ChangeLambdaMolReciprocalGPU(
@@ -653,7 +647,7 @@ __global__ void ChangeLambdaMolReciprocalGPU(
   if (threadID >= imageSize)
     return;
 
-  double sumReal = 0.0, sumImaginary = 0.0;
+  double sumReal = 0.0, sumImag = 0.0;
 
 #pragma unroll 6
   for (int p = 0; p < atomNumber; ++p) {
@@ -663,11 +657,11 @@ __global__ void ChangeLambdaMolReciprocalGPU(
     double newsin, newcos;
     sincos(dotProduct, &newsin, &newcos);
     sumReal += gpu_molCharge[p] * newcos;
-    sumImaginary += gpu_molCharge[p] * newsin;
+    sumImag += gpu_molCharge[p] * newsin;
   }
 
   gpu_sumRnew[threadID] = gpu_sumRref[threadID] + lambdaCoef * sumReal;
-  gpu_sumInew[threadID] = gpu_sumIref[threadID] + lambdaCoef * sumImaginary;
+  gpu_sumInew[threadID] = gpu_sumIref[threadID] + lambdaCoef * sumImag;
 
   gpu_recipEnergies[threadID] =
       (gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
