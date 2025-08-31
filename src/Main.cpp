@@ -34,14 +34,6 @@ along with this program, also can be found at
 #define HOSTNAME
 #endif
 
-// Need the NVCC compiler version for PrintGPUHardwareInfo
-#ifdef __NVCOMPILER
-#define FMT_NVCOMPILER_VERSION                                                 \
-  (__NVCOMPILER_MAJOR__ * 100 + __NVCOMPILER_MINOR__)
-#else
-#define FMT_NVCOMPILER_VERSION 0
-#endif
-
 namespace {
 std::ostream &PrintTime(std::ostream &stream);
 std::ostream &PrintHostname(std::ostream &stream);
@@ -314,8 +306,8 @@ void PrintGPUHardwareInfo() {
       cudaGetDeviceProperties(&prop, i);
       printf("Info: Device Number: %d\n", i);
       printf("Info: Device name: %s\n", prop.name);
-      // CUDA 13 moved this value to a different structure
-#if FMT_NVCOMPILER_VERSION < 1300
+      // CUDA 13 moved the memoryClockRate to a different structure
+#if CUDART_VERSION < 13000
       memoryClockRate = prop.memoryClockRate;
 #else
       cudaDeviceGetAttribute(&memoryClockRate, cudaDevAttrMemoryClockRate, i);
