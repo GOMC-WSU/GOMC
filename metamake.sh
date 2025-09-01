@@ -32,7 +32,7 @@ if command -v nvcc &> /dev/null; then
 	fi
 	# Check cuda version, if less than 11 then download CUB, otherwise skip
     # if (( $(echo $nvcc_version 11.0 | awk '{if ($1 < $2) print 1;}') )); then
-	if [ $nvcc_version -lt 11 ]; then
+	if [ "$nvcc_version" -lt "11" ]; then
 		# Check if ./lib/cub exists
 		if [ ! -d "./lib/cub" ]; then
 			cd lib
