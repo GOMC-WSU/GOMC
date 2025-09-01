@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
         {202411, "6.0"}};
     auto match = omp_map.find(_OPENMP);
     if (match == omp_map.end())
-      printf("%-40s %u\n", "Info: Compiled with OpenMP Version:", _OPENMP);
+      printf("%-40s %d\n", "Info: Compiled with OpenMP Version:", _OPENMP);
     else
       printf("%-40s %s\n",
              "Info: Compiled with OpenMP Version:", match->second.c_str());

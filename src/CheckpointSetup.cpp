@@ -32,7 +32,7 @@ CheckpointSetup::~CheckpointSetup() {}
 std::string CheckpointSetup::getFileName() { return filename; }
 
 void CheckpointSetup::loadCheckpointFile() {
-  // create and open a character archive for intput
+  // create and open a character archive for input
   std::ifstream ifs(filename);
   if (!ifs.is_open()) {
     fprintf(stderr, "Error opening checkpoint input file %s\n",
@@ -103,7 +103,7 @@ void CheckpointSetup::SetCheckpointData(bool &parallelTemperingIsEnabled,
 void CheckpointSetup::SetStepNumber() { startStepRef = chkObj.stepNumber; }
 
 void CheckpointSetup::SetTrueStepNumber() {
-  printf("%-40s %-l64u \n", "Info: Loading true step from checkpoint",
+  printf("%-40s %-lu\n", "Info: Loading true step from checkpoint",
          chkObj.trueStepNumber);
   trueStepRef = chkObj.trueStepNumber;
 }
