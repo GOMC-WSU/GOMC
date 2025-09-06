@@ -116,7 +116,7 @@ endif()
 
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
-include_directories(lib/cereal-1.3.0/include)
+# include_directories(lib/cereal-1.3.0/include)
 
 
 #Optional CMake Argument
