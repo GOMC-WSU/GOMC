@@ -14,10 +14,7 @@ along with this program, also can be found at
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
-#include "ConstantDefinitionsCUDAKernel.cuh"
 #include "cub/cub.cuh"
-
-const int THREADS_PER_BLOCK = 128;
 
 using namespace cub;
 
@@ -106,7 +103,9 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
             double *gpu_rMaxSq, double *gpu_expConst, int *gpu_molIndex,
             double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
             bool *gpu_isFraction, int box) {
-
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   __shared__ double shr_cutoffSq;
   __shared__ int shr_particlesInsideCurrentCell, shr_numberOfPairs;
   __shared__ int shr_currentCellStartIndex, shr_neighborCellStartIndex;

@@ -10,6 +10,7 @@ along with this program, also can be found at
 
 #ifdef GOMC_CUDA
 #include "BoxDimensions.h"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
 #include <cuda.h>

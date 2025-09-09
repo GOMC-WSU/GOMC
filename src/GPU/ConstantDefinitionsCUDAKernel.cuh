@@ -22,6 +22,9 @@ const int GPU_VDW_SWITCH_KIND = 2;
 const int GPU_VDW_EXP6_KIND = 3;
 const int MAX_PAIR_SIZE = 10000000;
 const int NUMBER_OF_NEIGHBOR_CELLS = 27;
+const int PARTICLES_PER_BLOCK = 32;
+const int THREADS_PER_BLOCK = 128;
+const int THREADS_PER_BLOCK_SM = 64;
 
 void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
                      double *lambdaCoulomb, bool *isFraction);

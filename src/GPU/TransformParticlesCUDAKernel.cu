@@ -234,7 +234,7 @@ void CallTranslateParticlesGPU(
     int atomCount, int molCount, double xAxes, double yAxes, double zAxes,
     XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &rt_k,
     XYZArray &molForceRecRef) {
-  int threadsPerBlock = 256;
+  int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
 
   cudaMemcpy(vars->gpu_x, newMolPos.x, atomCount * sizeof(double),
@@ -302,7 +302,7 @@ void CallRotateParticlesGPU(
     std::vector<int8_t> &inForceRange, ulong step, unsigned int key, ulong seed,
     int atomCount, int molCount, double xAxes, double yAxes, double zAxes,
     XYZArray &newMolPos, XYZArray &newCOMs, double lambdaBETA, XYZArray &rt_k) {
-  int threadsPerBlock = 256;
+  int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
 
   cudaMemcpy(vars->gpu_mTorquex, mTorquex, molCount * sizeof(double),
@@ -363,7 +363,7 @@ void CallRotateParticlesGPU(
 #endif
 }
 
-__global__ void TranslateParticlesKernel(
+__global__ void __launch_bounds__(THREADS_PER_BLOCK) TranslateParticlesKernel(
     double t_max, double *molForcex, double *molForcey, double *molForcez,
     int8_t *gpu_inForceRange, ulong step, unsigned int key, ulong seed,
     double *gpu_x, double *gpu_y, double *gpu_z, int *gpu_particleMol,
@@ -374,6 +374,9 @@ __global__ void TranslateParticlesKernel(
     double *gpu_rt_k_x, double *gpu_rt_k_y, double *gpu_rt_k_z,
     int8_t *gpu_isMoleculeInvolved, double *gpu_mForceRecx,
     double *gpu_mForceRecy, double *gpu_mForceRecz) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if (atomNumber >= atomCount)
     return;
@@ -450,7 +453,7 @@ __global__ void TranslateParticlesKernel(
   }
 }
 
-__global__ void RotateParticlesKernel(
+__global__ void __launch_bounds__(THREADS_PER_BLOCK) RotateParticlesKernel(
     double r_max, double *molTorquex, double *molTorquey, double *molTorquez,
     int8_t *gpu_inForceRange, ulong step, unsigned int key, ulong seed,
     double *gpu_x, double *gpu_y, double *gpu_z, int *gpu_particleMol,
@@ -460,6 +463,9 @@ __global__ void RotateParticlesKernel(
     double *gpu_Invcell_z, int *gpu_nonOrth, double lambdaBETA,
     double *gpu_rt_k_x, double *gpu_rt_k_y, double *gpu_rt_k_z,
     int8_t *gpu_isMoleculeInvolved) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if (atomNumber >= atomCount)
     return;
@@ -603,7 +609,7 @@ void BrownianMotionRotateParticlesGPU(
 }
 
 template <const bool isOrthogonal>
-__global__ void BrownianMotionRotateKernel(
+__global__ void __launch_bounds__(32) BrownianMotionRotateKernel(
     int *startAtomIdx, double *gpu_x, double *gpu_y, double *gpu_z,
     double *molTorquex, double *molTorquey, double *molTorquez,
     double *gpu_comx, double *gpu_comy, double *gpu_comz, double *gpu_rt_k_x,
@@ -612,6 +618,9 @@ __global__ void BrownianMotionRotateKernel(
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     double3 axis, double3 halfAx, int atomCount, double r_max, ulong step,
     unsigned int key, ulong seed, double BETA) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   // Each block takes care of one molecule
   int molIndex = moleculeInvolved[blockIdx.x];
   int startIdx = startAtomIdx[molIndex];
@@ -827,7 +836,7 @@ void BrownianMotionTranslateParticlesGPU(
 }
 
 template <const bool isOrthogonal>
-__global__ void BrownianMotionTranslateKernel(
+__global__ void __launch_bounds__(32) BrownianMotionTranslateKernel(
     int *startAtomIdx, double *gpu_x, double *gpu_y, double *gpu_z,
     double *molForcex, double *molForcey, double *molForcez,
     double *molForceRecx, double *molForceRecy, double *molForceRecz,
@@ -837,6 +846,9 @@ __global__ void BrownianMotionTranslateKernel(
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     double3 axis, double3 halfAx, int atomCount, double t_max, ulong step,
     unsigned int key, ulong seed, double BETA) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   // Each block takes care of one molecule
   int molIndex = moleculeInvolved[blockIdx.x];
   int startIdx = startAtomIdx[molIndex];

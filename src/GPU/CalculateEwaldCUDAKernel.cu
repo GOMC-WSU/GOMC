@@ -22,9 +22,6 @@ along with this program, also can be found at
 
 using namespace cub;
 
-const int THREADS_PER_BLOCK = 128;
-const int THREADS_PER_BLOCK_SM = 64;
-
 // Use this function when calculating the reciprocal terms
 // for a new volume. Such as a change in box dimensions.
 void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
@@ -145,6 +142,9 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_ky, double *gpu_kz,
                                      int atomNumber, double *gpu_molCharge,
                                      double *gpu_sumRnew, double *gpu_sumInew) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   int image = blockIdx.x;
   double sumR = 0.0, sumI = 0.0;
 #pragma unroll 8
@@ -177,9 +177,13 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
   }
 }
 
-__global__ void BoxReciprocalGPU(double *gpu_prefact, double *gpu_sumRnew,
-                                 double *gpu_sumInew, double *gpu_recipEnergies,
-                                 int imageSize) {
+__global__ void __launch_bounds__(THREADS_PER_BLOCK)
+    BoxReciprocalGPU(double *gpu_prefact, double *gpu_sumRnew,
+                     double *gpu_sumInew, double *gpu_recipEnergies,
+                     int imageSize) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if (threadID >= imageSize)
     return;
@@ -448,7 +452,9 @@ __global__ void BoxForceReciprocalGPU(
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     int *gpu_nonOrth, double axx, double axy, double axz, int moveType,
     int box) {
-
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   __shared__ int particleID, moleculeID;
   __shared__ double x, y, z, lambdaCoef, fixed;
 
@@ -533,13 +539,15 @@ __global__ void BoxForceReciprocalGPU(
   }
 }
 
-__global__ void SwapReciprocalGPU(
+__global__ void __launch_bounds__(THREADS_PER_BLOCK) SwapReciprocalGPU(
     const double *gpu_x, const double *gpu_y, const double *gpu_z,
     const double *gpu_kx, const double *gpu_ky, const double *gpu_kz,
     int atomNumber, const double *gpu_molCharge, double *gpu_sumRnew,
     double *gpu_sumInew, const double *gpu_sumRref, const double *gpu_sumIref,
     const double *gpu_prefactRef, double *gpu_recipEnergies, int imageSize) {
-
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if (threadID >= imageSize)
     return;
@@ -571,6 +579,9 @@ __global__ void MolExchangeReciprocalGPU(
     double *gpu_sumRnew, double *gpu_sumInew, double *gpu_molCharge,
     int numChargedParticles, double *gpu_x, double *gpu_y, double *gpu_z,
     double *gpu_recipEnergies, bool first_call) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   if (imageID >= imageSize)
     return;
@@ -600,14 +611,17 @@ __global__ void MolExchangeReciprocalGPU(
       (sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[imageID];
 }
 
-__global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
-                                 double *gpu_nx, double *gpu_ny, double *gpu_nz,
-                                 double *gpu_kx, double *gpu_ky, double *gpu_kz,
-                                 int atomNumber, double *gpu_molCharge,
-                                 double *gpu_sumRnew, double *gpu_sumInew,
-                                 double *gpu_sumRref, double *gpu_sumIref,
-                                 double *gpu_prefactRef,
-                                 double *gpu_recipEnergies, int imageSize) {
+__global__ void __launch_bounds__(THREADS_PER_BLOCK)
+    MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
+                     double *gpu_nx, double *gpu_ny, double *gpu_nz,
+                     double *gpu_kx, double *gpu_ky, double *gpu_kz,
+                     int atomNumber, double *gpu_molCharge, double *gpu_sumRnew,
+                     double *gpu_sumInew, double *gpu_sumRref,
+                     double *gpu_sumIref, double *gpu_prefactRef,
+                     double *gpu_recipEnergies, int imageSize) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if (threadID >= imageSize)
     return;
@@ -637,12 +651,18 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
       ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[threadID]);
 }
 
-__global__ void ChangeLambdaMolReciprocalGPU(
-    double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_kx, double *gpu_ky,
-    double *gpu_kz, int atomNumber, double *gpu_molCharge, double *gpu_sumRnew,
-    double *gpu_sumInew, double *gpu_sumRref, double *gpu_sumIref,
-    double *gpu_prefactRef, double *gpu_recipEnergies, double lambdaCoef,
-    int imageSize) {
+__global__ void __launch_bounds__(THREADS_PER_BLOCK)
+    ChangeLambdaMolReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
+                                 double *gpu_kx, double *gpu_ky, double *gpu_kz,
+                                 int atomNumber, double *gpu_molCharge,
+                                 double *gpu_sumRnew, double *gpu_sumInew,
+                                 double *gpu_sumRref, double *gpu_sumIref,
+                                 double *gpu_prefactRef,
+                                 double *gpu_recipEnergies, double lambdaCoef,
+                                 int imageSize) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if (threadID >= imageSize)
     return;

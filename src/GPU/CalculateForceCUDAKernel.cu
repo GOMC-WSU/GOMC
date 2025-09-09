@@ -17,9 +17,6 @@ along with this program, also can be found at
 #include "MoveSettings.h"
 #include "cub/cub.cuh"
 
-const int PARTICLES_PER_BLOCK = 32;
-const int THREADS_PER_BLOCK = 128;
-
 using namespace cub;
 
 void CallBoxInterForceGPU(
@@ -333,7 +330,7 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
 #endif
 }
 
-__global__ void BoxInterForceGPU(
+__global__ void __launch_bounds__(THREADS_PER_BLOCK) BoxInterForceGPU(
     int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
     int numberOfCells, int atomNumber, int *gpu_mapParticleToCell,
     double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_comx,
@@ -353,6 +350,9 @@ __global__ void BoxInterForceGPU(
     double sc_alpha, uint sc_power, double *gpu_rMin, double *gpu_rMaxSq,
     double *gpu_expConst, int *gpu_molIndex, double *gpu_lambdaVDW,
     double *gpu_lambdaCoulomb, bool *gpu_isFraction, int box) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   __shared__ double shr_cutoffSq;
   __shared__ int shr_particlesInsideCurrentCell, shr_numberOfPairs;
   __shared__ int shr_currentCellStartIndex, shr_neighborCellStartIndex;
@@ -577,6 +577,9 @@ __global__ void BoxForceGPU(
     uint sc_power, double *gpu_rMin, double *gpu_rMaxSq, double *gpu_expConst,
     int *gpu_molIndex, double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
     bool *gpu_isFraction, int moveType, int box, const bool calcEnergies) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   __shared__ double shr_cutoffSq;
   __shared__ int shr_particlesInsideCurrentCell, shr_numberOfPairs;
   __shared__ int shr_currentCellStartIndex, shr_neighborCellStartIndex;
@@ -730,7 +733,7 @@ __global__ void BoxForceGPU(
   }
 }
 
-__global__ void VirialReciprocalGPU(
+__global__ __launch_bounds__(THREADS_PER_BLOCK) void VirialReciprocalGPU(
     double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_comDx,
     double *gpu_comDy, double *gpu_comDz, double *gpu_kxRef, double *gpu_kyRef,
     double *gpu_kzRef, double *gpu_prefactRef, double *gpu_hsqrRef,
@@ -738,6 +741,9 @@ __global__ void VirialReciprocalGPU(
     double *gpu_wT11, double *gpu_wT12, double *gpu_wT13, double *gpu_wT22,
     double *gpu_wT23, double *gpu_wT33, double constVal, uint imageSize,
     uint atomNumber) {
+#if defined(NDEBUG) && CUDART_VERSION >= 13000
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
   __shared__ double shared_coords[PARTICLES_PER_BLOCK * 7];
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   int offset_coordinates_index = blockIdx.y * PARTICLES_PER_BLOCK;

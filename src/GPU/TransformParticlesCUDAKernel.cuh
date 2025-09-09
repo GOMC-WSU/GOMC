@@ -12,7 +12,7 @@ along with this program, also can be found at
 #include "Random123/philox.h"
 #include <vector>
 typedef r123::Philox4x64 RNG;
-
+#include "ConstantDefinitionsCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
 #include <cuda.h>
