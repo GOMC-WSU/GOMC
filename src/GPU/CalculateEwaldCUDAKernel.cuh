@@ -71,8 +71,10 @@ __global__ void BoxForceReciprocalGPU(
 __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_z, double *gpu_kx,
                                      double *gpu_ky, double *gpu_kz,
-                                     int atomNumber, double *gpu_molCharge,
-                                     double *gpu_sumRnew, double *gpu_sumInew);
+                                     double *gpu_molCharge, double *gpu_sumRnew,
+                                     double *gpu_sumInew,
+                                     double *gpu_prefactRef,
+                                     double *gpu_RecipEnergies, int atomNumber);
 
 __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                                  double *gpu_nx, double *gpu_ny, double *gpu_nz,
@@ -103,10 +105,6 @@ __global__ void MolExchangeReciprocalGPU(
     double *gpu_sumRnew, double *gpu_sumInew, double *gpu_molCharge,
     int numChargedParticles, double *gpu_MolX, double *gpu_MolY,
     double *gpu_MolZ, double *gpu_RecipEnergies, bool first_call);
-
-__global__ void BoxReciprocalGPU(double *gpu_prefact, double *gpu_sumRnew,
-                                 double *gpu_sumInew, double *gpu_RecipEnergies,
-                                 int imageSize);
 
 #endif /*GOMC_CUDA*/
 #endif /*CALCULATE_EWALD_CUDA_KERNEL_H*/

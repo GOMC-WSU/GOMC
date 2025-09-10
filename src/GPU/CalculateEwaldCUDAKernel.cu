@@ -58,19 +58,9 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
   int blocksPerGrid = imageSize;
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kx[box],
-      vars->gpu_ky[box], vars->gpu_kz[box], atomNumber, vars->gpu_molCharge,
-      vars->gpu_sumRnew[box], vars->gpu_sumInew[box]);
-#ifndef NDEBUG
-  cudaDeviceSynchronize();
-  checkLastErrorCUDA(__FILE__, __LINE__);
-#endif
-
-  // Fewer blocks are needed since we are doing one computation per image
-  threadsPerBlock = THREADS_PER_BLOCK;
-  blocksPerGrid = (imageSize + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-  BoxReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
-      vars->gpu_prefact[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
-      vars->gpu_recipEnergies, imageSize);
+      vars->gpu_ky[box], vars->gpu_kz[box], vars->gpu_molCharge,
+      vars->gpu_sumRnew[box], vars->gpu_sumInew[box], vars->gpu_prefact[box],
+      vars->gpu_recipEnergies, atomNumber);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -109,19 +99,9 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
   int blocksPerGrid = imageSize;
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kxRef[box],
-      vars->gpu_kyRef[box], vars->gpu_kzRef[box], atomNumber,
-      vars->gpu_molCharge, vars->gpu_sumRnew[box], vars->gpu_sumInew[box]);
-#ifndef NDEBUG
-  cudaDeviceSynchronize();
-  checkLastErrorCUDA(__FILE__, __LINE__);
-#endif
-
-  // Fewer blocks are needed since we are doing one computation per image
-  threadsPerBlock = THREADS_PER_BLOCK;
-  blocksPerGrid = (imageSize + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-  BoxReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
-      vars->gpu_prefactRef[box], vars->gpu_sumRnew[box], vars->gpu_sumInew[box],
-      vars->gpu_recipEnergies, imageSize);
+      vars->gpu_kyRef[box], vars->gpu_kzRef[box], vars->gpu_molCharge,
+      vars->gpu_sumRnew[box], vars->gpu_sumInew[box], vars->gpu_prefactRef[box],
+      vars->gpu_recipEnergies, atomNumber);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -140,8 +120,10 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
 __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_z, double *gpu_kx,
                                      double *gpu_ky, double *gpu_kz,
-                                     int atomNumber, double *gpu_molCharge,
-                                     double *gpu_sumRnew, double *gpu_sumInew) {
+                                     double *gpu_molCharge, double *gpu_sumRnew,
+                                     double *gpu_sumInew, double *gpu_prefact,
+                                     double *gpu_recipEnergies,
+                                     int atomNumber) {
 #if defined(NDEBUG) && CUDART_VERSION >= 13000
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
@@ -174,24 +156,10 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
   if (threadIdx.x == 0) {
     gpu_sumRnew[image] = aggregateR;
     gpu_sumInew[image] = aggregateI;
+    gpu_recipEnergies[image] =
+        (aggregateR * aggregateR + aggregateI * aggregateI) *
+        gpu_prefact[image];
   }
-}
-
-__global__ void __launch_bounds__(THREADS_PER_BLOCK)
-    BoxReciprocalGPU(double *gpu_prefact, double *gpu_sumRnew,
-                     double *gpu_sumInew, double *gpu_recipEnergies,
-                     int imageSize) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
-  asm volatile(".pragma \"enable_smem_spilling\";");
-#endif
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  if (threadID >= imageSize)
-    return;
-
-  gpu_recipEnergies[threadID] =
-      (gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
-       gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
-      gpu_prefact[threadID];
 }
 
 void CallMolReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
