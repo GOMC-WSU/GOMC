@@ -50,6 +50,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_hsqr[box], hsqr, imageSize * sizeof(double),
              cudaMemcpyHostToDevice);
+  cudaMemset(vars->gpu_finalVal, 0, sizeof(double));
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -60,15 +61,15 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kx[box],
       vars->gpu_ky[box], vars->gpu_kz[box], vars->gpu_molCharge,
       vars->gpu_sumRnew[box], vars->gpu_sumInew[box], vars->gpu_prefact[box],
-      vars->gpu_recipEnergies, atomNumber);
+      vars->gpu_finalVal, atomNumber);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  // ReduceSum
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
+  // // ReduceSum
+  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+  // vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecip, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
 #ifndef NDEBUG
@@ -91,6 +92,7 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+  cudaMemset(vars->gpu_finalVal, 0, sizeof(double));
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -101,15 +103,15 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kxRef[box],
       vars->gpu_kyRef[box], vars->gpu_kzRef[box], vars->gpu_molCharge,
       vars->gpu_sumRnew[box], vars->gpu_sumInew[box], vars->gpu_prefactRef[box],
-      vars->gpu_recipEnergies, atomNumber);
+      vars->gpu_finalVal, atomNumber);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
   // ReduceSum
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
+  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+  // vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecip, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
 #ifndef NDEBUG
@@ -122,8 +124,7 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_ky, double *gpu_kz,
                                      double *gpu_molCharge, double *gpu_sumRnew,
                                      double *gpu_sumInew, double *gpu_prefact,
-                                     double *gpu_recipEnergies,
-                                     int atomNumber) {
+                                     double *gpu_finalVal, int atomNumber) {
 #if defined(NDEBUG) && CUDART_VERSION >= 13000
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
@@ -156,9 +157,9 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
   if (threadIdx.x == 0) {
     gpu_sumRnew[image] = aggregateR;
     gpu_sumInew[image] = aggregateI;
-    gpu_recipEnergies[image] =
-        (aggregateR * aggregateR + aggregateI * aggregateI) *
-        gpu_prefact[image];
+    double recipEnergies = (aggregateR * aggregateR + aggregateI * aggregateI) *
+                           gpu_prefact[image];
+    atomicAdd(&gpu_finalVal[0], recipEnergies);
   }
 }
 

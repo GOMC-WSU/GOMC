@@ -74,7 +74,7 @@ __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
                                      double *gpu_molCharge, double *gpu_sumRnew,
                                      double *gpu_sumInew,
                                      double *gpu_prefactRef,
-                                     double *gpu_RecipEnergies, int atomNumber);
+                                     double *gpu_finalVal, int atomNumber);
 
 __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                                  double *gpu_nx, double *gpu_ny, double *gpu_nz,
