@@ -623,15 +623,12 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK)
       ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[threadID]);
 }
 
-__global__ void
-    ChangeLambdaMolReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
-                                 double *gpu_kx, double *gpu_ky, double *gpu_kz,
-                                 int atomNumber, double *gpu_molCharge,
-                                 double *gpu_sumRnew, double *gpu_sumInew,
-                                 double *gpu_sumRref, double *gpu_sumIref,
-                                 double *gpu_prefactRef,
-                                 double *gpu_recipEnergies, double lambdaCoef,
-                                 int imageSize) {
+__global__ void ChangeLambdaMolReciprocalGPU(
+    double *gpu_x, double *gpu_y, double *gpu_z, double *gpu_kx, double *gpu_ky,
+    double *gpu_kz, int atomNumber, double *gpu_molCharge, double *gpu_sumRnew,
+    double *gpu_sumInew, double *gpu_sumRref, double *gpu_sumIref,
+    double *gpu_prefactRef, double *gpu_recipEnergies, double lambdaCoef,
+    int imageSize) {
 #if defined(NDEBUG) && CUDART_VERSION >= 13000
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
