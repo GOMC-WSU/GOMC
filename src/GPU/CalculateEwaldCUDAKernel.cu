@@ -471,11 +471,11 @@ __global__ void BoxForceReciprocalGPU(
                      otherParticle, axx, axy, axz, *gpu_nonOrth, gpu_cell_x,
                      gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                      gpu_Invcell_z);
-        double dist = sqrt(distSq); // A
         double qiqj =
-            qqFactGPU * particleCharge * gpu_particleCharge[otherParticle]; // C
-        double expVal = exp(-gpu_alphaSq[box] * distSq);                    // B
-        double intraForce = qiqj * lambdaCoefSq / distSq;                   // D
+            qqFactGPU * particleCharge * gpu_particleCharge[otherParticle];
+        double intraForce = qiqj * lambdaCoefSq / distSq;
+        double expVal = exp(-gpu_alphaSq[box] * distSq);
+        double dist = sqrt(distSq);
         intraForce *= (erf(gpu_alpha[box] * dist) / dist) - constValue * expVal;
         forceX -= intraForce * distVect.x;
         forceY -= intraForce * distVect.y;
@@ -511,7 +511,7 @@ __global__ void BoxForceReciprocalGPU(
   }
 }
 
-__global__ void __launch_bounds__(THREADS_PER_BLOCK) SwapReciprocalGPU(
+__global__ void SwapReciprocalGPU(
     const double *gpu_x, const double *gpu_y, const double *gpu_z,
     const double *gpu_kx, const double *gpu_ky, const double *gpu_kz,
     int atomNumber, const double *gpu_molCharge, double *gpu_sumRnew,
@@ -623,7 +623,7 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK)
       ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[threadID]);
 }
 
-__global__ void __launch_bounds__(THREADS_PER_BLOCK)
+__global__ void
     ChangeLambdaMolReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
                                  double *gpu_kx, double *gpu_ky, double *gpu_kz,
                                  int atomNumber, double *gpu_molCharge,
