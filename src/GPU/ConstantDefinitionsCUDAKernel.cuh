@@ -25,6 +25,7 @@ const int NUMBER_OF_NEIGHBOR_CELLS = 27;
 const int PARTICLES_PER_BLOCK = 32;
 const int THREADS_PER_BLOCK = 128;
 const int THREADS_PER_BLOCK_SM = 64;
+const int THREADS_PER_BLOCK_MED = 96;
 
 void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
                      double *lambdaCoulomb, bool *isFraction);

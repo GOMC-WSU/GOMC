@@ -21,7 +21,7 @@ along with this program, also can be found at
 #include "XYZArray.h" //For axes
 
 // Use shortcuts when calculating Rcut
-//#define RCUT_SHORTCUT
+// #define RCUT_SHORTCUT
 
 class BoxDimensions {
 public:
@@ -35,7 +35,7 @@ public:
 
   BoxDimensions(BoxDimensions const &other);
 
-  virtual ~BoxDimensions(){};
+  virtual ~BoxDimensions() {};
 
   BoxDimensions &operator=(BoxDimensions const &other);
   bool operator==(BoxDimensions const &other);

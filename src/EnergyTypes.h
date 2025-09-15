@@ -18,9 +18,9 @@ along with this program, also can be found at
 #include "EnsemblePreprocessor.h" //For # box const.
 
 // GJS
-//#ifndef NDEBUG
+// #ifndef NDEBUG
 #include <iostream>
-//#endif
+// #endif
 
 #ifndef BOXES_WITH_U_NB
 #if ENSEMBLE == GCMC || ENSEMBLE == NVT || ENSEMBLE == NPT

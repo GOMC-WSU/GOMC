@@ -26,7 +26,7 @@ class System;
 class StaticVals {
 public:
   StaticVals(Setup &set);
-  ~StaticVals(){};
+  ~StaticVals() {};
   void Init(Setup &set, System &sys);
   void InitOver(Setup &set, System &sys);
   void IsBoxOrthogonal(config_setup::Volume const &vol);
