@@ -758,7 +758,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                     const std::vector<uint> &molIndexOld,
                                     bool first_call) {
   double energyRecipNew = 0.0;
-  // Change in reciprocal happens in the same box.
+  // Change in reciprocal happens in the same box
   uint box = newMol[0].GetBox();
 
   if (box < BOXES_WITH_U_NB) {
@@ -769,12 +769,14 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     const uint lengthOld = thisKindOld.NumAtoms();
 
 #ifdef GOMC_CUDA
+	const int maxNewAtoms = newMol.size() * lengthNew;
+	const int maxOldAtoms = oldMol.size() * lengthOld;
     // Build a vector of only the charged particles in the new and old molecules
     // Reserve the maximum size -- won't fill if there are uncharged atoms
     std::vector<double> molCharge;
-    molCharge.reserve(lengthNew + lengthOld);
+    molCharge.reserve(maxNewAtoms + maxOldAtoms);
     // The maximum size of this array is all particles have charges
-    XYZArray molCoords(lengthNew + lengthOld);
+    XYZArray molCoords(maxNewAtoms + maxOldAtoms);
 
     int numChargedParticles = 0;
     for (int m = 0; m < static_cast<int>(newMol.size()); ++m) {
