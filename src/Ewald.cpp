@@ -769,6 +769,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     const uint lengthOld = thisKindOld.NumAtoms();
 
 #ifdef GOMC_CUDA
+    // Compute how much space is needed for all the molecules being swapped
 	const int maxNewAtoms = newMol.size() * lengthNew;
 	const int maxOldAtoms = oldMol.size() * lengthOld;
     // Build a vector of only the charged particles in the new and old molecules
