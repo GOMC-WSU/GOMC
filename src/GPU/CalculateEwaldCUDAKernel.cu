@@ -303,9 +303,10 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
 
 void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
                                   const std::vector<double> &molCharge,
-                                  XYZArray const &molCoords, int atomNumber,
+                                  XYZArray const &molCoords,
                                   double &energyRecipNew, bool first_call) {
-
+  // Calculate atom number -- exclude uncharged particles
+  int atomNumber = molCharge.size();
   cudaMemcpy(vars->gpu_molCharge, &molCharge[0], atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, &molCoords.x[0], atomNumber * sizeof(double),

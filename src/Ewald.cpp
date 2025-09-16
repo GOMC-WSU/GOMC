@@ -816,7 +816,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     } else {
       CallMolExchangeReciprocalGPU(
           ff.particles->getCUDAVars(), imageSizeRef[box], box, molCharge,
-          molCoords, numChargedParticles, energyRecipNew, first_call);
+          molCoords, energyRecipNew, first_call);
     }
 #else
 #ifdef _OPENMP
