@@ -134,9 +134,9 @@ __device__ inline void
 DeviceInRcut(double &distSq, double3 &dist, const double *gpu_x,
              const double *gpu_y, const double *gpu_z, int particleID,
              int otherParticle, double axx, double axy, double axz,
-             int gpu_nonOrth, double *gpu_cell_x, double *gpu_cell_y,
-             double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y,
-             double *gpu_Invcell_z) {
+             int gpu_nonOrth, const double *gpu_cell_x, const double *gpu_cell_y,
+             const double *gpu_cell_z, const double *gpu_Invcell_x, const double *gpu_Invcell_y,
+             const double *gpu_Invcell_z) {
   // calculate distance
   double3 axes, halfAx;
   dist.x = gpu_x[particleID] - gpu_x[otherParticle];

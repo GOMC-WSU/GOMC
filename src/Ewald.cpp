@@ -770,14 +770,14 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
 
 #ifdef GOMC_CUDA
     // Compute how much space is needed for all the molecules being swapped
-	const int maxNewAtoms = newMol.size() * lengthNew;
-	const int maxOldAtoms = oldMol.size() * lengthOld;
+    const int maxNewAtoms = newMol.size() * lengthNew;
+    const int maxOldAtoms = oldMol.size() * lengthOld;
     // Build a vector of only the charged particles in the new and old molecules
     // Reserve the maximum size -- won't fill if there are uncharged atoms
     std::vector<double> molCharge;
     molCharge.reserve(maxNewAtoms + maxOldAtoms);
     // The maximum size of this array is all particles have charges
-    XYZArray molCoords(maxNewAtoms + maxOldAtoms);
+    XYZArray molCoords(maxNewAtoms + maxOldAtoms, false);
 
     int numChargedParticles = 0;
     for (int m = 0; m < static_cast<int>(newMol.size()); ++m) {
@@ -814,9 +814,9 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     if (numChargedParticles == 0) {
       energyRecipNew = sysPotRef.boxEnergy[box].recip;
     } else {
-      CallMolExchangeReciprocalGPU(
-          ff.particles->getCUDAVars(), imageSizeRef[box], box, molCharge,
-          molCoords, energyRecipNew, first_call);
+      CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(),
+                                   imageSizeRef[box], box, molCharge, molCoords,
+                                   energyRecipNew, first_call);
     }
 #else
 #ifdef _OPENMP
