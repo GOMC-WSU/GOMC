@@ -31,15 +31,15 @@ public:
       : x(nullptr), y(nullptr), z(nullptr), count(0), allocDone(false) {}
 
   // Declare a set of coordinates of an explicit size.
-  explicit XYZArray(const uint n) {
+  explicit XYZArray(const uint n, bool initialize = true) {
     allocDone = false;
-    Init(n);
+    Init(n, initialize);
   }
 
   // Create a struct of arrays from an array of structs
   XYZArray(const std::vector<XYZ> &AOS) {
     allocDone = false;
-    Init(AOS.size());
+    Init(AOS.size(), false);
     for (int i = 0; i < AOS.size(); ++i) {
       x[i] = AOS[i].x;
       y[i] = AOS[i].y;
@@ -59,7 +59,7 @@ public:
 
   // Helper function to allocate memory to coordinate arrays.
   // Note: this has been laid out as subarrays of master array.
-  void Init(const uint n);
+  void Init(const uint n, bool initialize = true);
 
   // Returns number of elements
   uint Count() const { return count; }
@@ -386,7 +386,7 @@ inline void XYZArray::ResetRange(const uint val, const uint stop) {
 
 inline void XYZArray::Reset() { ResetRange(0, count); }
 
-inline void XYZArray::Init(const uint n) {
+inline void XYZArray::Init(const uint n, bool initialize) {
   count = n;
 
   if (allocDone) {
@@ -403,10 +403,13 @@ inline void XYZArray::Init(const uint n) {
   y = new double[n];
   z = new double[n];
 
-  std::memset(this->x, 0, n * sizeof(double));
-  std::memset(this->y, 0, n * sizeof(double));
-  std::memset(this->z, 0, n * sizeof(double));
-
+  // Initialize is the default. Can skip this when we are setting the values in
+  // the array right after creating it.
+  if (initialize) {
+    std::memset(this->x, 0, n * sizeof(double));
+    std::memset(this->y, 0, n * sizeof(double));
+    std::memset(this->z, 0, n * sizeof(double));
+  }
   allocDone = true;
 }
 
