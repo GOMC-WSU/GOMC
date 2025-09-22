@@ -541,16 +541,16 @@ __global__ void SwapReciprocalGPU(
 #if defined(NDEBUG) && CUDART_VERSION >= 13000
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  if (threadID >= imageSize)
+  int image = blockIdx.x * blockDim.x + threadIdx.x;
+  if (image >= imageSize)
     return;
 
-  double sumReal = gpu_sumRref[threadID], sumImag = gpu_sumIref[threadID];
+  double sumReal = gpu_sumRref[image], sumImag = gpu_sumIref[image];
 
 #pragma unroll 6
   for (int p = 0; p < atomNumber; ++p) {
     double dotProduct =
-        DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
+        DotProductGPU(gpu_kx[image], gpu_ky[image], gpu_kz[image],
                       gpu_x[p], gpu_y[p], gpu_z[p]);
     double dotsin, dotcos;
     sincos(dotProduct, &dotsin, &dotcos);
@@ -559,11 +559,11 @@ __global__ void SwapReciprocalGPU(
     sumReal += gpu_molCharge[p] * dotcos;
   }
 
-  gpu_sumRnew[threadID] = sumReal;
-  gpu_sumInew[threadID] = sumImag;
+  gpu_sumRnew[image] = sumReal;
+  gpu_sumInew[image] = sumImag;
 
-  gpu_recipEnergies[threadID] =
-      ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[threadID]);
+  gpu_recipEnergies[image] =
+      ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[image]);
 }
 
 __global__ void __launch_bounds__(THREADS_PER_BLOCK) MolReciprocalGPU(
@@ -580,19 +580,19 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) MolReciprocalGPU(
 #if defined(NDEBUG) && CUDART_VERSION >= 13000
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  if (threadID >= imageSize)
+  int image = blockIdx.x * blockDim.x + threadIdx.x;
+  if (image >= imageSize)
     return;
 
-  double sumReal = gpu_sumRref[threadID], sumImag = gpu_sumIref[threadID];
+  double sumReal = gpu_sumRref[image], sumImag = gpu_sumIref[image];
 
 #pragma unroll 4
   for (int p = 0; p < atomNumber; ++p) {
     double dotProductOld =
-        DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
+        DotProductGPU(gpu_kx[image], gpu_ky[image], gpu_kz[image],
                       gpu_cx[p], gpu_cy[p], gpu_cz[p]);
     double dotProductNew =
-        DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
+        DotProductGPU(gpu_kx[image], gpu_ky[image], gpu_kz[image],
                       gpu_nx[p], gpu_ny[p], gpu_nz[p]);
     double oldsin, oldcos;
     sincos(dotProductOld, &oldsin, &oldcos);
@@ -602,11 +602,11 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) MolReciprocalGPU(
     sumReal += gpu_molCharge[p] * (newcos - oldcos);
   }
 
-  gpu_sumRnew[threadID] = sumReal;
-  gpu_sumInew[threadID] = sumImag;
+  gpu_sumRnew[image] = sumReal;
+  gpu_sumInew[image] = sumImag;
 
-  gpu_recipEnergies[threadID] =
-      ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[threadID]);
+  gpu_recipEnergies[image] =
+      ((sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[image]);
 }
 
 __global__ void MolExchangeReciprocalGPU(
@@ -622,22 +622,22 @@ __global__ void MolExchangeReciprocalGPU(
 #if defined(NDEBUG) && CUDART_VERSION >= 13000
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
-  int imageID = blockIdx.x * blockDim.x + threadIdx.x;
-  if (imageID >= imageSize)
+  int image = blockIdx.x * blockDim.x + threadIdx.x;
+  if (image >= imageSize)
     return;
 
   double sumReal, sumImag;
   if (first_call) {
-    sumReal = gpu_sumRref[imageID];
-    sumImag = gpu_sumIref[imageID];
+    sumReal = gpu_sumRref[image];
+    sumImag = gpu_sumIref[image];
   } else {
-    sumReal = gpu_sumRnew[imageID];
-    sumImag = gpu_sumInew[imageID];
+    sumReal = gpu_sumRnew[image];
+    sumImag = gpu_sumInew[image];
   }
 #pragma unroll 6
   for (int p = 0; p < numChargedParticles; ++p) {
     double dotProduct =
-        DotProductGPU(gpu_kx[imageID], gpu_ky[imageID], gpu_kz[imageID],
+        DotProductGPU(gpu_kx[image], gpu_ky[image], gpu_kz[image],
                       gpu_x[p], gpu_y[p], gpu_z[p]);
     double dotsin, dotcos;
     sincos(dotProduct, &dotsin, &dotcos);
@@ -645,10 +645,11 @@ __global__ void MolExchangeReciprocalGPU(
     sumReal += gpu_molCharge[p] * dotcos;
   }
 
-  gpu_sumRnew[imageID] = sumReal;
-  gpu_sumInew[imageID] = sumImag;
-  gpu_recipEnergies[imageID] =
-      (sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[imageID];
+  gpu_sumRnew[image] = sumReal;
+  gpu_sumInew[image] = sumImag;
+
+  gpu_recipEnergies[image] =
+      (sumReal * sumReal + sumImag * sumImag) * gpu_prefactRef[image];
 }
 
 __global__ void ChangeLambdaMolReciprocalGPU(
@@ -664,8 +665,8 @@ __global__ void ChangeLambdaMolReciprocalGPU(
 #if defined(NDEBUG) && CUDART_VERSION >= 13000
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  if (threadID >= imageSize)
+  int image = blockIdx.x * blockDim.x + threadIdx.x;
+  if (image >= imageSize)
     return;
 
   double sumReal = 0.0, sumImag = 0.0;
@@ -673,7 +674,7 @@ __global__ void ChangeLambdaMolReciprocalGPU(
 #pragma unroll 6
   for (int p = 0; p < atomNumber; ++p) {
     double dotProduct =
-        DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
+        DotProductGPU(gpu_kx[image], gpu_ky[image], gpu_kz[image],
                       gpu_x[p], gpu_y[p], gpu_z[p]);
     double newsin, newcos;
     sincos(dotProduct, &newsin, &newcos);
@@ -681,12 +682,12 @@ __global__ void ChangeLambdaMolReciprocalGPU(
     sumImag += gpu_molCharge[p] * newsin;
   }
 
-  gpu_sumRnew[threadID] = gpu_sumRref[threadID] + lambdaCoef * sumReal;
-  gpu_sumInew[threadID] = gpu_sumIref[threadID] + lambdaCoef * sumImag;
+  gpu_sumRnew[image] = gpu_sumRref[image] + lambdaCoef * sumReal;
+  gpu_sumInew[image] = gpu_sumIref[image] + lambdaCoef * sumImag;
 
-  gpu_recipEnergies[threadID] =
-      (gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
-       gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
-      gpu_prefactRef[threadID];
+  gpu_recipEnergies[image] =
+      (gpu_sumRnew[image] * gpu_sumRnew[image] +
+       gpu_sumInew[image] * gpu_sumInew[image]) *
+      gpu_prefactRef[image];
 }
 #endif
