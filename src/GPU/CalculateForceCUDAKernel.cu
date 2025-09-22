@@ -93,51 +93,46 @@ void CallBoxInterForceGPU(
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
+  // Uncomment if more than the main diagonal values are needed
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                     vars->gpu_vT11, vars->gpu_finalVal, energyVectorLen);
   cudaMemcpy(&vT11, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_vT12, vars->gpu_finalVal, energyVectorLen);
-  cudaMemcpy(&vT12, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_vT13, vars->gpu_finalVal, energyVectorLen);
-  cudaMemcpy(&vT13, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                     vars->gpu_vT22, vars->gpu_finalVal, energyVectorLen);
   cudaMemcpy(&vT22, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_vT23, vars->gpu_finalVal, energyVectorLen);
-  cudaMemcpy(&vT23, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                     vars->gpu_vT33, vars->gpu_finalVal, energyVectorLen);
   cudaMemcpy(&vT33, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                    // vars->gpu_vT12, vars->gpu_finalVal, energyVectorLen);
+  // cudaMemcpy(&vT12, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                    // vars->gpu_vT13, vars->gpu_finalVal, energyVectorLen);
+  // cudaMemcpy(&vT13, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                    // vars->gpu_vT23, vars->gpu_finalVal, energyVectorLen);
+  // cudaMemcpy(&vT23, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
 
   if (electrostatic) {
     // ReduceSum // Virial of Coulomb
     DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                       vars->gpu_rT11, vars->gpu_finalVal, energyVectorLen);
-    cudaMemcpy(&rT11, vars->gpu_finalVal, sizeof(double),
-               cudaMemcpyDeviceToHost);
-    DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                      vars->gpu_rT12, vars->gpu_finalVal, energyVectorLen);
-    cudaMemcpy(&rT12, vars->gpu_finalVal, sizeof(double),
-               cudaMemcpyDeviceToHost);
-    DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                      vars->gpu_rT13, vars->gpu_finalVal, energyVectorLen);
-    cudaMemcpy(&rT13, vars->gpu_finalVal, sizeof(double),
-               cudaMemcpyDeviceToHost);
+    cudaMemcpy(&rT11, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
     DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                       vars->gpu_rT22, vars->gpu_finalVal, energyVectorLen);
-    cudaMemcpy(&rT22, vars->gpu_finalVal, sizeof(double),
-               cudaMemcpyDeviceToHost);
-    DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                      vars->gpu_rT23, vars->gpu_finalVal, energyVectorLen);
-    cudaMemcpy(&rT23, vars->gpu_finalVal, sizeof(double),
-               cudaMemcpyDeviceToHost);
+    cudaMemcpy(&rT22, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
     DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                       vars->gpu_rT33, vars->gpu_finalVal, energyVectorLen);
-    cudaMemcpy(&rT33, vars->gpu_finalVal, sizeof(double),
-               cudaMemcpyDeviceToHost);
+    cudaMemcpy(&rT33, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+    // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                      // vars->gpu_rT12, vars->gpu_finalVal, energyVectorLen);
+    // cudaMemcpy(&rT12, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+    // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                      // vars->gpu_rT13, vars->gpu_finalVal, energyVectorLen);
+    // cudaMemcpy(&rT13, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+    // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                      // vars->gpu_rT23, vars->gpu_finalVal, energyVectorLen);
+    // cudaMemcpy(&rT23, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   }
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -279,12 +274,13 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
              molCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 
   // Initialize the virial terms to zero
+  // Uncomment if more than the main diagonal values are needed
   cudaMemset(vars->gpu_wT11, 0, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_wT12, 0, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_wT13, 0, imageSize * sizeof(double));
   cudaMemset(vars->gpu_wT22, 0, imageSize * sizeof(double));
-  cudaMemset(vars->gpu_wT23, 0, imageSize * sizeof(double));
   cudaMemset(vars->gpu_wT33, 0, imageSize * sizeof(double));
+  // cudaMemset(vars->gpu_wT12, 0, imageSize * sizeof(double));
+  // cudaMemset(vars->gpu_wT13, 0, imageSize * sizeof(double));
+  // cudaMemset(vars->gpu_wT23, 0, imageSize * sizeof(double));
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -307,24 +303,25 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
 #endif
 
   // ReduceSum -- Virial of Reciprocal
+  // Uncomment if more than the main diagonal values are needed
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                     vars->gpu_wT11, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&wT11, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_wT12, vars->gpu_finalVal, imageSize);
-  cudaMemcpy(&wT12, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_wT13, vars->gpu_finalVal, imageSize);
-  cudaMemcpy(&wT13, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                     vars->gpu_wT22, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&wT22, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_wT23, vars->gpu_finalVal, imageSize);
-  cudaMemcpy(&wT23, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
                     vars->gpu_wT33, vars->gpu_finalVal, imageSize);
   cudaMemcpy(&wT33, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                    // vars->gpu_wT12, vars->gpu_finalVal, imageSize);
+  // cudaMemcpy(&wT12, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                    // vars->gpu_wT13, vars->gpu_finalVal, imageSize);
+  // cudaMemcpy(&wT13, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
+  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
+                    // vars->gpu_wT23, vars->gpu_finalVal, imageSize);
+  // cudaMemcpy(&wT23, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
@@ -363,11 +360,13 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) BoxInterForceGPU(
   virComponents = make_double3(0.0, 0.0, 0.0);
 
   // tensors for VDW
+  // Uncomment if more than the main diagonal values are needed
+
   double local_vT11 = 0.0, local_vT22 = 0.0, local_vT33 = 0.0;
-  double local_vT12 = 0.0, local_vT13 = 0.0, local_vT23 = 0.0;
+  // double local_vT12 = 0.0, local_vT13 = 0.0, local_vT23 = 0.0;
 
   double local_rT11 = 0.0, local_rT22 = 0.0, local_rT33 = 0.0;
-  double local_rT12 = 0.0, local_rT13 = 0.0, local_rT23 = 0.0;
+  // double local_rT12 = 0.0, local_rT13 = 0.0, local_rT23 = 0.0;
 
   int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
   int nCellIndex = blockIdx.x;
@@ -379,17 +378,17 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) BoxInterForceGPU(
       gpu_vT11[blockIdx.x] = 0.0;
       gpu_vT22[blockIdx.x] = 0.0;
       gpu_vT33[blockIdx.x] = 0.0;
-      gpu_vT12[blockIdx.x] = 0.0;
-      gpu_vT13[blockIdx.x] = 0.0;
-      gpu_vT23[blockIdx.x] = 0.0;
+      // gpu_vT12[blockIdx.x] = 0.0;
+      // gpu_vT13[blockIdx.x] = 0.0;
+      // gpu_vT23[blockIdx.x] = 0.0;
 
       if (electrostatic) {
         gpu_rT11[blockIdx.x] = 0.0;
         gpu_rT22[blockIdx.x] = 0.0;
         gpu_rT33[blockIdx.x] = 0.0;
-        gpu_rT12[blockIdx.x] = 0.0;
-        gpu_rT13[blockIdx.x] = 0.0;
-        gpu_rT23[blockIdx.x] = 0.0;
+        // gpu_rT12[blockIdx.x] = 0.0;
+        // gpu_rT13[blockIdx.x] = 0.0;
+        // gpu_rT23[blockIdx.x] = 0.0;
       }
     }
     return;
@@ -463,15 +462,15 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) BoxInterForceGPU(
         local_vT33 += pVF * (virComponents.z * diff_com.z);
 
         // extra tensor calculations
-        local_vT12 +=
-            pVF * 0.5 *
-            (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
-        local_vT13 +=
-            pVF * 0.5 *
-            (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
-        local_vT23 +=
-            pVF * 0.5 *
-            (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
+        // local_vT12 +=
+            // pVF * 0.5 *
+            // (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
+        // local_vT13 +=
+            // pVF * 0.5 *
+            // (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
+        // local_vT23 +=
+            // pVF * 0.5 *
+            // (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
 
         if (electrostatic) {
           double qi_qj = gpu_particleCharge[currentParticle] *
@@ -492,15 +491,15 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) BoxInterForceGPU(
             local_rT33 += pRF * (virComponents.z * diff_com.z);
 
             // extra tensor calculations
-            local_rT12 +=
-                pRF * 0.5 *
-                (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
-            local_rT13 +=
-                pRF * 0.5 *
-                (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
-            local_rT23 +=
-                pRF * 0.5 *
-                (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
+            // local_rT12 +=
+                // pRF * 0.5 *
+                // (virComponents.x * diff_com.y + virComponents.y * diff_com.x);
+            // local_rT13 +=
+                // pRF * 0.5 *
+                // (virComponents.x * diff_com.z + virComponents.z * diff_com.x);
+            // local_rT23 +=
+                // pRF * 0.5 *
+                // (virComponents.y * diff_com.z + virComponents.z * diff_com.y);
           }
         }
       }
@@ -513,47 +512,47 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) BoxInterForceGPU(
   __shared__ typename BlockReduce::TempStorage vT11_temp_storage;
   __shared__ typename BlockReduce::TempStorage vT22_temp_storage;
   __shared__ typename BlockReduce::TempStorage vT33_temp_storage;
-  __shared__ typename BlockReduce::TempStorage vT12_temp_storage;
-  __shared__ typename BlockReduce::TempStorage vT13_temp_storage;
-  __shared__ typename BlockReduce::TempStorage vT23_temp_storage;
+  // __shared__ typename BlockReduce::TempStorage vT12_temp_storage;
+  // __shared__ typename BlockReduce::TempStorage vT13_temp_storage;
+  // __shared__ typename BlockReduce::TempStorage vT23_temp_storage;
 
   double aggregate_vT11 = BlockReduce(vT11_temp_storage).Sum(local_vT11);
   double aggregate_vT22 = BlockReduce(vT22_temp_storage).Sum(local_vT22);
   double aggregate_vT33 = BlockReduce(vT33_temp_storage).Sum(local_vT33);
-  double aggregate_vT12 = BlockReduce(vT12_temp_storage).Sum(local_vT12);
-  double aggregate_vT13 = BlockReduce(vT13_temp_storage).Sum(local_vT13);
-  double aggregate_vT23 = BlockReduce(vT23_temp_storage).Sum(local_vT23);
+  // double aggregate_vT12 = BlockReduce(vT12_temp_storage).Sum(local_vT12);
+  // double aggregate_vT13 = BlockReduce(vT13_temp_storage).Sum(local_vT13);
+  // double aggregate_vT23 = BlockReduce(vT23_temp_storage).Sum(local_vT23);
 
   if (threadIdx.x == 0) {
     gpu_vT11[blockIdx.x] = aggregate_vT11;
     gpu_vT22[blockIdx.x] = aggregate_vT22;
     gpu_vT33[blockIdx.x] = aggregate_vT33;
-    gpu_vT12[blockIdx.x] = aggregate_vT12;
-    gpu_vT13[blockIdx.x] = aggregate_vT13;
-    gpu_vT23[blockIdx.x] = aggregate_vT23;
+    // gpu_vT12[blockIdx.x] = aggregate_vT12;
+    // gpu_vT13[blockIdx.x] = aggregate_vT13;
+    // gpu_vT23[blockIdx.x] = aggregate_vT23;
   }
   if (electrostatic) {
     __shared__ typename BlockReduce::TempStorage rT11_temp_storage;
     __shared__ typename BlockReduce::TempStorage rT22_temp_storage;
     __shared__ typename BlockReduce::TempStorage rT33_temp_storage;
-    __shared__ typename BlockReduce::TempStorage rT12_temp_storage;
-    __shared__ typename BlockReduce::TempStorage rT13_temp_storage;
-    __shared__ typename BlockReduce::TempStorage rT23_temp_storage;
+    // __shared__ typename BlockReduce::TempStorage rT12_temp_storage;
+    // __shared__ typename BlockReduce::TempStorage rT13_temp_storage;
+    // __shared__ typename BlockReduce::TempStorage rT23_temp_storage;
 
     double aggregate_rT11 = BlockReduce(rT11_temp_storage).Sum(local_rT11);
     double aggregate_rT22 = BlockReduce(rT22_temp_storage).Sum(local_rT22);
     double aggregate_rT33 = BlockReduce(rT33_temp_storage).Sum(local_rT33);
-    double aggregate_rT12 = BlockReduce(rT12_temp_storage).Sum(local_rT12);
-    double aggregate_rT13 = BlockReduce(rT13_temp_storage).Sum(local_rT13);
-    double aggregate_rT23 = BlockReduce(rT23_temp_storage).Sum(local_rT23);
+    // double aggregate_rT12 = BlockReduce(rT12_temp_storage).Sum(local_rT12);
+    // double aggregate_rT13 = BlockReduce(rT13_temp_storage).Sum(local_rT13);
+    // double aggregate_rT23 = BlockReduce(rT23_temp_storage).Sum(local_rT23);
 
     if (threadIdx.x == 0) {
       gpu_rT11[blockIdx.x] = aggregate_rT11;
       gpu_rT22[blockIdx.x] = aggregate_rT22;
       gpu_rT33[blockIdx.x] = aggregate_rT33;
-      gpu_rT12[blockIdx.x] = aggregate_rT12;
-      gpu_rT13[blockIdx.x] = aggregate_rT13;
-      gpu_rT23[blockIdx.x] = aggregate_rT23;
+      // gpu_rT12[blockIdx.x] = aggregate_rT12;
+      // gpu_rT13[blockIdx.x] = aggregate_rT13;
+      // gpu_rT23[blockIdx.x] = aggregate_rT23;
     }
   }
 }
@@ -769,7 +768,8 @@ __global__ __launch_bounds__(THREADS_PER_BLOCK) void VirialReciprocalGPU(
   if (imageID >= imageSize)
     return;
 
-  double wT11 = 0.0, wT12 = 0.0, wT13 = 0.0, wT22 = 0.0, wT23 = 0.0, wT33 = 0.0;
+  double wT11 = 0.0, wT22 = 0.0, wT33 = 0.0;
+  // double wT12 = 0.0, wT13 = 0.0, wT23 = 0.0;
   double factor, dot;
 
   if (blockIdx.y == 0) {
@@ -779,16 +779,16 @@ __global__ __launch_bounds__(THREADS_PER_BLOCK) void VirialReciprocalGPU(
                                    gpu_sumIref[imageID] * gpu_sumIref[imageID]);
     wT11 = factor * (1.0 - 2.0 * constant_part * gpu_kxRef[imageID] *
                                gpu_kxRef[imageID]);
-    wT12 = factor *
-           (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kyRef[imageID]);
-    wT13 = factor *
-           (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kzRef[imageID]);
     wT22 = factor * (1.0 - 2.0 * constant_part * gpu_kyRef[imageID] *
                                gpu_kyRef[imageID]);
-    wT23 = factor *
-           (-2.0 * constant_part * gpu_kyRef[imageID] * gpu_kzRef[imageID]);
     wT33 = factor * (1.0 - 2.0 * constant_part * gpu_kzRef[imageID] *
                                gpu_kzRef[imageID]);
+    // wT12 = factor *
+           // (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kyRef[imageID]);
+    // wT13 = factor *
+           // (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kzRef[imageID]);
+    // wT23 = factor *
+           // (-2.0 * constant_part * gpu_kyRef[imageID] * gpu_kzRef[imageID]);
   }
   __syncthreads();
 
@@ -806,25 +806,25 @@ __global__ __launch_bounds__(THREADS_PER_BLOCK) void VirialReciprocalGPU(
              (gpu_sumIref[imageID] * dotcos - gpu_sumRref[imageID] * dotsin);
 
     wT11 += factor * (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 3]);
-    wT12 += factor * 0.5 *
-            (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 4] +
-             gpu_kyRef[imageID] * shared_coords[particleID * 7 + 3]);
-    wT13 += factor * 0.5 *
-            (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 5] +
-             gpu_kzRef[imageID] * shared_coords[particleID * 7 + 3]);
     wT22 += factor * (gpu_kyRef[imageID] * shared_coords[particleID * 7 + 4]);
-    wT23 += factor * 0.5 *
-            (gpu_kyRef[imageID] * shared_coords[particleID * 7 + 5] +
-             gpu_kzRef[imageID] * shared_coords[particleID * 7 + 4]);
     wT33 += factor * (gpu_kzRef[imageID] * shared_coords[particleID * 7 + 5]);
+    // wT12 += factor * 0.5 *
+            // (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 4] +
+             // gpu_kyRef[imageID] * shared_coords[particleID * 7 + 3]);
+    // wT13 += factor * 0.5 *
+            // (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 5] +
+             // gpu_kzRef[imageID] * shared_coords[particleID * 7 + 3]);
+    // wT23 += factor * 0.5 *
+            // (gpu_kyRef[imageID] * shared_coords[particleID * 7 + 5] +
+             // gpu_kzRef[imageID] * shared_coords[particleID * 7 + 4]);
   }
 
   atomicAdd(&gpu_wT11[imageID], wT11);
-  atomicAdd(&gpu_wT12[imageID], wT12);
-  atomicAdd(&gpu_wT13[imageID], wT13);
   atomicAdd(&gpu_wT22[imageID], wT22);
-  atomicAdd(&gpu_wT23[imageID], wT23);
   atomicAdd(&gpu_wT33[imageID], wT33);
+  // atomicAdd(&gpu_wT12[imageID], wT12);
+  // atomicAdd(&gpu_wT13[imageID], wT13);
+  // atomicAdd(&gpu_wT23[imageID], wT23);
 }
 
 __device__ double

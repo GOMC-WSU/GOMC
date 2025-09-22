@@ -259,11 +259,12 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, int numAtoms,
   }
   CUMALLOC((void **)&vars->gpu_REn, sizeof(double));
   CUMALLOC((void **)&vars->gpu_wT11, imageTotal * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_wT12, imageTotal * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_wT13, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_wT22, imageTotal * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_wT23, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_wT33, imageTotal * sizeof(double));
+  // Uncomment if more than the main diagonal values are needed
+  // CUMALLOC((void **)&vars->gpu_wT12, imageTotal * sizeof(double));
+  // CUMALLOC((void **)&vars->gpu_wT13, imageTotal * sizeof(double));
+  // CUMALLOC((void **)&vars->gpu_wT23, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_recipEnergies, imageTotal * sizeof(double));
   CUMALLOC((void **)&vars->gpu_particleUsed, numAtoms * sizeof(int));
   // Allocate space for cub reduction operations on the Ewald arrays
@@ -376,35 +377,36 @@ void UpdateEnergyVecsCUDA(VariablesCUDA *vars, int newVecLen,
     return;
 
   // Free the current allocations if this isn't the first allocation
+  // Uncomment if more than the main diagonal values are needed
   if (vars->gpu_energyVecLen > 0) {
     CUFREE(vars->gpu_vT11);
-    CUFREE(vars->gpu_vT12);
-    CUFREE(vars->gpu_vT13);
+    // CUFREE(vars->gpu_vT12);
+    // CUFREE(vars->gpu_vT13);
     CUFREE(vars->gpu_vT22);
-    CUFREE(vars->gpu_vT23);
+    // CUFREE(vars->gpu_vT23);
     CUFREE(vars->gpu_vT33);
     if (electrostatic) {
       CUFREE(vars->gpu_rT11);
-      CUFREE(vars->gpu_rT12);
-      CUFREE(vars->gpu_rT13);
+      // CUFREE(vars->gpu_rT12);
+      // CUFREE(vars->gpu_rT13);
       CUFREE(vars->gpu_rT22);
-      CUFREE(vars->gpu_rT23);
+      // CUFREE(vars->gpu_rT23);
       CUFREE(vars->gpu_rT33);
     }
   }
   vars->gpu_energyVecLen = newVecLen;
   CUMALLOC((void **)&vars->gpu_vT11, newVecLen * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_vT12, newVecLen * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_vT13, newVecLen * sizeof(double));
+  // CUMALLOC((void **)&vars->gpu_vT12, newVecLen * sizeof(double));
+  // CUMALLOC((void **)&vars->gpu_vT13, newVecLen * sizeof(double));
   CUMALLOC((void **)&vars->gpu_vT22, newVecLen * sizeof(double));
-  CUMALLOC((void **)&vars->gpu_vT23, newVecLen * sizeof(double));
+  // CUMALLOC((void **)&vars->gpu_vT23, newVecLen * sizeof(double));
   CUMALLOC((void **)&vars->gpu_vT33, newVecLen * sizeof(double));
   if (electrostatic) {
     CUMALLOC((void **)&vars->gpu_rT11, newVecLen * sizeof(double));
-    CUMALLOC((void **)&vars->gpu_rT12, newVecLen * sizeof(double));
-    CUMALLOC((void **)&vars->gpu_rT13, newVecLen * sizeof(double));
+    // CUMALLOC((void **)&vars->gpu_rT12, newVecLen * sizeof(double));
+    // CUMALLOC((void **)&vars->gpu_rT13, newVecLen * sizeof(double));
     CUMALLOC((void **)&vars->gpu_rT22, newVecLen * sizeof(double));
-    CUMALLOC((void **)&vars->gpu_rT23, newVecLen * sizeof(double));
+    // CUMALLOC((void **)&vars->gpu_rT23, newVecLen * sizeof(double));
     CUMALLOC((void **)&vars->gpu_rT33, newVecLen * sizeof(double));
   }
 
@@ -490,12 +492,13 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars) {
     CUFREE(vars->gpu_hsqr[b]);
     CUFREE(vars->gpu_hsqrRef[b]);
   }
+  // Uncomment if more than the main diagonal values are needed
   CUFREE(vars->gpu_wT11);
-  CUFREE(vars->gpu_wT12);
-  CUFREE(vars->gpu_wT13);
   CUFREE(vars->gpu_wT22);
-  CUFREE(vars->gpu_wT23);
   CUFREE(vars->gpu_wT33);
+  // CUFREE(vars->gpu_wT12);
+  // CUFREE(vars->gpu_wT13);
+  // CUFREE(vars->gpu_wT23);
   CUFREE(vars->gpu_recipEnergies);
   CUFREE(vars->gpu_particleUsed);
   CUFREE(vars->cub_reduce_storage);
@@ -565,17 +568,18 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_comz);
   CUFREE(vars->gpu_LJEn);
   CUFREE(vars->gpu_REn);
+  // Uncomment if more than the main diagonal values are needed
   CUFREE(vars->gpu_rT11);
-  CUFREE(vars->gpu_rT12);
-  CUFREE(vars->gpu_rT13);
+  // CUFREE(vars->gpu_rT12);
+  // CUFREE(vars->gpu_rT13);
   CUFREE(vars->gpu_rT22);
-  CUFREE(vars->gpu_rT23);
+  // CUFREE(vars->gpu_rT23);
   CUFREE(vars->gpu_rT33);
   CUFREE(vars->gpu_vT11);
-  CUFREE(vars->gpu_vT12);
-  CUFREE(vars->gpu_vT13);
+  // CUFREE(vars->gpu_vT12);
+  // CUFREE(vars->gpu_vT13);
   CUFREE(vars->gpu_vT22);
-  CUFREE(vars->gpu_vT23);
+  // CUFREE(vars->gpu_vT23);
   CUFREE(vars->gpu_vT33);
   CUFREE(vars->gpu_rt_k_x);
   CUFREE(vars->gpu_rt_k_y);
