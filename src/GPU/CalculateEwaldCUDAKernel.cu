@@ -56,12 +56,12 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   int threadsPerBlock = THREADS_PER_BLOCK_SM;
-  int blocksPerGrid = imageSize;
+  int blocksPerGrid =  std::min(static_cast<int>(imageSize), 5000);
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kx[box],
       vars->gpu_ky[box], vars->gpu_kz[box], vars->gpu_molCharge,
       vars->gpu_sumRnew[box], vars->gpu_sumInew[box], vars->gpu_prefact[box],
-      vars->gpu_finalVal, atomNumber);
+      vars->gpu_finalVal, atomNumber, imageSize);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -98,12 +98,12 @@ void CallBoxReciprocalSumsGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   int threadsPerBlock = THREADS_PER_BLOCK_SM;
-  int blocksPerGrid = imageSize;
+  int blocksPerGrid =  std::min(static_cast<int>(imageSize), 5000);
   BoxReciprocalSumsGPU<<<blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_x, vars->gpu_y, vars->gpu_z, vars->gpu_kxRef[box],
       vars->gpu_kyRef[box], vars->gpu_kzRef[box], vars->gpu_molCharge,
       vars->gpu_sumRnew[box], vars->gpu_sumInew[box], vars->gpu_prefactRef[box],
-      vars->gpu_finalVal, atomNumber);
+      vars->gpu_finalVal, atomNumber, imageSize);
 #ifndef NDEBUG
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -363,60 +363,48 @@ void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
 #endif
 }
 
-// __global__ void BoxReciprocalSumsGPU(double *gpu_x, double *gpu_y,
-// double *gpu_z, double *gpu_kx,
-// double *gpu_ky, double *gpu_kz,
-// double *gpu_molCharge, double *gpu_sumRnew,
-// double *gpu_sumInew,
-// double *gpu_prefactRef,
-// double *gpu_finalVal, int atomNumber) {
 __global__ void BoxReciprocalSumsGPU(
     const double *__restrict__ gpu_x, const double *__restrict__ gpu_y,
     const double *__restrict__ gpu_z, const double *__restrict__ gpu_kx,
     const double *__restrict__ gpu_ky, const double *__restrict__ gpu_kz,
     const double *__restrict__ gpu_molCharge, double *__restrict__ gpu_sumRnew,
     double *__restrict__ gpu_sumInew, const double *__restrict__ gpu_prefact,
-    double *__restrict__ gpu_finalVal, int atomNumber) {
+    double *__restrict__ gpu_finalVal, int atomNumber, int imageSize) {
 #if defined(NDEBUG) && CUDART_VERSION >= 13000
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
-  __shared__ double shr_recipEng, shr_kx, shr_ky, shr_kz;
-  if (threadIdx.x == 0) {
-    shr_kx = gpu_kx[blockIdx.x];
-    shr_ky = gpu_ky[blockIdx.x];
-    shr_kz = gpu_kz[blockIdx.x];
-    shr_recipEng = gpu_prefact[blockIdx.x];
-  }
-  __syncthreads();
-  double sumR = 0.0, sumI = 0.0;
-#pragma unroll 8
-  for (int particleID = threadIdx.x; particleID < atomNumber;
-       particleID += THREADS_PER_BLOCK_SM) {
-    double dot = DotProductGPU(shr_kx, shr_ky, shr_kz, gpu_x[particleID],
-                               gpu_y[particleID], gpu_z[particleID]);
-    double dotsin, dotcos;
-    sincos(dot, &dotsin, &dotcos);
-    sumR += gpu_molCharge[particleID] * dotcos;
-    sumI += gpu_molCharge[particleID] * dotsin;
-  }
-  __syncthreads();
-
   // Specialize BlockReduce for a 1D block of threads of type double
   using BlockReduce = cub::BlockReduce<double, THREADS_PER_BLOCK_SM>;
-
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage sumR_temp_storage;
   __shared__ typename BlockReduce::TempStorage sumI_temp_storage;
 
-  // Compute the block-wide sums for thread 0
-  double aggregateR = BlockReduce(sumR_temp_storage).Sum(sumR);
-  double aggregateI = BlockReduce(sumI_temp_storage).Sum(sumI);
+  for (int image = blockIdx.x; image < imageSize; image += gridDim.x) {
+    double sumR = 0.0, sumI = 0.0;
+#pragma unroll 8
+    for (int particleID = threadIdx.x; particleID < atomNumber;
+         particleID += THREADS_PER_BLOCK_SM) {
+      double dot = DotProductGPU(gpu_kx[image], gpu_ky[image],
+                                 gpu_kz[image], gpu_x[particleID],
+                                 gpu_y[particleID], gpu_z[particleID]);
+      double dotsin, dotcos;
+      sincos(dot, &dotsin, &dotcos);
+      sumR += gpu_molCharge[particleID] * dotcos;
+      sumI += gpu_molCharge[particleID] * dotsin;
+    }
+    __syncthreads();
 
-  if (threadIdx.x == 0) {
-    gpu_sumRnew[blockIdx.x] = aggregateR;
-    gpu_sumInew[blockIdx.x] = aggregateI;
-    shr_recipEng *= aggregateR * aggregateR + aggregateI * aggregateI;
-    atomicAdd(&gpu_finalVal[0], shr_recipEng);
+    // Compute the block-wide sums for thread 0
+    double aggregateR = BlockReduce(sumR_temp_storage).Sum(sumR);
+    double aggregateI = BlockReduce(sumI_temp_storage).Sum(sumI);
+
+    if (threadIdx.x == 0) {
+	  double recipEng = gpu_prefact[image];
+      gpu_sumRnew[image] = aggregateR;
+      gpu_sumInew[image] = aggregateI;
+      recipEng *= aggregateR * aggregateR + aggregateI * aggregateI;
+      atomicAdd(&gpu_finalVal[0], recipEng);
+    }
   }
 }
 

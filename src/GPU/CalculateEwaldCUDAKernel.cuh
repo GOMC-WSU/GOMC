@@ -60,7 +60,7 @@ __global__ void BoxReciprocalSumsGPU(
     const double *__restrict__ gpu_ky, const double *__restrict__ gpu_kz,
     const double *__restrict__ gpu_molCharge, double *__restrict__ gpu_sumRnew,
     double *__restrict__ gpu_sumInew, const double *__restrict__ gpu_prefact,
-    double *__restrict__ gpu_finalVal, int atomNumber);
+    double *__restrict__ gpu_finalVal, int atomNumber, int imageSize);
 
 __global__ void BoxForceReciprocalGPU(
     double *__restrict__ gpu_aForceRecx, double *__restrict__ gpu_aForceRecy,
