@@ -305,7 +305,8 @@ void PrintGPUHardwareInfo() {
       cudaDeviceProp prop;
       cudaGetDeviceProperties(&prop, i);
       printf("Info: Device Number: %d\n", i);
-      printf("Info: Device name: %s\n", prop.name);
+      printf("Info: Device Name: %s\n", prop.name);
+      printf("Info: Device Streaming MultiProcessors: %d\n", prop.multiProcessorCount);
       // CUDA 13 moved the memoryClockRate to a different structure
 #if CUDART_VERSION < 13000
       memoryClockRate = prop.memoryClockRate;
