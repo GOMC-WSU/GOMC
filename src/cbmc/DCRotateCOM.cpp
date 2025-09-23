@@ -335,11 +335,9 @@ void DCRotateCOM::BuildOld(TrialMol &oldMol, uint molIndex) {
     // Skip exp() calculation for small values for efficiency and to avoid
     // subnormal values that contribute to differences between processors.
     // Value chosen mathematically: See cppreference.com exp function notes.
-    // Note: ljWeights prefilled with 0.0, so don't need to initialize it.
     double betaWeight = -ff.beta * (inter[lj] + real[lj]);
     if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
-      ljWeights[lj] = std::exp(betaWeight);
-      stepWeight += ljWeights[lj];
+      stepWeight += std::exp(betaWeight);
     }
   }
 
