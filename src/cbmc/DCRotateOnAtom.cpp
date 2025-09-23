@@ -232,12 +232,14 @@ void DCRotateOnAtom::BuildOld(TrialMol &oldMol, uint molIndex) {
     // Skip exp() calculation for small values for efficiency and to avoid
     // subnormal values that contribute to differences between processors.
     // Value chosen mathematically: See cppreference.com exp function notes.
-    // Note: ljWeights prefilled with 0.0, so don't need to initialize it.
     double betaWeight =
         -data->ff.beta * (inter[trial] + real[trial] + nonbonded[trial]);
     if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
-      ljWeights[trial] = std::exp(betaWeight);
+      ljWeights[trial] *= std::exp(betaWeight);
       stepWeight += ljWeights[trial];
+    }
+	else {
+      ljWeights[trial] = 0.0;
     }
   }
   oldMol.UpdateOverlap(overlap[0]);
@@ -310,12 +312,14 @@ void DCRotateOnAtom::BuildNew(TrialMol &newMol, uint molIndex) {
     // Skip exp() calculation for small values for efficiency and to avoid
     // subnormal values that contribute to differences between processors.
     // Value chosen mathematically: See cppreference.com exp function notes.
-    // Note: ljWeights prefilled with 0.0, so don't need to initialize it.
     double betaWeight =
         -data->ff.beta * (inter[trial] + real[trial] + nonbonded[trial]);
     if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
-      ljWeights[trial] = std::exp(betaWeight);
+      ljWeights[trial] *= std::exp(betaWeight);
       stepWeight += ljWeights[trial];
+    }
+	else {
+      ljWeights[trial] = 0.0;
     }
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
