@@ -92,7 +92,6 @@ SystemPotential CalculateEnergy::SystemTotal() {
   // system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTRA);
-    double bondEnergy[2] = {0};
     double bondEn = 0.0, nonbondEn = 0.0, correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
@@ -104,10 +103,12 @@ SystemPotential CalculateEnergy::SystemTotal() {
     }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) private(bondEnergy) shared(b, molID)    \
+#pragma omp parallel for default(none) shared(molID) firstprivate(b)           \
     reduction(+ : bondEn, nonbondEn, correction)
 #endif
     for (int i = 0; i < (int)molID.size(); i++) {
+      // initialized in MoleculeIntra
+      double bondEnergy[2];
       // calculate nonbonded energy
       MoleculeIntra(molID[i], b, bondEnergy);
       bondEn += bondEnergy[0];
@@ -199,10 +200,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(none)                                         \
-    shared(boxAxes, cellStartIndex, cellVector, coords, mapParticleToCell,     \
-               neighborList) reduction(+ : tempREn, tempLJEn)                  \
-    firstprivate(box, num::qqFact)
+#pragma omp parallel for default(none) shared(                                 \
+        cellStartIndex, cellVector, coords, mapParticleToCell, neighborList)   \
+    firstprivate(box, boxAxes, num::qqFact) reduction(+ : tempREn, tempLJEn)
 #endif
   // loop over all particles
   for (int currParticleIdx = 0; currParticleIdx < (int)cellVector.size();
@@ -325,10 +325,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   // Reset Force Arrays
   ResetForce(atomForce, molForce, box);
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(none)                                         \
-    shared(boxAxes, cellStartIndex, cellVector, coords, mapParticleToCell,     \
-               neighborList) firstprivate(box, calcEnergies, atomCount,        \
-                                              molCount, moveType, num::qqFact) \
+#pragma omp parallel for default(none) shared(                                 \
+        cellStartIndex, cellVector, coords, mapParticleToCell, neighborList)   \
+    firstprivate(box, boxAxes, calcEnergies, atomCount, molCount, moveType,    \
+                     num::qqFact)                                              \
     reduction(+ : tempREn, tempLJEn, aForcex[ : atomCount],                    \
                   aForcey[ : atomCount], aForcez[ : atomCount],                \
                   mForcex[ : molCount], mForcey[ : molCount],                  \
@@ -601,6 +601,20 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTER);
+    // OpenMP can't parallelize loops when polymorphism is used, so replace the
+    // BoxDimensions reference with the appropriate BoxDimensions object
+    BoxDimensions OrthAxes;
+    BoxDimensionsNonOrth NonOrthAxes;
+    bool orthogonal = currentAxes.orthogonal[box];
+    if (orthogonal)
+      OrthAxes = currentAxes;
+    else {
+      // In this case, we know currentAxes is a BoxDimensionsNonOrthan object,
+      // so this is safe
+      const BoxDimensionsNonOrth &newAxes =
+          static_cast<const BoxDimensionsNonOrth &>(currentAxes);
+      NonOrthAxes = newAxes;
+    }
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 
@@ -616,16 +630,22 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(nIndex)                          \
-    firstprivate(atom, box, molIndex, num::qqFact)                             \
+#pragma omp parallel for default(none) shared(nIndex, NonOrthAxes, OrthAxes)   \
+    firstprivate(atom, box, molIndex, num::qqFact, orthogonal)                 \
     reduction(+ : tempREn, tempLJEn)
 #endif
-      for (int i = 0; i < (int)nIndex.size(); i++) {
+      for (int i = 0; i < static_cast<int>(nIndex.size()); ++i) {
         double distSq = 0.0;
         XYZ virComponents;
+        bool inRCut;
         // Subtract old energy
-        if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
-                               nIndex[i], box)) {
+        if (orthogonal)
+          inRCut = OrthAxes.InRcut(distSq, virComponents, currentCoords, atom,
+                                   nIndex[i], box);
+        else
+          inRCut = NonOrthAxes.InRcut(distSq, virComponents, currentCoords,
+                                      atom, nIndex[i], box);
+        if (inRCut) {
           double lambdaVDW =
               GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
 
@@ -657,20 +677,29 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(molCoords, nIndex, overlap)      \
-    reduction(+ : tempREn, tempLJEn)                                           \
-    firstprivate(atom, molIndex, p, box, num::qqFact)
+#pragma omp parallel for default(none)                                         \
+    shared(molCoords, nIndex, NonOrthAxes, OrthAxes)                           \
+    firstprivate(box, atom, molIndex, num::qqFact, orthogonal, p)              \
+    reduction(+ : tempREn, tempLJEn) reduction(| : overlap)
 #endif
-      for (int i = 0; i < (int)nIndex.size(); i++) {
+      for (int i = 0; i < static_cast<int>(nIndex.size()); ++i) {
         double distSq = 0.0;
         XYZ virComponents;
-        if (currentAxes.InRcut(distSq, virComponents, molCoords, p,
-                               currentCoords, nIndex[i], box)) {
+        bool inRCut;
+        if (orthogonal)
+          inRCut = OrthAxes.InRcut(distSq, virComponents, molCoords, p,
+                                   currentCoords, nIndex[i], box);
+        else
+          inRCut = NonOrthAxes.InRcut(distSq, virComponents, molCoords, p,
+                                      currentCoords, nIndex[i], box);
+        if (inRCut) {
+          // if (currentAxes.InRcut(distSq, virComponents, molCoords, p,
+          // currentCoords, nIndex[i], box)) {
           double lambdaVDW =
               GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
 
           if (distSq < forcefield.rCutLowSq) {
-            overlap |= true;
+            overlap = true;
           }
 
           if (electrostatic) {
@@ -747,6 +776,7 @@ void CalculateEnergy::ParticleInter(double *en, double *real,
 
   GOMC_EVENT_START(1, GomcProfileEvent::EN_CBMC_INTER);
   double tempLJ, tempReal;
+  bool overlapt; // So that we can use an OpenMP reduction
   MoleculeKind const &thisKind = mols.GetKind(molIndex);
   uint kindI = thisKind.AtomKind(partIndex);
   double kindICharge = thisKind.AtomCharge(partIndex);
@@ -756,6 +786,7 @@ void CalculateEnergy::ParticleInter(double *en, double *real,
     nIndex.clear();
     tempReal = 0.0;
     tempLJ = 0.0;
+    overlapt = false;
     CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
     while (!n.Done()) {
       nIndex.push_back(*n);
@@ -763,9 +794,9 @@ void CalculateEnergy::ParticleInter(double *en, double *real,
     }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(nIndex, overlap, trialPos)       \
-    firstprivate(kindICharge, kindI, t, box, molIndex, num::qqFact)            \
-    reduction(+ : tempLJ, tempReal)
+#pragma omp parallel for default(none) shared(nIndex, trialPos)                \
+    firstprivate(box, kindI, kindICharge, molIndex, num::qqFact, t)            \
+    reduction(+ : tempLJ, tempReal) reduction(| : overlapt)
 #endif
     for (int i = 0; i < (int)nIndex.size(); i++) {
       double distSq = 0.0;
@@ -774,7 +805,7 @@ void CalculateEnergy::ParticleInter(double *en, double *real,
         double lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
 
         if (distSq < forcefield.rCutLowSq) {
-          overlap[t] |= true;
+          overlapt = true;
         }
         tempLJ += forcefield.particles->CalcEn(
             distSq, kindI, particleKind[nIndex[i]], lambdaVDW);
@@ -792,6 +823,7 @@ void CalculateEnergy::ParticleInter(double *en, double *real,
         }
       }
     }
+    overlap[t] |= overlapt;
     en[t] += tempLJ;
     real[t] += tempReal;
   }
@@ -1529,8 +1561,8 @@ void CalculateEnergy::SingleMoleculeInter(
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(nIndex)                          \
-    firstprivate(atom, box, lambdaNewCoulomb, lambdaOldCoulomb, lambdaOldVDW,  \
-                     lambdaNewVDW, num::qqFact)                                \
+    firstprivate(atom, box, lambdaNewCoulomb, lambdaNewVDW, lambdaOldCoulomb,  \
+                     lambdaOldVDW, num::qqFact)                                \
     reduction(+ : tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
 #endif
       for (int i = 0; i < (int)nIndex.size(); i++) {
@@ -1646,7 +1678,7 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none) shared(lambda_Coul, lambda_VDW, nIndex) \
-    firstprivate(box, atom, iState, lambdaSize, num::qqFact)                   \
+    firstprivate(atom, box, iState, lambdaSize, num::qqFact)                   \
     reduction(+ : dudl_VDW, dudl_Coul, tempREnDiff[ : lambdaSize],             \
                   tempLJEnDiff[ : lambdaSize])
 #endif
