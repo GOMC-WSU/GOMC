@@ -11,6 +11,7 @@ endif()
 if(GOMC_NVTX_ENABLED)
     message("-- Enabling profiling with NVTX for GPU")
     set(CMAKE_CUDA_COMP_FLAGS ${CMAKE_CUDA_COMP_FLAGS} -lineinfo -DGOMC_NVTX_ENABLED)
+    set(CMAKE_HOST_COMP_FLAGS ${CMAKE_HOST_COMP_FLAGS} -DGOMC_NVTX_ENABLED)
 endif()
 
 # Set architecture flags based on the CMake version
