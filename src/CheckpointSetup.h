@@ -22,15 +22,16 @@ along with this program, also can be found at
 
 class CheckpointSetup {
 public:
-  CheckpointSetup(ulong &startStep, ulong &trueStep, MoleculeLookup &molLookup,
-                  MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
-                  Random123Wrapper &r123, Setup &set);
 #if GOMC_LIB_MPI
-
   CheckpointSetup(ulong &startStep, ulong &trueStep, MoleculeLookup &molLookup,
                   MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
                   Random123Wrapper &r123, Setup &set,
                   bool &parallelTemperingEnabled, PRNG &prngPT);
+#else
+  CheckpointSetup(ulong &startStep, ulong &trueStep, MoleculeLookup &molLookup,
+                  MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
+                  Random123Wrapper &r123, Setup &set);
+
 #endif
 
   ~CheckpointSetup();
