@@ -30,6 +30,8 @@ Checkpoint::Checkpoint(const ulong &step, const ulong &trueStep,
 Checkpoint::Checkpoint(const ulong &step, const ulong &trueStep,
                        MoveSettings &movSetRef, PRNG &prngRef,
                        const Molecules &molRef, MoleculeLookup &molLookupRef,
+                       MolSetup &molSetupRef,
+                       pdb_setup::Atoms const &pdbSetupAtomsRef,
                        bool &parallelTemperingIsEnabled, PRNG &prngPTRef) {
   GatherStep(step);
   GatherTrueStep(trueStep);
@@ -156,14 +158,14 @@ void Checkpoint::GatherRandomNumbersParallelTempering(PRNG &prngPTRef) {
   // so need to allocate one more array element
   prngPTRef.GetGenerator()->save(saveArrayPT);
   // Save the location of pointer in state
-  locationPT =
+  seedLocationPT =
       prngPTRef.GetGenerator()->pNext - prngPTRef.GetGenerator()->state;
 
   // save the "left" value so we can restore it later
-  leftPT = (prngPTRef.GetGenerator()->left);
+  seedLeftPT = (prngPTRef.GetGenerator()->left);
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  seedPT = prngPTRef.GetGenerator()->seedValue;
+  seedValuePT = prngPTRef.GetGenerator()->seedValue;
 }
 #endif

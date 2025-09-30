@@ -142,8 +142,13 @@ if [ -z "$ENSEMBLES" ]; then
 	fi
 fi
 
-mkdir -p bin
-cd bin
+if (( use_mpi )); then
+	mkdir -p bin_MPI
+	cd bin_MPI
+else
+	mkdir -p bin
+	cd bin
+fi
 
 # Clear use_cuda flag if no GPU executable is being built
 if [[ $ENSEMBLES != *"GPU"* ]]; then
