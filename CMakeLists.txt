@@ -8,14 +8,14 @@ include_directories(src/cbmc)
 include_directories(src/moves)
 include_directories(src/GPU)
 
-#Versioning
+# Versioning
 set(GOMC_VERSION_MAJOR 2)
 set(GOMC_VERSION_MINOR 75)
 
-#Out-of-source build
+# Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-#clang-tidy
+# Run clang-tidy
 if(GOMC_TIDY)
    set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,mpi-*,openmp-*)
 endif()
@@ -26,30 +26,32 @@ if(NOT CMAKE_BUILD_TYPE)
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
-#Set compile and link flags. Need to do it this way so that we can pass
-#the source compiler flags to NVCC properly.
+# Set compile and link flags. Need to do it this way so that we can pass
+# the source compiler flags to NVCC properly.
+set(CMAKE_INTEL_COMP_FLAGS -Ofast -fp-model=precise)
+set(CMAKE_INTEL_CUDA_COMP_FLAGS "SHELL:-Xcompiler -Ofast" "SHELL:-fp-model=precise")
+set(CMAKE_INTEL_LINK_FLAGS -Ofast -fp-model=precise)
+set(CMAKE_GNU_COMP_FLAGS -O3 -m64)
+set(CMAKE_GNU_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -m64")
+set(CMAKE_GNU_LINK_FLAGS -m64)
+set(CMAKE_CLANG_COMP_FLAGS -O3)
+set(CMAKE_CLANG_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3")
+set(CMAKE_CLANG_LINK_FLAGS -O3)
+
+# The GOMC_OPT setting enables processor-specific optimizations
 if(GOMC_OPT)
-   set(CMAKE_INTEL_COMP_FLAGS -Ofast -xHost)
-   set(CMAKE_INTEL_CUDA_COMP_FLAGS "SHELL:-Xcompiler -Ofast" "SHELL:-Xcompiler -xHost")
-   set(CMAKE_INTEL_LINK_FLAGS -Ofast -xHost)
-   set(CMAKE_GNU_COMP_FLAGS -O3 -m64 -march=native)
-   set(CMAKE_GNU_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -m64" "SHELL:-Xcompiler -march=native")
-   set(CMAKE_GNU_LINK_FLAGS -m64 -march=native)
-   set(CMAKE_CLANG_COMP_FLAGS -O3 -march=native)
-   set(CMAKE_CLANG_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -march=native")
-   set(CMAKE_CLANG_LINK_FLAGS -O3 -march=native)
-else()
-   set(CMAKE_INTEL_COMP_FLAGS -Ofast)
-   set(CMAKE_INTEL_CUDA_COMP_FLAGS "SHELL:-Xcompiler -Ofast")
-   set(CMAKE_INTEL_LINK_FLAGS -Ofast)
-   set(CMAKE_GNU_COMP_FLAGS -O3 -m64)
-   set(CMAKE_GNU_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -m64")
-   set(CMAKE_GNU_LINK_FLAGS -m64)
-   set(CMAKE_CLANG_COMP_FLAGS -O3)
-   set(CMAKE_CLANG_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3")
-   set(CMAKE_CLANG_LINK_FLAGS -O3)
+   set(CMAKE_INTEL_COMP_FLAGS ${CMAKE_INTEL_COMP_FLAGS} -xHost)
+   set(CMAKE_INTEL_CUDA_COMP_FLAGS ${CMAKE_INTEL_CUDA_COMP_FLAGS} "SHELL:-Xcompiler -xHost")
+   set(CMAKE_INTEL_LINK_FLAGS ${CMAKE_INTEL_LINK_FLAGS} -xHost)
+   set(CMAKE_GNU_COMP_FLAGS ${CMAKE_GNU_COMP_FLAGS} -march=native)
+   set(CMAKE_GNU_CUDA_COMP_FLAGS ${CMAKE_GNU_CUDA_COMP_FLAGS} "SHELL:-Xcompiler -march=native")
+   set(CMAKE_GNU_LINK_FLAGS ${CMAKE_GNU_LINK_FLAGS} -march=native)
+   set(CMAKE_CLANG_COMP_FLAGS ${CMAKE_CLANG_COMP_FLAGS} -march=native)
+   set(CMAKE_CLANG_CUDA_COMP_FLAGS ${CMAKE_CLANG_CUDA_COMP_FLAGS} "SHELL:-Xcompiler -march=native")
+   set(CMAKE_CLANG_LINK_FLAGS ${CMAKE_CLANG_LINK_FLAGS} -march=native)
 endif()
 
+# Set the necessary flags for using address sanitizer, which doesn't work with the Intel compiler
 if(GOMC_ASAN)
    set(CMAKE_GNU_COMP_FLAGS ${CMAKE_GNU_COMP_FLAGS} -fsanitize=address -fno-omit-frame-pointer)
    set(CMAKE_GNU_CUDA_COMP_FLAGS ${CMAKE_GNU_CUDA_COMP_FLAGS} "SHELL:-Xcompiler -fsanitize=address" "SHELL:-Xcompiler -fno-omit-frame-pointer")
@@ -60,7 +62,7 @@ if(GOMC_ASAN)
    set(CMAKE_MVSC_ASAN_FLAGS "/fsanitize=address")
 endif()
 
-# find OpenMP and set it up
+# Find OpenMP and set it up
 # Don't use OpenMP if using address sanitizer
 if(NOT GOMC_ASAN)
     find_package(OpenMP)
@@ -117,11 +119,11 @@ endif()
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
-#Optional CMake Argument
+# Optional CMake Argument
 option(GOMC_GTEST    "Build unit tests for GOMC" OFF)
 option(GOMC_GTEST_MPI    "Build unit tests for GOMC - MPI Enabled" OFF)
 
-#enable config header
+# Enable config header
 configure_file(
     "${PROJECT_SOURCE_DIR}/GOMC_Config.h.in"
     "${PROJECT_BINARY_DIR}/GOMC_Config.h"
@@ -145,5 +147,5 @@ else()
     message(WARNING "No CUDA support for this compiler")
 endif()
 
-# Setup Serial version
+# Set up Serial version
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
