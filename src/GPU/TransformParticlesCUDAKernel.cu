@@ -374,7 +374,7 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) TranslateParticlesKernel(
     double *gpu_rt_k_x, double *gpu_rt_k_y, double *gpu_rt_k_z,
     int8_t *gpu_isMoleculeInvolved, double *gpu_mForceRecx,
     double *gpu_mForceRecy, double *gpu_mForceRecz) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
@@ -463,7 +463,7 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) RotateParticlesKernel(
     double *gpu_Invcell_z, int *gpu_nonOrth, double lambdaBETA,
     double *gpu_rt_k_x, double *gpu_rt_k_y, double *gpu_rt_k_z,
     int8_t *gpu_isMoleculeInvolved) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
@@ -618,7 +618,7 @@ __global__ void __launch_bounds__(32) BrownianMotionRotateKernel(
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     double3 axis, double3 halfAx, int atomCount, double r_max, ulong step,
     unsigned int key, ulong seed, double BETA) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   // Each block takes care of one molecule
@@ -846,7 +846,7 @@ __global__ void __launch_bounds__(32) BrownianMotionTranslateKernel(
     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z,
     double3 axis, double3 halfAx, int atomCount, double t_max, ulong step,
     unsigned int key, ulong seed, double BETA) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   // Each block takes care of one molecule

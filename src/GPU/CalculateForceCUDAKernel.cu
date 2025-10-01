@@ -360,7 +360,7 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) BoxInterForceGPU(
     double sc_alpha, uint sc_power, double *gpu_rMin, double *gpu_rMaxSq,
     double *gpu_expConst, int *gpu_molIndex, double *gpu_lambdaVDW,
     double *gpu_lambdaCoulomb, bool *gpu_isFraction, int box) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   __shared__ double shr_cutoffSq;
@@ -589,7 +589,7 @@ __global__ void BoxForceGPU(
     uint sc_power, double *gpu_rMin, double *gpu_rMaxSq, double *gpu_expConst,
     int *gpu_molIndex, double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
     bool *gpu_isFraction, int moveType, int box, const bool calcEnergies) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   __shared__ double shr_cutoffSq;
@@ -753,7 +753,7 @@ __global__ __launch_bounds__(THREADS_PER_BLOCK) void VirialReciprocalGPU(
     double *gpu_wT11, double *gpu_wT12, double *gpu_wT13, double *gpu_wT22,
     double *gpu_wT23, double *gpu_wT33, double constVal, uint imageSize,
     uint atomNumber) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   __shared__ double shared_coords[PARTICLES_PER_BLOCK * 7];

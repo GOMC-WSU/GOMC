@@ -103,7 +103,7 @@ BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
             double *gpu_rMaxSq, double *gpu_expConst, int *gpu_molIndex,
             double *gpu_lambdaVDW, double *gpu_lambdaCoulomb,
             bool *gpu_isFraction, int box) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   __shared__ double shr_cutoffSq;

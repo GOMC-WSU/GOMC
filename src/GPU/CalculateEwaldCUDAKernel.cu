@@ -370,7 +370,7 @@ __global__ void BoxReciprocalSumsGPU(
     const double *__restrict__ gpu_molCharge, double *__restrict__ gpu_sumRnew,
     double *__restrict__ gpu_sumInew, const double *__restrict__ gpu_prefact,
     double *__restrict__ gpu_finalVal, int atomNumber, int imageSize) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   // Specialize BlockReduce for a 1D block of threads of type double
@@ -434,7 +434,7 @@ __global__ void BoxForceReciprocalGPU(
     const double *__restrict__ gpu_Invcell_z,
     const int *__restrict__ gpu_nonOrth, double axx, double axy, double axz,
     int moveType, int box) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   __shared__ int shr_particleID, shr_moleculeID, shr_firstParticleID,
@@ -538,7 +538,7 @@ __global__ void SwapReciprocalGPU(
     const double *__restrict__ gpu_sumIref,
     const double *__restrict__ gpu_prefactRef,
     double *__restrict__ gpu_recipEnergies, int imageSize) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   const int image = blockIdx.x * blockDim.x + threadIdx.x;
@@ -577,7 +577,7 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) MolReciprocalGPU(
     const double *__restrict__ gpu_sumIref,
     const double *__restrict__ gpu_prefactRef,
     double *__restrict__ gpu_recipEnergies, int imageSize) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   const int image = blockIdx.x * blockDim.x + threadIdx.x;
@@ -619,7 +619,7 @@ __global__ void MolExchangeReciprocalGPU(
     int numChargedParticles, const double *__restrict__ gpu_x,
     const double *__restrict__ gpu_y, const double *__restrict__ gpu_z,
     double *__restrict__ gpu_recipEnergies, int imageSize, bool first_call) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   const int image = blockIdx.x * blockDim.x + threadIdx.x;
@@ -662,7 +662,7 @@ __global__ void ChangeLambdaMolReciprocalGPU(
     const double *__restrict__ gpu_sumIref,
     const double *__restrict__ gpu_prefactRef,
     double *__restrict__ gpu_recipEnergies, double lambdaCoef, int imageSize) {
-#if defined(NDEBUG) && CUDART_VERSION >= 13000
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
   asm volatile(".pragma \"enable_smem_spilling\";");
 #endif
   const int image = blockIdx.x * blockDim.x + threadIdx.x;
