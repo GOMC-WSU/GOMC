@@ -76,12 +76,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #else // ! __CUDA_ARCH__
-// If we're using nvcc not compiling for the CUDA architecture,
-// then we must be compiling for the host.  In that case,
+
+// If we're using nvcc, but not compiling for the CUDA architecture,
+// then we must be compiling for the host.  But host-compilation might
+// use gcc, msvc, or xlc.  This #else/#endif used to be higher up,
+// mistakenly turning off all kinds of things the host that are really
+// problematic only in device code.  It's not clear that we need to do
+// anything special for host-code that we wouldn't otherwise do in
+// xlcfeatures, gccfeatures or msvcfeatures.  But if we do, this is
+// the place to do it.
 // tell the philox code to use the mulhilo64 asm because
 // nvcc doesn't grok uint128_t.
 #ifndef R123_USE_MULHILO64_ASM
-//#define R123_USE_MULHILO64_ASM 1
 #if defined(__GNUC__)
 #define R123_USE_MULHILO64_ASM 1
 #elif defined(_MSC_FULL_VER)
@@ -121,7 +127,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define R123_ULONG_LONG unsigned long long
 #endif
 
-#if defined(__GNUC__)
+#if defined(__xlC__) || defined(__ibmxl__)
+#include "xlcfeatures.h"
+#elif defined(__GNUC__)
 #include "gccfeatures.h"
 #elif defined(_MSC_FULL_VER)
 #include "msvcfeatures.h"
