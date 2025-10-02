@@ -289,8 +289,8 @@ void PrintHardwareInfo() {
 void PrintGPUHardwareInfo() {
   int nDevices;
   int memoryClockRate;
-  int fast = 0;
-  int fastIndex = 0;
+  int best = 0;
+  int bestIndex = 0;
 
   cudaGetDeviceCount(&nDevices);
 
@@ -305,7 +305,9 @@ void PrintGPUHardwareInfo() {
       cudaDeviceProp prop;
       cudaGetDeviceProperties(&prop, i);
       printf("Info: Device Number: %d\n", i);
-      printf("Info: Device name: %s\n", prop.name);
+      printf("Info: Device Name: %s\n", prop.name);
+      printf("Info: Device Streaming MultiProcessors: %d\n",
+             prop.multiProcessorCount);
       // CUDA 13 moved the memoryClockRate to a different structure
 #if CUDART_VERSION < 13000
       memoryClockRate = prop.memoryClockRate;
@@ -314,15 +316,16 @@ void PrintGPUHardwareInfo() {
 #endif
       printf("Info: Memory Clock Rate (KHz): %d\n", memoryClockRate);
       printf("Info: Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
-      printf("Info: Peak Memory Bandwidth (GB/s): %f\n",
-             2.0 * memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
-      if (memoryClockRate > fast) {
-        fast = memoryClockRate;
-        fastIndex = i;
+      printf("Info: Peak Memory Bandwidth (GB/s): %.3f\n",
+             2.0f * memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6f);
+      // Pick the GPU with the most Streaming Multiprocessors
+      if (prop.multiProcessorCount > best) {
+        best = prop.multiProcessorCount;
+        bestIndex = i;
       }
     }
   }
-  cudaSetDevice(fastIndex);
-  printf("Info: Using Device Number: %d\n", fastIndex);
+  cudaSetDevice(bestIndex);
+  printf("Info: Using Device Number: %d\n", bestIndex);
 }
 #endif
