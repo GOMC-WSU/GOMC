@@ -29,11 +29,9 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 # Set compile and link flags. Need to do it this way so that we can pass
 # the source compiler flags to NVCC properly
-# Suppress intel compiler remark #15009, which just tells us that the AVX instructions are
-# working as expected
-set(CMAKE_INTEL_COMP_FLAGS -O3 -axCORE-AVX512 -xAVX -diag-disable=15009 -fp-model=precise)
-set(CMAKE_INTEL_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-axCORE-AVX512" "SHELL:-xAVX2" "SHELL:-diag-disable=15009" "SHELL:-fp-model=precise")
-set(CMAKE_INTEL_LINK_FLAGS -O3 -axCORE-AVX512 -xAVX -diag-disable=15009 -fp-model=precise)
+set(CMAKE_INTEL_COMP_FLAGS -O3 -fp-model=precise)
+set(CMAKE_INTEL_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-fp-model=precise")
+set(CMAKE_INTEL_LINK_FLAGS -O3 -fp-model=precise)
 set(CMAKE_GNU_COMP_FLAGS -O3 -m64)
 set(CMAKE_GNU_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3" "SHELL:-Xcompiler -m64")
 set(CMAKE_GNU_LINK_FLAGS -m64)
@@ -42,7 +40,6 @@ set(CMAKE_CLANG_CUDA_COMP_FLAGS "SHELL:-Xcompiler -O3")
 set(CMAKE_CLANG_LINK_FLAGS -O3)
 
 # The GOMC_OPT setting enables processor-specific optimizations
-# Or some additional architecture flags that have compatibility issues on older intel compilers
 if(GOMC_OPT)
    set(CMAKE_INTEL_COMP_FLAGS ${CMAKE_INTEL_COMP_FLAGS} -xHost)
    set(CMAKE_INTEL_CUDA_COMP_FLAGS ${CMAKE_INTEL_CUDA_COMP_FLAGS} "SHELL:-Xcompiler -xHost")
@@ -53,10 +50,6 @@ if(GOMC_OPT)
    set(CMAKE_CLANG_COMP_FLAGS ${CMAKE_CLANG_COMP_FLAGS} -march=native)
    set(CMAKE_CLANG_CUDA_COMP_FLAGS ${CMAKE_CLANG_CUDA_COMP_FLAGS} "SHELL:-Xcompiler -march=native")
    set(CMAKE_CLANG_LINK_FLAGS ${CMAKE_CLANG_LINK_FLAGS} -march=native)
-elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
-   set(CMAKE_INTEL_COMP_FLAGS  ${CMAKE_INTEL_COMP_FLAGS} -axCORE-AVX2)
-   set(CMAKE_INTEL_CUDA_COMP_FLAGS ${CMAKE_INTEL_CUDA_COMP_FLAGS} "SHELL:-axCORE-AVX2")
-   set(CMAKE_INTEL_LINK_FLAGS ${CMAKE_INTEL_LINK_FLAGS} -axCORE-AVX2)
 endif()
 
 
