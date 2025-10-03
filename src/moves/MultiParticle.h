@@ -432,7 +432,8 @@ inline double MultiParticle::GetCoeff() {
 
   if (moveType == mp::MPROTATE) {
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
+#pragma omp parallel for default(none) shared(lBeta, r_max, t_max)             \
+    reduction(* : w_ratio)
 #endif
     for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
       int molNumber = moleculeIndex[m];
@@ -448,7 +449,8 @@ inline double MultiParticle::GetCoeff() {
     }
   } else {
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
+#pragma omp parallel for default(none) shared(lBeta, r_max, t_max)             \
+    reduction(* : w_ratio)
 #endif
     for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
       int molNumber = moleculeIndex[m];

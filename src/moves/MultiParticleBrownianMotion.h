@@ -410,7 +410,8 @@ inline double MultiParticleBrownian::GetCoeff() {
 
   if (moveType == mp::MPROTATE) { // rotate,
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
+#pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4)    \
+    reduction(+ : w_ratio)
 #endif
     for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
       int molNumber = moleculeIndex[m];
@@ -421,7 +422,8 @@ inline double MultiParticleBrownian::GetCoeff() {
     }
   } else { // displace
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
+#pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4)    \
+    reduction(+ : w_ratio)
 #endif
     for (int m = 0; m < static_cast<int>(moleculeIndex.size()); ++m) {
       int molNumber = moleculeIndex[m];

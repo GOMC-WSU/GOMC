@@ -25,7 +25,7 @@ public:
   virtual void BuildNew(TrialMol &newMol, uint molIndex) = 0;
 
   virtual void UpdateAcceptance(const TrialMol &mol) {}
-  virtual ~DCComponent(){};
+  virtual ~DCComponent() {};
 };
 } // namespace cbmc
 

@@ -13,7 +13,7 @@ along with this program, also can be found at
 #include "MoveBase.h"
 #include "TrialMol.h"
 
-//#define DEBUG_MOVES
+// #define DEBUG_MOVES
 
 class MoleculeTransfer : public MoveBase {
 public:

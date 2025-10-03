@@ -589,8 +589,8 @@ __global__ void __launch_bounds__(THREADS_PER_BLOCK) MolReciprocalGPU(
 #pragma unroll 4
   for (int p = 0; p < atomNumber; ++p) {
     double dotProductOld =
-    DotProductGPU(gpu_kx[image], gpu_ky[image], gpu_kz[image], gpu_cx[p],
-                  gpu_cy[p], gpu_cz[p]);
+        DotProductGPU(gpu_kx[image], gpu_ky[image], gpu_kz[image], gpu_cx[p],
+                      gpu_cy[p], gpu_cz[p]);
     double dotProductNew =
         DotProductGPU(gpu_kx[image], gpu_ky[image], gpu_kz[image], gpu_nx[p],
                       gpu_ny[p], gpu_nz[p]);

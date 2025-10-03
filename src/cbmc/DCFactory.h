@@ -16,7 +16,7 @@ class DCComponent;
 class DCFactory {
 public:
   virtual DCComponent *MakeComponent(uint previous) = 0;
-  virtual ~DCFactory(){};
+  virtual ~DCFactory() {};
 };
 } // namespace cbmc
 
