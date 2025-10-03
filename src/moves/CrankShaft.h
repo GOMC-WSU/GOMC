@@ -11,7 +11,7 @@ along with this program, also can be found at
 #include "MoveBase.h"
 #include "TrialMol.h"
 
-//#define DEBUG_MOVES
+// #define DEBUG_MOVES
 
 class CrankShaft : public MoveBase {
 public:
@@ -139,7 +139,7 @@ inline void CrankShaft::Accept(const uint rejectState, const ulong step) {
       // Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-      //Add Reciprocal energy difference
+      // Add Reciprocal energy difference
       sysPotRef.boxEnergy[destBox].recip += recipDiff.energy;
       // Add correction energy
       sysPotRef.boxEnergy[sourceBox].correction -= correct_old;
