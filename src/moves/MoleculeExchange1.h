@@ -515,7 +515,7 @@ inline uint MoleculeExchange1::Transform() {
   CalcTc();
 
   // Calc Old energy and delete A from source
-  for (uint n = 0; n < numInCavA; n++) {
+  for (uint n = 0; n < numInCavA; ++n) {
     cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n]].BuildIDOld(oldMolA[n], molIndexA[n]);
     // Add bonded energy because we don't consider it in DCRotate.cpp
@@ -523,7 +523,7 @@ inline uint MoleculeExchange1::Transform() {
   }
 
   // Calc old energy and delete B from destBox
-  for (uint n = 0; n < numInCavB; n++) {
+  for (uint n = 0; n < numInCavB; ++n) {
     cellList.RemoveMol(molIndexB[n], destBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
     // Add bonded energy because we don't consider it in DCRotate.cpp
@@ -531,23 +531,33 @@ inline uint MoleculeExchange1::Transform() {
   }
 
   // Insert A to destBox
-  for (uint n = 0; n < numInCavA; n++) {
+  for (uint n = 0; n < numInCavA; ++n) {
     molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
     ShiftMol(true, n, sourceBox, destBox);
     cellList.AddMol(molIndexA[n], destBox, coordCurrRef);
     // Add bonded energy because we don't consider it in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
-    overlap |= newMolA[n].HasOverlap();
+    // If we find overlap, we still need to move the molecules so we can
+    // reset things properly later, but we don't update the energy because
+    // we will reject the move
+    if (!overlap) {
+      newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
+      overlap |= newMolA[n].HasOverlap();
+    }
   }
 
   // Insert B in sourceBox
-  for (uint n = 0; n < numInCavB; n++) {
+  for (uint n = 0; n < numInCavB; ++n) {
     molRef.kinds[kindIndexB[n]].BuildIDNew(newMolB[n], molIndexB[n]);
     ShiftMol(false, n, destBox, sourceBox);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
     // Add bonded energy because we don't consider it in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
-    overlap |= newMolB[n].HasOverlap();
+    // If we find overlap, we still need to move the molecules so we can
+    // reset things properly later, but we don't update the energy because
+    // we will reject the move
+    if (!overlap) {
+      newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
+      overlap |= newMolB[n].HasOverlap();
+    }
   }
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MEMC);
@@ -723,25 +733,25 @@ inline void MoleculeExchange1::RecoverMol(const bool A, const uint n,
 inline void MoleculeExchange1::Accept(const uint rejectState,
                                       const ulong step) {
   GOMC_EVENT_START(1, GomcProfileEvent::ACC_MEMC);
-  bool result;
+  bool result = !overlap;
 
   // If we didn't skip the move calculation
   if (rejectState == mv::fail_state::NO_FAIL) {
-    double molTransCoeff = GetCoeff();
-    double Wrat = W_tc * W_recip;
+    // If there is no overlap then calculate if we should accept the move based
+    // on the coefficient and our random value
+    if (result) {
+      double molTransCoeff = GetCoeff();
+      double Wrat = W_tc * W_recip;
 
-    for (uint n = 0; n < numInCavA; n++) {
-      Wrat *= newMolA[n].GetWeight() / oldMolA[n].GetWeight();
-    }
+      for (uint n = 0; n < numInCavA; n++) {
+        Wrat *= newMolA[n].GetWeight() / oldMolA[n].GetWeight();
+      }
 
-    for (uint n = 0; n < numInCavB; n++) {
-      Wrat *= newMolB[n].GetWeight() / oldMolB[n].GetWeight();
-    }
+      for (uint n = 0; n < numInCavB; n++) {
+        Wrat *= newMolB[n].GetWeight() / oldMolB[n].GetWeight();
+      }
 
-    if (!overlap) {
       result = prng() < molTransCoeff * Wrat;
-    } else {
-      result = false;
     }
 
     if (result) {

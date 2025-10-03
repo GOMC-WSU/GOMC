@@ -288,7 +288,7 @@ inline uint MoleculeExchange3::Transform() {
   // Deleting A, B from their box
   if (insertL) {
     // Remove the fixed COM small mol at the end because we insert it at first
-    for (uint n = numInCavA; n > 0; n--) {
+    for (uint n = numInCavA; n > 0; --n) {
       cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
       molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1],
                                                  molIndexA[n - 1]);
@@ -296,18 +296,18 @@ inline uint MoleculeExchange3::Transform() {
       oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1]));
     }
     // Calc old energy and delete Large kind from dest box
-    for (uint n = 0; n < numInCavB; n++) {
+    for (uint n = 0; n < numInCavB; ++n) {
       cellList.RemoveMol(molIndexB[n], destBox, coordCurrRef);
       molRef.kinds[kindIndexB[n]].BuildOld(oldMolB[n], molIndexB[n]);
     }
   } else {
     // Calc old energy and delete Large kind from source box
-    for (uint n = 0; n < numInCavA; n++) {
+    for (uint n = 0; n < numInCavA; ++n) {
       cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
       molRef.kinds[kindIndexA[n]].BuildGrowOld(oldMolA[n], molIndexA[n]);
     }
     // Calc old energy and delete Small kind from dest box
-    for (uint n = 0; n < numInCavB; n++) {
+    for (uint n = 0; n < numInCavB; ++n) {
       cellList.RemoveMol(molIndexB[n], destBox, coordCurrRef);
       molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
       oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n]));
@@ -317,15 +317,20 @@ inline uint MoleculeExchange3::Transform() {
   // Inserting A, B to new box
   if (insertL) {
     // Insert Small kind to destBox
-    for (uint n = 0; n < numInCavA; n++) {
+    for (uint n = 0; n < numInCavA; ++n) {
       molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
       ShiftMol(true, n, sourceBox, destBox);
       cellList.AddMol(molIndexA[n], destBox, coordCurrRef);
-      newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
-      overlap |= newMolA[n].HasOverlap();
+      // If we find overlap, we still need to move the molecules so we can
+      // reset things properly later, but we don't update the energy because
+      // we will reject the move
+      if (!overlap) {
+        newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
+        overlap |= newMolA[n].HasOverlap();
+      }
     }
     // Insert Large kind to sourceBox
-    for (uint n = 0; n < numInCavB; n++) {
+    for (uint n = 0; n < numInCavB; ++n) {
       molRef.kinds[kindIndexB[n]].BuildGrowNew(newMolB[n], molIndexB[n]);
       ShiftMol(false, n, destBox, sourceBox);
       cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
@@ -333,20 +338,25 @@ inline uint MoleculeExchange3::Transform() {
     }
   } else {
     // Insert Large kind to destBox
-    for (uint n = 0; n < numInCavA; n++) {
+    for (uint n = 0; n < numInCavA; ++n) {
       molRef.kinds[kindIndexA[n]].BuildNew(newMolA[n], molIndexA[n]);
       ShiftMol(true, n, sourceBox, destBox);
       cellList.AddMol(molIndexA[n], destBox, coordCurrRef);
       overlap |= newMolA[n].HasOverlap();
     }
     // Insert Small kind to sourceBox
-    for (uint n = 0; n < numInCavB; n++) {
+    for (uint n = 0; n < numInCavB; ++n) {
       molRef.kinds[kindIndexB[n]].BuildIDNew(newMolB[n], molIndexB[n]);
       ShiftMol(false, n, destBox, sourceBox);
       cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
       // Add bonded energy because we don't consider it in DCRotate.cpp
-      newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
-      overlap |= newMolB[n].HasOverlap();
+      // If we find overlap, we still need to move the molecules so we can
+      // reset things properly later, but we don't update the energy because
+      // we will reject the move
+      if (!overlap) {
+        newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
+        overlap |= newMolB[n].HasOverlap();
+      }
     }
   }
 
