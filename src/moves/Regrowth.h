@@ -11,7 +11,7 @@ along with this program, also can be found at
 #include "MoveBase.h"
 #include "TrialMol.h"
 
-//#define DEBUG_MOVES
+// #define DEBUG_MOVES
 
 class Regrowth : public MoveBase {
 public:
@@ -170,7 +170,9 @@ inline void Regrowth::Accept(const uint rejectState, const ulong step) {
         sysPotRef.boxVirial[sourceBox].real = 0.0;
       }
 
-      calcEwald->UpdateRecip(sourceBox);
+      if (recipDiff.energy != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+      }
 
       // Retotal
       sysPotRef.Total();

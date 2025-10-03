@@ -13,7 +13,7 @@ along with this program, also can be found at
 #include "MoveBase.h"
 #include "TrialMol.h"
 
-//#define DEBUG_MOVES
+// #define DEBUG_MOVES
 
 class MoleculeTransfer : public MoveBase {
 public:
@@ -192,7 +192,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const ulong step) {
       // Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-      //Add Reciprocal energy
+      // Add Reciprocal energy
       sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
       sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
       // Add correction energy
@@ -219,9 +219,12 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const ulong step) {
         sysPotRef.boxEnergy[sourceBox].real = 0;
         sysPotRef.boxVirial[sourceBox].real = 0;
       }
-
-      calcEwald->UpdateRecip(sourceBox);
-      calcEwald->UpdateRecip(destBox);
+      if (recipLose.energy != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+      }
+      if (recipGain.energy != 0.0) {
+        calcEwald->UpdateRecip(destBox);
+      }
 
       // Retotal
       sysPotRef.Total();
