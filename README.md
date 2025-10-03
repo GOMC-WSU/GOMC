@@ -7,9 +7,9 @@ Current Release: 2.75 (6/21/2022)
 
 We recommend the [GOMC Project Website](https://gomc-wsu.org/ "GOMC Website") and the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual") for further information and examples.
 
-To cite GOMC project, please cite the following papers:
-1.  [Y. Nejahi, M. Soroush Barhaghi,  G. Schwing, L. Schwiebert, J. Potoff. SoftwareX, 13, 100627 (2021). doi: 10.1016/j.softx.2020.100627.](https://www.sciencedirect.com/science/article/pii/S235271102030340X)
-2.  [Y. Nejahi, M. Soroush Barhaghi, J. Mick, B. Jackman, K. Rushaidat, Y. Li, L. Schwiebert, J. Potoff. SoftwareX, 9, 20-27 (2019). doi: 10.1016/j.softx.2018.11.005.](https://www.sciencedirect.com/science/article/pii/S2352711018301171?via%3Dihub "SoftwareX")
+To cite GOMC project, please cite the most recent of the following papers:
+1.  [Y. Nejahi, M. Soroush Barhaghi,  G. Schwing, L. Schwiebert, J. Potoff. SoftwareX, 13, 100627 (2021). doi: 10.1016/j.softx.2020.100627.](https://www.sciencedirect.com/science/article/pii/S235271102030340X "SoftwareX 2021")
+2.  [Y. Nejahi, M. Soroush Barhaghi, J. Mick, B. Jackman, K. Rushaidat, Y. Li, L. Schwiebert, J. Potoff. SoftwareX, 9, 20-27 (2019). doi: 10.1016/j.softx.2018.11.005.](https://www.sciencedirect.com/science/article/pii/S2352711018301171?via%3Dihub "SoftwareX 2019")
 
 ## Building GOMC on GNU/Linux, macOS, or Cygwin:
 
