@@ -251,7 +251,7 @@ inline uint IntraMoleculeExchange3::Prep(const double subDraw,
 inline uint IntraMoleculeExchange3::Transform() {
   GOMC_EVENT_START(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   /// Remove the fixed COM kindS at the end because we insert it at first
-  for (uint n = numInCavA; n > 0; n--) {
+  for (uint n = numInCavA; n > 0; --n) {
     cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1],
                                                molIndexA[n - 1]);
@@ -260,13 +260,13 @@ inline uint IntraMoleculeExchange3::Transform() {
   }
 
   // Calc old energy before deleting
-  for (uint n = 0; n < numInCavB; n++) {
+  for (uint n = 0; n < numInCavB; ++n) {
     cellList.RemoveMol(molIndexB[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildGrowOld(oldMolB[n], molIndexB[n]);
   }
 
   // Insert kindL to cavity of  center A using CD-CBMC
-  for (uint n = 0; n < numInCavB; n++) {
+  for (uint n = 0; n < numInCavB; ++n) {
     molRef.kinds[kindIndexB[n]].BuildGrowNew(newMolB[n], molIndexB[n]);
     ShiftMol(n, false);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
@@ -274,13 +274,18 @@ inline uint IntraMoleculeExchange3::Transform() {
   }
 
   // Insert kindS to cavity of center B
-  for (uint n = 0; n < numInCavA; n++) {
+  for (uint n = 0; n < numInCavA; ++n) {
     molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
     ShiftMol(n, true);
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
     // Add bonded energy because we don't consider it in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
-    overlap |= newMolA[n].HasOverlap();
+    // If we find overlap, we still need to move the molecules so we can
+    // reset things properly later, but we don't update the energy because
+    // we will reject the move
+    if (!overlap) {
+      newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
+      overlap |= newMolA[n].HasOverlap();
+    }
   }
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_INTRA_MEMC);
