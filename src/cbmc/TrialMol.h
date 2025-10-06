@@ -19,7 +19,7 @@ class MoleculeKind;
 class BoxDimensions;
 class CalculateEnergy;
 
-//! Class for keeping track of part-built molecules during CBMC
+//! Class for keeping track of partially-built molecules during CBMC
 namespace cbmc {
 struct Bonds {
 public:
@@ -92,7 +92,7 @@ public:
 
   void AddEnergy(const Energy &energy) { en += energy; }
 
-  // Keep the tcoords and reset everythings
+  // Keep the tcoords and reset everything
   void Reset() {
     totalWeight = 1.0;
     std::fill_n(atomBuilt, kind->NumAtoms(), false);
@@ -135,7 +135,7 @@ public:
   // Returns the dihedral angle between two positions
   /* \param theta1 Theta spherical coordinate of first position
    * \param theta2 Theta spherical coordinate of second position
-   * \param interior The interor angle between the positions
+   * \param interior The interior angle between the positions
    */
   static double PhiBetweenAngles(double theta1, double theta2, double interior);
 
@@ -183,11 +183,11 @@ public:
   //! Returns position of atom i (undefined if it doesn't exist yet)
   XYZ AtomPosition(const uint atom) const { return tCoords.Get(atom); }
 
-  //! Copies 1 molecule's worth of coordinates from coords[start] onwards to
+  //! Copies 1 molecule's worth of coordinates from coords[start] onward to
   //! tCoords
   void SetCoords(const XYZArray &coords, uint start);
 
-  //! Copies 1 molecule's worth of coordinates from coords[start] onwards to
+  //! Copies 1 molecule's worth of coordinates from coords[start] onward to
   //! bCoords
   void SetBCoords(const XYZArray &coords, uint start);
 
@@ -247,7 +247,7 @@ private:
   XYZ basisPoint;
   XYZ cavityCenter, cavity; // The center and cavity dimensions
   int backbone[2];
-  int growingAtomIndex; // use to start growing atom using CD-CBMC
+  int growingAtomIndex; // used to start growing atom using CD-CBMC
   bool comInCav, comFix, rotateBB;
   bool overlap;
   bool *atomBuilt;
