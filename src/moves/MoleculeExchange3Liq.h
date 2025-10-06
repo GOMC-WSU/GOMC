@@ -370,9 +370,15 @@ inline uint MoleculeExchange3Liq::Transform() {
     cellList.RemoveMol(molIndex[sourceBox][n - 1], sourceBox, coordCurrRef);
     molRef.kinds[kindIndex[sourceBox][n - 1]].BuildIDOld(
         oldMol[sourceBox][n - 1], molIndex[sourceBox][n - 1]);
-    // Add bonded energy because we don't consider it in DCRotate.cpp
-    oldMol[sourceBox][n - 1].AddEnergy(
-        calcEnRef.MoleculeIntra(oldMol[sourceBox][n - 1]));
+    // If we find overlap, we still need to move the molecules so we can
+    // reset things properly later, but we don't update the energy because
+    // we will reject the move
+    overlap |= newMol[sourceBox][n].HasOverlap();
+    if (!overlap) {
+      // Add bonded energy because we don't consider it in DCRotate.cpp
+      oldMol[sourceBox][n - 1].AddEnergy(
+          calcEnRef.MoleculeIntra(oldMol[sourceBox][n - 1]));
+    }
   }
 
   // Calc Old energy of large molecule and delete it from destBox
@@ -388,14 +394,14 @@ inline uint MoleculeExchange3Liq::Transform() {
                                                      molIndex[sourceBox][n]);
     this->ShiftMol(sourceBox, n, sourceBox, destBox);
     cellList.AddMol(molIndex[sourceBox][n], destBox, coordCurrRef);
-    // Add bonded energy because we don't consider it in DCRotate.cpp
     // If we find overlap, we still need to move the molecules so we can
     // reset things properly later, but we don't update the energy because
     // we will reject the move
+    overlap |= newMol[sourceBox][n].HasOverlap();
     if (!overlap) {
+      // Add bonded energy because we don't consider it in DCRotate.cpp
       newMol[sourceBox][n].AddEnergy(
           calcEnRef.MoleculeIntra(newMol[sourceBox][n]));
-      overlap |= newMol[sourceBox][n].HasOverlap();
     }
   }
 
