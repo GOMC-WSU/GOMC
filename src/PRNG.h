@@ -167,22 +167,18 @@ public:
 
   // Pick an integer in range 0 -- n given a list of weights, and their sum
   // totalWeight
-  uint PickWeighted(const double *weights, const uint n,
+  uint PickWeighted(const double *weights, const int n,
                     const double totalWeight) {
     double draw = rand(totalWeight);
-    // Handle subnormal values to reduce differences between processors.
-    // Treat them as zeroes, so pick the first weight, which is >= 0.0.
-    if (draw < std::numeric_limits<double>::min()) return 0;
-
     double sum = 0.0;
-    for (uint i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
       sum += weights[i];
       if (sum >= draw) {
         return i;
       }
     }
     int lastZero = n;
-    for (uint i = n - 1; i > 0 && !weights[i]; i--) {
+    for (int i = n - 1; i > 0 && weights[i] == 0.0; --i) {
       lastZero = i;
     }
     lastZero--;
