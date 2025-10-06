@@ -21,7 +21,7 @@ along with this program, also can be found at
 namespace {
 // Wish I could use lambdas..
 struct FindA1 {
-  FindA1(uint x) : x(x){};
+  FindA1(uint x) : x(x) {};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };
@@ -391,7 +391,9 @@ void DCHedronCycle::ConstrainedAngles(TrialMol &newMol, uint molIndex,
     // calculate weights from combined energy
     double stepWeight = 0.0;
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(energies, nonbonded_1_3, nTrials, weights) reduction(+:stepWeight)
+#pragma omp parallel for default(none)                                         \
+    shared(energies, nonbonded_1_3, nTrials, weights)                          \
+    reduction(+ : stepWeight)
 #endif
     for (int i = 0; i < (int)nTrials; ++i) {
       weights[i] = exp(-1 * data->ff.beta * (energies[i] + nonbonded_1_3[i]));

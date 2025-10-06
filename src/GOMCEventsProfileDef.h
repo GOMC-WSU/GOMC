@@ -5,7 +5,7 @@ A copy of the MIT License can be found in License.txt
 along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 *******************************************************************************/
-//Provides a readable label for each user-defined profiling event
+// Provides a readable label for each user-defined profiling event
 GOMC_PROFILE_EVENT(INITIALIZE, "initialization")
 GOMC_PROFILE_EVENT(MC_RUN, "MC_run")
 GOMC_PROFILE_EVENT(DESTRUCTION, "destruction")

@@ -20,7 +20,7 @@ along with this program, also can be found at
 
 namespace cbmc {
 struct FindA1 {
-  FindA1(uint x) : x(x){};
+  FindA1(uint x) : x(x) {};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };
@@ -237,8 +237,7 @@ void DCRotateOnAtom::BuildOld(TrialMol &oldMol, uint molIndex) {
     if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
       ljWeights[trial] *= std::exp(betaWeight);
       stepWeight += ljWeights[trial];
-    }
-	else {
+    } else {
       ljWeights[trial] = 0.0;
     }
   }
@@ -317,8 +316,7 @@ void DCRotateOnAtom::BuildNew(TrialMol &newMol, uint molIndex) {
     if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
       ljWeights[trial] *= std::exp(betaWeight);
       stepWeight += ljWeights[trial];
-    }
-	else {
+    } else {
       ljWeights[trial] = 0.0;
     }
   }

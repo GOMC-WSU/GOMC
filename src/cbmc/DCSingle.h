@@ -21,8 +21,8 @@ class DCData;
 class DCSingle : public DCComponent {
 public:
   DCSingle(DCData *data, uint atom);
-  void PrepareNew(TrialMol &newMol, uint molIndex){};
-  void PrepareOld(TrialMol &oldMol, uint molIndex){};
+  void PrepareNew(TrialMol &newMol, uint molIndex) {};
+  void PrepareOld(TrialMol &oldMol, uint molIndex) {};
   void BuildOld(TrialMol &oldMol, uint molIndex);
   void BuildNew(TrialMol &newMol, uint molIndex);
   DCComponent *Clone() { return new DCSingle(*this); }
