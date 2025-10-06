@@ -3,22 +3,22 @@ set(sources
    src/BondAdjacencyList.cpp
    src/BoxDimensions.cpp
    src/BoxDimensionsNonOrth.cpp
+   src/CalculateEnergy.cpp
    src/CBMC.cpp
    src/CellList.cpp
+   src/Checkpoint.cpp
+   src/CheckpointOutput.cpp
+   src/CheckpointSetup.cpp
    src/ConfigSetup.cpp
    src/ConsoleOutput.cpp
    src/Coordinates.cpp
    src/CPUSide.cpp
-   src/CalculateEnergy.cpp
-   src/Checkpoint.cpp
-   src/CheckpointOutput.cpp
-   src/CheckpointSetup.cpp
    src/DCDlib.cpp
    src/EnPartCntSampleOutput.cpp
-   src/ExtendedSystem.cpp
-   src/ExtendedSystemOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
+   src/ExtendedSystem.cpp
+   src/ExtendedSystemOutput.cpp
    src/FFConst.cpp
    src/FFDihedrals.cpp
    src/FFParticle.cpp
@@ -39,8 +39,8 @@ set(sources
    src/OutputVars.cpp
    src/ParallelTemperingPreprocessor.cpp
    src/ParallelTemperingUtilities.cpp
-   src/PDBSetup.cpp
    src/PDBOutput.cpp
+   src/PDBSetup.cpp
    src/PRNGSetup.cpp
    src/PSFOutput.cpp
    src/Random123Wrapper.cpp
@@ -51,16 +51,16 @@ set(sources
    src/cbmc/DCCrankShaftAng.cpp
    src/cbmc/DCCrankShaftDih.cpp
    src/cbmc/DCCyclic.cpp
-   src/cbmc/DCGraph.cpp
    src/cbmc/DCFreeCycle.cpp
+   src/cbmc/DCFreeCycleSeed.cpp
    src/cbmc/DCFreeHedron.cpp
    src/cbmc/DCFreeHedronSeed.cpp
-   src/cbmc/DCFreeCycleSeed.cpp
-   src/cbmc/DCLinkedHedron.cpp
-   src/cbmc/DCLinkedCycle.cpp
+   src/cbmc/DCGraph.cpp
    src/cbmc/DCHedron.cpp
    src/cbmc/DCHedronCycle.cpp
    src/cbmc/DCLinear.cpp
+   src/cbmc/DCLinkedCycle.cpp
+   src/cbmc/DCLinkedHedron.cpp
    src/cbmc/DCOnSphere.cpp
    src/cbmc/DCRotateCOM.cpp
    src/cbmc/DCRotateOnAtom.cpp
@@ -90,10 +90,10 @@ set(headers
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
-   src/ExtendedSystem.h
-   src/ExtendedSystemOutput.h
    src/Ewald.h
    src/EwaldCached.h  
+   src/ExtendedSystem.h
+   src/ExtendedSystemOutput.h
    src/FFAngles.h
    src/FFBonds.h
    src/FFConst.h
@@ -153,21 +153,20 @@ set(headers
    src/cbmc/DCCyclic.h
    src/cbmc/DCData.h
    src/cbmc/DCFreeCycle.h
+   src/cbmc/DCFreeCycleSeed.h
    src/cbmc/DCFreeHedron.h
    src/cbmc/DCFreeHedronSeed.h
-   src/cbmc/DCFreeCycleSeed.h
-   src/cbmc/DCLinkedHedron.h
-   src/cbmc/DCLinkedCycle.h
    src/cbmc/DCGraph.h
    src/cbmc/DCHedron.h
    src/cbmc/DCHedronCycle.h
    src/cbmc/DCLinear.h
+   src/cbmc/DCLinkedCycle.h
+   src/cbmc/DCLinkedHedron.h
    src/cbmc/DCOnSphere.h
    src/cbmc/DCRotateCOM.h
    src/cbmc/DCRotateOnAtom.h
    src/cbmc/DCSingle.h
    src/cbmc/TrialMol.h
-   src/moves/NeMTMC.h
    src/moves/CrankShaft.h
    src/moves/IntraMoleculeExchange1.h
    src/moves/IntraMoleculeExchange2.h
@@ -176,13 +175,14 @@ set(headers
    src/moves/IntraTargetedSwap.h
    src/moves/MoleculeExchange1.h
    src/moves/MoleculeExchange2.h
-   src/moves/MoleculeExchange3.h
    src/moves/MoleculeExchange2Liq.h
+   src/moves/MoleculeExchange3.h
    src/moves/MoleculeExchange3Liq.h
    src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
    src/moves/MultiParticle.h
    src/moves/MultiParticleBrownianMotion.h
+   src/moves/NeMTMC.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
    src/moves/TargetedSwap.h
@@ -193,14 +193,14 @@ set(libHeaders
    lib/AlphaNum.h
    lib/BasicTypes.h
    lib/BitLib.h
+   lib/CircuitFinder.h
+   lib/FloydWarshallCycle.h
    lib/GeomLib.h
    lib/Lambda.h
    lib/NumLib.h
    lib/StrLib.h
    lib/StrStrmLib.h
-   lib/VectorLib.h
-   lib/CircuitFinder.h
-   lib/FloydWarshallCycle.h)
+   lib/VectorLib.h)
 
 set(libSources
     lib/AlphaNum.cpp
@@ -208,19 +208,19 @@ set(libSources
     lib/FloydWarshallCycle.cpp)
 
 set(cudaHeaders
-    src/GPU/ConstantDefinitionsCUDAKernel.cuh
-    src/GPU/CalculateMinImageCUDAKernel.cuh
     src/GPU/CalculateEnergyCUDAKernel.cuh
-    src/GPU/CalculateForceCUDAKernel.cuh
     src/GPU/CalculateEwaldCUDAKernel.cuh
+    src/GPU/CalculateForceCUDAKernel.cuh
+    src/GPU/CalculateMinImageCUDAKernel.cuh
+    src/GPU/ConstantDefinitionsCUDAKernel.cuh
     src/GPU/CUDAMemoryManager.cuh
     src/GPU/TransformParticlesCUDAKernel.cuh
     src/GPU/VariablesCUDA.cuh)
 
 set(cudaSources
     src/GPU/CalculateEnergyCUDAKernel.cu
-    src/GPU/CalculateForceCUDAKernel.cu
     src/GPU/CalculateEwaldCUDAKernel.cu
+    src/GPU/CalculateForceCUDAKernel.cu
     src/GPU/ConstantDefinitionsCUDAKernel.cu
     src/GPU/CUDAMemoryManager.cu
     src/GPU/TransformParticlesCUDAKernel.cu)
