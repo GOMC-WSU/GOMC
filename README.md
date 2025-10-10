@@ -4,7 +4,8 @@ GOMC is an acronym for GPU Optimized Monte Carlo. GOMC is a parallel molecular s
 
 Current Release: 2.80 (10/10/2025)
 
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+The latest stable release is available on the main branch. The development branch is used for staging changes that should be stable but have not been thoroughly tested. If you encounter a problem running GOMC on the main branch, please try the development branch to see if this has already been fixed. If not, please post a GitHub issue, with the requested documents and details, so we can investigate the problem.
+
 [![Build Status](https://travis-ci.org/GOMC-WSU/GOMC.svg?branch=main)](https://travis-ci.org/GOMC-WSU/GOMC)
 
 We recommend the [GOMC Project Website](https://gomc-wsu.org/ "GOMC Website") and the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual") for further information and examples.
@@ -38,7 +39,7 @@ If you are using some more recent features of GOMC, such as the MultiParticle mo
   `./metamake.sh` accepts a list of which ensembles to compile. Default behavior, listing no ensembles, is to compile all CPU ensembles and, if CUDA is available, all GPU ensembles. Multiple ensemble names must be separated by spaces. Current accepted values are: `CPU` to compile all CPU ensembles, `GPU` to compile all GPU ensembles, or you can compile ensembles individually by using any of the following keywords:
   `NVT`, `NPT`, `GCMC`, `GEMC`, `GPU_NVT`, `GPU_NPT`, `GPU_GCMC`, `GPU_GEMC`.
 
-> NOTES: Building GOMC requires [CMake](https://cmake.org/) version 3.18 or newer. CMake is available in most Linux distributions (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/) "User Manual".
+> NOTE: Building GOMC requires [CMake](https://cmake.org/) version 3.18 or newer. CMake is available in most Linux distributions (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/) "User Manual".
 
 ## Building GOMC on Windows:
 
@@ -52,7 +53,7 @@ If you are using some more recent features of GOMC, such as the MultiParticle mo
 9.  Click `Open Project` after CMake finishes generating the project.
 10. Using the solution in the IDE, build GOMC per the IDE's standard release compilation/executable generation methods.
 
-> NOTES You can also use CMake from the Windows command line if its directory is added to the PATH environment variable.
+> NOTE: You can also use CMake from the Windows command line if its directory is added to the PATH environment variable.
 
 ## Executing GOMC:
 
