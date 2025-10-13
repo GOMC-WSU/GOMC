@@ -11,7 +11,7 @@ include_directories(src/GPU)
 
 # Versioning
 set(GOMC_VERSION_MAJOR 2)
-set(GOMC_VERSION_MINOR 75)
+set(GOMC_VERSION_MINOR 80)
 
 # Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
