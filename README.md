@@ -4,11 +4,9 @@ GOMC is an acronym for GPU Optimized Monte Carlo. GOMC is a parallel molecular s
 
 Current Release: 2.80 (10/10/2025)
 
-The latest stable release is available on the main branch. The development branch is used for staging changes that should be stable but have not been thoroughly tested. If you encounter a problem running GOMC on the main branch, please try the development branch to see if this has already been fixed. If not, please post a GitHub issue, with the requested documents and details, so we can investigate the problem.
+The latest stable release is available on the main branch. The development branch is used for staging changes that should be stable but have not been thoroughly tested. If you encounter a problem running GOMC using the main branch, please try the development branch to see if your problem has already been fixed. If not, please post a GitHub issue, with the requested documents and details, so we can investigate the problem.
 
-[![Build Status](https://travis-ci.org/GOMC-WSU/GOMC.svg?branch=main)](https://travis-ci.org/GOMC-WSU/GOMC)
-
-We recommend the [GOMC Project Website](https://gomc-wsu.org/ "GOMC Website") and the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual") for further information and examples.
+You can find many example configurations for running GOMC in our [GOMC Examples repository](https://github.com/GOMC-WSU/GOMC_Examples "GOMC Examples"). We recommend the [GOMC Project Website](https://gomc-wsu.org/ "GOMC Website") and the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual") for additional information and examples.
 
 If using GOMC in your work, we ask that you cite the following article:
 [Y. Nejahi, M. Soroush Barhaghi, J. Mick, B. Jackman, K. Rushaidat, Y. Li, L. Schwiebert, J. Potoff. SoftwareX, 9, 20-27 (2019). doi: 10.1016/j.softx.2018.11.005.](https://www.sciencedirect.com/science/article/pii/S2352711018301171?via%3Dihub "SoftwareX 2019")
