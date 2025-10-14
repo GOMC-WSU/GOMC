@@ -375,7 +375,7 @@ double Ewald::BoxReciprocal(uint box, bool isNewVolume) const {
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_ENERGY);
 #ifdef GOMC_CUDA
-    return currentEnergyRecip[box];
+    energyRecip = currentEnergyRecip[box];
 #else
     double *prefactPtr;
     int imageSzVal;
