@@ -133,11 +133,13 @@ public:
     this->SetScaleValues(rhs);
   }
 
-#if GOMC_GTEST
+#if GOMC_GTEST || GOMC_GTEST_MPI
+
   bool operator==(const MoveSettings &rhs);
 #endif
 
-#if GOMC_GTEST
+#if GOMC_GTEST || GOMC_GTEST_MPI
+
 
 #else
 private:

@@ -224,7 +224,8 @@ bool Simulation::RecalculateAndCheck(void) {
   return compare;
 }
 
-#if GOMC_GTEST
+#if GOMC_GTEST || GOMC_GTEST_MPI
+
 SystemPotential &Simulation::GetSystemEnergy(void) { return system->potential; }
 
 MoleculeLookup &Simulation::GetMolLookup() { return system->molLookup; }

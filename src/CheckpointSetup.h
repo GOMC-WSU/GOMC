@@ -66,7 +66,8 @@ private:
   void GetOriginalRangeStartStop(uint &_start, uint &stop, const uint m) const;
   void GetRestartRangeStartStop(uint &_start, uint &stop, const uint m) const;
 
-#if GOMC_GTEST
+#if GOMC_GTEST || GOMC_GTEST_MPI
+
 
 #endif
 
