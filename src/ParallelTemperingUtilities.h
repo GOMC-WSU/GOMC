@@ -111,8 +111,8 @@ public:
                                const std::vector<int> &nattempt);
   void print_replica_exchange_statistics(FILE *fplog);
   void print_allswitchind(FILE *fplog, int n, const std::vector<int> &pind,
-                          const std::vector<int> &allswaps,
-                          const std::vector<int> &tmpswap);
+                          std::vector<int> &allswaps,
+                          std::vector<int> &tmpswap);
 
 private:
   MultiSim const *const &ms;

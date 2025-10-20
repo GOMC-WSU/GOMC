@@ -26,7 +26,8 @@ public:
   CheckpointSetup(ulong &startStep, ulong &trueStep, MoleculeLookup &molLookup,
                   MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
                   Random123Wrapper &r123, Setup &set,
-                  bool &parallelTemperingEnabled, PRNG &prngPT);
+                  const bool &parallelTemperingEnabled, PRNG &prngPT,
+                  std::string replicaInputDirectoryPath);
 #else
   CheckpointSetup(ulong &startStep, ulong &trueStep, MoleculeLookup &molLookup,
                   MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
@@ -43,7 +44,7 @@ private:
   void SetCheckpointData();
 
 #if GOMC_LIB_MPI
-  void SetCheckpointData(bool &parallelTemperingEnabled, PRNG &prngPT);
+  void SetCheckpointData(const bool &parallelTemperingEnabled, PRNG &prngPT);
 #endif
 
   std::string getFileName();
@@ -91,7 +92,7 @@ private:
 
 #if GOMC_LIB_MPI
   bool parallelTemperingWasEnabled;
-  bool &parallelTemperingIsEnabled;
+  const bool &parallelTemperingIsEnabled;
   PRNG &prngPT;
 #endif
   Checkpoint chkObj;

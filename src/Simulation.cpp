@@ -141,7 +141,7 @@ void Simulation::RunSimulation(void) {
                                system->molLookup);
       if (staticValues->forcefield.ewald) {
         for (int box = 0; box < BOX_TOTAL; box++) {
-          system->calcEwald->BoxReciprocalSums(box, system->coordinates, false);
+          system->calcEwald->BoxReciprocalSums(box, system->coordinates);
           system->potential.boxEnergy[box].recip =
               system->calcEwald->BoxReciprocal(box, false);
           system->calcEwald->UpdateRecip(box);
