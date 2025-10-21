@@ -27,7 +27,7 @@ public:
                   MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
                   Random123Wrapper &r123, Setup &set,
                   const bool &parallelTemperingEnabled, PRNG &prngPT,
-                  std::string replicaInputDirectoryPath);
+                  const std::string &replicaInputDirectoryPath);
 #else
   CheckpointSetup(ulong &startStep, ulong &trueStep, MoleculeLookup &molLookup,
                   MoveSettings &moveSettings, Molecules &mol, PRNG &prng,
