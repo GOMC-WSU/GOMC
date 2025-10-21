@@ -36,8 +36,7 @@ CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
       trueStepRef(trueStep), molSetRef(set.mol), ffSetupRef(set.ff),
       pdbAtomsRef(set.pdb.atoms),
       startIdxMolecules(set.mol.molVars.startIdxMolecules),
-      filename(set.config.in.files.checkpoint.name[0]),
-      parallelTemperingWasEnabled(false) {
+      filename(set.config.in.files.checkpoint.name[0]) {
 }
 #endif
 
