@@ -1277,7 +1277,7 @@ void ParallelTemperingUtilities::print_replica_exchange_statistics(
 
 void ParallelTemperingUtilities::print_allswitchind(
     FILE *fplog, int n, const std::vector<int> &pind,
-    const std::vector<int> &allswaps, const std::vector<int> &tmpswap) {
+    std::vector<int> &allswaps, std::vector<int> &tmpswap) {
   int i;
 
   for (i = 0; i < n; i++) {

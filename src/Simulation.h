@@ -24,7 +24,8 @@ public:
 
   void RunSimulation(void);
   bool RecalculateAndCheck(void);
-#if GOMC_GTEST
+#if GOMC_GTEST || GOMC_GTEST_MPI
+
   ulong GetTrueStep();
   ulong GetRunSteps();
   MoleculeLookup &GetMolLookup();

@@ -10,6 +10,23 @@ along with this program, also can be found at
 
 #include <stdint.h>
 
+#if GOMC_LIB_MPI
+CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
+                                 MoleculeLookup &molLookup,
+                                 MoveSettings &moveSettings, Molecules &mol,
+                                 PRNG &prng, Random123Wrapper &r123, Setup &set,
+                                 const bool &parallelTemperingEnabled, PRNG &prngPT,
+                                 const std::string &replicaInputDirectoryPath)
+    : molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol),
+      prngRef(prng), r123Ref(r123), startStepRef(startStep),
+      trueStepRef(trueStep), molSetRef(set.mol), ffSetupRef(set.ff),
+      pdbAtomsRef(set.pdb.atoms),
+      startIdxMolecules(set.mol.molVars.startIdxMolecules),
+      parallelTemperingIsEnabled(parallelTemperingEnabled),
+      prngPT(prngPT), filename(replicaInputDirectoryPath + set.config.in.files.checkpoint.name[0]),
+      parallelTemperingWasEnabled(false) {
+}
+#else
 CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
                                  MoleculeLookup &molLookup,
                                  MoveSettings &moveSettings, Molecules &mol,
@@ -18,14 +35,10 @@ CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
       prngRef(prng), r123Ref(r123), startStepRef(startStep),
       trueStepRef(trueStep), molSetRef(set.mol), ffSetupRef(set.ff),
       pdbAtomsRef(set.pdb.atoms),
-      startIdxMolecules(set.mol.molVars.startIdxMolecules) {
-  std::string file = set.config.in.files.checkpoint.name[0];
-#if GOMC_LIB_MPI
-  filename = sys.ms->replicaInputDirectoryPath + file;
-#else
-  filename = file;
-#endif
+      startIdxMolecules(set.mol.molVars.startIdxMolecules),
+      filename(set.config.in.files.checkpoint.name[0]) {
 }
+#endif
 
 CheckpointSetup::~CheckpointSetup() {}
 
@@ -84,7 +97,7 @@ void CheckpointSetup::SetCheckpointData() {
 }
 
 #if GOMC_LIB_MPI
-void CheckpointSetup::SetCheckpointData(bool &parallelTemperingIsEnabled,
+void CheckpointSetup::SetCheckpointData(const bool &parallelTemperingIsEnabled,
                                         PRNG &prngPT) {
   SetStepNumber();
   SetTrueStepNumber();
@@ -96,7 +109,7 @@ void CheckpointSetup::SetCheckpointData(bool &parallelTemperingIsEnabled,
   SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
   if (parallelTemperingIsEnabled && parallelTemperingWasEnabled)
-    SetPRNGVariablesPT();
+    SetPRNGVariablesPT(prngPT);
 }
 #endif
 
@@ -188,7 +201,7 @@ void CheckpointSetup::SetPDBSetupAtoms() {
 }
 
 #if GOMC_LIB_MPI
-bool CheckpointSetup::SetParallelTemperingWasEnabled() {
+void CheckpointSetup::SetParallelTemperingWasEnabled() {
   parallelTemperingWasEnabled = (bool)chkObj.parallelTemperingEnabled;
 }
 
