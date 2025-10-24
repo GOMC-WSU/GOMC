@@ -29,7 +29,7 @@ public:
     }
   }
 
-  ~BoxDimensionsNonOrth() {};
+  ~BoxDimensionsNonOrth(){};
 
   BoxDimensionsNonOrth &operator=(BoxDimensionsNonOrth const &other);
   bool operator==(BoxDimensionsNonOrth const &other);

@@ -35,7 +35,7 @@ public:
 
   BoxDimensions(BoxDimensions const &other);
 
-  virtual ~BoxDimensions() {};
+  virtual ~BoxDimensions(){};
 
   BoxDimensions &operator=(BoxDimensions const &other);
   bool operator==(BoxDimensions const &other);

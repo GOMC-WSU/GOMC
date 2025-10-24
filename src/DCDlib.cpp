@@ -111,9 +111,8 @@ void NAMD_backup_file(const char *filename, const char *extension) {
         const char *sys_err_msg = strerror(errno);
         if (!sys_err_msg)
           sys_err_msg = "(unknown error)";
-        std::cout << "Error: "
-                  << "Error on removing file " << backup << ": " << sys_err_msg
-                  << std::endl;
+        std::cout << "Error: " << "Error on removing file " << backup << ": "
+                  << sys_err_msg << std::endl;
         fflush(stdout);
       }
 #endif
@@ -123,9 +122,8 @@ void NAMD_backup_file(const char *filename, const char *extension) {
       const char *sys_err_msg = strerror(errno);
       if (!sys_err_msg)
         sys_err_msg = "(unknown error)";
-      std::cout << "Error: "
-                << "Error on renaming file " << filename << " to " << backup
-                << ": " << sys_err_msg << std::endl;
+      std::cout << "Error: " << "Error on renaming file " << filename << " to "
+                << backup << ": " << sys_err_msg << std::endl;
       fflush(stdout);
       if (errno == EXDEV)
         continue;
@@ -144,9 +142,8 @@ int NAMD_file_exists(const char *filename) {
     const char *sys_err_msg = strerror(errno);
     if (!sys_err_msg)
       sys_err_msg = "(unknown error)";
-    std::cout << "Error: "
-              << "Error on checking file " << filename << ": " << sys_err_msg
-              << std::endl;
+    std::cout << "Error: " << "Error on checking file " << filename << ": "
+              << sys_err_msg << std::endl;
     fflush(stdout);
   }
   return !rval;

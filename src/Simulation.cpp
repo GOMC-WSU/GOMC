@@ -141,7 +141,7 @@ void Simulation::RunSimulation(void) {
                                system->molLookup);
       if (staticValues->forcefield.ewald) {
         for (int box = 0; box < BOX_TOTAL; box++) {
-          system->calcEwald->BoxReciprocalSums(box, system->coordinates, false);
+          system->calcEwald->BoxReciprocalSums(box, system->coordinates);
           system->potential.boxEnergy[box].recip =
               system->calcEwald->BoxReciprocal(box, false);
           system->calcEwald->UpdateRecip(box);
@@ -224,7 +224,8 @@ bool Simulation::RecalculateAndCheck(void) {
   return compare;
 }
 
-#if GOMC_GTEST
+#if GOMC_GTEST || GOMC_GTEST_MPI
+
 SystemPotential &Simulation::GetSystemEnergy(void) { return system->potential; }
 
 MoleculeLookup &Simulation::GetMolLookup() { return system->molLookup; }

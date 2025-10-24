@@ -69,8 +69,7 @@ void Remarks::Read(FixedWidthReader &pdb) {
 void Remarks::CheckGOMC(std::string const &varName) {
   using namespace pdb_entry::remark::field;
   if (!str::compare(varName, name::STR_GOMC)) {
-    std::cerr << "ERROR: "
-              << "GOMC file's identifying tag "
+    std::cerr << "ERROR: " << "GOMC file's identifying tag "
               << "\"REMARK     GOMC\" is missing" << std::endl;
     exit(EXIT_FAILURE);
   }
