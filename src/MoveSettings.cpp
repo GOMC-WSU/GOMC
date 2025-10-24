@@ -315,7 +315,6 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const {
 
 #if GOMC_GTEST || GOMC_GTEST_MPI
 
-
 bool MoveSettings::operator==(const MoveSettings &rhs) {
   bool result = true;
 

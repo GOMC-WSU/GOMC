@@ -28,7 +28,7 @@ along with this program, also can be found at
 #define BOX_TOTAL 2
 // Do not do vol. trans. if molecule is over the boundary
 // Towhee does this for volume transfers
-//#define NO_VOL_TRANS_IF_OVER_PERIODIC_BOUND
+// #define NO_VOL_TRANS_IF_OVER_PERIODIC_BOUND
 #elif ENSEMBLE == GCMC
 #define VARIABLE_PARTICLE_NUMBER
 #define VARIABLE_DENSITY

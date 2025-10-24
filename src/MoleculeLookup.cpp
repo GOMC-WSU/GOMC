@@ -219,22 +219,21 @@ uint MoleculeLookup::GetConsensusMolBeta(const uint pStart, const uint pEnd,
       std::cout << "\nWarning: Conflict between the beta values of atoms in "
                    "the same molecule"
                 << "\nName : " << name << "\nMol Index : " << m
-                << "\nConflicting Indices"
-                << "\nStarting Index : " << pStart
+                << "\nConflicting Indices" << "\nStarting Index : " << pStart
                 << "\nConflicting Index : " << p << std::endl;
       /* A beta == 1 functions like multiplying any number  by 0,
         even if there is only 1 atom with beta == 1,
         the entire molecule will be fixed */
       if (firstBeta == 1.0 || betas[p] == 1.0) {
-        std::cout << "Beta == 1.0 takes precedent, so "
-                  << "\nName : " << name << "\nMol Index : " << m
-                  << "\nis fixed in place." << std::endl;
+        std::cout << "Beta == 1.0 takes precedent, so " << "\nName : " << name
+                  << "\nMol Index : " << m << "\nis fixed in place."
+                  << std::endl;
         consensusBeta = 1.0;
         break;
       } else {
-        std::cout << "Beta == 2.0 takes precedent, so "
-                  << "\nName: " << name << "\nMol Index: " << m
-                  << "\nis fixed in box " << box << std::endl;
+        std::cout << "Beta == 2.0 takes precedent, so " << "\nName: " << name
+                  << "\nMol Index: " << m << "\nis fixed in box " << box
+                  << std::endl;
         consensusBeta = 2.0;
       }
     }

@@ -120,20 +120,20 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &chainLetter;
-    ar &x;
-    ar &y;
-    ar &z;
-    ar &beta;
-    ar &occ;
-    ar &box;
-    ar &resNames;
-    ar &restart;
-    ar &firstResInFile;
-    ar &recalcTrajectory;
-    ar &currBox;
-    ar &count;
-    ar &numAtomsInBox;
+    ar & chainLetter;
+    ar & x;
+    ar & y;
+    ar & z;
+    ar & beta;
+    ar & occ;
+    ar & box;
+    ar & resNames;
+    ar & restart;
+    ar & firstResInFile;
+    ar & recalcTrajectory;
+    ar & currBox;
+    ar & count;
+    ar & numAtomsInBox;
   }
 };
 
@@ -166,7 +166,7 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &atoms;
+    ar & atoms;
   }
 };
 

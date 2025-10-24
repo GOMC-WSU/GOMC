@@ -140,10 +140,8 @@ void FreeEnergyOutput::WriteHeader(void) {
       outF[b] << toPrint;
 
       // We care about format
-      outF[b] << std::setw(11) << std::left << "#Steps"
-              << " ";
-      outF[b] << std::setw(25) << std::right << "Total_En(kJ/mol)"
-              << " ";
+      outF[b] << std::setw(11) << std::left << "#Steps" << " ";
+      outF[b] << std::setw(25) << std::right << "Total_En(kJ/mol)" << " ";
       toPrint = "dU/dL(Coulomb=";
       toPrint += GetString(freeEnVal.lambdaCoulomb[iState], 4);
       toPrint += ")";

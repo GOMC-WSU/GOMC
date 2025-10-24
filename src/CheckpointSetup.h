@@ -68,7 +68,6 @@ private:
 
 #if GOMC_GTEST || GOMC_GTEST_MPI
 
-
 #endif
 
   std::string filename;

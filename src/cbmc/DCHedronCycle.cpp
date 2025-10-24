@@ -21,7 +21,7 @@ along with this program, also can be found at
 namespace {
 // Wish I could use lambdas..
 struct FindA1 {
-  FindA1(uint x) : x(x) {};
+  FindA1(uint x) : x(x){};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };

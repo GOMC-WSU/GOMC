@@ -411,13 +411,13 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
       insert, gpu_energyRecipNew, imageSize);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
-  //#ifndef NDEBUG
-  // In the future maybe we could remove this for Nondebug?
+  // #ifndef NDEBUG
+  //  In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
-  //#endif
+  // #endif
 
   // ReduceSum
   void *d_temp_storage = NULL;

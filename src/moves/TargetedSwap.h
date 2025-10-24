@@ -420,7 +420,8 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw,
   state = PickMolInSubVolume();
 
 #if ENSEMBLE == GCMC
-  if (state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1 && hasSubVolume[sourceBox]) {
+  if (state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1 &&
+      hasSubVolume[sourceBox]) {
     std::cout << "Error: There are no molecules of kind "
               << molRef.kinds[kindIndex].name << " left in reservoir.\n";
     exit(EXIT_FAILURE);
@@ -708,7 +709,7 @@ inline void TargetedSwap::Accept(const uint rejectState, const ulong step) {
       // Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-      //Add Reciprocal energy
+      // Add Reciprocal energy
       sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
       sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
       // Add correction energy

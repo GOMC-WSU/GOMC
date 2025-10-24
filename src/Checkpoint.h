@@ -121,49 +121,49 @@ private:
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
     // GOMC Version
-    ar &gomc_version;
+    ar & gomc_version;
     // Step
-    ar &stepNumber;
-    ar &trueStepNumber;
+    ar & stepNumber;
+    ar & trueStepNumber;
     // PRNG Vars
-    ar &saveArray;
-    ar &seedLocation;
-    ar &seedLeft;
-    ar &seedValue;
+    ar & saveArray;
+    ar & seedLocation;
+    ar & seedLeft;
+    ar & seedValue;
 
     // Move Settings Vectors
-    ar &scaleVec;
-    ar &acceptPercentVec;
-    ar &acceptedVec;
-    ar &triesVec;
-    ar &tempAcceptedVec;
-    ar &tempTriesVec;
-    ar &mp_triesVec;
-    ar &mp_acceptedVec;
-    ar &mp_interval_acceptedVec;
-    ar &mp_interval_triesVec;
-    ar &mp_t_maxVec;
-    ar &mp_r_maxVec;
-    ar &isSingleMoveAcceptedVec;
+    ar & scaleVec;
+    ar & acceptPercentVec;
+    ar & acceptedVec;
+    ar & triesVec;
+    ar & tempAcceptedVec;
+    ar & tempTriesVec;
+    ar & mp_triesVec;
+    ar & mp_acceptedVec;
+    ar & mp_interval_acceptedVec;
+    ar & mp_interval_triesVec;
+    ar & mp_t_maxVec;
+    ar & mp_r_maxVec;
+    ar & isSingleMoveAcceptedVec;
     // Start arrays
-    ar &originalStartVec;
-    ar &restartedStartVec;
+    ar & originalStartVec;
+    ar & restartedStartVec;
     // Mollookup
-    ar &originalMoleculeLookup;
+    ar & originalMoleculeLookup;
     // MolSetup
-    ar &originalMolSetup;
+    ar & originalMolSetup;
     // PDBAtoms
-    ar &originalAtoms;
+    ar & originalAtoms;
 
 #if GOMC_LIB_MPI
     // PT boolean
-    ar &parallelTemperingEnabled;
+    ar & parallelTemperingEnabled;
     if ((bool)parallelTemperingEnabled) {
       // PRNG PT Vars
-      ar &saveArrayPT;
-      ar &seedLocationPT;
-      ar &seedLeftPT;
-      ar &seedValuePT;
+      ar & saveArrayPT;
+      ar & seedLocationPT;
+      ar & seedLeftPT;
+      ar & seedValuePT;
     }
 #endif
   }

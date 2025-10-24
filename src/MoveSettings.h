@@ -140,7 +140,6 @@ public:
 
 #if GOMC_GTEST || GOMC_GTEST_MPI
 
-
 #else
 private:
 #endif

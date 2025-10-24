@@ -59,9 +59,11 @@ System::System(StaticVals &statics, Setup &set, ulong &startStep,
       calcEnergy(statics, *this),
       checkpointSet(startStep, trueStep, molLookupRef, moveSettings,
                     statics.mol, prng, r123wrapper, set
-                    #if GOMC_LIB_MPI
-                    , ms->parallelTemperingEnabled, *prngParallelTemp, ms->replicaInputDirectoryPath
-                    #endif
+#if GOMC_LIB_MPI
+                    ,
+                    ms->parallelTemperingEnabled, *prngParallelTemp,
+                    ms->replicaInputDirectoryPath
+#endif
                     ),
       vel(statics.forcefield, molLookupRef, statics.mol, prng),
       restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),

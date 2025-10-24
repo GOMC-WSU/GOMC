@@ -15,17 +15,18 @@ CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
                                  MoleculeLookup &molLookup,
                                  MoveSettings &moveSettings, Molecules &mol,
                                  PRNG &prng, Random123Wrapper &r123, Setup &set,
-                                 const bool &parallelTemperingEnabled, PRNG &prngPT,
+                                 const bool &parallelTemperingEnabled,
+                                 PRNG &prngPT,
                                  const std::string &replicaInputDirectoryPath)
     : molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol),
       prngRef(prng), r123Ref(r123), startStepRef(startStep),
       trueStepRef(trueStep), molSetRef(set.mol), ffSetupRef(set.ff),
       pdbAtomsRef(set.pdb.atoms),
       startIdxMolecules(set.mol.molVars.startIdxMolecules),
-      parallelTemperingIsEnabled(parallelTemperingEnabled),
-      prngPT(prngPT), filename(replicaInputDirectoryPath + set.config.in.files.checkpoint.name[0]),
-      parallelTemperingWasEnabled(false) {
-}
+      parallelTemperingIsEnabled(parallelTemperingEnabled), prngPT(prngPT),
+      filename(replicaInputDirectoryPath +
+               set.config.in.files.checkpoint.name[0]),
+      parallelTemperingWasEnabled(false) {}
 #else
 CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
                                  MoleculeLookup &molLookup,
@@ -36,8 +37,7 @@ CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
       trueStepRef(trueStep), molSetRef(set.mol), ffSetupRef(set.ff),
       pdbAtomsRef(set.pdb.atoms),
       startIdxMolecules(set.mol.molVars.startIdxMolecules),
-      filename(set.config.in.files.checkpoint.name[0]) {
-}
+      filename(set.config.in.files.checkpoint.name[0]) {}
 #endif
 
 CheckpointSetup::~CheckpointSetup() {}
