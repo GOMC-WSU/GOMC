@@ -184,35 +184,19 @@ struct MovePercents {
 
 struct ElectroStatic {
   bool readEwald;
-  bool readWolf;
-  bool readDSF;
-  bool readIntramolecularDSF;
-  bool readSimpleSelf;
-
-  bool readWolfAlpha[BOX_TOTAL];
-
   bool readElect;
   bool readCache;
   bool enable;
   bool ewald;
-  bool wolf;
-  bool dsf;
-  bool intramoleculardsf;
-  bool simpleself;
-
   bool cache;
   bool cutoffCoulombRead[BOX_TOTAL];
   double tolerance;
   double oneFourScale;
   double dielectric;
   double cutoffCoulomb[BOX_TOTAL];
-  double wolf_alpha[BOX_TOTAL];
   ElectroStatic(void) {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
     std::fill_n(cutoffCoulomb, BOX_TOTAL, 0.0);
-    std::fill_n(wolf_alpha, BOX_TOTAL, 0.0);
-    std::fill_n(readWolfAlpha, BOX_TOTAL, false);
-
   }
 };
 
@@ -829,34 +813,6 @@ struct FreeEnergy {
   }
 };
 
-struct WolfCalibration {
-
-  bool wolfAlphaRangeRead[BOX_TOTAL];
-  double wolfAlphaStart[BOX_TOTAL];
-  double wolfAlphaEnd[BOX_TOTAL];
-  double wolfAlphaDelta[BOX_TOTAL];
-
-  bool wolfCutoffCoulombRangeRead[BOX_TOTAL];
-  double wolfCutoffCoulombStart[BOX_TOTAL];
-  double wolfCutoffCoulombEnd[BOX_TOTAL];
-  double wolfCutoffCoulombDelta[BOX_TOTAL];
-
-  WolfCalibration(void)
-  {
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      wolfAlphaRangeRead[b] = false;
-      wolfAlphaStart[b] = 0.0;
-      wolfAlphaEnd[b] = 0.0;
-      wolfAlphaDelta[b] = 0.0;
-
-      wolfCutoffCoulombRangeRead[b] = false;
-      wolfCutoffCoulombStart[b] = 0.0;
-      wolfCutoffCoulombEnd[b] = 0.0;
-      wolfCutoffCoulombDelta[b] = 0.0;
-    }
-  }
-};
-
 struct SystemVals {
   ElectroStatic elect;
   Temperature T;
@@ -869,7 +825,6 @@ struct SystemVals {
   MEMCVal memcVal, intraMemcVal;
   NEMTMCVal neMTMCVal;
   FreeEnergy freeEn;
-  WolfCalibration wolfCal;
   TargetSwapCollection targetedSwapCollection;
   TargetSwapCollection intraTargetedSwapCollection;
 #if ENSEMBLE == GCMC
@@ -937,7 +892,7 @@ struct Statistics {
   TrackedVars vars;
 };
 struct Output {
-  SysState state, restart, state_dcd, restart_dcd, wolfCalibration;
+  SysState state, restart, state_dcd, restart_dcd;
   SysState restart_vel;
   Statistics statistics;
   EventSettings console, checkpoint;

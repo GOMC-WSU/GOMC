@@ -54,11 +54,6 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
-  wolf = val.elect.wolf;
-  dsf = val.elect.dsf;
-  intramoleculardsf = val.elect.intramoleculardsf;
-  simpleself = val.elect.simpleself;
-
   tolerance = val.elect.tolerance;
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
@@ -88,15 +83,6 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
     alphaSq[b] = alpha[b] * alpha[b];
     recip_rcut[b] = -2.0 * log(tolerance) / rCutCoulomb[b];
     recip_rcut_Sq[b] = recip_rcut[b] * recip_rcut[b];
-    if (wolf){
-      wolf_alpha[b] = val.elect.wolf_alpha[b];
-      wolf_factor_1[b] = erfc(wolf_alpha[b]*rCutCoulomb[b])/rCutCoulomb[b];
-      wolf_factor_2[b] = wolf_factor_1[b]/rCutCoulomb[b];
-      wolf_factor_2[b] += wolf_alpha[b] *  M_2_SQRTPI * 
-                        exp(-1.0*wolf_alpha[b]*wolf_alpha[b]*rCutCoulombSq[b])
-                        /rCutCoulomb[b];
-      wolf_factor_3[b] = wolf_alpha[b] *  M_2_SQRTPI;
-    }
   }
 
   vdwGeometricSigma = val.ff.vdwGeometricSigma;
@@ -138,49 +124,5 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
   } else {
     std::cout << "Error: Unknown exclude value.\n";
     exit(EXIT_FAILURE);
-  }
-}
-
-void Forcefield::SetWolfAlphaAndWolfFactors(double rcc, double wa, uint b){
-    rCutCoulomb[b]=rcc;
-    rCutCoulombSq[b]=rcc*rcc;
-    wolf_alpha[b] = wa;
-    wolf_factor_1[b] = erfc(wolf_alpha[b]*rCutCoulomb[b])/rCutCoulomb[b];
-    wolf_factor_2[b] = wolf_factor_1[b]/rCutCoulomb[b];
-    wolf_factor_2[b] += wolf_alpha[b] *  M_2_SQRTPI * 
-                      exp(-1.0*wolf_alpha[b]*wolf_alpha[b]*rCutCoulombSq[b])
-                      /rCutCoulomb[b];
-    wolf_factor_3[b] = wolf_alpha[b] *  M_2_SQRTPI;
-}
-
-void Forcefield::SetRCutCoulomb(double rcc, uint b){
-    rCutCoulomb[b]=rcc;
-    rCutCoulombSq[b]=rcc*rcc;
-}
-
-
-void Forcefield::SetWolfMethod(uint wolfmethod, uint potential){
-
-  if (wolfmethod == 0){
-    intramoleculardsf = false;
-    simpleself = false;
-  } else if (wolfmethod == 1) {
-    intramoleculardsf = true;
-    simpleself = true;
-  } else if (wolfmethod == 2) {
-    intramoleculardsf = true;
-    simpleself = false;
-  } else {
-    std::cerr << "ERROR: METHOD VALID VALUES [0,1,2]" << std::endl;
-    exit(1);
-  }
-
-  if (potential == 0){
-    dsf = false;
-  } else if (potential == 1){
-    dsf = true;
-  } else {
-    std::cerr << "ERROR: METHOD VALID VALUES [0,1]" << std::endl;
-    exit(1);
   }
 }

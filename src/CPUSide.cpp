@@ -14,8 +14,7 @@ along with this program, also can be found at
 CPUSide::CPUSide(System &sys, StaticVals &statV, Setup &set)
     : varRef(sys, statV, set.mol.molVars.moleculeKindNames), pdb(sys, statV),
       psf(statV.mol, sys, set), xstBinary(sys, statV), console(varRef),
-      block(varRef), hist(varRef), checkpoint(sys, statV, set),
-      wolfCalibration(sys, statV, set.config.sys)
+      block(varRef), hist(varRef), checkpoint(sys, statV, set)
 #if ENSEMBLE == GCMC
       ,
       sample_N_E(varRef)
@@ -44,8 +43,7 @@ void CPUSide::Init(PDBSetup const &pdbSet, config_setup::Input const &in,
     outObj.push_back(&block);
   if (out.restart.settings.enable)
     outObj.push_back(&checkpoint);
-  if (out.wolfCalibration.settings.enable)
-    outObj.push_back(&wolfCalibration);
+
 #if ENSEMBLE == GCMC
   outObj.push_back(&hist);
   outObj.push_back(&sample_N_E);

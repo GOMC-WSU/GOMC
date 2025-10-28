@@ -31,24 +31,12 @@ ConfigSetup::ConfigSetup(void) {
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
-  sys.elect.readWolf = false;
-  sys.elect.readDSF = false;
-  sys.elect.readIntramolecularDSF = false;
-  sys.elect.simpleself = false;
   sys.elect.ewald = false;
-  sys.elect.wolf = false;
-  sys.elect.dsf = false;
-  sys.elect.intramoleculardsf = false;
-  sys.elect.simpleself = false;
   sys.elect.enable = false;
   sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
-  for(i = 0; i < BOX_TOTAL; i++) {
-    sys.elect.wolf_alpha[i] = DBL_MAX;
-    sys.elect.readWolfAlpha[i] = false;
-  }
   sys.memcVal.enable = false;
   sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
@@ -120,8 +108,6 @@ ConfigSetup::ConfigSetup(void) {
 #endif
   out.checkpoint.enable = false;
   out.checkpoint.frequency = ULONG_MAX;
-  out.wolfCalibration.settings.enable = false;
-  out.wolfCalibration.settings.frequency = false;
   out.statistics.settings.uniqueStr.val = "";
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
@@ -707,79 +693,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       if (sys.elect.ewald) {
         printf("%-40s %-s \n", "Info: Ewald Summation", "Active");
       }
-    } else if (CheckString(line[0], "Wolf")) {
-      sys.elect.wolf = checkBool(line[1]);
-      sys.elect.readWolf = true;
-      if (sys.elect.wolf) {
-        printf("%-40s %-s \n", "Info: Wolf Summation", "Active");
-      }
-    } else if (CheckString(line[0], "DSF")) {
-      sys.elect.dsf = checkBool(line[1]);
-      sys.elect.readDSF = true;
-      if (sys.elect.dsf) {
-        printf("%-40s %-s \n", "Info: Wolf Summation DSF", "Active");
-      }
-    } else if (CheckString(line[0], "IntraDSF")) {
-      sys.elect.intramoleculardsf = checkBool(line[1]);
-      sys.elect.readIntramolecularDSF = true;
-      if (sys.elect.intramoleculardsf) {
-        printf("%-40s %-s \n", "Info: Wolf Summation INTRAMOLECULAR DSF", "Active");
-      }
-    } else if (CheckString(line[0], "SimpleSelf")) {
-      sys.elect.simpleself = checkBool(line[1]);
-      sys.elect.readSimpleSelf = true;
-      if (sys.elect.simpleself) {
-        printf("%-40s %-s \n", "Info: Wolf Summation SIMPLE SELF", "Active");
-      }
-    } else if (CheckString(line[0], "WolfAlpha")) {
-      if (line.size() != 3){
-          std::cout <<  "Error: Wolf Alpha incorrectly specified!" << std::endl <<
-                        "Usage : WolfAlpha\tBox(0,1)\tvalue" << std::endl <<
-                        "Example : WolfAlpha\t0\t1.0" << std::endl;
-          exit(EXIT_FAILURE);
-      } else {
-        int b = stringtoi(line[1]); 
-        sys.elect.readWolfAlpha[b] = true;
-        sys.elect.wolf_alpha[b] = stringtod(line[2]);       
-        if (b == 0)
-          printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 0", sys.elect.wolf_alpha[b]);
-        else if (b == 1)
-          printf("%-40s %-1.3E \n", "Info: Wolf Alpha Box 1", sys.elect.wolf_alpha[b]);
-        else{
-          std::cout <<  "Error: Only (0/1) for box is supported!" << std::endl <<
-          "You entered : WolfAlpha\t" << b << "\tvalue" << std::endl;
-          exit(EXIT_FAILURE);
-        }
-      }
-    } else if (CheckString(line[0], "WolfAlphaRange")){
-        if(line.size() == 5) {
-          uint b = stringtoi(line[1]);
-          sys.wolfCal.wolfAlphaRangeRead[b] = true;
-          sys.wolfCal.wolfAlphaStart[b] = stringtod(line[2]);
-          sys.wolfCal.wolfAlphaEnd[b] = stringtod(line[3]);
-          sys.wolfCal.wolfAlphaDelta[b] = stringtod(line[4]);
-          printf("%-40s %d %-8s %-1.3E %-8s %-1.3E %-8s %-1.3E\n", "Info: Wolf Alpha Range Box", b, "START", sys.wolfCal.wolfAlphaStart[b],
-           "END", sys.wolfCal.wolfAlphaEnd[b],  "DELTA", sys.wolfCal.wolfAlphaDelta[b]);
-        } else {
-          std::cout <<  "Error: WolfAlphaRange requires 4 arguments!" << std::endl <<
-          "Usage: WolfAlphaRange\tBOX\tSTART\tEND\tDELTA" << std::endl;
-          exit(EXIT_FAILURE);
-
-        }      
-    } else if (CheckString(line[0], "WolfCutoffCoulombRange")){
-        if(line.size() == 5) {
-          uint b = stringtoi(line[1]);
-          sys.wolfCal.wolfCutoffCoulombRangeRead[b] = true;
-          sys.wolfCal.wolfCutoffCoulombStart[b] = stringtod(line[2]);
-          sys.wolfCal.wolfCutoffCoulombEnd[b] = stringtod(line[3]);
-          sys.wolfCal.wolfCutoffCoulombDelta[b] = stringtod(line[4]);
-          printf("%-40s %d %-8s %-1.3E %-8s %-1.3E %-8s %-1.3E\n", "Info: Wolf Cutoff Coulomb Range Box", b, 
-          "START", sys.wolfCal.wolfCutoffCoulombStart[b], "END", sys.wolfCal.wolfCutoffCoulombEnd[b],  
-          "DELTA", sys.wolfCal.wolfCutoffCoulombDelta[b]);
-        } else {
-          std::cout <<  "Error: WolfCutoffCoulombRange requires 4 arguments!" << std::endl <<
-          "Usage: WolfCutoffCoulombRange\tBOX\tSTART\tEND\tDELTA" << std::endl;
-        }
     } else if (CheckString(line[0], "ElectroStatic")) {
       sys.elect.enable = checkBool(line[1]);
       sys.elect.readElect = true;
@@ -1435,17 +1348,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
                out.statistics.settings.block.frequency);
       } else
         printf("%-40s %-s \n", "Info: Average output", "Inactive");
-    } else if(CheckString(line[0], "WolfCalibrationFreq")) {
-      if(line.size() == 3){
-        out.wolfCalibration.settings.enable = checkBool(line[1]);
-        out.wolfCalibration.settings.frequency = stringtoi(line[2]);
-      }
-      if(out.wolfCalibration.settings.enable){
-        printf("%-40s %-lu \n", "Info: Wolf Calibration output frequency",
-          out.wolfCalibration.settings.frequency);
-      } else {
-        printf("%-40s %-s \n", "Info: Wolf Calibration output", "Inactive");
-      }
     }
 #if ENSEMBLE == GCMC
     else if (CheckString(line[0], "HistogramFreq")) {
@@ -1874,40 +1776,6 @@ void ConfigSetup::verifyInputs(void) {
       std::abs(sys.moves.multiParticleBrownian) > 0.0000001) {
     std::cout << "ERROR: Both multi-Particle and multi-Particle Brownian! "
               << " cannot be used at the same time!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  if(sys.elect.wolf && sys.elect.ewald){
-    std::cout << "Error: Wolf Electrostatic and Ewald cannot both be used to approximate reciprocal space!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  if(sys.elect.wolf && !sys.elect.dsf && sys.moves.multiParticleEnabled){
-    printf("Warning: Wolf Damped Shifted Potential (DSP) set with Multiparticle enabled.");
-    printf("The force using DSP is discontinuous at the cutoff.  We recommend DSF with MP enabled.\n");
-    //exit(EXIT_FAILURE);
-  }
-
-  if(out.wolfCalibration.settings.enable){
-    bool readAllRequired = true;
-    for(i = 0 ; i < BOXES_WITH_U_NB ; i++) {
-      readAllRequired &= sys.wolfCal.wolfAlphaRangeRead[i];
-      readAllRequired &= sys.wolfCal.wolfCutoffCoulombRangeRead[i];
-    }
-    if(!readAllRequired){
-      printf("Error: Wolf Calibration alpha and Rcut ranges are not set for all boxes!");
-      exit(EXIT_FAILURE);
-    }
-    // Make sure I can check smaller RCutCoulombs without missing pairs.
-    for(int b = 0 ; b < BOXES_WITH_U_NB ; b++) {
-        printf("%s %-d CutoffCoulomb %4.4f A = (WolfCutoffCoulombRangeEnd %4.4f A)\n", "Warning: Setting Box ", b,
-               sys.elect.cutoffCoulomb[b], sys.wolfCal.wolfCutoffCoulombEnd[b]);
-        sys.elect.cutoffCoulomb[b] = sys.wolfCal.wolfCutoffCoulombEnd[b];
-    }
-  }
-
-  if (out.wolfCalibration.settings.enable && !sys.elect.ewald) {
-    std::cout << "Error: WolfCalibration requires Ewald True!" << std::endl;
     exit(EXIT_FAILURE);
   }
 

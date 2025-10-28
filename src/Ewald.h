@@ -227,7 +227,6 @@ protected:
   std::vector<double> particleCharge;
   // which atoms don't have charge
   std::vector<bool> particleHasNoCharge;
-  bool allocDone;
 };
 
 #endif /*EWALD_H*/
