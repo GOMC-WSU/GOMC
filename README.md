@@ -39,6 +39,30 @@ If you are using some more recent features of GOMC, such as the MultiParticle mo
 
 > NOTE: Building GOMC requires [CMake](https://cmake.org/) version 3.18 or newer. CMake is available in most Linux distributions (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/) "User Manual".
 
+## Building GOMC in Docker (Linux)
+
+  1. Clone or download our code from GitHub:
+      ```bash
+      git clone https://github.com/GOMC-WSU/GOMC.git
+      ```
+  2. Go into the GOMC directory: 
+      ```bash
+      cd GOMC
+      ```
+  3. Download/Install Docker:
+      ```bash
+      sudo apt-get update && sudo apt-get install -y docker.io
+      ```
+  4. Issue docker build command:
+      ```bash
+      docker build -t gomc/gomc:cpu -f dockerfiles/GOMC_CPU.dockerfile
+      ```
+
+  5. Run docker images:
+      ```bash
+      sudo docker run -i -t gomc/gomc:cpu
+      ```
+
 ## Building GOMC on Windows:
 
 1.  If building GPU executables and the CUDA version is older than CUDA 11, download the [CUB library](https://nvlabs.github.io/cub/download_cub.html).

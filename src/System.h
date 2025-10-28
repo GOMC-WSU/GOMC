@@ -116,6 +116,10 @@ public:
 
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;
+  // Only used for Wolf Calibration.
+  // Otherwise, the calcEwald is the derived Wolf class, 
+  // similar to NoEwald
+  Ewald *calcWolf;
 
   /* For checkpoint restoration */
   CheckpointSetup checkpointSet;

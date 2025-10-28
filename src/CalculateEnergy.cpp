@@ -59,9 +59,16 @@ CalculateEnergy::CalculateEnergy(StaticVals &stat, System &sys)
       currentAxes(sys.boxDimRef), cellList(sys.cellList) {
 }
 
+void CalculateEnergy::UpdateEwald(){
+  calcEwald = *ptrToCalcEwald;
+}
+
 void CalculateEnergy::Init(System &sys) {
   uint maxAtomInMol = 0;
   calcEwald = sys.GetEwald();
+  // For Wolf Calibration.
+  ptrToCalcEwald = &(sys.calcEwald);
+
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
   multiParticleEnabled = sys.statV.multiParticleEnabled;

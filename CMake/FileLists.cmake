@@ -48,6 +48,8 @@ set(sources
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
+   src/Wolf.cpp
+   src/WolfCalibrationOutput.cpp
    src/cbmc/DCCrankShaftAng.cpp
    src/cbmc/DCCrankShaftDih.cpp
    src/cbmc/DCCyclic.cpp
@@ -146,6 +148,8 @@ set(headers
    src/TransformMatrix.h
    src/Velocity.h
    src/Writer.h
+   src/Wolf.h
+   src/WolfCalibrationOutput.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
    src/cbmc/DCCrankShaftAng.h

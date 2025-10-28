@@ -34,6 +34,10 @@ public:
   // Initialize contained FFxxxx structs from setup data
   void Init(const Setup &set);
 
+  void SetWolfAlphaAndWolfFactors(double, double, uint);
+  void SetRCutCoulomb(double, uint);
+  void SetWolfMethod(uint, uint);
+
   FFParticle *particles; //!< For LJ/Mie energy between unbonded atoms
   // for LJ, shift and switch type
   FFBonds bonds;             //!< For bond stretching energy
@@ -52,6 +56,10 @@ public:
   double recip_rcut[BOX_TOTAL];    // Ewald sum terms
   double recip_rcut_Sq[BOX_TOTAL]; // Ewald sum terms
   double tolerance;                // Ewald sum terms
+  double wolf_alpha[BOX_TOTAL];    // Wolf sum terms
+  double wolf_factor_1[BOX_TOTAL]; // Wolf sum terms
+  double wolf_factor_2[BOX_TOTAL]; // Wolf sum terms
+  double wolf_factor_3[BOX_TOTAL]; // Wolf sum terms
   double rswitch;                  // Switch distance
   double dielectric;               // dielectric for martini
   double scaling_14; //!< Scaling factor for 1-4 pairs' Ewald interactions
@@ -59,7 +67,7 @@ public:
   double sc_sigma, sc_sigma_6; // Free energy parameter
 
   bool OneThree, OneFour, OneN; // To include 1-3, 1-4 and more interaction
-  bool electrostatic, ewald;    // To consider coulomb interaction
+  bool electrostatic, ewald, wolf, dsf, intramoleculardsf, simpleself;    // To consider columb interaction
   bool vdwGeometricSigma;       // For sigma combining rule
   bool isMartini;
   bool exp6;

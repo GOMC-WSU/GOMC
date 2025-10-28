@@ -51,6 +51,7 @@ class CalculateEnergy {
 public:
   CalculateEnergy(StaticVals &stat, System &sys);
 
+  void UpdateEwald();
   void Init(System &sys);
 
   //! Calculates total energy/virial of all boxes in the system
@@ -274,6 +275,8 @@ private:
   const Molecules &mols;
   const Coordinates &currentCoords;
   const COM &currentCOM;
+  // Used by Wolf Calibration.
+  Ewald **ptrToCalcEwald;
   const Ewald *calcEwald;
   const Lambda &lambdaRef;
   XYZArray &atomForceRef;
