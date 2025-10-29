@@ -6,7 +6,7 @@ along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifdef GOMC_CUDA
-#include "cub/cub.cuh"
+#include <cub/device/device_reduce.cuh>
 #include <cuda.h>
 #include <cuda_runtime.h>
 

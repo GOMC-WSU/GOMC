@@ -7,6 +7,8 @@ along with this program, also can be found at
 ********************************************************************************/
 #ifdef GOMC_CUDA
 
+#include <cub/block/block_reduce.cuh>
+#include <cub/device/device_reduce.cuh>
 #include <cuda.h>
 #include <cuda_runtime.h>
 
@@ -18,9 +20,6 @@ along with this program, also can be found at
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "MoveSettings.h"
-#include "cub/cub.cuh"
-
-using namespace cub;
 
 // Use this function when calculating the reciprocal terms
 // for a new volume. Such as a change in box dimensions.
@@ -217,8 +216,9 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
 #endif
 
   // ReduceSum
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_recipEnergies,
+                         vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
 #ifndef NDEBUG
@@ -268,8 +268,9 @@ void CallMolReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
 #endif
 
   // ReduceSum
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_recipEnergies,
+                         vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
 #ifndef NDEBUG
@@ -309,8 +310,9 @@ void CallMolExchangeReciprocalGPU(VariablesCUDA *vars, uint imageSize, uint box,
 #endif
 
   // ReduceSum
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_recipEnergies,
+                         vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
 #ifndef NDEBUG
@@ -354,8 +356,9 @@ void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
 #endif
 
   // ReduceSum
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_recipEnergies, vars->gpu_finalVal, imageSize);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_recipEnergies,
+                         vars->gpu_finalVal, imageSize);
   cudaMemcpy(&energyRecipNew, vars->gpu_finalVal, sizeof(double),
              cudaMemcpyDeviceToHost);
 #ifndef NDEBUG

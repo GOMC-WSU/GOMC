@@ -6,6 +6,7 @@ along with this program, also can be found at
 <https://opensource.org/licenses/MIT>.
 ********************************************************************************/
 #ifdef GOMC_CUDA
+#include <cub/block/block_reduce.cuh>
 #include <cuda.h>
 
 #include <vector>
@@ -14,9 +15,6 @@ along with this program, also can be found at
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
-#include "cub/cub.cuh"
-
-using namespace cub;
 
 void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,

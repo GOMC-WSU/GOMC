@@ -7,6 +7,8 @@ along with this program, also can be found at
 ********************************************************************************/
 #ifdef GOMC_CUDA
 
+#include <cub/block/block_reduce.cuh>
+#include <cub/device/device_reduce.cuh>
 #include <cuda.h>
 
 #include "CUDAMemoryManager.cuh"
@@ -15,9 +17,6 @@ along with this program, also can be found at
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "MoveSettings.h"
-#include "cub/cub.cuh"
-
-using namespace cub;
 
 void CallBoxInterForceGPU(
     VariablesCUDA *vars, const std::vector<int> &cellVector,
@@ -94,23 +93,26 @@ void CallBoxInterForceGPU(
 #endif
 
   // Uncomment if more than the main diagonal values are needed
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_vT11, vars->gpu_finalVal, energyVectorLen);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_vT11,
+                         vars->gpu_finalVal, energyVectorLen);
   cudaMemcpy(&vT11, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_vT22, vars->gpu_finalVal, energyVectorLen);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_vT22,
+                         vars->gpu_finalVal, energyVectorLen);
   cudaMemcpy(&vT22, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_vT33, vars->gpu_finalVal, energyVectorLen);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_vT33,
+                         vars->gpu_finalVal, energyVectorLen);
   cudaMemcpy(&vT33, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-  // vars->gpu_vT12, vars->gpu_finalVal, energyVectorLen);
-  // cudaMemcpy(&vT12, vars->gpu_finalVal, sizeof(double),
-  // cudaMemcpyDeviceToHost); DeviceReduce::Sum(vars->cub_reduce_storage,
+  // cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+  // vars->cub_reduce_storage_size, vars->gpu_vT12, vars->gpu_finalVal,
+  // energyVectorLen); cudaMemcpy(&vT12, vars->gpu_finalVal, sizeof(double),
+  // cudaMemcpyDeviceToHost); cub::DeviceReduce::Sum(vars->cub_reduce_storage,
   // vars->cub_reduce_storage_size, vars->gpu_vT13, vars->gpu_finalVal,
   // energyVectorLen);
   // cudaMemcpy(&vT13, vars->gpu_finalVal, sizeof(double),
-  // cudaMemcpyDeviceToHost); DeviceReduce::Sum(vars->cub_reduce_storage,
+  // cudaMemcpyDeviceToHost); cub::DeviceReduce::Sum(vars->cub_reduce_storage,
   // vars->cub_reduce_storage_size, vars->gpu_vT23, vars->gpu_finalVal,
   // energyVectorLen);
   // cudaMemcpy(&vT23, vars->gpu_finalVal, sizeof(double),
@@ -118,27 +120,30 @@ void CallBoxInterForceGPU(
 
   if (electrostatic) {
     // ReduceSum // Virial of Coulomb
-    DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                      vars->gpu_rT11, vars->gpu_finalVal, energyVectorLen);
+    cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                           vars->cub_reduce_storage_size, vars->gpu_rT11,
+                           vars->gpu_finalVal, energyVectorLen);
     cudaMemcpy(&rT11, vars->gpu_finalVal, sizeof(double),
                cudaMemcpyDeviceToHost);
-    DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                      vars->gpu_rT22, vars->gpu_finalVal, energyVectorLen);
+    cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                           vars->cub_reduce_storage_size, vars->gpu_rT22,
+                           vars->gpu_finalVal, energyVectorLen);
     cudaMemcpy(&rT22, vars->gpu_finalVal, sizeof(double),
                cudaMemcpyDeviceToHost);
-    DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                      vars->gpu_rT33, vars->gpu_finalVal, energyVectorLen);
+    cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                           vars->cub_reduce_storage_size, vars->gpu_rT33,
+                           vars->gpu_finalVal, energyVectorLen);
     cudaMemcpy(&rT33, vars->gpu_finalVal, sizeof(double),
                cudaMemcpyDeviceToHost);
-    // DeviceReduce::Sum(vars->cub_reduce_storage,
+    // cub::DeviceReduce::Sum(vars->cub_reduce_storage,
     // vars->cub_reduce_storage_size, vars->gpu_rT12, vars->gpu_finalVal,
     // energyVectorLen);
     // cudaMemcpy(&rT12, vars->gpu_finalVal, sizeof(double),
-    // cudaMemcpyDeviceToHost); DeviceReduce::Sum(vars->cub_reduce_storage,
+    // cudaMemcpyDeviceToHost); cub::DeviceReduce::Sum(vars->cub_reduce_storage,
     // vars->cub_reduce_storage_size, vars->gpu_rT13, vars->gpu_finalVal,
     // energyVectorLen);
     // cudaMemcpy(&rT13, vars->gpu_finalVal, sizeof(double),
-    // cudaMemcpyDeviceToHost); DeviceReduce::Sum(vars->cub_reduce_storage,
+    // cudaMemcpyDeviceToHost); cub::DeviceReduce::Sum(vars->cub_reduce_storage,
     // vars->cub_reduce_storage_size, vars->gpu_rT23, vars->gpu_finalVal,
     // energyVectorLen);
     // cudaMemcpy(&rT23, vars->gpu_finalVal, sizeof(double),
@@ -314,23 +319,26 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
 
   // ReduceSum -- Virial of Reciprocal
   // Uncomment if more than the main diagonal values are needed
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_wT11, vars->gpu_finalVal, imageSize);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_wT11,
+                         vars->gpu_finalVal, imageSize);
   cudaMemcpy(&wT11, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_wT22, vars->gpu_finalVal, imageSize);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_wT22,
+                         vars->gpu_finalVal, imageSize);
   cudaMemcpy(&wT22, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-                    vars->gpu_wT33, vars->gpu_finalVal, imageSize);
+  cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+                         vars->cub_reduce_storage_size, vars->gpu_wT33,
+                         vars->gpu_finalVal, imageSize);
   cudaMemcpy(&wT33, vars->gpu_finalVal, sizeof(double), cudaMemcpyDeviceToHost);
-  // DeviceReduce::Sum(vars->cub_reduce_storage, vars->cub_reduce_storage_size,
-  // vars->gpu_wT12, vars->gpu_finalVal, imageSize);
-  // cudaMemcpy(&wT12, vars->gpu_finalVal, sizeof(double),
-  // cudaMemcpyDeviceToHost); DeviceReduce::Sum(vars->cub_reduce_storage,
+  // cub::DeviceReduce::Sum(vars->cub_reduce_storage,
+  // vars->cub_reduce_storage_size, vars->gpu_wT12, vars->gpu_finalVal,
+  // imageSize); cudaMemcpy(&wT12, vars->gpu_finalVal, sizeof(double),
+  // cudaMemcpyDeviceToHost); cub::DeviceReduce::Sum(vars->cub_reduce_storage,
   // vars->cub_reduce_storage_size, vars->gpu_wT13, vars->gpu_finalVal,
   // imageSize);
   // cudaMemcpy(&wT13, vars->gpu_finalVal, sizeof(double),
-  // cudaMemcpyDeviceToHost); DeviceReduce::Sum(vars->cub_reduce_storage,
+  // cudaMemcpyDeviceToHost); cub::DeviceReduce::Sum(vars->cub_reduce_storage,
   // vars->cub_reduce_storage_size, vars->gpu_wT23, vars->gpu_finalVal,
   // imageSize);
   // cudaMemcpy(&wT23, vars->gpu_finalVal, sizeof(double),
