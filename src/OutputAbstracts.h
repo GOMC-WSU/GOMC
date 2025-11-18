@@ -48,11 +48,13 @@ public:
       Sample(step);
     }
 
-    /* We will output either when the step number is every stepsPerOut
-       Or recalculate trajectory is enabled (forceOutput) */
-    /* printOnFirstStep -- only true for PSFOutput, WolfCalibration  */
+    // We will output either when the step number is every stepsPerOut,
+    // at the end, or recalculate trajectory is enabled (forceOutput)
+    // printOnFirstStep -- only true for PSFOutput, WolfCalibration
     if ((printOnFirstStep && step == startStep) ||
-        (enableOut && ((step + 1) % stepsPerOut == 0) || forceOutput)) {
+        (enableOut &&
+         (((step + 1) % stepsPerOut == 0) || ((step + 1) == totSimSteps))) ||
+        forceOutput) {
       DoOutput(step);
       firstPrint = false;
     }
