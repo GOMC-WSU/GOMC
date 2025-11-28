@@ -11,8 +11,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "ParallelTemperingPreprocessor.h"
 #endif
 #ifdef GOMC_CUDA
-#include <cuda_runtime_api.h>
 #include <cuda.h>
+#include <cuda_runtime_api.h>
 #endif
 #ifdef _OPENMP
 #include <unordered_map>
