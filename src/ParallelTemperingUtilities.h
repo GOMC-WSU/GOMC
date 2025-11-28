@@ -48,7 +48,7 @@
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in License.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+along with this program. also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef ParallelTemperingUtilities_H
 #define ParallelTemperingUtilities_H
