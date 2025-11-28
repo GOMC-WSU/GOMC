@@ -343,7 +343,6 @@ void Dihedral::Read(Reader & param, std::string const& firstVar)
   if(index == 0) {
     //set phase shift for n=0 to 90 degree
     // We will have C0 = Kchi (1 + cos(0 * phi + 90)) = Kchi
-    //this avoids double counting the C0 (constant offset) term, which is used force fields like TraPPE
     def = 90.00;
   }
   Add(merged, coeff, index, def);
