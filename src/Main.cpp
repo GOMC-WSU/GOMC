@@ -12,8 +12,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #endif
 #ifdef GOMC_CUDA
 #include <cuda_runtime_api.h>
-
-#include "cuda.h"
+#include <cuda.h>
 #endif
 #ifdef _OPENMP
 #include <unordered_map>
@@ -73,7 +72,7 @@ int main(int argc, char *argv[]) {
     // FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
     std::string inputFileString;
     std::fstream inputFileReader;
-    uint numThreads;
+    int numThreads;
 
     // CHECK IF ARGS/FILE PROVIDED IN CMD LINE
     if (argc < 2) {
