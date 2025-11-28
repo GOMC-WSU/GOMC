@@ -1,15 +1,16 @@
-trigger: none
+# Starter pipeline
+
+
+trigger:
+- DebugPME
 
 pool:
   vmImage: ubuntu-latest
 
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
 
-stages:
-- stage: stage1 
-  displayName: My first stage
-  jobs:
-  - job: job1
-    displayName: My first job
-    steps:
-      - script: echo "Hello world"
-        displayName:  my first pipeline
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+  displayName: 'Run a multi-line script'
