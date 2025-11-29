@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #include "CalculateEnergy.h" //header for this
 
 #include <cassert>
@@ -199,7 +197,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   tempLJEn, forcefield.sc_coul, forcefield.sc_sigma_6,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
-#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#if defined _OPENMP
 #pragma omp parallel for default(none) shared(                                 \
         cellStartIndex, cellVector, coords, mapParticleToCell, neighborList)   \
     firstprivate(box, boxAxes, num::qqFact) reduction(+ : tempREn, tempLJEn)
@@ -469,7 +467,7 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
                        forcefield.sc_coul, forcefield.sc_sigma_6,
                        forcefield.sc_alpha, forcefield.sc_power, box);
 #else
-#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#if defined _OPENMP
 #pragma omp parallel for default(none)                                         \
     shared(cellStartIndex, cellVector, mapParticleToCell, neighborList)        \
     firstprivate(box) reduction(+ : vT11, vT12, vT13, vT22, vT23, vT33, rT11,  \
@@ -679,7 +677,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
     shared(molCoords, nIndex, NonOrthAxes, OrthAxes)                           \
-    firstprivate(box, atom, molIndex, num::qqFact, orthogonal, p)              \
+    firstprivate(atom, box, molIndex, num::qqFact, orthogonal, p)              \
     reduction(+ : tempREn, tempLJEn) reduction(| : overlap)
 #endif
       for (int i = 0; i < static_cast<int>(nIndex.size()); ++i) {

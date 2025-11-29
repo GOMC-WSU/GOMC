@@ -2,7 +2,7 @@
 
 GOMC is an acronym for GPU Optimized Monte Carlo. GOMC is a parallel molecular simulation code designed for high-performance simulation of large systems that runs on both CPUs, with or without OpenMP, and NVIDIA GPUs.
 
-Current Release: 2.80 (10/10/2025)
+Current Release: 2.80 (12/03/2025)
 
 The latest stable release is available on the main branch. The development branch is used for staging changes that should be stable but have not been thoroughly tested. If you encounter a problem running GOMC using the main branch, please try the development branch to see if your problem has already been fixed. If not, please post a GitHub issue, with the requested documents and details, so we can investigate the problem.
 

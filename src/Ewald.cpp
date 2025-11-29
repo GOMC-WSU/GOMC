@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #include "Ewald.h"
 
 #include <cassert>
@@ -1642,8 +1640,8 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
             }
           }
 #ifdef _OPENMP
-#pragma omp parallel for default(none)                                         \
-    shared(box, lambdaCoef, molCoords, moveType, p) reduction(+ : X, Y, Z)
+#pragma omp parallel for default(none) shared(molCoords)                       \
+    firstprivate(box, lambdaCoef, moveType, p) reduction(+ : X, Y, Z)
 #endif
           for (int i = 0; i < (int)imageSizeRef[box]; i++) {
             double dot =

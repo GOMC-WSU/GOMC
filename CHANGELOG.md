@@ -1,8 +1,27 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.80] - 12/03/2025
++ Added Molecule Exchange move for two liquid boxes.
++ Add support for CUDA version 13 and earlier.
++ Upgraded to C++17.
++ Build for any CUDA architecture compatible with the corresponding CUDA version.
++ Improve OpenMP calls.
++ Performance improvements, including some GPU calls.
++ Enable non-integer values for MIE potential.
++ Upgrade Random123 to version 1.14 and cereal to version 1.3.2.
++ More error checking of incompatible configuration parameters.
++ Improvements to the build process with some new options.
++ Consolidate MPI builds into the metamake.sh script.
++ Many bug fixes, including some small memory leaks and other memory management issues.
++ Upgraded our CMake to 3.18.
+
+## [2.75] - 11/02/2022
++ Added support for the Non-equilibrium Molecule Transfer move.
++ Numerous bug fixes.
+
 ## [2.70] - 10/13/2020
-+ This release forcues on GPU performance improvements
++ This release focuses on GPU performance improvements
 + Using Random123 to be able to generate the same random number on GPU and port Translation and Rotation of molecules to the GPU
 + Upgraded to C++14
 + Lots of bug fixes
@@ -19,7 +38,7 @@ All notable changes to this project will be documented in this file.
 + Fixed a warning due to ignoring return value of fscanf
 
 ## [2.50] - 1/20/2020
-+ Addes support for force biased multiparticle move
++ Added support for force biased multiparticle move
 + Added support for free energy calculations using TI and FEP methods
 + Support for multiple simulation with different temperatures using MPI
 + Added support for Exponential-6 forcefield
@@ -37,7 +56,7 @@ All notable changes to this project will be documented in this file.
 + Added an error message when charges detected and ewald was set to false (#99)
 + Fixed compiling issue on Visual Studio (#110)
 + Fixed the issue where GOMC did not read CHARMM parameter files missing Urey-Bradley terms (#147)
-+ Reduced GOMC reposity size
++ Reduced GOMC repository size
 
 ## [2.40] - 3/15/2019
 + Added support for Cyclic molecules.
@@ -56,7 +75,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.31] - 5/21/2018
 + Compiling problem fixed on CYGWIN
-+ Fix to the error checking of volume exchange if simulation volume became negative
++ Fix to the error checking of volume exchange if simulation volume became negative.
 + Fix the equation to impose fix angle if the angle is less than 90. Generate error if constrained angle is not possible.
 + Fixed a bug where move timings were 0 in windows.
 + Fixed the issue where input files imported from NVT to NPT had zero volume, default value of 500 will be assigned in those cases.
@@ -66,13 +85,13 @@ All notable changes to this project will be documented in this file.
 + Cleaned up the code and removed any memory leaks and bugs.
 + Redesigned Ewald, EwaldCached, and NoEwald to be more efficient and allocate less memory.
 + Added an error when multiple atoms have zero coordinates.
-+ Added an error when resorvoir is empty and should print an error message and exit.
++ Added an error when reservoir is empty and should print an error message and exit.
 + Fixed some typo in output.
 + Fix a bug where seed number output and input was not the same size, so we changed int to uint while reading to avoid overflow. They both use uint now.
 + Increase memory allocation for NPT simulation in Ewald.
 + Fixed a bug in PickWeighted() function where it was return a value larger than the array.
 + Printing individual timing information for each move.
-+ To avoid getting large energy we are recalculating the total system at equilbrium step.
++ To avoid getting large energy we are recalculating the total system at equilibrium step.
 + Print CBMC information including first atom trial, secondary atom trials, angle trials, and dihedral trials.
 + Fix a bug where in windows the clock() function was returning a wrong value
 + Fix compiler warning for macOS in ConfigSetup file
@@ -80,7 +99,7 @@ All notable changes to this project will be documented in this file.
 ## [2.20] - 1/2/2018
 + Non orthogonal implementation
 + Removed CUB library from our source code and we will automatically download CUB library before compiling (newest version all the time!).
-+ Removed compute_20 and compute_21 since they are depricated and CUDA 9 will generate fatal error. 
++ Removed compute_20 and compute_21 since they are deprecated and CUDA 9 will generate fatal error. 
 + Fixed a problem where the input reader will skip random_seed because there was a "info" print in an "else if" and would block anything after that.
 + Fixed a bug in MoveSettings where two for loops where not initialized.
 + Fixed a bug where in simulation of polar molecules, if any atom of the molecule has no VDW parameter (e.g. water), there is a chance that during insertion, atom of opposite charge will overlap and generate a very large energy value. Current mechanism of avoiding overlap is not working properly
@@ -92,7 +111,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.1] - 9/4/2017
 + Adsorption
-+ Fixed the bug where GPU and CPU total energy calculations where slighty different.
++ Fixed the bug where GPU and CPU total energy calculations where slightly different.
 + Removed some unused variables
 + Removed some warnings
 + Fixed pow function ambiguity in some compilers like clang
@@ -114,13 +133,13 @@ All notable changes to this project will be documented in this file.
 + Bug Fixes
 
 ## [1.7] - 04/21/2016
-+ Fix the bug of free Ewald class, which returns memory segmentation fault if ewald is not activated.
++ Fix the bug of free Ewald class, which returns memory segmentation fault if Ewald is not activated.
 TO DO: IntraSwap does not work properly. The bug is going to be fixed.
 
 
 ##[1.6] - 04/01/2016
 + IntraSwap is added into the code.
-+ Blockoutput, fluctoutput are modified to print out ewald energies.
++ Blockoutput, fluctoutput are modified to print out Ewald energies.
 + Tests of this modification are not done yet.
 
 ## [1.7] - 03/24/2016
@@ -150,12 +169,12 @@ TO DO: IntraSwap does not work properly. The bug is going to be fixed.
 + Update CPUSide.cpp, move hist into the ifdef of GCMC. Target at the floating operation issue returned by NVT and GEMC simulations.
 
 ##[1.00] Ewald branch - 12/8/2015
-+ Improve the initialization of Ewald's parameters, so that non-ewald simulation can also run on ewald code without crashing.
++ Improve the initialization of Ewald's parameters, so that non-Ewald simulation can also run on Ewald code without crashing.
 + CMakeList.txt file is added.
 
 ##[1.00] - 12/4/2015
-+ Added Examples of water and DME for NVT and GCMC
-+ Added bin/linux, which contains all executable files for linux
++ Added Examples of water and DME for NVT and GCMC.
++ Added bin/linux, which contains all executable files for linux.
 
 ## [1.0] - 10/18/2015
 + Changes for input file system.

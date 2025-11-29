@@ -121,7 +121,7 @@ endif()
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
-# Optional CMake Argument
+# Optional CMake Arguments
 option(GOMC_GTEST    "Build unit tests for GOMC" OFF)
 option(GOMC_GTEST_MPI    "Build unit tests for GOMC - MPI Enabled" OFF)
 
