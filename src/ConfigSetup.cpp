@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #include "ConfigSetup.h"
 
 #include <iomanip>
@@ -442,7 +440,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeBox(idx, b);
         sys.intraTargetedSwapCollection.AddsubVolumeBox(idx, b);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 2 values for SubVolumeBox, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -457,7 +455,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeCenter(idx, temp);
         sys.intraTargetedSwapCollection.AddsubVolumeCenter(idx, temp);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 4 values for SubVolumeCenter, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -468,7 +466,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumePBC(idx, line[2]);
         sys.intraTargetedSwapCollection.AddsubVolumePBC(idx, line[2]);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 2 values for SubVolumePBC, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -483,7 +481,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeAtomList(idx, temp);
         sys.intraTargetedSwapCollection.AddsubVolumeAtomList(idx, temp);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected atleast 3 values for SubVolumeCenterList, but "
                "received",
                line.size() - 1);
@@ -499,7 +497,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeDimension(idx, temp);
         sys.intraTargetedSwapCollection.AddsubVolumeDimension(idx, temp);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 4 values for SubVolumeDim, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -515,7 +513,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
         sys.intraTargetedSwapCollection.AddsubVolumeResKind(idx, temp);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected atleast 2 values for SubVolumeResidueKind, but "
                "received",
                line.size() - 1);
@@ -528,7 +526,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
         sys.intraTargetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 2 values for SubVolumeRigidSwap, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -544,7 +542,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value,
                                                        isFugacity);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 3 values for SubVolumeChemPot, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -558,7 +556,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value,
                                                        isFugacity);
       } else {
-        printf("%-40s %-lu !\n",
+        printf("%-40s %-zu !\n",
                "ERROR: Expected 3 values for SubVolumeFugacity, but received",
                line.size() - 1);
         exit(EXIT_FAILURE);
@@ -904,19 +902,19 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
         sys.memcVal.enable = true;
         sys.memcVal.MEMC3 = true;
       }
-    } else if(CheckString(line[0], "MEMC-2-LiqFreq")) {
-      if(stringtod(line[1]) > 0.0){
+    } else if (CheckString(line[0], "MEMC-2-LiqFreq")) {
+      if (stringtod(line[1]) > 0.0) {
         sys.moves.memc = stringtod(line[1]);
         printf("%-40s %-4.4f \n", "Info: MEMC-2-Liq move frequency",
-            sys.moves.memc);
+               sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC2Liq = true;
       }
-    } else if(CheckString(line[0], "MEMC-3-LiqFreq")) {
-      if(stringtod(line[1]) > 0.0){
+    } else if (CheckString(line[0], "MEMC-3-LiqFreq")) {
+      if (stringtod(line[1]) > 0.0) {
         sys.moves.memc = stringtod(line[1]);
         printf("%-40s %-4.4f \n", "Info: MEMC-3-Liq move frequency",
-            sys.moves.memc);
+               sys.moves.memc);
         sys.memcVal.enable = true;
         sys.memcVal.MEMC3Liq = true;
       }
@@ -2270,16 +2268,19 @@ void ConfigSetup::verifyInputs(void) {
                 << " sets of Small Molecule BackBone was specified!\n";
       exit(EXIT_FAILURE);
     }
-    if(sys.memcVal.MEMC2Liq && !sys.memcVal.readSmallBB) {
-      std::cout << "Error: In MEMC-2-Liq method, Small Kind BackBone is not specified!\n";
+    if (sys.memcVal.MEMC2Liq && !sys.memcVal.readSmallBB) {
+      std::cout << "Error: In MEMC-2-Liq method, Small Kind BackBone is not "
+                   "specified!\n";
       exit(EXIT_FAILURE);
     }
 
-    if(sys.memcVal.MEMC2Liq && (sys.memcVal.smallKind.size() !=
-                             sys.memcVal.smallBBAtom1.size())) {
-      std::cout << "Error: In MEMC-2-Liq method, specified number of Small Kinds is " <<
-                sys.memcVal.smallKind.size() << ", but " << sys.memcVal.smallBBAtom1.size()
-                << " sets of Small Molecule BackBone is specified!\n";
+    if (sys.memcVal.MEMC2Liq &&
+        (sys.memcVal.smallKind.size() != sys.memcVal.smallBBAtom1.size())) {
+      std::cout
+          << "Error: In MEMC-2-Liq method, specified number of Small Kinds is "
+          << sys.memcVal.smallKind.size() << ", but "
+          << sys.memcVal.smallBBAtom1.size()
+          << " sets of Small Molecule BackBone is specified!\n";
       exit(EXIT_FAILURE);
     }
 

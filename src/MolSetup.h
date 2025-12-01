@@ -1,12 +1,10 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
-#ifndef MOLSETUP_H
-#define MOLSETUP_H
+******************************************************************************/
+#ifndef MOL_SETUP_H
+#define MOL_SETUP_H
 
 #include <cereal/access.hpp>
 #include <cereal/types/map.hpp>
@@ -50,18 +48,18 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &startIdxMolecules;
-    ar &moleculeKinds;
-    ar &moleculeNames;
-    ar &moleculeKindNames;
-    ar &moleculeSegmentNames;
-    ar &uniqueMapKeys;
-    ar &lastAtomIndexInBox0;
-    ar &numberMolsInBox0;
-    ar &molKindIndex;
-    ar &stringSuffixMultiResidue;
-    ar &stringSuffixNonMultiResidue;
-    ar &moleculeIteration;
+    ar & startIdxMolecules;
+    ar & moleculeKinds;
+    ar & moleculeNames;
+    ar & moleculeKindNames;
+    ar & moleculeSegmentNames;
+    ar & uniqueMapKeys;
+    ar & lastAtomIndexInBox0;
+    ar & numberMolsInBox0;
+    ar & molKindIndex;
+    ar & stringSuffixMultiResidue;
+    ar & stringSuffixNonMultiResidue;
+    ar & moleculeIteration;
   }
 };
 
@@ -98,14 +96,14 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &name;
-    ar &type;
-    ar &residue;
-    ar &segment;
-    ar &charge;
-    ar &mass;
-    ar &residueID;
-    ar &kind;
+    ar & name;
+    ar & type;
+    ar & residue;
+    ar & segment;
+    ar & charge;
+    ar & mass;
+    ar & residueID;
+    ar & kind;
   }
 };
 
@@ -128,11 +126,11 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &a0;
-    ar &a1;
-    ar &a2;
-    ar &a3;
-    ar &kind;
+    ar & a0;
+    ar & a1;
+    ar & a2;
+    ar & a3;
+    ar & kind;
   }
 };
 
@@ -156,11 +154,11 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &a0;
-    ar &a1;
-    ar &a2;
-    ar &a3;
-    ar &kind;
+    ar & a0;
+    ar & a1;
+    ar & a2;
+    ar & a3;
+    ar & kind;
   }
 };
 
@@ -178,10 +176,10 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &a0;
-    ar &a1;
-    ar &a2;
-    ar &kind;
+    ar & a0;
+    ar & a1;
+    ar & a2;
+    ar & kind;
   }
 };
 
@@ -198,9 +196,9 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &a0;
-    ar &a1;
-    ar &kind;
+    ar & a0;
+    ar & a1;
+    ar & kind;
   }
 };
 
@@ -237,25 +235,25 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &atoms;
-    ar &bonds;
-    ar &angles;
-    ar &dihedrals;
-    ar &impropers;
+    ar & atoms;
+    ar & bonds;
+    ar & angles;
+    ar & dihedrals;
+    ar & impropers;
     /*Technically H-Bonds, but no difference in class structure */
-    ar &donors;
-    ar &acceptors;
+    ar & donors;
+    ar & acceptors;
 
-    ar &kindIndex;
+    ar & kindIndex;
 
     // Used to search PSF file for geometry, meaningless after that
-    ar &firstAtomID;
-    ar &firstMolID;
+    ar & firstAtomID;
+    ar & firstMolID;
     // true while the molecule is still open for modification during PSF read
-    ar &incomplete;
-    ar &isMultiResidue;
-    ar &intraMoleculeResIDs;
-    ar &moleculeName;
+    ar & incomplete;
+    ar & isMultiResidue;
+    ar & intraMoleculeResIDs;
+    ar & moleculeName;
   }
 };
 
@@ -333,8 +331,8 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &kindMap;
-    ar &molVars;
+    ar & kindMap;
+    ar & molVars;
   }
 };
-#endif
+#endif /*MOL_SETUP_H*/

@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #include "EwaldCached.h"
 
 #include "GOMCEventsProfile.h"
@@ -229,8 +227,8 @@ double EwaldCached::BoxReciprocal(uint box, bool isNewVolume) const {
       imageSzVal = static_cast<int>(imageSizeRef[box]);
     }
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(box, imageSzVal, prefactPtr) \
-    reduction(+:energyRecip)
+#pragma omp parallel for default(none) shared(box, imageSzVal, prefactPtr)     \
+    reduction(+ : energyRecip)
 #endif
     for (int i = 0; i < imageSzVal; i++) {
       energyRecip += ((sumRnew[box][i] * sumRnew[box][i] +
@@ -256,8 +254,9 @@ double EwaldCached::MolReciprocal(XYZArray const &molCoords,
     double lambdaCoef = GetLambdaCoef(molIndex, box);
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
-    startAtom, thisKind) reduction(+:energyRecipNew) firstprivate(box, molIndex)
+#pragma omp parallel for default(none)                                         \
+    shared(lambdaCoef, length, molCoords, startAtom, thisKind)                 \
+    reduction(+ : energyRecipNew) firstprivate(box, molIndex)
 #endif
     for (int i = 0; i < (int)imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
@@ -326,8 +325,9 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
     uint startAtom = mols.MolStart(molIndex);
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
-    thisKind) firstprivate(box, molIndex) reduction(+:energyRecipNew)
+#pragma omp parallel for default(none)                                         \
+    shared(length, molCoords, startAtom, thisKind) firstprivate(box, molIndex) \
+    reduction(+ : energyRecipNew)
 #endif
     for (int i = 0; i < (int)imageSizeRef[box]; i++) {
       cosMolRef[molIndex][i] = 0.0;
@@ -371,7 +371,8 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
 #ifdef _OPENMP
-#pragma omp parallel for default(none) firstprivate(box) reduction(+ : energyRecipNew)
+#pragma omp parallel for default(none) firstprivate(box)                       \
+    reduction(+ : energyRecipNew)
 #endif
     for (int i = 0; i < (int)imageSizeRef[box]; i++) {
       sumRnew[box][i] = sumRref[box][i] - cosMolRestore[i];
@@ -425,9 +426,10 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double *energyRecip = new double[lambdaSize];
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
-#if defined _OPENMP
-#pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize) \
-reduction(+:energyRecip[:lambdaSize]) firstprivate(box, iState, molIndex)
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize)         \
+    reduction(+ : energyRecip[ : lambdaSize])                                  \
+    firstprivate(box, iState, molIndex)
 #endif
   for (uint i = 0; i < imageSizeRef[box]; i++) {
     for (uint s = 0; s < lambdaSize; s++) {

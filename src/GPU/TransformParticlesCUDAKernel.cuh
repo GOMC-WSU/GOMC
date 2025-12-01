@@ -1,11 +1,11 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
-#pragma once
+******************************************************************************/
+#ifndef TRANSFORM_PARTICLES_CUDA_KERNEL_H
+#define TRANSFORM_PARTICLES_CUDA_KERNEL_H
+
 #ifdef GOMC_CUDA
 #include "Random123/philox.h"
 #include <vector>
@@ -95,3 +95,4 @@ __global__ void BrownianMotionTranslateKernel(
     unsigned int key, ulong seed, double BETA);
 
 #endif
+#endif /*TRANSFORM_PARTICLES_CUDA_KERNEL_H*/

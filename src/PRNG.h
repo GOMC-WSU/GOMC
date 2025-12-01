@@ -1,18 +1,11 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef PRNG_H
 #define PRNG_H
 
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -29,11 +22,11 @@ along with this program, also can be found at
 // Wrapper class for our random numbers
 //
 // NOTE: gcc is not generating correct code when we call a Mersenne Twister
-// function inside a function call. In other words, when the values is used
-// directly as a function parameter. So, many of the functions were rewritten
-// to assign the results to a variable. This looks cumbersome, but it at least
-// produces correct results. This is the case with some older versions of
-// gcc, such as gcc 7.3. It's possible that newer versions of gcc don't have
+// function inside a function call. In other words, when the return value is
+// used directly as a function parameter. So, many of the functions were
+// rewritten to assign the result to a variable. This looks cumbersome, but it
+// at least produces correct results. This is the case with some older versions
+// of gcc, such as gcc 7.3. It's possible that newer versions of gcc don't have
 // this issue, but we need to support older compilers, too, so...
 //
 class PRNG {
@@ -169,20 +162,20 @@ public:
     subDraw = draw - prevSum;
   }
 
-  // Pick an integer in range 0, n given a list of weights, and their sum
+  // Pick an integer in range 0 -- n given a list of weights, and their sum
   // totalWeight
-  uint PickWeighted(const double *weights, const uint n,
+  uint PickWeighted(const double *weights, const int n,
                     const double totalWeight) {
     double draw = rand(totalWeight);
     double sum = 0.0;
-    for (uint i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
       sum += weights[i];
       if (sum >= draw) {
         return i;
       }
     }
     int lastZero = n;
-    for (uint i = n - 1; i > 0 && !weights[i]; i--) {
+    for (int i = n - 1; i > 0 && weights[i] == 0.0; --i) {
       lastZero = i;
     }
     lastZero--;
@@ -192,21 +185,18 @@ public:
 
     // If the code gets to here that means the total of all the weights was
     // more than totalWeight. So let's print out a message and exit the program
-    std::cerr << "Error: In PRNG::PickWeighted() the total of all weights was"
-              << std::endl;
-    std::cerr << "more than totalWeight" << std::endl << "Debug info:\n";
-    std::cerr << "totalWeight: " << totalWeight << std::endl;
-    std::cerr << "draw: " << draw << std::endl;
-    std::cerr << "sum: " << sum << std::endl;
+    std::cerr << "Error: In PRNG::PickWeighted() the total of all weights is\n";
+    std::cerr << "more than totalWeight\nDebug info:\n";
+    std::cerr << "totalWeight: " << totalWeight << "\n";
+    std::cerr << "draw: " << draw << "\n";
+    std::cerr << "sum: " << sum << "\n";
 
 #if GOMC_LIB_MPI
     std::cerr
-        << "Error: When conducting replica exchange simulations, this error "
-        << std::endl;
+        << "Error: When conducting replica exchange simulations, this error\n";
     std::cerr
-        << "usually occurs when using Intraswap or Molecular Exchange moves "
-        << std::endl;
-    std::cerr << "and seeding all simulations with the same seed." << std::endl;
+        << "usually occurs when using Intraswap or Molecular Exchange moves\n";
+    std::cerr << "and seeding all simulations with the same seed.\n";
 #endif
 
     exit(EXIT_FAILURE);

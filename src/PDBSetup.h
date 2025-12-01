@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef PDB_SETUP_H
 #define PDB_SETUP_H
 
@@ -120,20 +118,20 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &chainLetter;
-    ar &x;
-    ar &y;
-    ar &z;
-    ar &beta;
-    ar &occ;
-    ar &box;
-    ar &resNames;
-    ar &restart;
-    ar &firstResInFile;
-    ar &recalcTrajectory;
-    ar &currBox;
-    ar &count;
-    ar &numAtomsInBox;
+    ar & chainLetter;
+    ar & x;
+    ar & y;
+    ar & z;
+    ar & beta;
+    ar & occ;
+    ar & box;
+    ar & resNames;
+    ar & restart;
+    ar & firstResInFile;
+    ar & recalcTrajectory;
+    ar & currBox;
+    ar & count;
+    ar & numAtomsInBox;
   }
 };
 
@@ -166,7 +164,7 @@ private:
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive &ar, const unsigned int version) {
-    ar &atoms;
+    ar & atoms;
   }
 };
 

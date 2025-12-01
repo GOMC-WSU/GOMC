@@ -1,7 +1,6 @@
 set(TestSources
     test/src/BasicTypesTest.cpp
     test/src/BitLibTest.cpp
-    test/src/EndianTest.cpp
     test/src/MolLookupTest.cpp
     #test/src/CircuitTester.cpp
     #test/src/PSFParserTest.cpp
@@ -206,7 +205,6 @@ set(libHeaders
    lib/AlphaNum.h
    lib/BasicTypes.h
    lib/BitLib.h
-   lib/Endian.h
    lib/GeomLib.h
    lib/Lambda.h
    lib/NumLib.h

@@ -1,11 +1,11 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
-#pragma once
+******************************************************************************/
+#ifndef CALCULATE_MIN_IMAGE_CUDA_KERNEL_H
+#define CALCULATE_MIN_IMAGE_CUDA_KERNEL_H
+
 #ifdef GOMC_CUDA
 
 #include "ConstantDefinitionsCUDAKernel.cuh"
@@ -278,3 +278,4 @@ static __inline__ __device__ double atomicAdd(double *address, double val) {
 #endif
 
 #endif /*GOMC_CUDA*/
+#endif /*CALCULATE_MIN_IMAGE_CUDA_KERNEL_H*/

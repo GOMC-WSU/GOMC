@@ -1,15 +1,31 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 
 #include "CheckpointSetup.h"
 
 #include <stdint.h>
 
+#if GOMC_LIB_MPI
+CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
+                                 MoleculeLookup &molLookup,
+                                 MoveSettings &moveSettings, Molecules &mol,
+                                 PRNG &prng, Random123Wrapper &r123, Setup &set,
+                                 const bool &parallelTemperingEnabled,
+                                 PRNG &prngPT,
+                                 const std::string &replicaInputDirectoryPath)
+    : molLookupRef(molLookup), moveSetRef(moveSettings), molRef(mol),
+      prngRef(prng), r123Ref(r123), startStepRef(startStep),
+      trueStepRef(trueStep), molSetRef(set.mol), ffSetupRef(set.ff),
+      pdbAtomsRef(set.pdb.atoms),
+      startIdxMolecules(set.mol.molVars.startIdxMolecules),
+      parallelTemperingIsEnabled(parallelTemperingEnabled), prngPT(prngPT),
+      filename(replicaInputDirectoryPath +
+               set.config.in.files.checkpoint.name[0]),
+      parallelTemperingWasEnabled(false) {}
+#else
 CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
                                  MoleculeLookup &molLookup,
                                  MoveSettings &moveSettings, Molecules &mol,
@@ -18,21 +34,16 @@ CheckpointSetup::CheckpointSetup(ulong &startStep, ulong &trueStep,
       prngRef(prng), r123Ref(r123), startStepRef(startStep),
       trueStepRef(trueStep), molSetRef(set.mol), ffSetupRef(set.ff),
       pdbAtomsRef(set.pdb.atoms),
-      startIdxMolecules(set.mol.molVars.startIdxMolecules) {
-  std::string file = set.config.in.files.checkpoint.name[0];
-#if GOMC_LIB_MPI
-  filename = sys.ms->replicaInputDirectoryPath + file;
-#else
-  filename = file;
+      startIdxMolecules(set.mol.molVars.startIdxMolecules),
+      filename(set.config.in.files.checkpoint.name[0]) {}
 #endif
-}
 
 CheckpointSetup::~CheckpointSetup() {}
 
 std::string CheckpointSetup::getFileName() { return filename; }
 
 void CheckpointSetup::loadCheckpointFile() {
-  // create and open a character archive for intput
+  // create and open a character archive for input
   std::ifstream ifs(filename);
   if (!ifs.is_open()) {
     fprintf(stderr, "Error opening checkpoint input file %s\n",
@@ -84,7 +95,7 @@ void CheckpointSetup::SetCheckpointData() {
 }
 
 #if GOMC_LIB_MPI
-void CheckpointSetup::SetCheckpointData(bool &parallelTemperingIsEnabled,
+void CheckpointSetup::SetCheckpointData(const bool &parallelTemperingIsEnabled,
                                         PRNG &prngPT) {
   SetStepNumber();
   SetTrueStepNumber();
@@ -96,14 +107,14 @@ void CheckpointSetup::SetCheckpointData(bool &parallelTemperingIsEnabled,
   SetPDBSetupAtoms();
   SetParallelTemperingWasEnabled();
   if (parallelTemperingIsEnabled && parallelTemperingWasEnabled)
-    SetPRNGVariablesPT();
+    SetPRNGVariablesPT(prngPT);
 }
 #endif
 
 void CheckpointSetup::SetStepNumber() { startStepRef = chkObj.stepNumber; }
 
 void CheckpointSetup::SetTrueStepNumber() {
-  printf("%-40s %-lu \n", "Info: Loading true step from checkpoint",
+  printf("%-40s %-lu\n", "Info: Loading true step from checkpoint",
          chkObj.trueStepNumber);
   trueStepRef = chkObj.trueStepNumber;
 }
@@ -188,7 +199,7 @@ void CheckpointSetup::SetPDBSetupAtoms() {
 }
 
 #if GOMC_LIB_MPI
-bool CheckpointSetup::SetParallelTemperingWasEnabled() {
+void CheckpointSetup::SetParallelTemperingWasEnabled() {
   parallelTemperingWasEnabled = (bool)chkObj.parallelTemperingEnabled;
 }
 

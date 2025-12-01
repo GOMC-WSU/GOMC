@@ -1,23 +1,14 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef GEOM_LIB_H
 #define GEOM_LIB_H
 
-// Standard way to get pi constant on most platforms
-// Needs to be defined _before_ including cmath
-// so that the PI constants come from cmath
-#define _USE_MATH_DEFINES
-
-#include <cmath>  //For sqrt, fabs, M_PI
-#include <limits> //for double limits
-
 #include "BasicTypes.h" //For uint, XYZ
 #include "XYZArray.h"
+#include <limits> //for double limits
 
 /////////////////////////////////////////////////////////////
 //  DEFINES  //
@@ -29,6 +20,10 @@ along with this program, also can be found at
 // N[Pi, 75]
 #define M_PI                                                                   \
   3.14159265358979323846264338327950288419716939937510582097494459230781640629
+#endif
+#ifndef M_1_PI
+// Reciprocal of PI:
+#define M_1_PI 1.0 / M_PI
 #endif
 #ifndef M_PI_2
 // From Mathematica:

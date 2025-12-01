@@ -38,19 +38,18 @@ char const *const GomcProfileEventStr[] = {
 #undef GOMC_EVENT_RANGE_2
 
 //
-// Enable NVTX instrumentation for nvvp or Nsight profiling
-// GOMC_CUDA build by defining GOMC_NVTX_ENABLED in CMake
+// Enable NVTX instrumentation for nsys profiling of GOMC_CUDA builds by
+// defining GOMC_NVTX_ENABLED in CMake (using the metamake -p option)
 //
 #if defined(GOMC_CUDA) && defined(GOMC_NVTX_ENABLED)
-
+// Not sure how else to get the CUDA version, since we don't use nvcc to compile
+// this file
+#include <cuda_runtime_api.h>
+// Need NVTX V3 or later and only CUDA >= 10 has NVTX V3+
 #if CUDART_VERSION >= 10000
-//#include
-//</opt/nvidia/nsight-systems/2020.4.3/target-linux-x64/nvtx/include/nvtx3/nvToolsExt.h>
-//// CUDA >= 10 has NVTX V3+
-#include <nvtx3/nvToolsExt.h> // CUDA >= 10 has NVTX V3+
+#include <nvtx3/nvToolsExt.h>
 #else
-#error NVTXv3 requires CUDA 10.0 or greater
-//#include <nvToolsExt.h>        // CUDA < 10 has NVTX V2
+#error "GOMC profiling requires CUDA 10.0 or later"
 #endif
 #include <cuda_profiler_api.h>
 

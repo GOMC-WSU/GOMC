@@ -1,15 +1,10 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef INTRATARGETEDSWAP_H
 #define INTRATARGETEDSWAP_H
-
-#include <cmath>
-#include <queue>
 
 #include "ConfigSetup.h"
 #include "FloydWarshallCycle.h"
@@ -18,6 +13,8 @@ along with this program, also can be found at
 #include "MoveBase.h"
 #include "TargetedSwap.h" // for enum PBC Struct TSwapParam defined in there
 #include "TrialMol.h"
+
+#include <queue>
 
 struct BondList;
 
@@ -663,7 +660,7 @@ void IntraTargetedSwap::PrintIntraTargetedSwapInfo() {
              tsp.subVolumeIdx);
       printf("%-40s %d \n", "      SubVolume Box:", b);
       if (tsp.calcSubVolCenter) {
-        printf("%-40s Using %lu defined atom indexes \n",
+        printf("%-40s Using %zu defined atom indexes \n",
                "      Calculating subVolume center:", tsp.atomList.size());
         int max = *std::max_element(tsp.atomList.begin(), tsp.atomList.end());
         if (max >= (int)coordCurrRef.Count()) {

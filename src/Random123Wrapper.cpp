@@ -1,3 +1,8 @@
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
 #include "Random123Wrapper.h"
 
 #include "Random123/boxmuller.hpp"

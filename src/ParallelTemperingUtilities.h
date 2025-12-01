@@ -48,7 +48,7 @@
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in License.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+along with this program. also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef ParallelTemperingUtilities_H
 #define ParallelTemperingUtilities_H
@@ -111,9 +111,8 @@ public:
                                const std::vector<int> &nattempt);
   void print_replica_exchange_statistics(FILE *fplog);
   void print_allswitchind(FILE *fplog, int n, const std::vector<int> &pind,
-                          const std::vector<int> &allswaps,
-                          const std::vector<int> &tmpswap);
-#endif
+                          std::vector<int> &allswaps,
+                          std::vector<int> &tmpswap);
 
 private:
   MultiSim const *const &ms;
@@ -151,6 +150,8 @@ private:
 #else
   std::vector<std::vector<double>> global_energies;
 #endif
+
+#endif /* GOMC_LIB_MPI */
 };
 
 #endif /*ParallelTemperingUtilities_H*/

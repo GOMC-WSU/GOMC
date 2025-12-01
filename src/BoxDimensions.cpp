@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #include "BoxDimensions.h"
 
 #include "GeomLib.h"
@@ -51,13 +49,13 @@ void BoxDimensions::Init(config_setup::RestartSettings const &restart,
     }
 
     // Print Box dimension info
-    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n", "Info: Box ", b,
+    printf("%s %-d: %-25s %7.3f %7.3f %7.3f\n", "Info: Box ", b,
            " Periodic Cell Basis 1", cellBasis[b].Get(0).x,
            cellBasis[b].Get(0).y, cellBasis[b].Get(0).z);
-    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n", "Info: Box ", b,
+    printf("%s %-d: %-25s %7.3f %7.3f %7.3f\n", "Info: Box ", b,
            " Periodic Cell Basis 2", cellBasis[b].Get(1).x,
            cellBasis[b].Get(1).y, cellBasis[b].Get(1).z);
-    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n\n", "Info: Box ", b,
+    printf("%s %-d: %-25s %7.3f %7.3f %7.3f\n\n", "Info: Box ", b,
            " Periodic Cell Basis 3", cellBasis[b].Get(2).x,
            cellBasis[b].Get(2).y, cellBasis[b].Get(2).z);
 
@@ -320,13 +318,6 @@ double BoxDimensions::UnwrapPBC(double &v, const double ref, const double ax,
 #endif
 }
 
-XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const {
-  rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
-  rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
-  rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
-  return rawVec;
-}
-
 XYZ BoxDimensions::MinImage_X(XYZ rawVec, const uint b) const {
   rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
   return rawVec;
@@ -359,13 +350,4 @@ double BoxDimensions::MinImage(double &raw, const double ax,
     raw = ax - raw;
   return raw; //...just pass back if distance is already minimum
 #endif
-}
-
-double BoxDimensions::MinImageSigned(double raw, double ax,
-                                     double halfAx) const {
-  if (raw > halfAx)
-    raw -= ax;
-  else if (raw < -halfAx)
-    raw += ax;
-  return raw;
 }

@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -332,10 +330,13 @@ void DestroyCUDAVars(VariablesCUDA *vars) {
   CUFREE(vars->gpu_isMartini);
   CUFREE(vars->gpu_count);
   CUFREE(vars->gpu_rCut);
+  CUFREE(vars->gpu_rCutSq);
   CUFREE(vars->gpu_rCutCoulomb);
+  CUFREE(vars->gpu_rCutCoulombSq);
   CUFREE(vars->gpu_rCutLow);
   CUFREE(vars->gpu_rOn);
   CUFREE(vars->gpu_alpha);
+  CUFREE(vars->gpu_alphaSq);
   CUFREE(vars->gpu_ewald);
   CUFREE(vars->gpu_diElectric_1);
   CUFREE(vars->gpu_x);

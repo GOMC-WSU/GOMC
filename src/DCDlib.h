@@ -13,9 +13,9 @@
 #ifndef DCDLIB_H
 #define DCDLIB_H
 
-//#include "largefiles.h"  // must be first!
-//#include "common.h" // for int32 definition
-//#include "Vector.h"
+// #include "largefiles.h"  // must be first!
+// #include "common.h" // for int32 definition
+// #include "Vector.h"
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,4 +112,4 @@ void NAMD_bug(const char *err_msg);
 int NAMD_file_exists(const char *filename);
 void NAMD_backup_file(const char *filename, const char *extension);
 
-#endif /* ! DCDLIB_H */
+#endif /*DCDLIB_H*/

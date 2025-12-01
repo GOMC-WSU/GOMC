@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef VECTOR_LIB_H
 #define VECTOR_LIB_H
 
@@ -43,7 +41,7 @@ template <typename T> T *TransferInto(T *array, const std::vector<T> &vec) {
 // overloaded because vector<bool> is a lie and copy may not be supported
 inline bool *transfer(const std::vector<bool> &vec) {
   bool *array = new bool[vec.size()];
-  for (unsigned int i = 0; i < vec.size(); ++i) {
+  for (size_t i = 0; i < vec.size(); ++i) {
     array[i] = vec[i];
   }
   return array;

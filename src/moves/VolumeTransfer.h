@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef VOLUMETRANSFER_H
 #define VOLUMETRANSFER_H
 
@@ -82,7 +80,7 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc) {
     if (fixBox0) {
       // For NPT-GEMC and when box0 is fixed, we cannot pick box 0
       while (box == 0) {
-        // To avoid infinite loop, we don't use sunDraw
+        // To avoid infinite loop, we don't use subDraw
         box = prng.randIntExc(BOX_TOTAL);
       }
     }

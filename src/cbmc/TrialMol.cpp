@@ -1,22 +1,15 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #include "TrialMol.h"
 
 #include <algorithm>
-#include <cmath>   //for sin, cos, atan2
 #include <utility> //swap
 
-#include "BasicTypes.h"
 #include "BoxDimensions.h"
-#include "EnergyTypes.h"
 #include "GeomLib.h" //for Theta
-#include "MoleculeKind.h"
-#include "XYZArray.h"
 #ifndef NDEBUG
 #include <iostream>
 #endif

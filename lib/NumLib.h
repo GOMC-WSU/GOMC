@@ -1,15 +1,12 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef NUMERIC_LIB_H
 #define NUMERIC_LIB_H
 
 #include "BasicTypes.h" //For uint, XYZ
-#include <cmath>
 #include <iostream>
 #include <limits> //for double limits
 #include <vector> //for vector average
@@ -22,8 +19,8 @@ along with this program, also can be found at
 #define SMALL_WEIGHT 1.0e-38
 #endif
 namespace num {
-static const double dbl_margin = 0.00001;
 static const double qqFact = 167103.208067979;
+static const double MIN_EXP_NONZERO_VAL = -708.4;
 static const double BIGNUM = DBL_MAX;
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
@@ -196,7 +193,8 @@ inline double POW(const double d2, const double d4, const double d6, uint e) {
 // Class to define the function used in Zbrent
 class Exp6Fun {
 public:
-  Exp6Fun(const double a, const double s) : sigma(s), alpha(a) {}
+  Exp6Fun(const float a, const float s, const float r = 0.0)
+      : sigma(s), alpha(a), rmin(r) {}
   virtual ~Exp6Fun(){};
   virtual float operator()(float x) = 0;
 
@@ -216,7 +214,7 @@ public:
 
 class RmaxFun : public Exp6Fun {
 public:
-  RmaxFun(double a, double s, double r) : Exp6Fun(a, s) { rmin = r; }
+  RmaxFun(double a, double s, double r) : Exp6Fun(a, s, r) {}
   virtual ~RmaxFun(){};
   virtual float operator()(float x) {
     double rep = (-1.0 / rmin) * exp(alpha * (1.0 - x / rmin));
@@ -226,8 +224,8 @@ public:
 };
 
 // Using Brent’s method, find the root of a function func known to lie between
-// x1 and x2. The root, returned as zbrent, will be refined until its accuracy is
-// tol. Brent, R.P. 1973, Algorithms for Minimization without Derivatives
+// x1 and x2. The root, returned as zbrent, will be refined until its accuracy
+// is tol. Brent, R.P. 1973, Algorithms for Minimization without Derivatives
 // (Englewood Cliffs, NJ: Prentice-Hall) Forsythe, G.E., Malcolm, M.A., and
 // Moler, C.B. 1977, Computer Methods for Mathematical Computations (Englewood
 // Cliffs, NJ: Prentice-Hall)

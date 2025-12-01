@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef MOLCULETRANSFER_H
 #define MOLCULETRANSFER_H
 
@@ -13,7 +11,7 @@ along with this program, also can be found at
 #include "MoveBase.h"
 #include "TrialMol.h"
 
-//#define DEBUG_MOVES
+// #define DEBUG_MOVES
 
 class MoleculeTransfer : public MoveBase {
 public:
@@ -192,7 +190,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const ulong step) {
       // Add rest of energy.
       sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
       sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-      //Add Reciprocal energy
+      // Add Reciprocal energy
       sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
       sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
       // Add correction energy
@@ -219,9 +217,12 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const ulong step) {
         sysPotRef.boxEnergy[sourceBox].real = 0;
         sysPotRef.boxVirial[sourceBox].real = 0;
       }
-
-      calcEwald->UpdateRecip(sourceBox);
-      calcEwald->UpdateRecip(destBox);
+      if (recipLose.energy != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+      }
+      if (recipGain.energy != 0.0) {
+        calcEwald->UpdateRecip(destBox);
+      }
 
       // Retotal
       sysPotRef.Total();

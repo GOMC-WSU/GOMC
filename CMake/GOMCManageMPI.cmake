@@ -87,7 +87,7 @@ if(GOMC_MPI)
       GOMC_test_mpi_in_place(MPI_IN_PLACE_EXISTS)
     endif()
 
-    # Find path of the mpi compilers
+    # Find path of the MPI compilers
     if (${MPI_C_FOUND})
         get_filename_component(_mpi_c_compiler_path "${MPI_C_COMPILER}" PATH)
         get_filename_component(_mpiexec_path "${MPIEXEC}" PATH)
@@ -107,24 +107,22 @@ if(GOMC_MPI)
               NO_SYSTEM_ENVIRONMENT_PATH
               NO_CMAKE_SYSTEM_PATH)
     if (MPI_INFO_BIN)
-      exec_program(${MPI_INFO_BIN}
-        ARGS -v ompi full
+      execute_process(COMMAND ${MPI_INFO_BIN}
         OUTPUT_VARIABLE OPENMPI_TYPE
-        RETURN_VALUE OPENMPI_EXEC_RETURN)
+        RESULT_VARIABLE OPENMPI_EXEC_RETURN)
       if(OPENMPI_EXEC_RETURN EQUAL 0)
         string(REGEX REPLACE ".*Open MPI: \([0-9]+\\.[0-9]*\\.?[0-9]*\).*" "\\1" OPENMPI_VERSION ${OPENMPI_TYPE})
         if(OPENMPI_VERSION VERSION_LESS "1.4.1")
-          MESSAGE(WARNING
+          message(WARNING
              "CMake found OpenMPI version ${OPENMPI_VERSION} on your system. "
              "There are known problems with GOMC and OpenMPI version < 1.4.1. "
-             "Please consider updating your OpenMPI if your MPI wrapper compilers "
-             "are using the above OpenMPI version.")
+             "Please update to a more recent version.")
         endif()
         if(OPENMPI_VERSION VERSION_EQUAL "1.8.6")
-          MESSAGE(WARNING
+          message(WARNING
              "CMake found OpenMPI version ${OPENMPI_VERSION} on your system. "
-             "This OpenMPI version is known to leak memory with GOMC,"
-             "please update to a more recent version. ")
+             "This OpenMPI version is known to leak memory with GOMC, "
+             "please update to a more recent version.")
         endif()
         unset(OPENMPI_VERSION)
         unset(OPENMPI_TYPE)
@@ -142,21 +140,19 @@ if(GOMC_MPI)
               NO_SYSTEM_ENVIRONMENT_PATH
               NO_CMAKE_SYSTEM_PATH)
     if (MPINAME_BIN)
-      exec_program(${MPINAME_BIN}
-        ARGS -n -v
+      execute_process(COMMAND ${MPINAME_BIN} -n -v
         OUTPUT_VARIABLE MVAPICH2_TYPE
-        RETURN_VALUE MVAPICH2_EXEC_RETURN)
+        RESULT_VARIABLE MVAPICH2_EXEC_RETURN)
       if(MVAPICH2_EXEC_RETURN EQUAL 0)
         string(REGEX MATCH "MVAPICH2" MVAPICH2_NAME ${MVAPICH2_TYPE})
         # Want to check for MVAPICH2 in case some other library supplies mpiname
-        string(REGEX REPLACE "MVAPICH2 \([0-9]+\\.[0-9]*[a-z]?\\.?[0-9]*\)" "\\1" MVAPICH2_VERSION ${MVAPICH2_TYPE})
+        string(REGEX REPLACE "MVAPICH2 \([0-9]+\\.[0-9]*[a-z]?\\.?[0-9]*\).*" "\\1" MVAPICH2_VERSION ${MVAPICH2_TYPE})
         if(${MVAPICH2_NAME} STREQUAL "MVAPICH2" AND MVAPICH2_VERSION VERSION_LESS "1.5")
           # This test works correctly even with 1.5a1
-          MESSAGE(WARNING
+          message(WARNING
              "CMake found MVAPICH2 version ${MVAPICH2_VERSION} on your system. "
              "There are known problems with GOMC and MVAPICH2 version < 1.5. "
-             "Please consider updating your MVAPICH2 if your MPI wrapper compilers "
-             "are using the above MVAPICH2 version.")
+             "Please update to a more recent version.")
        endif()
        unset(MVAPICH2_VERSION)
        unset(MVAPICH2_NAME)

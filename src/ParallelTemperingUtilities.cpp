@@ -48,7 +48,7 @@
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in License.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
+along with this program. also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 
 #include "ParallelTemperingUtilities.h"
@@ -1277,7 +1277,7 @@ void ParallelTemperingUtilities::print_replica_exchange_statistics(
 
 void ParallelTemperingUtilities::print_allswitchind(
     FILE *fplog, int n, const std::vector<int> &pind,
-    const std::vector<int> &allswaps, const std::vector<int> &tmpswap) {
+    std::vector<int> &allswaps, std::vector<int> &tmpswap) {
   int i;
 
   for (i = 0; i < n; i++) {

@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef CLOCK_H
 #define CLOCK_H
 
@@ -70,8 +68,10 @@ inline void Clock::CheckTime(const ulong step) {
     prevStep = step;
     lastTime = currTime;
     CompletionTime(day, hr, min);
-    printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m \n\n",
-           speed, day, hr, min);
+    printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m\n", speed,
+           day, hr, min);
+    // Coerce C++ to flush the buffer so this is written immediately
+    std::cout << std::endl;
 
   } else if (step == lastStep) {
 #if defined(__linux__) || defined(__APPLE__)

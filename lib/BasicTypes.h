@@ -1,12 +1,17 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
+
+// Standard way to get pi constant on most platforms
+// Needs to be defined _before_ including cmath
+// so that the PI constants come from cmath
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
 
 #include <cmath>
 #include <cstddef>
@@ -104,7 +109,7 @@ public:
   XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
 
   friend inline std::ostream &operator<<(std::ostream &stream, const XYZ &p);
-  
+
   inline double getX() const { return x; }
   inline double getY() const { return y; }
   inline double getZ() const { return z; }
@@ -161,12 +166,20 @@ public:
     return *this;
   }
 
-  XYZ operator+(XYZ const &rhs) const { return XYZ(x+rhs.x, y+rhs.y, z+rhs.z); }
-  XYZ operator-(XYZ const &rhs) const { return XYZ(x-rhs.x, y-rhs.y, z-rhs.z); }
-  XYZ operator*(XYZ const &rhs) const { return XYZ(x*rhs.x, y*rhs.y, z*rhs.z); }
-  XYZ operator/(XYZ const &rhs) const { return XYZ(x/rhs.x, y/rhs.y, z/rhs.z); }
+  XYZ operator+(XYZ const &rhs) const {
+    return XYZ(x + rhs.x, y + rhs.y, z + rhs.z);
+  }
+  XYZ operator-(XYZ const &rhs) const {
+    return XYZ(x - rhs.x, y - rhs.y, z - rhs.z);
+  }
+  XYZ operator*(XYZ const &rhs) const {
+    return XYZ(x * rhs.x, y * rhs.y, z * rhs.z);
+  }
+  XYZ operator/(XYZ const &rhs) const {
+    return XYZ(x / rhs.x, y / rhs.y, z / rhs.z);
+  }
 
-  XYZ operator*(const double a) const { return XYZ(x*a, y*a, z*a); }
+  XYZ operator*(const double a) const { return XYZ(x * a, y * a, z * a); }
 
   XYZ operator-() const { return XYZ(-x, -y, -z); }
 

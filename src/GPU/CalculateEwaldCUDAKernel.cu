@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifdef GOMC_CUDA
 
 #include <cuda.h>
@@ -411,13 +409,13 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars, XYZArray const &coords,
       insert, gpu_energyRecipNew, imageSize);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
-  //#ifndef NDEBUG
-  // In the future maybe we could remove this for Nondebug?
+  // #ifndef NDEBUG
+  //  In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
-  //#endif
+  // #endif
 
   // ReduceSum
   void *d_temp_storage = NULL;

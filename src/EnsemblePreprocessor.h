@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef ENSEMBLE_PREPROCESSOR_H
 #define ENSEMBLE_PREPROCESSOR_H
 
@@ -28,7 +26,7 @@ along with this program, also can be found at
 #define BOX_TOTAL 2
 // Do not do vol. trans. if molecule is over the boundary
 // Towhee does this for volume transfers
-//#define NO_VOL_TRANS_IF_OVER_PERIODIC_BOUND
+// #define NO_VOL_TRANS_IF_OVER_PERIODIC_BOUND
 #elif ENSEMBLE == GCMC
 #define VARIABLE_PARTICLE_NUMBER
 #define VARIABLE_DENSITY

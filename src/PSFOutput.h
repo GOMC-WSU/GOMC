@@ -1,12 +1,10 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
-#ifndef PSFOUTPUT_H
-#define PSFOUTPUT_H
+******************************************************************************/
+#ifndef PSF_OUTPUT_H
+#define PSF_OUTPUT_H
 
 #include <string>
 #include <vector>
@@ -105,4 +103,4 @@ private:
   std::vector<std::string> moleculeSegmentNames;
 };
 
-#endif
+#endif /*PSF_OUTPUT_H*/

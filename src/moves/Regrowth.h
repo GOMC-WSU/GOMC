@@ -1,17 +1,15 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #ifndef IREGROWTH_H
 #define IREGROWTH_H
 
 #include "MoveBase.h"
 #include "TrialMol.h"
 
-//#define DEBUG_MOVES
+// #define DEBUG_MOVES
 
 class Regrowth : public MoveBase {
 public:
@@ -170,7 +168,9 @@ inline void Regrowth::Accept(const uint rejectState, const ulong step) {
         sysPotRef.boxVirial[sourceBox].real = 0.0;
       }
 
-      calcEwald->UpdateRecip(sourceBox);
+      if (recipDiff.energy != 0.0) {
+        calcEwald->UpdateRecip(sourceBox);
+      }
 
       // Retotal
       sysPotRef.Total();

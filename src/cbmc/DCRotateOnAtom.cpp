@@ -1,10 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+******************************************************************************/
 #include "DCRotateOnAtom.h"
 
 #include <cassert>
@@ -179,7 +177,7 @@ void DCRotateOnAtom::BuildOld(TrialMol &oldMol, uint molIndex) {
   double *inter = data->inter;
   double *real = data->real;
   bool *overlap = data->overlap;
-  double stepWeight = 0;
+  double stepWeight = 0.0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
@@ -229,9 +227,17 @@ void DCRotateOnAtom::BuildOld(TrialMol &oldMol, uint molIndex) {
   }
 
   for (uint trial = 0; trial < nLJTrials; ++trial) {
-    ljWeights[trial] *= exp(-1 * data->ff.beta *
-                            (inter[trial] + real[trial] + nonbonded[trial]));
-    stepWeight += ljWeights[trial];
+    // Skip exp() calculation for small values for efficiency and to avoid
+    // subnormal values that contribute to differences between processors.
+    // Value chosen mathematically: See cppreference.com exp function notes.
+    double betaWeight =
+        -data->ff.beta * (inter[trial] + real[trial] + nonbonded[trial]);
+    if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
+      ljWeights[trial] *= std::exp(betaWeight);
+      stepWeight += ljWeights[trial];
+    } else {
+      ljWeights[trial] = 0.0;
+    }
   }
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.MultWeight(stepWeight / nLJTrials);
@@ -256,7 +262,7 @@ void DCRotateOnAtom::BuildNew(TrialMol &newMol, uint molIndex) {
   double *inter = data->inter;
   double *real = data->real;
   bool *overlap = data->overlap;
-  double stepWeight = 0;
+  double stepWeight = 0.0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
@@ -300,9 +306,17 @@ void DCRotateOnAtom::BuildNew(TrialMol &newMol, uint molIndex) {
   }
 
   for (uint trial = 0; trial < nLJTrials; trial++) {
-    ljWeights[trial] *= exp(-1 * data->ff.beta *
-                            (inter[trial] + real[trial] + nonbonded[trial]));
-    stepWeight += ljWeights[trial];
+    // Skip exp() calculation for small values for efficiency and to avoid
+    // subnormal values that contribute to differences between processors.
+    // Value chosen mathematically: See cppreference.com exp function notes.
+    double betaWeight =
+        -data->ff.beta * (inter[trial] + real[trial] + nonbonded[trial]);
+    if (betaWeight >= num::MIN_EXP_NONZERO_VAL) {
+      ljWeights[trial] *= std::exp(betaWeight);
+      stepWeight += ljWeights[trial];
+    } else {
+      ljWeights[trial] = 0.0;
+    }
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   newMol.UpdateOverlap(overlap[winner]);
@@ -335,7 +349,7 @@ void DCRotateOnAtom::ChooseTorsion(TrialMol &mol, uint molIndex,
     }
     double en = CalcIntraBonded(mol, molIndex);
     torEnergy[tor] = en;
-    torWeights[tor] = exp(-1 * data->ff.beta * en);
+    torWeights[tor] = std::exp(-data->ff.beta * en);
   }
 }
 
@@ -360,7 +374,7 @@ void DCRotateOnAtom::ChooseTorsionOld(TrialMol &mol, uint molIndex,
     }
     double en = CalcIntraBonded(mol, molIndex);
     torEnergy[tor] = en;
-    torWeights[tor] = exp(-1 * data->ff.beta * en);
+    torWeights[tor] = std::exp(-data->ff.beta * en);
   }
 }
 
