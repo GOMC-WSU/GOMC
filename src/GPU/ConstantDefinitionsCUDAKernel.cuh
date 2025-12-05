@@ -1,18 +1,17 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
-********************************************************************************/
-#ifndef CONSTANT_DEFINITIONS_CUDA_KERNEL
-#define CONSTANT_DEFINITIONS_CUDA_KERNEL
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
+#ifndef CONSTANT_DEFINITIONS_CUDA_KERNEL_H
+#define CONSTANT_DEFINITIONS_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "EnsemblePreprocessor.h"
 #include "GeomLib.h"
 #include "VariablesCUDA.cuh"
-#include "EnsemblePreprocessor.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
 
 #define GPU_VDW_STD_KIND 0
 #define GPU_VDW_SHIFT_KIND 1
@@ -21,16 +20,18 @@ along with this program, also can be found at <https://opensource.org/licenses/M
 #define MAX_PAIR_SIZE 10000000
 
 void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
-                    double *lambdaCoulomb, bool *isFraction);
+                     double *lambdaCoulomb, bool *isFraction);
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
-                       double const *epsilon_Cn, double const *n,
-                       int VDW_Kind, int isMartini, int count,
-                       double Rcut, double const *rCutCoulomb,
+                       double const *epsilon_Cn, double const *n, int VDW_Kind,
+                       int isMartini, int count, double Rcut, double RcutSq,
+                       double const *rCutCoulomb, double const *rCutCoulombSq,
                        double RcutLow, double Ron, double const *alpha,
-                       int ewald, double diElectric_1);
+                       double const *alphaSq, int ewald, double diElectric_1);
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
                          uint maxAtomsInMol, uint maxMolNumber);
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
+void InitExp6VariablesCUDA(VariablesCUDA *vars, double *rMin, double *expConst,
+                           double *rMaxSq, uint size);
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void CopyRefToNewCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);
@@ -41,9 +42,8 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
                             double *invCellBasis_x, double *invCellBasis_y,
                             double *invCellBasis_z);
 void DestroyEwaldCUDAVars(VariablesCUDA *vars);
+void DestroyExp6CUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
-void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
-                       double *rMaxSq, uint size);
 
 #endif /*GOMC_CUDA*/
-#endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/
+#endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL_H*/

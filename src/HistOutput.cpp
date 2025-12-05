@@ -1,18 +1,17 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
 #include "HistOutput.h"
-#include "PDBConst.h"
-#include "OutConst.h"
-#include "ConfigSetup.h"
 
 #include <sstream>
 
-Histogram::Histogram(OutputVars & v)
-{
+#include "ConfigSetup.h"
+#include "OutConst.h"
+#include "PDBConst.h"
+
+Histogram::Histogram(OutputVars &v) {
   this->var = &v;
   total = NULL;
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
@@ -22,45 +21,43 @@ Histogram::Histogram(OutputVars & v)
   }
 }
 
-void Histogram::Init(pdb_setup::Atoms const& atoms,
-                     config_setup::Output const& output)
-{
+void Histogram::Init(pdb_setup::Atoms const &atoms,
+                     config_setup::Output const &output) {
   stepsPerSample = output.state.files.hist.stepsPerHistSample;
   stepsPerOut = output.statistics.settings.hist.frequency;
   enableOut = output.statistics.settings.hist.enable;
   if (enableOut) {
     total = new uint[var->numKinds];
-    //Set each kind's initial count to 0
+    // Set each kind's initial count to 0
     for (uint k = 0; k < var->numKinds; ++k) {
       total[k] = 0;
     }
-    //Assign arrays for boxes of interest
+    // Assign arrays for boxes of interest
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       name[b] = new std::string[var->numKinds];
       molCount[b] = new uint *[var->numKinds];
       outF[b] = new std::ofstream[var->numKinds];
       for (uint k = 0; k < var->numKinds; ++k) {
 #if GOMC_LIB_MPI
-        name[b][k] = pathToReplicaOutputDirectory + GetFName( output.state.files.hist.histName,
-                     output.state.files.hist.number,
-                     output.state.files.hist.letter,
-                     b, k);
+        name[b][k] = pathToReplicaOutputDirectory +
+                     GetFName(output.state.files.hist.histName,
+                              output.state.files.hist.number,
+                              output.state.files.hist.letter, b, k);
 #else
         name[b][k] = GetFName(output.state.files.hist.histName,
                               output.state.files.hist.number,
-                              output.state.files.hist.letter,
-                              b, k);
+                              output.state.files.hist.letter, b, k);
 #endif
       }
     }
-    //Figure out total of each kind of molecule in ALL boxes, including
-    //reservoirs
+    // Figure out total of each kind of molecule in ALL boxes, including
+    // reservoirs
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       for (uint k = 0; k < var->numKinds; ++k) {
         total[k] += var->molLookupRef->NumKindInBox(k, b);
       }
     }
-    //Allocate and initialize to zero bin for maximum # of particles
+    // Allocate and initialize to zero bin for maximum # of particles
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       for (uint k = 0; k < var->numKinds; ++k) {
         // + 1 for case where all particles of kind k are in 1 box
@@ -74,26 +71,28 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
   }
 }
 
-Histogram::~Histogram()
-{
-  if (total != NULL) delete[] total;
+Histogram::~Histogram() {
+  if (total != NULL)
+    delete[] total;
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    if (name[b] != NULL) delete[] name[b];
+    if (name[b] != NULL)
+      delete[] name[b];
     if (molCount[b] != NULL) {
       for (uint k = 0; k < var->numKinds; ++k) {
         delete[] molCount[b][k];
       }
       delete[] molCount[b];
     }
-    if (outF[b] != NULL) delete[] outF[b];
+    if (outF[b] != NULL)
+      delete[] outF[b];
   }
 }
 
-void Histogram::Sample(const ulong step)
-{
-  //Don't output until equilibrated.
-  if ((step) < stepsTillEquil) return;
-  //If equilibrated, add to correct bin for each type in each box.
+void Histogram::Sample(const ulong step) {
+  // Don't output until equilibrated.
+  if ((step) < stepsTillEquil)
+    return;
+  // If equilibrated, add to correct bin for each type in each box.
   if ((step + 1) % stepsPerSample == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       for (uint k = 0; k < var->numKinds; ++k) {
@@ -104,11 +103,11 @@ void Histogram::Sample(const ulong step)
   }
 }
 
-void Histogram::DoOutput(const ulong step)
-{
-  //Don't output until equilibrated.
-  if ((step) < stepsTillEquil) return;
-  //Write to histogram file, if equilibrated.
+void Histogram::DoOutput(const ulong step) {
+  // Don't output until equilibrated.
+  if ((step) < stepsTillEquil)
+    return;
+  // Write to histogram file, if equilibrated.
   if ((step + 1) % stepsPerOut == 0) {
     GOMC_EVENT_START(1, GomcProfileEvent::DIST_OUTPUT);
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
@@ -117,7 +116,7 @@ void Histogram::DoOutput(const ulong step)
         if (outF[b][k].is_open())
           PrintKindHist(b, k);
         else
-          std::cerr << "Unable to write to file \"" <<  name[b][k] << "\" "
+          std::cerr << "Unable to write to file \"" << name[b][k] << "\" "
                     << "(histogram file)" << std::endl;
         outF[b][k].close();
       }
@@ -126,21 +125,20 @@ void Histogram::DoOutput(const ulong step)
   }
 }
 
-void Histogram::DoOutputRestart(const ulong step){}
+void Histogram::DoOutputRestart(const ulong step) {}
 
-void Histogram::PrintKindHist(const uint b, const uint k)
-{
+void Histogram::PrintKindHist(const uint b, const uint k) {
   for (uint n = 0; n < total[k] + 1; ++n) {
-    if ( molCount[b][k][n] != 0 )
-      outF[b][k] << n << " " << molCount[b][k][n] << std::endl;;
+    if (molCount[b][k][n] != 0)
+      outF[b][k] << n << " " << molCount[b][k][n] << std::endl;
+    ;
   }
 }
 
-std::string Histogram::GetFName(std::string const& histName,
-                                std::string const& histNum,
-                                std::string const& histLetter,
-                                const uint box, const uint kind)
-{
+std::string Histogram::GetFName(std::string const &histName,
+                                std::string const &histNum,
+                                std::string const &histLetter, const uint box,
+                                const uint kind) {
   std::stringstream sstrm;
   std::string strKind, fName = "n", strBox;
   sstrm << (kind + 1);
@@ -149,7 +147,7 @@ std::string Histogram::GetFName(std::string const& histName,
   fName += histName;
   fName += histNum;
   fName += histLetter;
-  if ( BOXES_WITH_U_NB > 1 ) {
+  if (BOXES_WITH_U_NB > 1) {
     fName += "_box";
     sstrm << box;
     sstrm >> strBox;

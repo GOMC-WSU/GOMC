@@ -1,15 +1,13 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
 #ifndef UNIT_CONST_H
 #define UNIT_CONST_H
 
-//Constants for unit conversion
-namespace unit
-{
+// Constants for unit conversion
+namespace unit {
 // Boltzmann constant
 static const double BOLTZMANN = 0.001987191;
 
@@ -59,6 +57,6 @@ static const double K_TO_KJ_PER_MOL = 0.008314462;
 //
 static const uint DIMENSIONALITY = 3;
 
-}
+} // namespace unit
 
 #endif /*UNIT_CONST_H*/

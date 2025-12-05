@@ -1,5 +1,21 @@
 #!/bin/bash
 git clone https://github.com/GOMC-WSU/GOMC_Examples.git
+cd GOMC_Examples
+## TO DO- make this a command line option once new tests are done.
+#git checkout quick_testing
+cd ..
+rm -frd GOMC_Examples/NPT/water_580_00_K
+rm -frd GOMC_Examples/NVT
+rm -frd GOMC_Examples/GCMC
+rm -frd GOMC_Examples/NPT_GEMC
+rm -frd GOMC_Examples/NVT_GEMC
+rm -frd GOMC_Examples/MoSDef-GOMC
+
+# Modify this file 
+#/home/greg/Documents/GOMC/test/GOMC_Examples/NPT/DME_constArea_340_00_K/in.conf
+# TO DO
+# awk ....
+
 mkdir integration
 
 mkdir integration/new_cpu
@@ -19,7 +35,7 @@ cd ..
 startingBranch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
 echo "Building $startingBranch binaries"
 
-./metamake.sh -g
+./metamake.sh -g NPT
 mkdir -p test/new_binaries
 cp -frdp ./bin/* test/new_binaries
 
@@ -35,7 +51,7 @@ fi
 rm -frd bin
 refBranch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
 echo "Building $refBranch binaries"
-./metamake.sh -g
+./metamake.sh -g NPT
 mkdir -p test/ref_binaries
 cp -frd ./bin/* test/ref_binaries
 cd test

@@ -1,11 +1,20 @@
-#pragma once
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
+#ifndef RANDOM123_WRAPPER_H
+#define RANDOM123_WRAPPER_H
+
+#ifdef _MSC_VER
+#define R123_NO_SINCOS 1
+#endif
 
 #include "BasicTypes.h"
 #include "Random123/philox.h"
 typedef r123::Philox4x64 RNG;
 
-class Random123Wrapper
-{
+class Random123Wrapper {
 public:
   Random123Wrapper();
 
@@ -16,7 +25,7 @@ public:
   unsigned int GetStep() const;
   unsigned int GetKeyValue() const;
   unsigned int GetSeedValue() const;
-  double operator() (unsigned int counter);
+  double operator()(unsigned int counter);
 
   double GetRandomNumber(unsigned int counter);
   XYZ GetRandomCoords(unsigned int counter);
@@ -36,3 +45,5 @@ private:
   RNG::key_type uk;
   RNG rng;
 };
+
+#endif /*RANDOM123_WRAPPER_H*/

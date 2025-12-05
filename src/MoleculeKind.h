@@ -1,36 +1,30 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
-********************************************************************************/
-#ifndef FF_MOLECULE_H
-#define FF_MOLECULE_H
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
+#ifndef MOLECULE_KIND_H
+#define MOLECULE_KIND_H
 
-#include "BasicTypes.h"          //For uint
-#include "EnsemblePreprocessor.h"
-#include "SubdividedArray.h"
-#include "Geometry.h"            //members
-#include "CBMC.h"
-
+#include <cassert>
 #include <string>
 #include <vector>
 
-#include <cassert>
+#include "BasicTypes.h" //For uint
+#include "CBMC.h"
+#include "EnsemblePreprocessor.h"
+#include "Geometry.h" //members
+#include "SubdividedArray.h"
 
-
-namespace mol_setup
-{
+namespace mol_setup {
 class Atom;
 class MolKind;
-}
-namespace ff_setup
-{
+} // namespace mol_setup
+namespace ff_setup {
 class Bond;
 class FFBase;
-}
-namespace cbmc
-{
+} // namespace ff_setup
+namespace cbmc {
 class TrialMol;
 }
 
@@ -41,41 +35,18 @@ class System;
 class Forcefield;
 class Setup;
 
-class MoleculeKind
-{
+class MoleculeKind {
 public:
-
   MoleculeKind();
   ~MoleculeKind();
 
-  uint NumAtoms() const
-  {
-    return numAtoms;
-  }
-  uint NumBonds() const
-  {
-    return bondList.count;
-  }
-  uint NumAngles() const
-  {
-    return angles.Count();
-  }
-  uint NumDihs() const
-  {
-    return dihedrals.Count();
-  }
-  uint NumImps() const
-  {
-    return impropers.Count();
-  }
-  uint NumDons() const
-  {
-    return donorList.count;
-  }
-  uint NumAccs() const
-  {
-    return acceptorList.count;
-  }
+  uint NumAtoms() const { return numAtoms; }
+  uint NumBonds() const { return bondList.count; }
+  uint NumAngles() const { return angles.Count(); }
+  uint NumDihs() const { return dihedrals.Count(); }
+  uint NumImps() const { return impropers.Count(); }
+  uint NumDons() const { return donorList.count; }
+  uint NumAccs() const { return acceptorList.count; }
   /*
   uint NumNNBs() const
   {
@@ -90,79 +61,60 @@ public:
     return crossterms.Count();
   }
   */
-  uint AtomKind(const uint a) const
-  {
-    return atomKind[a];
-  }
-  double AtomCharge(const uint a) const
-  {
-    return atomCharge[a];
-  }
+  uint AtomKind(const uint a) const { return atomKind[a]; }
+  double AtomCharge(const uint a) const { return atomCharge[a]; }
 
-  //Initialize this kind
-  //Exits program if param and psf files don't match
-  void Init(uint & l_kindIndex, 
-            std::string const& l_name,
-            Setup const& setup,
-            Forcefield const& forcefield,
-            System & sys);
+  // Initialize this kind
+  // Exits program if param and psf files don't match
+  void Init(uint &l_kindIndex, std::string const &l_name, Setup const &setup,
+            Forcefield const &forcefield, System &sys);
 
-  //Invoke CBMC, oldMol and newMol will be modified
-  void Build(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
-             const uint molIndex)
-  {
+  // Invoke CBMC, oldMol and newMol will be modified
+  void Build(cbmc::TrialMol &oldMol, cbmc::TrialMol &newMol,
+             const uint molIndex) {
     builder->Build(oldMol, newMol, molIndex);
   }
 
-  //CBMC for regrowth move
-  void Regrowth(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
-                const uint molIndex)
-  {
+  // CBMC for regrowth move
+  void Regrowth(cbmc::TrialMol &oldMol, cbmc::TrialMol &newMol,
+                const uint molIndex) {
     builder->Regrowth(oldMol, newMol, molIndex);
   }
 
-  //Crank Shaft move
-  void CrankShaft(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
-                  const uint molIndex)
-  {
+  // Crank Shaft move
+  void CrankShaft(cbmc::TrialMol &oldMol, cbmc::TrialMol &newMol,
+                  const uint molIndex) {
     builder->CrankShaft(oldMol, newMol, molIndex);
   }
 
   // Targeted Swap move
-  void BuildGrowInCav(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
-                      const uint molIndex)
-  {
+  void BuildGrowInCav(cbmc::TrialMol &oldMol, cbmc::TrialMol &newMol,
+                      const uint molIndex) {
     builder->BuildGrowInCav(oldMol, newMol, molIndex);
   }
 
-  //Used in MEMC move
-  void BuildIDNew(cbmc::TrialMol& newMol, const uint molIndex)
-  {
+  // Used in MEMC move
+  void BuildIDNew(cbmc::TrialMol &newMol, const uint molIndex) {
     builder->BuildIDNew(newMol, molIndex);
   }
 
-  void BuildIDOld(cbmc::TrialMol& oldMol, const uint molIndex)
-  {
+  void BuildIDOld(cbmc::TrialMol &oldMol, const uint molIndex) {
     builder->BuildIDOld(oldMol, molIndex);
   }
 
-  void BuildNew(cbmc::TrialMol& newMol, const uint molIndex)
-  {
+  void BuildNew(cbmc::TrialMol &newMol, const uint molIndex) {
     builder->BuildNew(newMol, molIndex);
   }
 
-  void BuildOld(cbmc::TrialMol& oldMol, const uint molIndex)
-  {
+  void BuildOld(cbmc::TrialMol &oldMol, const uint molIndex) {
     builder->BuildOld(oldMol, molIndex);
   }
 
-  void BuildGrowNew(cbmc::TrialMol& newMol, const uint molIndex)
-  {
+  void BuildGrowNew(cbmc::TrialMol &newMol, const uint molIndex) {
     builder->BuildGrowNew(newMol, molIndex);
   }
 
-  void BuildGrowOld(cbmc::TrialMol& oldMol, const uint molIndex)
-  {
+  void BuildGrowOld(cbmc::TrialMol &oldMol, const uint molIndex) {
     builder->BuildGrowOld(oldMol, molIndex);
   }
 
@@ -170,11 +122,11 @@ public:
 
   bool MoleculeHasCharge();
 
-  bool operator==(const MoleculeKind & other);
+  bool operator==(const MoleculeKind &other);
 
   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
 
-  //these are used for total energy calculations, see Geometry.h/cpp
+  // these are used for total energy calculations, see Geometry.h/cpp
   Nonbond nonBonded;
   Nonbond_1_4 nonBonded_1_4;
   Nonbond_1_3 nonBonded_1_3;
@@ -184,7 +136,7 @@ public:
   GeomFeature angles;
   GeomFeature dihedrals;
   GeomFeature impropers;
-  
+
   bool oneThree, oneFour;
 
   // uniqueName - guarunteed to be unique, the map key
@@ -192,12 +144,12 @@ public:
   //  -if a protein, == PROT(A...Z)
   //  -if non-protein, residue name
   std::string name, uniqueName;
-;
+  ;
   uint kindIndex;
   std::vector<std::string> atomNames, atomTypeNames, resNames;
   double molMass;
 
-  double * atomMass;
+  double *atomMass;
 
   bool isMultiResidue;
   std::vector<uint> intraMoleculeResIDs;
@@ -207,23 +159,17 @@ public:
 #endif
 
 private:
+  void InitAtoms(mol_setup::MolKind const &molData);
 
-  void InitAtoms(mol_setup::MolKind const& molData);
+  // uses buildBonds to check if molecule is branched
+  // bool CheckBranches();
+  void InitCBMC(System &sys, Forcefield &ff, Setup &set);
 
-  //uses buildBonds to check if molecule is branched
-  //bool CheckBranches();
-  void InitCBMC(System& sys, Forcefield& ff,
-                Setup& set);
-
-  cbmc::CBMC* builder;
+  cbmc::CBMC *builder;
 
   uint numAtoms;
-  uint * atomKind;
-  double * atomCharge;
+  uint *atomKind;
+  double *atomCharge;
 };
 
-
-
-
-
-#endif /*FF_MOLECULE_H*/
+#endif /*MOLECULE_KIND_H*/

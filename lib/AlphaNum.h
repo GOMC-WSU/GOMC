@@ -1,18 +1,18 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
-********************************************************************************/
-#pragma once
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
+#ifndef ALPHA_NUM_H
+#define ALPHA_NUM_H
+
 #include "BasicTypes.h" // uint
-#include <vector>
 #include <algorithm>
 #include <cassert>
-#include <sstream>      // std::stringstream
-#include <algorithm>
-#include <string>
 #include <cctype>
+#include <sstream> // std::stringstream
+#include <string>
+#include <vector>
 
 struct icompare_char {
   bool operator()(char c1, char c2) {
@@ -21,7 +21,8 @@ struct icompare_char {
 };
 
 struct compare {
-  bool operator()(const std::pair<std::string, int>& lhs, const std::pair<std::string, int>& rhs) {
+  bool operator()(const std::pair<std::string, int> &lhs,
+                  const std::pair<std::string, int> &rhs) {
     if (lhs.first.length() > rhs.first.length())
       return false;
     if (lhs.first.length() < rhs.first.length())
@@ -32,12 +33,13 @@ struct compare {
   }
 };
 
-class AlphaNum
-{
-    public:
-        AlphaNum();
-        std::string uint2String(uint stringSuffix);
-        uint string2Uint(std::string stringSuffix);
-        struct icompare_char;
-        struct compare;
+class AlphaNum {
+public:
+  AlphaNum();
+  std::string uint2String(uint stringSuffix);
+  uint string2Uint(std::string stringSuffix);
+  struct icompare_char;
+  struct compare;
 };
+
+#endif /*ALPHA_NUM_H*/

@@ -1,103 +1,90 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
-********************************************************************************/
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
 #ifndef WRITER_H
 #define WRITER_H
 
-#include <string> //for file names etc.
 #include <stdlib.h> //for exit
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <ostream>
+#include <string> //for file names etc.
 
-class Writer
-{
+class Writer {
 public:
-  //Init later...
-  Writer() {}
-  //Init now.
-  Writer(std::string const& name, std::string const& alias,
-         const bool crit = true, const bool note = true)
-  {
+  // Init later...
+  Writer() { isOpen = false; }
+  // Init now.
+  Writer(std::string const &name, std::string const &alias,
+         const bool crit = true, const bool note = true) {
     Init(name, alias, crit, note);
   }
 
-  ~Writer(void)
-  {
-    if (isOpen) close();
+  ~Writer(void) {
+    if (isOpen)
+      close();
   }
 
-  //Set main class vars.
-  void Init(std::string const& name, std::string const& alias,
-            const bool crit, const bool note)
-  {
+  // Set main class vars.
+  void Init(std::string const &name, std::string const &alias, const bool crit,
+            const bool note) {
     fileName = name;
     fileAlias = alias;
     critical = crit;
     notify = note;
     isOpen = false;
     firstWrite = true;
-    nameWAlias = fileAlias + " file: ./"  + fileName;
+    nameWAlias = fileAlias + " file: ./" + fileName;
   }
 
-  //Open or close a file, with basic protections
-  void open(void)
-  {
-    if (isOpen) return;
-    file.open(fileName.c_str(),
-              (firstWrite ? std::ios::out : std::ios::app));
+  // Open or close a file, with basic protections
+  void open(void) {
+    if (isOpen)
+      return;
+    file.open(fileName.c_str(), (firstWrite ? std::ios::out : std::ios::app));
     CheckFileState(true, "...could not be opened.", "Writing to ");
   }
 
-
-  //Open or close a file, with basic protections
-  void openOverwrite(void)
-  {
-    if (isOpen) return;
+  // Open or close a file, with basic protections
+  void openOverwrite(void) {
+    if (isOpen)
+      return;
     file.open(fileName.c_str(), std::ios::out);
     CheckFileState(true, "...could not be opened.", "Writing to ");
   }
 
-
-  void close(void)
-  {
-    if (!isOpen) return;
+  void close(void) {
+    if (!isOpen)
+      return;
     file.close();
     CheckFileState(false, "...could not be closed.", "Finished writing ");
-    //If first write is complete, unset firstWrite flag.
+    // If first write is complete, unset firstWrite flag.
     if (firstWrite)
       firstWrite = false;
   }
 
-  //Make public to expose object.
+  // Make public to expose object.
   std::ofstream file;
+
 protected:
+  bool GoodFileWData(void) { return file.is_open() && file.good(); }
 
-  bool GoodFileWData(void)
-  {
-    return file.is_open() && file.good();
-  }
-
-  void HandleError(std::string const& msg)
-  {
+  void HandleError(std::string const &msg) {
     std::cerr << ((critical) ? "Error " : "Warning ") << nameWAlias << std::endl
               << msg << std::endl;
     if (critical)
       exit(1);
   }
 
-  void HandleNote(std::string const& msg)
-  {
+  void HandleNote(std::string const &msg) {
     std::cout << msg << nameWAlias << std::endl;
   }
 
-  void CheckFileState(const bool expected,
-                      std::string const & errMessage, std::string const& note)
-  {
+  void CheckFileState(const bool expected, std::string const &errMessage,
+                      std::string const &note) {
     isOpen = GoodFileWData();
     if (isOpen == expected && notify)
       HandleNote(note);

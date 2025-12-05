@@ -1,16 +1,15 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.75
-Copyright (C) 2022 GOMC Group
-A copy of the MIT License can be found in License.txt
-along with this program, also can be found at <https://opensource.org/licenses/MIT>.
-********************************************************************************/
-#include "FFDihedrals.h"  //Parent class
-#include "FFSetup.h" //For initialization data
+/******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) Copyright (C) GOMC Group
+A copy of the MIT License can be found in License.txt with this program or at
+<https://opensource.org/licenses/MIT>.
+******************************************************************************/
+#include "FFDihedrals.h" //Parent class
+
 #include <algorithm> //for vector copying
 
+#include "FFSetup.h" //For initialization data
 
-void FFDihedrals::Init(ff_setup::Dihedral const& dih)
-{
+void FFDihedrals::Init(ff_setup::Dihedral const &dih) {
   uint size = dih.getTerms(), numSubDiv = dih.getnamecnt(), count = 0;
   Kchi = new double[size];
   n = new uint[size];
@@ -24,8 +23,7 @@ void FFDihedrals::Init(ff_setup::Dihedral const& dih)
   }
 }
 
-FFDihedrals::~FFDihedrals()
-{
+FFDihedrals::~FFDihedrals() {
   delete[] Kchi;
   delete[] delta;
   delete[] n;
