@@ -24,8 +24,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifdef _WIN32
 #include <Winsock2.h>
 #define HOSTNAME
-#elif defined(__linux__) || defined(__apple__) || defined(__FreeBSD__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#ifdef __linux__
 #include <sys/sysinfo.h>
+#endif
 #include <sys/utsname.h>
 #include <unistd.h>
 #define HOSTNAME
@@ -163,7 +165,7 @@ void PrintSimulationHeader() {
   std::cout << PrintVersion << '\n'
             << "Info: Start Time: " << PrintTime
 #ifdef HOSTNAME
-            << "Info: Host Name: " << PrintHostname
+            << "Info: Hostname: " << PrintHostname
 #endif
             << "\n";
 }
@@ -199,8 +201,11 @@ void PrintDebugMode() {
 
 void PrintSimulationFooter() {
   std::cout << PrintVersion << '\n'
-            << "Info: Completed at: " << PrintTime
-            << "Info: On hostname: " << PrintHostname << '\n';
+            << "Info: Finish Time: " << PrintTime
+#ifdef HOSTNAME
+            << "Info: Hostname: " << PrintHostname
+#endif
+            << '\n';
 }
 
 std::ostream &PrintVersion(std::ostream &stream) {
