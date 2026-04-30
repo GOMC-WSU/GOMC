@@ -30,6 +30,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 // Vir(r) = cn * eps_ij * (n * repulse - 6 * attract)
 // Vir(r) = cn * eps_ij * 6 * ((n/6) * repulse - attract)
 //
+// CalcVir returns the scalar Wij = (-dE/dr)/r so that
+// r_vector * Wij = force vector. Since F = -dE/dr:
+// Wij = F / r = cn * eps_ij * 6 * ((n/6) * repulse - attract) / r
+//
 // Vir_lrc = density * 0.5 * 4.0 * 2/3 * cn * pi * eps_ij * sig_ij^3 *
 //          ( n/(n-3) * 3/2 * (sig_ij/rij)^(n-3) - 3*(sig_ij/rij)^3)
 

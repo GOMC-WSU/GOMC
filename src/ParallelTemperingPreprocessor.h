@@ -54,7 +54,7 @@ public:
 private:
   friend class MultiSim;
   std::string inputFileStringMPI;
-  std::fstream inputFileReaderMPI;
+  InputFileReader inputFileReaderMPI;
   std::string getMultiSimFolderName;
   int worldSize, worldRank;
   bool restartFromCheckpoint = false;

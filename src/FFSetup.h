@@ -6,6 +6,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifndef FF_SETUP_H
 #define FF_SETUP_H
 
+#include <iostream>
 #include <map> //for function handle storage.
 #include <sstream>
 #include <string> //for var names, etc.
@@ -25,7 +26,7 @@ struct FileName;
 namespace ff_setup {
 extern const double KCAL_PER_MOL_TO_K; // 503.21959899;
 extern const double RIJ_OVER_2_TO_SIG; // 1.7817974362807;
-extern const double RIJ_TO_SIG;        // 0.890898718
+extern const double RIJ_TO_SIG;        // 0.890898718;
 
 class FFBase : public SearchableBase {
 public:
@@ -92,6 +93,31 @@ public:
   //    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
   std::vector<double> n, n_1_4;
+};
+// 11/11/2025 New class for NBtable
+class NBtable : public ReadableBaseWithFirst, public FFBase {
+public:
+  NBtable() : FFBase(2) {}
+
+  virtual void Read(Reader &param, std::string const &firstVar);
+  void Add(std::string atom1, std::string atom2, std::string table_pair_name);
+
+  // Get atom type names for a pair index
+  std::string GetAtomType1(size_t idx) const {
+    return (idx < atomType1.size()) ? atomType1[idx] : "";
+  }
+  std::string GetAtomType2(size_t idx) const {
+    return (idx < atomType2.size()) ? atomType2[idx] : "";
+  }
+  std::string GetTablePairName(size_t idx) const {
+    return (idx < tableNames.size()) ? tableNames[idx] : "";
+  }
+  size_t GetPairCount() const { return tableNames.size(); }
+
+private:
+  std::vector<std::string> atomType1;  // First atom type in pair
+  std::vector<std::string> atomType2;  // Second atom type in pair
+  std::vector<std::string> tableNames; // Pair type names for tabulated file
 };
 
 class Bond : public ReadableBaseWithFirst, public FFBase {
@@ -243,6 +269,7 @@ public:
   ff_setup::Improper imp;
   ff_setup::CMap cmap;
   ff_setup::HBond hbond;
+  ff_setup::NBtable nbtable;
 
 private:
   // Map variable names to functions

@@ -24,8 +24,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifdef _WIN32
 #include <Winsock2.h>
 #define HOSTNAME
-#elif defined(__linux__) || defined(__apple__) || defined(__FreeBSD__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#ifdef __linux__
 #include <sys/sysinfo.h>
+#endif
 #include <sys/utsname.h>
 #include <unistd.h>
 #define HOSTNAME
@@ -69,23 +71,23 @@ int main(int argc, char *argv[]) {
 #endif
   // Only run if valid ensemble was detected.
   if (CheckAndPrintEnsemble()) {
-    // FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
+    // Following lines added to obtain input parameter file.
     std::string inputFileString;
-    std::fstream inputFileReader;
+    InputFileReader inputFileReader;
     int numThreads;
 
-    // CHECK IF ARGS/FILE PROVIDED IN CMD LINE
+    // Check if args/filename provided in command line.
     if (argc < 2) {
       std::cout << "Error: Input parameter file (*.dat or *.conf) not "
                    "specified on command line!\n";
       exit(EXIT_FAILURE);
     } else {
       if (argc == 2) {
-        // FIRST PARAMETER WILL BE FILE NAME
+        // First parameter will be filename.
         inputFileString = argv[1];
         numThreads = 1;
       } else {
-        // SECOND PARAMETER WILL BE FILE NAME
+        // Second parameter will be filename.
         inputFileString = argv[2];
 
         if (argv[1][0] == '+' && argv[1][1] == 'p') {
@@ -98,7 +100,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // SET NUMBER OF THREADS
+    // Set number of threads.
 #ifdef _OPENMP
     omp_set_num_threads(numThreads);
     printf("%-40s %-d \n", "Info: Number of OpenMP threads:", numThreads);
@@ -123,21 +125,11 @@ int main(int argc, char *argv[]) {
              "Info: Compiled with OpenMP Version:", match->second.c_str());
 #endif
 
-    // OPEN FILE
-    inputFileReader.open(inputFileString.c_str(), std::ios::in | std::ios::out);
+    // Test whether the provided configuration filename can be open for reading
+    inputFileReader.Test(inputFileString);
 
-    // CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
-    if (!inputFileReader.is_open()) {
-      std::cout << "Error: Cannot open/find " << inputFileString
-                << " in the directory provided!\n";
-      exit(EXIT_FAILURE);
-    }
-
-    // CLOSE FILE TO NOW PASS TO SIMULATION
-    inputFileReader.close();
-
-    // ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
-    // HANDLE PDB|PSF FILE
+    // Once file found pass string to simulation class to read and
+    // handle pdb|psf files.
 #if GOMC_LIB_MPI
     if (multisim != NULL) {
       Simulation sim(inputFileString.c_str(), multisim);
@@ -163,7 +155,7 @@ void PrintSimulationHeader() {
   std::cout << PrintVersion << '\n'
             << "Info: Start Time: " << PrintTime
 #ifdef HOSTNAME
-            << "Info: Host Name: " << PrintHostname
+            << "Info: Hostname: " << PrintHostname
 #endif
             << "\n";
 }
@@ -199,8 +191,11 @@ void PrintDebugMode() {
 
 void PrintSimulationFooter() {
   std::cout << PrintVersion << '\n'
-            << "Info: Completed at: " << PrintTime
-            << "Info: On hostname: " << PrintHostname << '\n';
+            << "Info: Finish Time: " << PrintTime
+#ifdef HOSTNAME
+            << "Info: Hostname: " << PrintHostname
+#endif
+            << '\n';
 }
 
 std::ostream &PrintVersion(std::ostream &stream) {

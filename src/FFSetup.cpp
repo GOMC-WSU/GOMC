@@ -43,6 +43,8 @@ FFSetup::SetReadFunctions(const bool isCHARMM) {
   // Unique to Charmm file
   funct["NONBONDED"] = &mie;
   funct["NBFIX"] = &nbfix;
+  // Added to support tabulated potentials
+  funct["NBTABLE"] = &nbtable;
   // Error checking done to ensure isCharmm is true if these are found
 
   // Unique to exotic file
@@ -324,6 +326,52 @@ void NBfix::Add(double e, double s, const double expN, double e_1_4,
   n_1_4.push_back(expN_1_4);
 }
 
+void NBtable::Read(Reader &param, std::string const &firstVar) {
+  // LoadLine reads the atom type pair (via ReadKind which reads numTerms=2
+  // fields) and stores the combined name in the base class Then it returns the
+  // rest of the line
+  std::string restOfLine = LoadLine(param, firstVar);
+
+  // The rest of the line should contain the pair type name
+  std::string table_pair_name;
+  std::istringstream iss(restOfLine);
+  iss >> table_pair_name;
+
+  if (iss.fail()) {
+    std::cout << "Error: Incomplete NBtable parameters were found in parameter "
+                 "file!\n"
+              << "Expected format: NBTABLE atom1 atom2 pair_type_name\n";
+    exit(EXIT_FAILURE);
+  }
+
+  // Extract the individual atom types
+  std::string atom1 = firstVar;
+  std::string atom2;
+
+  // Get the combined name that ReadKind stored
+  std::string combined = name.back();
+
+  // Extract atom2 from the combined name
+  // combined = atom1 + atom2, so atom2 is what remains after atom1
+  if (combined.length() > atom1.length()) {
+    atom2 = combined.substr(atom1.length());
+  } else {
+    atom2 = combined; // Fallback if something is wrong
+  }
+
+  Add(atom1, atom2, table_pair_name);
+  std::cout << "Added NBtable entry: " << atom1 << " " << atom2 << " -> "
+            << table_pair_name << std::endl;
+}
+
+void NBtable::Add(std::string atom1, std::string atom2,
+                  std::string table_pair_name) {
+  atomType1.push_back(atom1);
+  atomType2.push_back(atom2);
+  tableNames.push_back(table_pair_name);
+  // Note: The base class 'name' vector is also filled by ReadKind(),
+  // but we don't use it. We use our own tableNames vector instead.
+}
 void Bond::Read(Reader &param, std::string const &firstVar) {
   double coeff, def;
   ReadKind(param, firstVar);

@@ -17,17 +17,17 @@ A copy of the MIT License can be found in License.txt with this program or at
 **
 *****************************/
 
-InputFileReader::InputFileReader(std::string inputFileName) {
+InputFileReader::InputFileReader(const std::string& inputFileName) {
   fs.open(inputFileName.c_str(), std::fstream::in);
 }
 
-InputFileReader::InputFileReader() {}
-
 InputFileReader::~InputFileReader() {
-  // fs.close();
+  if (fs.is_open()) {
+    fs.close();
+  }
 }
 
-void InputFileReader::Open(std::string inputFileName) {
+void InputFileReader::Open(const std::string& inputFileName) {
   fs.open(inputFileName.c_str(), std::fstream::in);
   if (!fs.is_open()) {
     std::cout << "Cannot open input file!" << std::endl;
@@ -35,8 +35,49 @@ void InputFileReader::Open(std::string inputFileName) {
   }
 }
 
+// Used to verify the existence of a file, ensure that it can be opened for
+// input, and generate an appropriate error message if it can't be. If the file
+// is opened, then we close the file, since it's not being used yet, just
+// verified.
+void InputFileReader::Test(const std::string& inputFileName) {
+  fs.open(inputFileName.c_str(), std::fstream::in);
+
+  // Check if file has been opened. If not, output an error message and exit
+  if (!fs.is_open()) {
+    // First check if the file exists
+    if (!std::filesystem::exists(inputFileName.c_str())) {
+#if GOMC_LIB_MPI
+      MPI_Finalize();
+#endif
+      int error_num = static_cast<int>(std::errc::no_such_file_or_directory);
+      std::error_code ec =
+          std::make_error_code(std::errc::no_such_file_or_directory);
+      std::cout << "Problem opening " << inputFileName << ": " << ec.message()
+                << "\n";
+      exit(error_num);
+    }
+    // Since the file exists, check if there is a problem with the directory
+    // or file permissions
+    std::ifstream tempFile(inputFileName.c_str());
+    if (!tempFile.is_open()) {
+      int error_num = static_cast<int>(std::errc::permission_denied);
+      std::error_code ec = std::make_error_code(std::errc::permission_denied);
+      std::cout << "Problem opening " << inputFileName << ": File found but "
+                << ec.message() << "\n";
+      exit(error_num);
+    }
+    // Failed for some unknown reason. Shouldn't reach here but need to
+    // terminate if we do
+    std::cout << "Problem opening " << inputFileName << ": Unexpected error!\n";
+    exit(2);
+  }
+
+  // Close file to be reopened later when the file is ready to be used
+  fs.close();
+}
+
 /*
-** Read one line from the input and seperate it into strings.
+** Read one line from the input and separate it into strings.
 ** ***** str -> components of each line will be stored here
 */
 bool InputFileReader::readNextLine(std::vector<std::string> &str) {

@@ -94,7 +94,7 @@ struct FFKind {
 
 // Files for input.
 struct InFiles {
-  std::vector<FileName> param;
+  std::vector<FileName> param, tabulated_potential;
   FileNames<BOX_TOTAL> pdb, psf, checkpoint;
   FileNames<BOX_TOTAL> binaryCoorInput, binaryVelInput, xscInput;
   FileName seed;
@@ -141,10 +141,11 @@ struct FFValues {
   double cutoff, cutoffLow, rswitch;
   bool doTailCorr, vdwGeometricSigma, doImpulsePressureCorr;
   std::string kind;
+  std::string interpolationType;
 
-  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
+  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6, VDW_TABULATED;
   static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND,
-      VDW_EXP6_KIND;
+      VDW_EXP6_KIND, VDW_TABULATED_KIND;
 };
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT

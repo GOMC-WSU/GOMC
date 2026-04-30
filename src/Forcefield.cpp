@@ -9,6 +9,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "FFShift.h"
 #include "FFSwitch.h"
 #include "FFSwitchMartini.h"
+#include "FFTabulated.h"
 #include "Setup.h"
 
 Forcefield::Forcefield() {
@@ -28,7 +29,25 @@ Forcefield::~Forcefield() {
 
 void Forcefield::Init(const Setup &set) {
   InitBasicVals(set.config.sys, set.config.in.ffKind);
-  particles->Init(set.ff.mie, set.ff.nbfix);
+  // Store tabulated potential file name if available
+  if (set.config.in.files.tabulated_potential.size() > 0) {
+    tabulatedPotentialFile = set.config.in.files.tabulated_potential[0].name;
+  }
+  // Store interpolation type for tabulated potential
+  interpolationType = set.config.sys.ff.interpolationType;
+
+  // If using tabulated potentials, pass the NBtable data to particles->Init()
+  if (vdwKind == set.config.sys.ff.VDW_TABULATED_KIND) {
+    FF_TABULATED *tabParticles = dynamic_cast<FF_TABULATED *>(particles);
+    if (tabParticles != NULL) {
+      // Initialize with NBtable data available
+      tabParticles->InitWithNBtable(set.ff.mie, set.ff.nbfix, set.ff.nbtable);
+    }
+  } else {
+    // For non-tabulated forcefields, use regular Init
+    particles->Init(set.ff.mie, set.ff.nbfix);
+  }
+
   bonds.Init(set.ff.bond);
   angles->Init(set.ff.angle);
   dihedrals.Init(set.ff.dih);
@@ -86,6 +105,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
   vdwGeometricSigma = val.ff.vdwGeometricSigma;
   isMartini = ffKind.isMARTINI;
   exp6 = (vdwKind == val.ff.VDW_EXP6_KIND);
+  isCHARMM = ffKind.isCHARMM;
 
 #if ENSEMBLE == GCMC
   isFugacity = val.chemPot.isFugacity;
@@ -97,6 +117,8 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
     particles = new FF_EXP6(*this);
   else if (vdwKind == val.ff.VDW_SHIFT_KIND)
     particles = new FF_SHIFT(*this);
+  else if (vdwKind == val.ff.VDW_TABULATED_KIND)
+    particles = new FF_TABULATED(*this);
   else if (vdwKind == val.ff.VDW_SWITCH_KIND && ffKind.isMARTINI)
     particles = new FF_SWITCH_MARTINI(*this);
   else if (vdwKind == val.ff.VDW_SWITCH_KIND && !ffKind.isMARTINI)
