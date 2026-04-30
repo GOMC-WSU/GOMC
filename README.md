@@ -1,5 +1,7 @@
 # GOMC - GPU Optimized Monte Carlo
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c90320c8dac14a58a834ca7f3fca00fb)](https://app.codacy.com/gh/GOMC-WSU/GOMC?utm_source=github.com&utm_medium=referral&utm_content=GOMC-WSU/GOMC&utm_campaign=Badge_Grade)
+
 GOMC is an acronym for GPU Optimized Monte Carlo. GOMC is a parallel molecular simulation code designed for high-performance simulation of large systems that runs on both CPUs, with or without OpenMP, and NVIDIA GPUs.
 
 Current Release: 2.80 (12/03/2025)
