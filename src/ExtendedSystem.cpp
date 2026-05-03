@@ -16,8 +16,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "StrLib.h"           //for string comparison wrapper
 #include "Velocity.h"         // for velocity data
 
-ExtendedSystem::ExtendedSystem() {
-  firstStep = 0;
+ExtendedSystem::ExtendedSystem() : firstStep(0) {
   axis.Init(BOX_TOTAL);
   for (int b = 0; b < BOX_TOTAL; b++) {
     cellBasis[b] = XYZArray(3);
