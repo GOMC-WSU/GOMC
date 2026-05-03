@@ -40,6 +40,10 @@ public:
   explicit System(StaticVals &statics, Setup &set, ulong &startStep,
                   MultiSim const *const &multisim = NULL);
 
+  // Allow only one System object
+  System(const System &) = delete;
+  System &operator=(const System &) = delete;
+
   void Init(Setup &setupData);
 
   /* To reinit the checkpointed original molecule starts */
