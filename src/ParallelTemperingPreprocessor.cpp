@@ -404,8 +404,8 @@ bool ParallelTemperingPreprocessor::checkIfRestartFromCheckpoint(
 }
 
 void ParallelTemperingPreprocessor::
-    setupReplicaDirectoriesAndRedirectSTDOUTToFile(const std::string &multiSimTitle,
-                                                   const std::string &temperature) {
+    setupReplicaDirectoriesAndRedirectSTDOUTToFile(
+        const std::string &multiSimTitle, const std::string &temperature) {
   std::stringstream replicaTemp;
   replicaTemp << "temp_" << temperature;
   std::string replicaDirectory = replicaTemp.str();
@@ -413,9 +413,9 @@ void ParallelTemperingPreprocessor::
 }
 
 void ParallelTemperingPreprocessor::
-    setupReplicaDirectoriesAndRedirectSTDOUTToFile(const std::string &multiSimTitle,
-                                                   const std::string &temperature,
-                                                   const std::string &chemPot) {
+    setupReplicaDirectoriesAndRedirectSTDOUTToFile(
+        const std::string &multiSimTitle, const std::string &temperature,
+        const std::string &chemPot) {
   std::stringstream replicaTemp;
   replicaTemp << "temp_" << temperature << chemPot;
   std::string replicaDirectory = replicaTemp.str();
@@ -423,7 +423,8 @@ void ParallelTemperingPreprocessor::
 }
 
 void ParallelTemperingPreprocessor::mkdirWrapper(
-    const std::string &multisimDirectoryName, const std::string &replicaDirectoryName) {
+    const std::string &multisimDirectoryName,
+    const std::string &replicaDirectoryName) {
   std::string multiSimInputFolder;
   std::string multiSimOutputFolder;
 

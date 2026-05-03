@@ -96,8 +96,9 @@ bool CircuitFinder::haveCommonElements(const std::vector<int> &first,
   return false;
 }
 
-std::vector<int> CircuitFinder::returnCombinedSet(const std::vector<int> &first,
-                                                  const std::vector<int> &second) {
+std::vector<int>
+CircuitFinder::returnCombinedSet(const std::vector<int> &first,
+                                 const std::vector<int> &second) {
   std::vector<int> ret(first);
   for (int i = 0; i < (int)second.size(); i++) {
     if (std::find(ret.begin(), ret.end(), second[i]) == ret.end()) {
