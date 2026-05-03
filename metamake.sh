@@ -241,5 +241,5 @@ if (( use_debug )); then
 	CMAKEARGS+="-DCMAKE_BUILD_TYPE=Debug "
 fi
 
-cmake .. "$CMAKEARGS"
-make -j8 "$ENSEMBLES"
+cmake .. $CMAKEARGS
+make -j8 $ENSEMBLES
