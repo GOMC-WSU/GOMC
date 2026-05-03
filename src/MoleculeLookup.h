@@ -54,6 +54,7 @@ public:
       delete[] boxAndKindSwappableCounts;
   }
 
+  MoleculeLookup(const MoleculeLookup &other) = delete;
   MoleculeLookup &operator=(const MoleculeLookup &rhs);
   bool operator==(const MoleculeLookup &rhs);
 

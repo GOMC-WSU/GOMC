@@ -258,16 +258,18 @@ MoleculeLookup::box_iterator MoleculeLookup::BoxEnd(const uint box) const {
 }
 
 MoleculeLookup &MoleculeLookup::operator=(const MoleculeLookup &rhs) {
-  molLookupCount = rhs.molLookupCount;
-  boxAndKindStartLength = rhs.boxAndKindStartLength;
-  boxAndKindSwappableLength = rhs.boxAndKindSwappableLength;
-  atomCount = rhs.atomCount;
-  numKinds = rhs.numKinds;
+  if (this != &rhs) { // Avoid self-assignment
+    molLookupCount = rhs.molLookupCount;
+    boxAndKindStartLength = rhs.boxAndKindStartLength;
+    boxAndKindSwappableLength = rhs.boxAndKindSwappableLength;
+    atomCount = rhs.atomCount;
+    numKinds = rhs.numKinds;
 
-  fixedMolecule = rhs.fixedMolecule;
-  canSwapKind = rhs.canSwapKind; // Kinds that can move intra and inter box
-  canMoveKind = rhs.canMoveKind; // Kinds that can move intra box only
-
+    fixedMolecule = rhs.fixedMolecule;
+    canSwapKind = rhs.canSwapKind; // Kinds that can move intra and inter box
+    canMoveKind = rhs.canMoveKind; // Kinds that can move intra box only
+  }
+ 
   return *this;
 }
 
