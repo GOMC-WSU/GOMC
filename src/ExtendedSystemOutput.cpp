@@ -60,7 +60,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
     z = x + 2 * numAtoms;
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       std::string fileName = output.state_dcd.files.dcd.name[b];
-      int baselen = strlen(fileName.c_str());
+      int baselen = fileName.length();
       outDCDStateFile[b] = new char[baselen + 1];
       strcpy(outDCDStateFile[b], fileName.c_str());
       //  Write out the header with lattice parameter
@@ -68,7 +68,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
       // prepare the xst file
       fileName = output.statistics.settings.uniqueStr.val;
       fileName += "_BOX_" + std::to_string(b) + ".xst";
-      baselen = strlen(fileName.c_str());
+      baselen = fileName.length();
       outXSTFile[b] = new char[baselen + 1];
       strcpy(outXSTFile[b], fileName.c_str());
       xstFile[b].Init(fileName, " output XST", true, printNotify);

@@ -1202,8 +1202,8 @@ int ReadPSFAtoms(FILE *psf, unsigned int nAtoms,
     if (input[0] == '!' || str::AllWS(input))
       continue;
     // parse line
-    sscanf(input, " %u %s %u %s %s %s %lf %lf ", &atomID, segment, &molID,
-           moleculeName, atomName, atomType, &charge, &mass);
+    sscanf(input, " %u %10s %u %10s %10s %10s %lf %lf ", &atomID, segment,
+           &molID, moleculeName, atomName, atomType, &charge, &mass);
     allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, segment,
                                        atomType, charge, mass));
   }
