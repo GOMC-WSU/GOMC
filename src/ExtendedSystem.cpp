@@ -19,10 +19,16 @@ A copy of the MIT License can be found in License.txt with this program or at
 ExtendedSystem::ExtendedSystem() : firstStep(0) {
   axis.Init(BOX_TOTAL);
   for (int b = 0; b < BOX_TOTAL; b++) {
-    cellBasis[b] = XYZArray(3);
-    hasCellBasis[b] = false;
     center[b].Reset();
+    cellBasis[b] = XYZArray(3);
+    for (int i = 0; i < 3; ++i) {
+      cosAngle[b][i] = 0.0;
+      cellAngle[b][i] = 0.0;
+    }
+    hasCellBasis[b] = false;
+    boxMoleculeOffset[b] = 0.0;
   }
+  boxMoleculeOffset[BOX_TOTAL] = 0.0;
 }
 
 // Equality operator for unit testing
@@ -30,7 +36,7 @@ bool ExtendedSystem::operator==(const ExtendedSystem &other) {
   bool result = true;
   result &= (firstStep == other.firstStep);
   result &= (axis == other.axis);
-  // These are cleared after use, so unneccessary
+  // These are cleared after use, so unnecessary
   // result &= (binaryCoor == other.binaryCoor);
   // result &= (binaryVeloc == other.binaryVeloc);
 
