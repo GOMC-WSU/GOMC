@@ -269,7 +269,7 @@ MoleculeLookup &MoleculeLookup::operator=(const MoleculeLookup &rhs) {
     canSwapKind = rhs.canSwapKind; // Kinds that can move intra and inter box
     canMoveKind = rhs.canMoveKind; // Kinds that can move intra box only
   }
- 
+
   return *this;
 }
 
