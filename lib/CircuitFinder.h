@@ -42,9 +42,9 @@ public:
     V = N;
     E = 0;
   }
-  bool haveCommonElements(std::vector<int> first, std::vector<int> second);
-  std::vector<int> returnCombinedSet(std::vector<int> first,
-                                     std::vector<int> second);
+  bool haveCommonElements(const std::vector<int> &first, const std::vector<int> &second);
+  std::vector<int> returnCombinedSet(const std::vector<int> &first,
+                                     const std::vector<int> &second);
   std::vector<std::vector<int>> GetAllCommonCycles();
 };
 

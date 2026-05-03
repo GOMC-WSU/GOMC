@@ -480,7 +480,7 @@ void ConsoleOutput::PrintMoveTitle() {
   std::cout << std::endl;
 }
 
-void ConsoleOutput::printElement(const double t, const int width,
+void ConsoleOutput::printElement(const double &t, const int width,
                                  uint precision) const {
   const char separator = ' ';
   if (std::abs(t) > 1e99) {
@@ -493,20 +493,20 @@ void ConsoleOutput::printElement(const double t, const int width,
   }
 }
 
-void ConsoleOutput::printElement(const uint t, const int width) const {
+void ConsoleOutput::printElement(const uint &t, const int width) const {
   const char separator = ' ';
   std::cout << std::right << std::scientific << std::setw(width)
             << std::setfill(separator) << t;
 }
 
-void ConsoleOutput::printElement(const std::string t, const int width) const {
+void ConsoleOutput::printElement(const std::string &t, const int width) const {
   const char separator = ' ';
   std::cout << std::right << std::scientific << std::setw(width)
             << std::setfill(separator) << t;
 }
 
 template <typename T>
-void ConsoleOutput::printElementStep(const T t, const ulong step,
+void ConsoleOutput::printElementStep(const T &t, const ulong step,
                                      const int width) const {
   std::cout << t << std::right << std::setw(width - 7) << step;
 }

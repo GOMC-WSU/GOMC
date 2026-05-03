@@ -100,7 +100,7 @@ public:
   NBtable() : FFBase(2) {}
 
   virtual void Read(Reader &param, std::string const &firstVar);
-  void Add(std::string atom1, std::string atom2, std::string table_pair_name);
+  void Add(const std::string &atom1, const std::string &atom2, const std::string &table_pair_name);
 
   // Get atom type names for a pair index
   std::string GetAtomType1(size_t idx) const {

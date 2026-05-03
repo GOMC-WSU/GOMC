@@ -364,15 +364,15 @@ void NBtable::Read(Reader &param, std::string const &firstVar) {
             << table_pair_name << std::endl;
 }
 
-void NBtable::Add(std::string atom1, std::string atom2,
-                  std::string table_pair_name) {
+void NBtable::Add(const std::string &atom1, const std::string &atom2,
+                  const std::string &table_pair_name) {
   atomType1.push_back(atom1);
   atomType2.push_back(atom2);
   tableNames.push_back(table_pair_name);
   // Note: The base class 'name' vector is also filled by ReadKind(),
   // but we don't use it. We use our own tableNames vector instead.
 }
-void Bond::Read(Reader &param, std::string const &firstVar) {
+void Bond::Read(Reader &param, const std::string &firstVar) {
   double coeff, def;
   ReadKind(param, firstVar);
   param.file >> coeff >> def;

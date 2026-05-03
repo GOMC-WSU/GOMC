@@ -41,13 +41,13 @@ public:
   std::string getOutputFolderName(const char *fileName);
   std::string getTemperature(const char *fileName, int worldRank);
   std::string getChemicalPotential(const char *fileName, int worldRank);
-  void setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle,
-                                                      std::string temperature);
-  void setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle,
-                                                      std::string temperature,
-                                                      std::string chemPot);
-  void mkdirWrapper(std::string multisimDirectoryName,
-                    std::string replicaDirectoryName);
+  void setupReplicaDirectoriesAndRedirectSTDOUTToFile(const std::string &multiSimTitle,
+                                                      const std::string &temperature);
+  void setupReplicaDirectoriesAndRedirectSTDOUTToFile(const std::string &multiSimTitle,
+                                                      const std::string &temperature,
+                                                      const std::string &chemPot);
+  void mkdirWrapper(const std::string &multisimDirectoryName,
+                    const std::string &replicaDirectoryName);
   bool checkString(std::string str1, std::string str2);
   bool checkBool(std::string str);
 

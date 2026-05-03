@@ -647,7 +647,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
 typedef std::map<std::string, mol_setup::MolKind> MolMap;
 void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList &bondAdjList,
                                         mol_setup::MolMap &kindMap,
-                                        std::string fragName) {
+                                        const std::string &fragName) {
   int molBegin = static_cast<int>(kindMap[fragName].firstAtomID) - 1;
   // index AFTER last atom in molecule
   int molEnd = molBegin + static_cast<int>(kindMap[fragName].atoms.size());
