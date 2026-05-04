@@ -58,8 +58,6 @@ void PSFOutput::Init(pdb_setup::Atoms const &atoms,
   stepsRestPerOut = output.restart.settings.frequency;
   if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
-      // Set alias string, based on box #
-      std::string aliasStr = "Output PSF file for Box " + std::to_string(b + 1);
       // NEW_RESTART_COD
       outRebuildRestartFName[b] = output.state.files.splitPSF.name[b];
       std::string newStrAddOn = "_restart.psf";
