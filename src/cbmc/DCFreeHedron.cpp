@@ -112,12 +112,11 @@ void DCFreeHedron::BuildNew(TrialMol &newMol, uint molIndex) {
   positions[hed.NumBond()].Set(0, newMol.RawRectCoords(anchorBond, 0, 0));
 
   // counting backward to preserve prototype
-  double u1, u2, u3;
   for (uint lj = nLJTrials; lj-- > 0;) {
     // convert chosen torsion to 3D positions
-    u1 = prng();
-    u2 = prng();
-    u3 = prng();
+    double u1 = prng();
+    double u2 = prng();
+    double u3 = prng();
     RotationMatrix spin = RotationMatrix::UniformRandom(u1, u2, u3);
     for (uint b = 0; b < hed.NumBond() + 1; ++b) {
       // find positions

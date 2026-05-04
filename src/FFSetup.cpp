@@ -205,11 +205,12 @@ std::string FFBase::LoadLine(Reader &param, std::string const &firstVar) {
 }
 
 void Particle::Read(Reader &param, std::string const &firstVar) {
-  double e, s, e_1_4, s_1_4, dummy1, dummy2;
+  double e, s, e_1_4, s_1_4;
   double expN, expN_1_4;
   std::stringstream values(LoadLine(param, firstVar));
   if (isCHARMM()) { // if lj
-    values >> dummy1;
+    double dummy;
+    values >> dummy;
   }
   values >> e >> s;
   if (isCHARMM()) {
@@ -225,7 +226,8 @@ void Particle::Read(Reader &param, std::string const &firstVar) {
   }
 
   if (isCHARMM()) { // if lj
-    values >> dummy2;
+    double dummy;
+    values >> dummy;
   }
   // If undefined in CHARMM, assign 1-4 to full value.
   values >> e_1_4 >> s_1_4;
@@ -472,11 +474,11 @@ void Dihedral::Add(const std::string &fileName, const std::string &merged,
 }
 
 void Improper::Read(Reader &param, std::string const &firstVar) {
-  double coeff, def;
-  uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
   if (validname(merged)) {
+    double coeff, def;
+    uint index;
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "

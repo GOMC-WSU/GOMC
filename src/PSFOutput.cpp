@@ -54,19 +54,12 @@ PSFOutput::PSFOutput(const Molecules &molecules, const System &sys, Setup &set)
 
 void PSFOutput::Init(pdb_setup::Atoms const &atoms,
                      config_setup::Output const &output) {
-  std::string bStr = "", aliasStr = "", numStr = "";
-  sstrm::Converter toStr;
   enableRestOut = output.restart.settings.enable || forceOutput;
   stepsRestPerOut = output.restart.settings.frequency;
   if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
-      // Get alias string, based on box #.
-      bStr = "Box ";
-      numStr = "";
-      toStr << b + 1;
-      toStr >> numStr;
-      aliasStr = "Output PSF file for Box ";
-      aliasStr += numStr;
+      // Set alias string, based on box #
+      std::string aliasStr = "Output PSF file for Box " + std::to_string(b + 1);
       // NEW_RESTART_COD
       outRebuildRestartFName[b] = output.state.files.splitPSF.name[b];
       std::string newStrAddOn = "_restart.psf";
@@ -262,13 +255,11 @@ void PSFOutput::PrintAtoms(FILE *outfile) const {
   // silly psfs index from 1
   uint atomID = 1;
   uint resID = 1;
-  uint thisKIndex = 0, nAtoms = 0, mI = 0;
-  uint pStart = 0, pEnd = 0;
   // Start particle numbering @ 1
   for (uint mol = 0; mol < molecules->count; ++mol) {
     // If this isn't checkpoint restarted, then this is
-    thisKIndex = molecules->kIndex[mol];
-    nAtoms = molKinds[thisKIndex].atoms.size();
+    const uint thisKIndex = molecules->kIndex[mol];
+    const uint nAtoms = molKinds[thisKIndex].atoms.size();
 
     for (uint at = 0; at < nAtoms; ++at) {
       const Atom *thisAtom = &molKinds[thisKIndex].atoms[at];
@@ -306,10 +297,9 @@ void PSFOutput::PrintBonds(FILE *outfile) const {
   fprintf(outfile, headerFormat, totalBonds, bondHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, mI = 0;
   for (uint mol = 0; mol < molecules->count; ++mol) {
     // If this isn't checkpoint restarted, then this is
-    thisKIndex = molecules->kIndex[mol];
+    const uint thisKIndex = molecules->kIndex[mol];
     const MolKind &thisKind = molKinds[thisKIndex];
     for (uint i = 0; i < thisKind.bonds.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
@@ -329,11 +319,9 @@ void PSFOutput::PrintAngles(FILE *outfile) const {
   fprintf(outfile, headerFormat, totalAngles, angleHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, mI = 0;
   for (uint mol = 0; mol < molecules->count; ++mol) {
     // If this isn't checkpoint restarted, then this is
-    // mI = *m;
-    thisKIndex = molecules->kIndex[mol];
+    const uint thisKIndex = molecules->kIndex[mol];
     const MolKind &thisKind = molKinds[thisKIndex];
     for (uint i = 0; i < thisKind.angles.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
@@ -352,9 +340,8 @@ void PSFOutput::PrintDihedrals(FILE *outfile) const {
   fprintf(outfile, headerFormat, totalDihs, dihedralHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, mI = 0;
   for (uint mol = 0; mol < molecules->count; ++mol) {
-    thisKIndex = molecules->kIndex[mol];
+    const uint thisKIndex = molecules->kIndex[mol];
     const MolKind &thisKind = molKinds[thisKIndex];
     for (uint i = 0; i < thisKind.dihedrals.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
@@ -376,9 +363,8 @@ void PSFOutput::PrintImpropers(FILE *outfile) const {
   fprintf(outfile, headerFormat, totalImps, improperHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, mI = 0;
   for (uint mol = 0; mol < molecules->count; ++mol) {
-    thisKIndex = molecules->kIndex[mol];
+    const uint thisKIndex = molecules->kIndex[mol];
     const MolKind &thisKind = molKinds[thisKIndex];
     for (uint i = 0; i < thisKind.impropers.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d%8d", thisKind.impropers[i].a0 + atomID,
@@ -400,10 +386,9 @@ void PSFOutput::PrintDonors(FILE *outfile) const {
   fprintf(outfile, headerFormat, totalDons, donorHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, mI = 0;
   for (uint mol = 0; mol < molecules->count; ++mol) {
     // If this isn't checkpoint restarted, then this is
-    thisKIndex = molecules->kIndex[mol];
+    const uint thisKIndex = molecules->kIndex[mol];
     const MolKind &thisKind = molKinds[thisKIndex];
     for (uint i = 0; i < thisKind.donors.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.donors[i].a0 + atomID,
@@ -423,10 +408,9 @@ void PSFOutput::PrintAcceptors(FILE *outfile) const {
   fprintf(outfile, headerFormat, totalAccs, acceptorHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, mI = 0;
   for (uint mol = 0; mol < molecules->count; ++mol) {
     // If this isn't checkpoint restarted, then this is
-    thisKIndex = molecules->kIndex[mol];
+    const uint thisKIndex = molecules->kIndex[mol];
     const MolKind &thisKind = molKinds[thisKIndex];
     for (uint i = 0; i < thisKind.acceptors.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.acceptors[i].a0 + atomID,

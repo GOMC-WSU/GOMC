@@ -223,12 +223,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const {
 void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const {
   uint offset = box * var->numKinds;
 
-  std::string title = "STAT_";
-  sstrm::Converter toStr;
-  std::string numStr = "";
-  toStr << box;
-  toStr >> numStr;
-  title += numStr + ":";
+  std::string title = "STAT_" + std::to_string(box) + ":";
   printElementStep(title, step + 1, elementWidth);
 
   if (enableVolume)
@@ -246,14 +241,16 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const {
     printElement(var->numByBox[box], elementWidth);
 
     for (uint k = 0; k < var->numKinds; k++) {
-      uint kb = k + offset;
-      if (var->numKinds > 1)
+      if (var->numKinds > 1) {
+        uint kb = k + offset;
         printElement(var->molFractionByKindBox[kb], elementWidth, 8);
+      }
     }
     for (uint k = 0; k < var->numKinds; k++) {
-      uint kb = k + offset;
-      if (var->numKinds > 1)
+      if (var->numKinds > 1) {
+        uint kb = k + offset;
         printElement(var->densityByKindBox[kb], elementWidth, 8);
+      }
     }
   }
 
@@ -267,12 +264,7 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const {
 
 void ConsoleOutput::PrintPressureTensor(const uint box,
                                         const ulong step) const {
-  std::string title = "PRES_";
-  sstrm::Converter toStr;
-  std::string numStr = "";
-  toStr << box;
-  toStr >> numStr;
-  title += numStr + ":";
+  std::string title = "PRES_" + std::to_string(box) + ":";
   printElementStep(title, step + 1, elementWidth);
 
   for (uint i = 0; i < 3; i++) {
@@ -292,12 +284,7 @@ void ConsoleOutput::PrintPressureTensor(const uint box,
 
 void ConsoleOutput::PrintEnergy(const uint box, Energy const &en,
                                 const ulong step) const {
-  std::string title = "ENER_";
-  sstrm::Converter toStr;
-  std::string numStr = "";
-  toStr << box;
-  toStr >> numStr;
-  title += numStr + ":";
+  std::string title = "ENER_" + std::to_string(box) + ":";
   printElementStep(title, step + 1, elementWidth);
 
   printElement(en.total, elementWidth);

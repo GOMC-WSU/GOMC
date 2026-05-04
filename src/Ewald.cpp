@@ -1093,7 +1093,7 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
   uint atomSize = mols.GetKind(molIndex).NumAtoms();
   uint start = mols.MolStart(molIndex);
   uint lambdaSize = lambda_Coul.size();
-  double coefDiff, distSq, dist, correction = 0.0;
+  double distSq, dist, correction = 0.0;
   XYZ virComponents;
 
   // Calculate the correction energy with lambda = 1
@@ -1114,7 +1114,7 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
   correction *= -1.0 * num::qqFact;
   // Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
-    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+    double coefDiff = lambda_Coul[s] - lambda_Coul[iState];
     energyDiff[s].correction += coefDiff * correction;
   }
   // Calculate du/dl of correction for current state, for linear scaling
@@ -1128,15 +1128,12 @@ double Ewald::BoxSelf(uint box) const {
 
   GOMC_EVENT_START(1, GomcProfileEvent::SELF_BOX);
   double self = 0.0;
-  double molSelfEnergy;
-  uint i, j, length, molNum;
   double lambdaCoef = 1.0;
 
-  for (i = 0; i < mols.GetKindsCount(); i++) {
+  for (uint i = 0; i < mols.GetKindsCount(); i++) {
     MoleculeKind const &thisKind = mols.kinds[i];
-    length = thisKind.NumAtoms();
-    molNum = molLookup.NumKindInBox(i, box);
-    molSelfEnergy = 0.0;
+    const uint length = thisKind.NumAtoms();
+    uint molNum = molLookup.NumKindInBox(i, box);
     if (lambdaRef.KindIsFractional(i, box)) {
       // If a molecule is fractional, we subtract the fractional molecule and
       // add it later
@@ -1145,7 +1142,8 @@ double Ewald::BoxSelf(uint box) const {
       lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
     }
 
-    for (j = 0; j < length; j++) {
+    double molSelfEnergy = 0.0;
+    for (uint j = 0; j < length; j++) {
       molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
     }
     self += (molSelfEnergy * molNum);
@@ -1399,7 +1397,7 @@ void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
   uint atomSize = mols.GetKind(molIndex).NumAtoms();
   uint start = mols.MolStart(molIndex);
   uint lambdaSize = lambda_Coul.size();
-  double coefDiff, en_self = 0.0;
+  double en_self = 0.0;
   // Calculate the self energy with lambda = 1
   for (uint i = 0; i < atomSize; i++) {
     en_self += (particleCharge[i + start] * particleCharge[i + start]);
@@ -1409,7 +1407,7 @@ void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
 
   // Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
-    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+    double coefDiff = lambda_Coul[s] - lambda_Coul[iState];
     energyDiff[s].self += coefDiff * en_self;
   }
   // Calculate du/dl of self for current state, for linear scaling

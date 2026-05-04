@@ -139,19 +139,13 @@ std::string Histogram::GetFName(std::string const &histName,
                                 std::string const &histNum,
                                 std::string const &histLetter, const uint box,
                                 const uint kind) {
-  std::stringstream sstrm;
-  std::string strKind, fName = "n", strBox;
-  sstrm << (kind + 1);
-  sstrm >> strKind;
-  fName += strKind;
+  std::string fName = "n";
+  fName += std::to_string(kind + 1);
   fName += histName;
   fName += histNum;
   fName += histLetter;
   if (BOXES_WITH_U_NB > 1) {
-    fName += "_box";
-    sstrm << box;
-    sstrm >> strBox;
-    fName += strBox;
+    fName += "_box" + std::to_string(box);
   }
   fName += ".dat";
   return fName;

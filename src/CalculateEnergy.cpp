@@ -1408,21 +1408,19 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
 void CalculateEnergy::ResetForce(XYZArray &atomForce, XYZArray &molForce,
                                  uint box) {
   if (multiParticleEnabled) {
-    uint length, start;
-
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
     while (thisMol != end) {
-      length = mols.GetKind(*thisMol).NumAtoms();
-      start = mols.MolStart(*thisMol);
+      uint length = mols.GetKind(*thisMol).NumAtoms();
+      uint start = mols.MolStart(*thisMol);
 
       molForce.Set(*thisMol, 0.0, 0.0, 0.0);
       for (uint p = start; p < start + length; p++) {
         atomForce.Set(p, 0.0, 0.0, 0.0);
       }
-      thisMol++;
+      ++thisMol;
     }
   }
 }

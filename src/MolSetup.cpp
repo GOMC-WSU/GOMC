@@ -281,10 +281,9 @@ int mol_setup::ReadCombinePSF(MoleculeVariables &molVars, MolMap &kindMap,
   int nAtoms = errorcode;
   if (errorcode < 0)
     return errorcode;
-  MolMap map2;
-  SizeMap sizeMap2;
   if ((int)pdbAtoms.count != nAtoms && BOX_TOTAL == 2 && psfDefined[1]) {
-    map2.clear();
+    MolMap map2;
+    SizeMap sizeMap2;
     uint box_1 = 1;
     errorcode = ReadPSF(psfFilename[box_1].c_str(), box_1, molVars, map2,
                         sizeMap2, &kindMap, &sizeMap);
@@ -375,7 +374,6 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
   for (std::vector<std::vector<uint>>::const_iterator it =
            moleculeXAtomIDY.cbegin();
        it != moleculeXAtomIDY.cend(); it++) {
-    std::string fragName;
     bool foundEntryInOldMap = false;
 
     if (sizeMapFromBox1 != NULL && kindMapFromBox1 != NULL) {
@@ -410,7 +408,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
           /* Found no matching molecules in Box 2 map */
           if (itPair.second == it->cend()) {
             /* Get the map key */
-            fragName = *sizeConsistentEntries;
+            std::string fragName = *sizeConsistentEntries;
             /* Boilerplate PDB Data modifications for matches */
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset +
                                                 it->front());
@@ -509,7 +507,6 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
       molecules based on molMap entries of a given size exisitng or not */
       SizeMap::iterator sizeIt = sizeMap.find(it->size());
       std::string fragName;
-      bool multiResidue = false;
       bool newSize = false;
       bool newMapEntry = true;
 
@@ -559,12 +556,11 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
       if (newMapEntry) {
         /* Determine if this connected component is a standard or multiResidue
          * molecule */
+        bool multiResidue = false;
         for (candidateIterator connectedComponentIt = it->cbegin();
-             connectedComponentIt != it->cend(); connectedComponentIt++) {
-          if (allAtoms[*connectedComponentIt].residueID ==
+             connectedComponentIt != it->cend(); ++connectedComponentIt) {
+          if (allAtoms[*connectedComponentIt].residueID !=
               allAtoms[it->front()].residueID) {
-            continue;
-          } else {
             multiResidue = true;
             break;
           }
@@ -695,11 +691,10 @@ void AssignBondKinds(MolKind &kind, const FFSetup &ffData) {
   const uint ATOMS_PER = 2;
   std::string elementNames[ATOMS_PER];
 
-  int search = 0;
   for (uint i = 0; i < kind.bonds.size(); ++i) {
     elementNames[0] = kind.atoms[kind.bonds[i].a0].type;
     elementNames[1] = kind.atoms[kind.bonds[i].a1].type;
-    search = ffData.bond.Find(elementNames, ffData.bond.name);
+    int search = ffData.bond.Find(elementNames, ffData.bond.name);
     if (search >= 0) {
       kind.bonds[i].kind = search;
     } else {
@@ -1217,10 +1212,9 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nangles) {
   unsigned int atom0, atom1, atom2;
-  int dummy;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nangles; n++) {
-    dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
+    int dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
     if (dummy != 3) {
       fprintf(stderr, "ERROR: Incorrect Number of angles in PSF file ");
       return errors::READ_ERROR;
