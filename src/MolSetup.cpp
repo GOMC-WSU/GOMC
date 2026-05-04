@@ -1214,8 +1214,8 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
   unsigned int atom0, atom1, atom2;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nangles; n++) {
-    int dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
-    if (dummy != 3) {
+    int num = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
+    if (num != 3) {
       fprintf(stderr, "ERROR: Incorrect Number of angles in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
@@ -1273,11 +1273,10 @@ int ReadPSFDihedrals(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint ndihedrals) {
   Dihedral dih(0, 0, 0, 0);
-  int dummy;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < ndihedrals; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
-    if (dummy != 4) {
+    int num = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
+    if (num != 4) {
       fprintf(stderr, "ERROR: Incorrect Number of dihedrals in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
@@ -1330,11 +1329,10 @@ int ReadPSFImpropers(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nimpropers) {
   Improper imp(0, 0, 0, 0);
-  int dummy;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nimpropers; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if (dummy != 4) {
+    int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
+    if (num != 4) {
       fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
@@ -1379,11 +1377,10 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nDonors) {
   unsigned int atom0, atom1;
-  int dummy;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nDonors; n++) {
-    dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-    if (dummy != 2) {
+    int num = fscanf(psf, "%u %u", &atom0, &atom1);
+    if (num != 2) {
       fprintf(stderr, "ERROR: Incorrect Number of donors in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
@@ -1420,11 +1417,10 @@ int ReadPSFAcceptors(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nAcceptors) {
   unsigned int atom0, atom1;
-  int dummy;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nAcceptors; n++) {
-    dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-    if (dummy != 2) {
+    int num = fscanf(psf, "%u %u", &atom0, &atom1);
+    if (num != 2) {
       fprintf(stderr, "ERROR: Incorrect Number of acceptors in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
@@ -1484,11 +1480,10 @@ int ReadPSFExplicitNonbondExclusions(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nNonbondExclusions) {
   Improper imp(0, 0, 0, 0);
-  int dummy;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nNonbondExclusions; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if (dummy != 4) {
+    int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
+    if (num != 4) {
       fprintf(stderr, "ERROR: Incorrect Number of NNB's in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
@@ -1532,11 +1527,10 @@ int ReadPSFGroups(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nGroups) {
   Improper imp(0, 0, 0, 0);
-  int dummy;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nGroups; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if (dummy != 4) {
+    int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
+    if (num != 4) {
       fprintf(stderr, "ERROR: Incorrect Number of groups in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
@@ -1580,11 +1574,10 @@ int ReadPSFCrossTerms(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nCrossTerms) {
   Improper imp(0, 0, 0, 0);
-  int dummy;
   std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nCrossTerms; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if (dummy != 4) {
+    int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
+    if (num != 4) {
       fprintf(stderr, "ERROR: Incorrect Number of cross terms in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {

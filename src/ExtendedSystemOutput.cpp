@@ -343,7 +343,6 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox,
     }
   }
 #else
-    bool inThisBox;
     // Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
@@ -351,7 +350,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox,
       dataI = *m;
       molRef.GetRangeStartStop(dataStart, dataEnd, dataI);
       ref = comCurrRef.Get(dataI);
-      inThisBox = (molInBox[dataI] == box);
+      bool inThisBox = (molInBox[dataI] == box);
       for (d = dataStart; d < dataEnd; ++d) {
         if (inThisBox) {
           coor = coordCurrRef.Get(d);

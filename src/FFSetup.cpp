@@ -495,11 +495,11 @@ void Improper::Add(const double coeff, const double def) {
 
 // Currently dummy method, exact same as improper
 void CMap::Read(Reader &param, std::string const &firstVar) {
-  double coeff, def;
-  uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
   if (validname(merged)) {
+    double coeff, def;
+    uint index;
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "
@@ -517,11 +517,11 @@ void CMap::Add(const double coeff, const double def) {
 
 // Currently dummy method, exactly the same as improper
 void HBond::Read(Reader &param, std::string const &firstVar) {
-  double coeff, def;
-  uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
   if (validname(merged)) {
+    double coeff, def;
+    uint index;
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "
