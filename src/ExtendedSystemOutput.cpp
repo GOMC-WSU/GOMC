@@ -84,7 +84,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
       // prepare coor file
       std::string fileName = output.restart_dcd.files.dcd.name[b];
       restartCoor[b] = new XYZ[NumAtomInBox(b)];
-      int baselen = strlen(fileName.c_str());
+      int baselen = fileName.length();
       outDCDRestartFile[b] = new char[baselen + 1];
       strcpy(outDCDRestartFile[b], fileName.c_str());
 
@@ -92,7 +92,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
       if (outputVelocity) {
         std::string fileName = output.restart_vel.files.dcd.name[b];
         restartVel[b] = new XYZ[NumAtomInBox(b)];
-        baselen = strlen(fileName.c_str());
+        baselen = fileName.length();
         outVelRestartFile[b] = new char[baselen + 1];
         strcpy(outVelRestartFile[b], fileName.c_str());
       }
@@ -100,7 +100,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
       // prepare the xsc file
       fileName = output.statistics.settings.uniqueStr.val;
       fileName += "_BOX_" + std::to_string(b) + "_restart.xsc";
-      baselen = strlen(fileName.c_str());
+      baselen = fileName.length();
       outXSCFile[b] = new char[baselen + 1];
       strcpy(outXSCFile[b], fileName.c_str());
       xscFile[b].Init(fileName, " output XSC", true, printNotify);
