@@ -321,7 +321,6 @@ void ExtendedSystemOutput::Write_binary_file(char *fname, int n, XYZ *vec) {
 void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox,
                                           const int box) {
   uint d, dataStart, dataEnd, dataI;
-  int numMolecules = molRef.count;
   XYZ ref, coor;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
 #if ENSEMBLE == NVT || ENSEMBLE == NPT

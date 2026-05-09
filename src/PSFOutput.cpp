@@ -133,21 +133,18 @@ void PSFOutput::DoOutput(const ulong step) {
 }
 
 void PSFOutput::CountMolecules() {
-  totalAngles = 0;
   totalAtoms = 0;
   totalBonds = 0;
+  totalAngles = 0;
   totalDihs = 0;
   totalImps = 0;
   totalDons = 0;
   totalAccs = 0;
-  uint atomT = 0;
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
     for (uint k = 0; k < molKinds.size(); ++k) {
-      // This doesnt work when the molecules are interspersed instead of all of
-      // one type then all the other
-      // const MoleculeKind& molKind = molecules->GetKind(atomT);
-
+      // This doesn't work when the molecules are interspersed instead of all
+      // of one type then all the other
       const MoleculeKind &molKind = molecules->kinds[k];
 
       totalAtoms += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
@@ -157,18 +154,11 @@ void PSFOutput::CountMolecules() {
       totalImps += molKind.NumImps() * molLookRef.NumKindInBox(k, b);
       totalDons += molKind.NumDons() * molLookRef.NumKindInBox(k, b);
       totalAccs += molKind.NumAccs() * molLookRef.NumKindInBox(k, b);
-      /*
-      totalNNBs += molKind.NumNNBs() * molLookRef.NumKindInBox(k, b);
-      totalGrps += molKind.NumGrps() * molLookRef.NumKindInBox(k, b);
-      totalCrtrms += molKind.NumCrtrms() * molLookRef.NumKindInBox(k, b);
-      */
-      atomT += molLookRef.NumKindInBox(k, b);
     }
   }
 }
 
 void PSFOutput::CountMoleculesInBoxes() {
-  uint atomT = 0;
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
     boxAtoms[b] = 0;
@@ -182,9 +172,8 @@ void PSFOutput::CountMoleculesInBoxes() {
     boxGrps[b] = 0;
     boxCrtrms[b] = 0;
     for (uint k = 0; k < molKinds.size(); ++k) {
-      // This doesnt work when the molecules are interspersed instead of all of
-      // one type then all the other
-      // const MoleculeKind& molKind = molecules->GetKind(atomT);
+      // This doesn't work when the molecules are interspersed instead of all
+      // of one type then all the other
       const MoleculeKind &molKind = molecules->kinds[k];
 
       boxAtoms[b] += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
@@ -194,11 +183,6 @@ void PSFOutput::CountMoleculesInBoxes() {
       boxImps[b] += molKind.NumImps() * molLookRef.NumKindInBox(k, b);
       boxDons[b] += molKind.NumDons() * molLookRef.NumKindInBox(k, b);
       boxAccs[b] += molKind.NumAccs() * molLookRef.NumKindInBox(k, b);
-      /*
-      boxNNBs[b] += molKind.NumNNBs() * molLookRef.NumKindInBox(k, b);
-      boxGrps[b] += molKind.NumGrps() * molLookRef.NumKindInBox(k, b);
-      boxCrtrms[b] += molKind.NumCrtrms() * molLookRef.NumKindInBox(k, b);
-      */
     }
   }
 }

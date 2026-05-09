@@ -284,8 +284,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   double *mForcex = molForce.x;
   double *mForcey = molForce.y;
   double *mForcez = molForce.z;
+#if defined GOMC_CUDA || defined _OPENMP && _OPENMP >= 201511
   int atomCount = atomForce.Count();
   int molCount = molForce.Count();
+#endif
 
   // Reset Force Arrays
   ResetForce(atomForce, molForce, box);

@@ -36,8 +36,6 @@ std::string PDBOutput::GetDefaultAtomStr() {
 
 void PDBOutput::Init(pdb_setup::Atoms const &atoms,
                      config_setup::Output const &output) {
-  std::string bStr = "", aliasStr = "", numStr = "";
-  sstrm::Converter toStr;
   /* My reasoning is if you pass a PDB trajectory in, you want a PDB traj out
   If we want to convert PDBTraj to DCDTraj use this version
   enableOut = output.state.settings.enable || atoms.recalcTrajectory;
@@ -57,13 +55,8 @@ void PDBOutput::Init(pdb_setup::Atoms const &atoms,
 
   if (enableOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
-      // Get alias string, based on box #.
-      bStr = "Box ";
-      numStr = "";
-      toStr << b + 1;
-      toStr >> numStr;
-      aliasStr = "Output PDB file for Box ";
-      aliasStr += numStr;
+      // Get alias string, based on box #
+      std::string aliasStr = "Output PDB file for Box " + std::to_string(b + 1);
       bool notify;
 #ifndef NDEBUG
       notify = true;
@@ -80,13 +73,9 @@ void PDBOutput::Init(pdb_setup::Atoms const &atoms,
 
   if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
-      // Get alias string, based on box #.
-      bStr = "Box ";
-      numStr = "";
-      toStr << b + 1;
-      toStr >> numStr;
-      aliasStr = "Output restart PDB file for Box ";
-      aliasStr += numStr;
+      // Get alias string, based on box #
+      std::string aliasStr =
+          "Output restart PDB file for Box " + std::to_string(b + 1);
       bool notify;
 #ifndef NDEBUG
       notify = true;
@@ -306,7 +295,6 @@ void PDBOutput::InsertAtomInLine(std::string &line, XYZ const &coor,
 void PDBOutput::PrintAtoms(const uint b, std::vector<uint> &mBox) {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
-  bool inThisBox = false;
 
   uint d, dataStart, dataEnd, dataI;
   // Start particle numbering @ 1
@@ -318,7 +306,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> &mBox) {
       // Loop through particles in mol.
       molRef.GetRangeStartStop(dataStart, dataEnd, dataI);
       XYZ ref = comCurrRef.Get(dataI);
-      inThisBox = (mBox[dataI] == b);
+      bool inThisBox = (mBox[dataI] == b);
       for (d = dataStart; d < dataEnd; ++d) {
         XYZ coor;
         if (inThisBox) {
