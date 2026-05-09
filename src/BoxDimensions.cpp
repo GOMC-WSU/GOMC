@@ -152,7 +152,7 @@ uint BoxDimensions::ExchangeVolume(BoxDimensions &newDim, XYZ *scale,
 }
 
 BoxDimensions::BoxDimensions(BoxDimensions const &other)
-    : axis{other.axis}, halfAx{other.halfAx}, constArea{other.constArea} {
+    : axis(other.axis), halfAx(other.halfAx), constArea(other.constArea) {
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     cellBasis[b] = XYZArray(3);
     other.cellBasis[b].CopyRange(cellBasis[b], 0, 0, 3);
