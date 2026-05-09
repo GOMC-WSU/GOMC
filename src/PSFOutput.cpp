@@ -476,7 +476,7 @@ void PSFOutput::PrintBondsInBox(FILE *outfile, uint b) const {
   uint atomID = 1;
   uint lineEntry = 0;
   for (MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b);
-       thisMol != molLookRef.BoxEnd(b); thisMol++) {
+       thisMol != molLookRef.BoxEnd(b); ++thisMol) {
     const MolKind &thisKind = molKinds[molecules->kIndex[*thisMol]];
     for (uint i = 0; i < thisKind.bonds.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
@@ -496,7 +496,7 @@ void PSFOutput::PrintAnglesInBox(FILE *outfile, uint b) const {
   uint atomID = 1;
   uint lineEntry = 0;
   for (MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b);
-       thisMol != molLookRef.BoxEnd(b); thisMol++) {
+       thisMol != molLookRef.BoxEnd(b); ++thisMol) {
     const MolKind &thisKind = molKinds[molecules->kIndex[*thisMol]];
     for (uint i = 0; i < thisKind.angles.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
@@ -516,7 +516,7 @@ void PSFOutput::PrintDihedralsInBox(FILE *outfile, uint b) const {
   uint atomID = 1;
   uint lineEntry = 0;
   for (MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b);
-       thisMol != molLookRef.BoxEnd(b); thisMol++) {
+       thisMol != molLookRef.BoxEnd(b); ++thisMol) {
     const MolKind &thisKind = molKinds[molecules->kIndex[*thisMol]];
     for (uint i = 0; i < thisKind.dihedrals.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
@@ -539,7 +539,7 @@ void PSFOutput::PrintImpropersInBox(FILE *outfile, uint b) const {
   uint atomID = 1;
   uint lineEntry = 0;
   for (MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b);
-       thisMol != molLookRef.BoxEnd(b); thisMol++) {
+       thisMol != molLookRef.BoxEnd(b); ++thisMol) {
     const MolKind &thisKind = molKinds[molecules->kIndex[*thisMol]];
     for (uint i = 0; i < thisKind.impropers.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d%8d", thisKind.impropers[i].a0 + atomID,
@@ -562,7 +562,7 @@ void PSFOutput::PrintDonorsInBox(FILE *outfile, uint b) const {
   uint atomID = 1;
   uint lineEntry = 0;
   for (MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b);
-       thisMol != molLookRef.BoxEnd(b); thisMol++) {
+       thisMol != molLookRef.BoxEnd(b); ++thisMol) {
     const MolKind &thisKind = molKinds[molecules->kIndex[*thisMol]];
     for (uint i = 0; i < thisKind.donors.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.donors[i].a0 + atomID,
@@ -583,7 +583,7 @@ void PSFOutput::PrintAcceptorsInBox(FILE *outfile, uint b) const {
   uint atomID = 1;
   uint lineEntry = 0;
   for (MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b);
-       thisMol != molLookRef.BoxEnd(b); thisMol++) {
+       thisMol != molLookRef.BoxEnd(b); ++thisMol) {
     const MolKind &thisKind = molKinds[molecules->kIndex[*thisMol]];
     for (uint i = 0; i < thisKind.acceptors.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.acceptors[i].a0 + atomID,

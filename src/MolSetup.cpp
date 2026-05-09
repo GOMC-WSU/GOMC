@@ -459,7 +459,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
                 for (std::vector<uint>::const_iterator connectedComponentIt =
                          it->cbegin();
                      connectedComponentIt != it->cend();
-                     connectedComponentIt++) {
+                     ++connectedComponentIt) {
                   kindMap[fragName].atoms.push_back(
                       allAtoms[*connectedComponentIt]);
                 }
@@ -519,7 +519,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
         for (std::vector<std::string>::const_iterator sizeConsistentEntries =
                  sizeIt->second.cbegin();
              sizeConsistentEntries != sizeIt->second.cend();
-             sizeConsistentEntries++) {
+             ++sizeConsistentEntries) {
           /* Iterate atom by atom of a given size consistent map entries with
            * the candidate molecule*/
           typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
@@ -602,7 +602,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
           kindMap[fragName].moleculeName = allAtoms[it->front()].residue;
           for (std::vector<uint>::const_iterator connectedComponentIt =
                    it->cbegin();
-               connectedComponentIt != it->cend(); connectedComponentIt++) {
+               connectedComponentIt != it->cend(); ++connectedComponentIt) {
             kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
           }
         }
