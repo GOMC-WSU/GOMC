@@ -53,8 +53,8 @@ if command -v nvcc &> /dev/null; then
 			echo "==== Extracting the CUB library..."
 			unzip cub.zip > /dev/null 2>&1
 
-			# move the cub directory to and remove the rest
-			mv */cub ../cub
+			# move the cub directory and remove the rest
+			mv ./*/cub ../cub
 			rm -rf NVIDIA*
 			rm cub.zip
 			cd ..
