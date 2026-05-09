@@ -745,12 +745,11 @@ void AssignAngleKinds(MolKind &kind, const FFSetup &ffData) {
   const uint ATOMS_PER = 3;
   std::string elementNames[ATOMS_PER];
 
-  int search = 0;
   for (uint i = 0; i < kind.angles.size(); ++i) {
     elementNames[0] = kind.atoms[kind.angles[i].a0].type;
     elementNames[1] = kind.atoms[kind.angles[i].a1].type;
     elementNames[2] = kind.atoms[kind.angles[i].a2].type;
-    search = ffData.angle.Find(elementNames, ffData.angle.name);
+    int search = ffData.angle.Find(elementNames, ffData.angle.name);
     if (search >= 0) {
       kind.angles[i].kind = search;
     } else {
