@@ -45,10 +45,9 @@ ConfigSetup::ConfigSetup(void) {
   sys.step.initStepRead = false;
   sys.step.initStep = ULONG_MAX;
   sys.step.pressureCalcFreq = ULONG_MAX;
-  sys.step.pressureCalc = true;
+  sys.step.pressureCalc = false;
   sys.step.parallelTempFreq = ULONG_MAX;
   sys.step.parallelTemperingAttemptsPerExchange = 0;
-  sys.step.pressureCalc = false;
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
