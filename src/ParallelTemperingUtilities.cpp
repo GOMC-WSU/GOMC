@@ -156,7 +156,6 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step) {
 
 #endif
   double uBoltz;
-  bool bPrint = false;
   double printRecord;
   if (bMultiEx) {
     int i0, i1, a, b, ap, bp;
@@ -177,8 +176,7 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step) {
       ap = pind[i0];
       bp = pind[i1];
 
-      bPrint = false; /* too noisy */
-                      /* calculate the energy difference */
+      /* calculate the energy difference */
 #if ENSEMBLE == NVT
       uBoltz = exp((global_betas[b] - global_betas[a]) *
                    (global_energies[bp] - global_energies[ap]));
@@ -204,7 +202,6 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step) {
     int parity = step / parallelTempFreq % 2;
 
     for (int i = 1; i < ms->worldSize; i++) {
-      bPrint = ms->worldRank == i || ms->worldRank == i - 1;
       if (i % 2 == parity) {
 #if ENSEMBLE == NVT
         uBoltz = exp((global_betas[i] - global_betas[i - 1]) *
