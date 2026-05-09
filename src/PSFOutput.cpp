@@ -436,7 +436,7 @@ void PSFOutput::PrintAtomsInBox(FILE *outfile, uint b) const {
   uint atomID = 1;
   uint resID = 1;
   for (MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b);
-       thisMol != molLookRef.BoxEnd(b); thisMol++) {
+       thisMol != molLookRef.BoxEnd(b); ++thisMol) {
     uint thisKind = molecules->kIndex[*thisMol];
     uint nAtoms = molKinds[thisKind].atoms.size();
 

@@ -105,12 +105,12 @@ void Molecules::Init(Setup &setup, Forcefield &forcefield, System &sys) {
                 << std::endl;
       exit(EXIT_FAILURE);
     }
-    kindCPIt++;
+    ++kindCPIt;
   }
 #endif
 
   if (printFlag) {
-    // calculating netcharge of all molecule kind
+    // calculating net charge of all molecule kind
     double netCharge = 0.0;
     for (uint mk = 0; mk < kindsCount; mk++) {
       netCharge += (countByKind[mk] * kinds[mk].GetMoleculeCharge());

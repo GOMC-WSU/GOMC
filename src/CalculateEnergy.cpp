@@ -1480,7 +1480,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector<std::vector<uint>> &mol,
             mol[k].push_back(molIndex);
         }
       }
-      n++;
+      ++n;
     }
   }
 

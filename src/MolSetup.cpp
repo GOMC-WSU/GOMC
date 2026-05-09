@@ -373,12 +373,12 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
 
   for (std::vector<std::vector<uint>>::const_iterator it =
            moleculeXAtomIDY.cbegin();
-       it != moleculeXAtomIDY.cend(); it++) {
+       it != moleculeXAtomIDY.cend(); ++it) {
     bool foundEntryInOldMap = false;
 
     if (sizeMapFromBox1 != NULL && kindMapFromBox1 != NULL) {
       /* A size -> moleculeKind map for quick evaluation of new molecules based
-        on molMap entries of a given size exisitng or not */
+        on molMap entries of a given size existing or not */
       /* Search by size for existing molecules from Box 1 if it exists*/
       SizeMap::iterator sizeIt = sizeMapFromBox1->find(it->size());
 
@@ -388,7 +388,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
         for (std::vector<std::string>::const_iterator sizeConsistentEntries =
                  sizeIt->second.cbegin();
              sizeConsistentEntries != sizeIt->second.cend();
-             sizeConsistentEntries++) {
+             ++sizeConsistentEntries) {
           /* Iterate atom by atom of a given size consistent map entries with
            * the candidate molecule*/
           typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
@@ -430,9 +430,8 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
             */
             MolMap::const_iterator kindIt = kindMap.find(fragName);
 
-            /* If we don't have it in our new Map, then we need to add the first
-              entry in our new Map to quench the post processessing
-              requirements. */
+            // If we don't have it in our new Map, then we need to add the first
+            // entry in our new Map to quench the post processing requirements.
             if (kindIt == kindMap.cend()) {
               if ((*kindMapFromBox1)[fragName].isMultiResidue) {
                 kindMap[fragName] = MolKind();
@@ -442,7 +441,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
                 for (std::vector<uint>::const_iterator connectedComponentIt =
                          it->cbegin();
                      connectedComponentIt != it->cend();
-                     connectedComponentIt++) {
+                     ++connectedComponentIt) {
                   kindMap[fragName].atoms.push_back(
                       allAtoms[*connectedComponentIt]);
                   if (compareResID ==
@@ -504,7 +503,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
        in the case of a protein. */
     if (!foundEntryInOldMap) {
       /* Search by size for existing molecules  for quick evaluation of new
-      molecules based on molMap entries of a given size exisitng or not */
+      molecules based on molMap entries of a given size existing or not */
       SizeMap::iterator sizeIt = sizeMap.find(it->size());
       std::string fragName;
       bool newSize = false;
@@ -582,7 +581,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
           uint compareResID = allAtoms[it->front()].residueID;
           for (std::vector<uint>::const_iterator connectedComponentIt =
                    it->cbegin();
-               connectedComponentIt != it->cend(); connectedComponentIt++) {
+               connectedComponentIt != it->cend(); ++connectedComponentIt) {
             kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
             if (compareResID == allAtoms[*connectedComponentIt].residueID) {
               kindMap[fragName].intraMoleculeResIDs.push_back(intraResID);
@@ -658,8 +657,8 @@ void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList &bondAdjList,
       ptr = ptr->next;
     }
   }
-  /* before returning, reverse the bonds vector, which should get dead on balls
-   * accurate merged psfs across cycles */
+  /* before returning, reverse the bonds vector, which should yield accurate
+   * merged psf files across cycles */
   std::reverse(kindMap[fragName].bonds.begin(), kindMap[fragName].bonds.end());
 }
 

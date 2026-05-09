@@ -136,7 +136,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         sumInew[box][i] += (lambdaCoef * sinMolRef[*thisMol][i]);
       }
 
-      thisMol++;
+      ++thisMol;
     }
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
@@ -194,7 +194,7 @@ void EwaldCached::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
         sumInew[box][i] += (lambdaCoef * sinMolRef[*thisMol][i]);
       }
 
-      thisMol++;
+      ++thisMol;
     }
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
