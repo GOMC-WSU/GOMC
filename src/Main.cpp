@@ -101,12 +101,16 @@ int main(int argc, char *argv[]) {
     }
 
     // Set number of threads.
-#ifdef _OPENMP
-    omp_set_num_threads(numThreads);
-    printf("%-40s %-d \n", "Info: Number of OpenMP threads:", numThreads);
-#else
-    printf("%-40s %-d \n", "Info: Number of OpenMP threads", 1);
+#ifndef _OPENMP
+    // Can't use multiple threads without OpenMP
+    if (numThreads > 1) {
+      printf("Warning: Attempting to use %d threads, but compiled without "
+             "OpenMP.\n",
+             numThreads);
+      numThreads = 1;
+    }
 #endif
+    printf("%-40s %-d \n", "Info: Number of OpenMP threads:", numThreads);
 #if defined _OPENMP && _OPENMP < 201511
     printf("Warning: OpenMP version < 4.5. GOMC will not run optimally!\n");
 #endif
