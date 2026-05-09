@@ -17,7 +17,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 namespace {
 struct FindA1 {
-  FindA1(uint x) : x(x){};
+  explicit FindA1(uint x) : x(x){};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };
