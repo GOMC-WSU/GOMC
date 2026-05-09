@@ -801,13 +801,12 @@ void AssignDihKinds(MolKind &kind, const FFSetup &ffData) {
   const uint ATOMS_PER = 4;
   std::string elementNames[ATOMS_PER];
 
-  int search = 0;
   for (uint i = 0; i < kind.dihedrals.size(); ++i) {
     elementNames[0] = kind.atoms[kind.dihedrals[i].a0].type;
     elementNames[1] = kind.atoms[kind.dihedrals[i].a1].type;
     elementNames[2] = kind.atoms[kind.dihedrals[i].a2].type;
     elementNames[3] = kind.atoms[kind.dihedrals[i].a3].type;
-    search = ffData.dih.Find(elementNames, ffData.dih.name);
+    int search = ffData.dih.Find(elementNames, ffData.dih.name);
     if (search < 0) {
       std::string missing;
       for (uint m = 0; m < ATOMS_PER; ++m)
