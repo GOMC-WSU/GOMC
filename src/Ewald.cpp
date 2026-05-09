@@ -132,7 +132,7 @@ void Ewald::UpdateVectorsAndRecipTerms(bool output) {
     BoxReciprocalSetup(b, currentCoords);
     SetRecipRef(b);
     if (output) {
-      printf("Box: %d, RecipVectors: %6d, kmax: %d\n", b, imageSize[b],
+      printf("Box: %u, RecipVectors: %6u, kmax: %u\n", b, imageSize[b],
              kmax[b]);
     }
   }
