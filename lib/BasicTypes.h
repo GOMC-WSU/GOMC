@@ -107,6 +107,10 @@ class XYZ {
 public:
   XYZ() : x(0.0), y(0.0), z(0.0) {}
   XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
+  // Copy constructor
+  XYZ(const XYZ &other) = default;
+  // Move constructor
+  XYZ(XYZ &&other) { *this = std::move(other); }
 
   friend inline std::ostream &operator<<(std::ostream &stream, const XYZ &p);
 
@@ -115,7 +119,15 @@ public:
   inline double getZ() const { return z; }
 
   void Reset() { x = y = z = 0.0; }
+
   XYZ &operator=(XYZ const &rhs) {
+    x = rhs.x;
+    y = rhs.y;
+    z = rhs.z;
+    return *this;
+  }
+  // Move assignment operator
+  XYZ &operator=(XYZ const &&rhs) {
     x = rhs.x;
     y = rhs.y;
     z = rhs.z;
