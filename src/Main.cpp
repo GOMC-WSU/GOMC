@@ -102,19 +102,20 @@ int main(int argc, char *argv[]) {
 
     // Set number of threads.
 #ifndef _OPENMP
-    // Can't use multiple threads without OpenMP
+    // Can't use multiple threads without OpenMP. Assume this is erroneous user
+    // input, so exit with an error message.
     if (numThreads > 1) {
-      printf("Warning: Attempting to use %d threads, but compiled without "
+      printf("Error: Attempting to use %d threads, but compiled without "
              "OpenMP.\n",
              numThreads);
-      numThreads = 1;
+      exit(EXIT_FAILURE);
     }
 #endif
-    printf("%-40s %-d \n", "Info: Number of OpenMP threads:", numThreads);
+    printf("%-40s %-d\n", "Info: Number of OpenMP threads:", numThreads);
 #if defined _OPENMP && _OPENMP < 201511
     printf("Warning: OpenMP version < 4.5. GOMC will not run optimally!\n");
 #endif
-    // Print the OpenMP version if recognized or instead the OpenMP date code.
+    // Print the OpenMP version if recognized or instead the OpenMP date code
 #ifdef _OPENMP
     std::unordered_map<int, std::string> omp_map{
         {200505, "2.5"}, {200805, "3.0"}, {201107, "3.1"},
@@ -129,11 +130,12 @@ int main(int argc, char *argv[]) {
              "Info: Compiled with OpenMP Version:", match->second.c_str());
 #endif
 
-    // Test whether the provided configuration filename can be open for reading
+    // Test whether the provided configuration filename can be opened for
+    // reading
     inputFileReader.Test(inputFileString);
 
-    // Once file found pass string to simulation class to read and
-    // handle pdb|psf files.
+    // If the file found is found, pass the filename to the simulation class to
+    // read and handle pdb|psf files
 #if GOMC_LIB_MPI
     if (multisim != NULL) {
       Simulation sim(inputFileString.c_str(), multisim);
@@ -265,7 +267,7 @@ void PrintHardwareInfo() {
   std::cout << "Info: Model name:" << std::flush;
   if (system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo") == -1)
     std::cout << "Error: Couldn't retrieve CPU information\n";
-  std::cout << "Info: System name: " << name.sysname << "\n";
+  std::cout << "Info: System Name: " << name.sysname << "\n";
   std::cout << "Info: Release: " << name.release << "\n";
   std::cout << "Info: Version: " << name.version << "\n";
   std::cout << "Info: Kernel Architecture: " << name.machine << "\n";
