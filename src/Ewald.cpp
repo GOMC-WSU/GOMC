@@ -6,6 +6,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "Ewald.h"
 
 #include <cassert>
+#include <chrono>
+#include <iostream>
 
 #include "BasicTypes.h" //uint
 #include "BoxDimensions.h"
@@ -128,9 +130,30 @@ void Ewald::Init() {
 
 void Ewald::UpdateVectorsAndRecipTerms(bool output) {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+    auto startInit = std::chrono::steady_clock::now();
     RecipInit(b, currentAxes);
+    auto endInit = std::chrono::steady_clock::now();
+    auto diffInit = endInit - startInit;
+    std::cout << "Box " << b << " RecipInit Runtime was "
+              << std::chrono::duration<double, std::milli>(diffInit).count()
+              << "ms" << std::endl;
+
+    auto startSetup = std::chrono::steady_clock::now();
     BoxReciprocalSetup(b, currentCoords);
+    auto endSetup = std::chrono::steady_clock::now();
+    auto diffSetup = endSetup - startSetup;
+    std::cout << "Box " << b << " BoxReciprocalSetup Runtime was "
+              << std::chrono::duration<double, std::milli>(diffSetup).count()
+              << "ms" << std::endl;
+
+    auto startRef = std::chrono::steady_clock::now();
     SetRecipRef(b);
+    auto endRef = std::chrono::steady_clock::now();
+    auto diffRef = endRef - startRef;
+    std::cout << "Box " << b << " SetRecipRef Runtime was "
+              << std::chrono::duration<double, std::milli>(diffRef).count()
+              << "ms" << std::endl;
+
     if (output) {
       printf("Box: %d, RecipVectors: %6d, kmax: %d\n", b, imageSize[b],
              kmax[b]);
