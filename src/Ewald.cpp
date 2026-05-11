@@ -5,6 +5,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 ******************************************************************************/
 #include "Ewald.h"
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <iostream>
@@ -245,8 +246,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         chargeBox, imageSize[box], sumRnew[box], sumInew[box], prefact[box],
         hsqr[box], currentEnergyRecip[box], box);
 #else
-    std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
-    std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
+    std::fill_n(sumRnew[box], imageSize[box], 0.0);
+    std::fill_n(sumInew[box], imageSize[box], 0.0);
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
