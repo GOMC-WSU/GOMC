@@ -222,19 +222,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         chargeBox, imageSize[box], sumRnew[box], sumInew[box], prefact[box],
         hsqr[box], currentEnergyRecip[box], box);
 #else
-#ifdef _OPENMP
-#pragma omp parallel sections default(none) shared(box)
-    {
-#pragma omp section
-      std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
-#pragma omp section
-      std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
-    }
-#else
     std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
     std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
-#endif
-
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
