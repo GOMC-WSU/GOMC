@@ -60,7 +60,10 @@ public:
 
   // GJS - Compare this cell list with another for evaluating parallel tempering
   // correctness
-  bool CompareCellList(CellList &other, int coordinateSize);
+  // LJS - This function doesn't seem to be called anywhere in the GOMC code and
+  // is clearly broken, so commenting out until it is needed -- See the .cpp
+  // file for more details
+  // bool CompareCellList(CellList &other, int coordinateSize);
   void PrintList();
 
   std::vector<int> list;
