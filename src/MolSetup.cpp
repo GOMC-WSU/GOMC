@@ -1223,7 +1223,7 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
     // loop to find the molecule kind with this angles
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in moleule
+      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
       // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
@@ -1284,7 +1284,7 @@ int ReadPSFDihedrals(
     // loop to find the molecule kind with this dihedral
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in moleule
+      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
       // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
@@ -1340,7 +1340,7 @@ int ReadPSFImpropers(
     // loop to find the molecule kind with this impropers
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in moleule
+      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
       // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
@@ -1491,7 +1491,7 @@ int ReadPSFExplicitNonbondExclusions(
     // loop to find the molecule kind with this impropers
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in moleule
+      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
       // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
@@ -1538,7 +1538,7 @@ int ReadPSFGroups(FILE *psf, MolMap &kindMap,
     // loop to find the molecule kind with this impropers
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in moleule
+      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
       // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
@@ -1585,7 +1585,7 @@ int ReadPSFCrossTerms(
     // loop to find the molecule kind with this impropers
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in moleule
+      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
       // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
