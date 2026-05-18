@@ -1611,5 +1611,8 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
 double Ewald::GetLambdaCoef(uint molA, uint box) const {
   double lambda = lambdaRef.GetLambdaCoulomb(molA, box);
   // Each charge gets sq root of it.
-  return sqrt(lambda);
+  if (lambda == 1.0) {
+    return lambda;
+  }
+  return std::sqrt(lambda);
 }
