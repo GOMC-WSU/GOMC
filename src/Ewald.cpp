@@ -257,7 +257,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(box, lambdaCoef, molCoords, start, thisKind)
+    shared(box, lambdaCoef, molCoords, start, thisKind, atomCount)
 #endif
       for (int i = 0; i < (int)imageSize[box]; i++) {
         double sumReal = 0.0;
