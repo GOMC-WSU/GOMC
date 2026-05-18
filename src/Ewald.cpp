@@ -279,7 +279,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         sumRnew[box][i] += (lambdaCoef * sumReal);
         sumInew[box][i] += (lambdaCoef * sumImaginary);
       }
-      thisMol++; //++thisMol 
+      ++thisMol;
     }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
