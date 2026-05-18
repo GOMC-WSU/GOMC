@@ -8,6 +8,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 #include <stdio.h>
 
+#include <cmath>
+#include "Lambda.h" // Needed because the inline GetLambdaCoef() 
+                    // function uses Lambda::GetLambdaCoulomb().
+
 #include <cassert>
 #include <cstring>
 #include <vector>
@@ -155,7 +159,14 @@ public:
                                   XYZArray &atomForceRec, XYZArray &molForceRec,
                                   uint box);
 
-  double GetLambdaCoef(uint molA, uint box) const;
+  inline double GetLambdaCoef(uint molA, uint box) const {
+    double lambda = lambdaRef.GetLambdaCoulomb(molA, box);
+    if (lambda == 1.0) {
+      return lambda;
+    }
+    // Each charge gets sq root of it.
+    return std::sqrt(lambda);
+  }
 
   // It's called in free energy calculation to calculate the change in
   // self energy in all lambda states
@@ -224,7 +235,7 @@ protected:
   // atom charges
   std::vector<double> particleCharge;
   // which atoms don't have charge
-  std::vector<bool> particleHasNoCharge;
+  std::vector<bool> particleHasNoCharge; ///////// bool -> char
 };
 
 #endif /*EWALD_H*/
