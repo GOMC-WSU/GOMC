@@ -249,9 +249,11 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     std::fill_n(sumRnew[box], imageSize[box], 0.0);
     std::fill_n(sumInew[box], imageSize[box], 0.0);
     while (thisMol != end) {
-      MoleculeKind const &thisKind = mols.GetKind(*thisMol); // can be any kind of molecule, water 
-      double lambdaCoef = GetLambdaCoef(*thisMol, box); //adjustment function ? 
-      uint start = mols.MolStart(*thisMol); // this while loop --> inside the for loop 
+      MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
+      double lambdaCoef = GetLambdaCoef(*thisMol, box);
+      uint start = mols.MolStart(*thisMol);
+      const uint atomCount = thisKind.NumAtoms(); 
+         //  Save the atom count once so the loop does not call NumAtoms() repeatedly.
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
@@ -261,7 +263,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         double sumReal = 0.0;
         double sumImaginary = 0.0;
 
-        for (uint j = 0; j < thisKind.NumAtoms(); j++) { 
+
+        for (uint j = 0; j < atomCount; j++) { 
           uint currentAtom = start + j;
           if (particleHasNoCharge[currentAtom]) {
             continue;
