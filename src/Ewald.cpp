@@ -107,8 +107,8 @@ void Ewald::Init() {
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
-      if (std::abs(molKind.AtomCharge(a)) < 0.000000001) {
-        particleHasNoCharge.push_back(true);
+      if (std::abs(molKind.AtomCharge(a)) < 0.000000001) { // 1.0 &^-9?
+        particleHasNoCharge.push_back(true); // bool -> char 
       } else {
         particleHasNoCharge.push_back(false);
       }
@@ -217,8 +217,8 @@ void Ewald::AllocMem() {
 void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
   if (box < BOXES_WITH_U_NB) {
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_SETUP);
-    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box); // inline 
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box); // inline 
 
 #ifdef GOMC_CUDA
     int numberOfAtoms = 0, i = 0;
@@ -249,9 +249,9 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     std::fill_n(sumRnew[box], imageSize[box], 0.0);
     std::fill_n(sumInew[box], imageSize[box], 0.0);
     while (thisMol != end) {
-      MoleculeKind const &thisKind = mols.GetKind(*thisMol);
-      double lambdaCoef = GetLambdaCoef(*thisMol, box);
-      uint start = mols.MolStart(*thisMol);
+      MoleculeKind const &thisKind = mols.GetKind(*thisMol); // can be any kind of molecule, water 
+      double lambdaCoef = GetLambdaCoef(*thisMol, box); //adjustment function ? 
+      uint start = mols.MolStart(*thisMol); // this while loop --> inside the for loop 
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
@@ -261,7 +261,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         double sumReal = 0.0;
         double sumImaginary = 0.0;
 
-        for (uint j = 0; j < thisKind.NumAtoms(); j++) {
+        for (uint j = 0; j < thisKind.NumAtoms(); j++) { 
           unsigned long currentAtom = start + j;
           if (particleHasNoCharge[currentAtom]) {
             continue;
@@ -273,13 +273,13 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
           // Windows doesn't have sincos() function and
           // Intel compiler automatically optimizes this part
           sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
-          sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
+          sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct)); ////////@@ swtich the order of cos and sin 
         }
         // we assume all atom charges are scaled with lambda
         sumRnew[box][i] += (lambdaCoef * sumReal);
         sumInew[box][i] += (lambdaCoef * sumImaginary);
       }
-      thisMol++;
+      thisMol++; //++thisMol 
     }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
