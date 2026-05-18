@@ -262,7 +262,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         double sumImaginary = 0.0;
 
         for (uint j = 0; j < thisKind.NumAtoms(); j++) { 
-          unsigned long currentAtom = start + j;
+          uint currentAtom = start + j;
           if (particleHasNoCharge[currentAtom]) {
             continue;
           }
