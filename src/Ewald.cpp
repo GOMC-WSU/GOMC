@@ -104,13 +104,17 @@ void Ewald::Init() {
   for (uint m = 0; m < mols.count; ++m) {
     const MoleculeKind &molKind = mols.GetKind(m);
     for (uint a = 0; a < molKind.NumAtoms(); ++a) {
+
+      const double charge = molKind.AtomCharge(a); // stored it in a separate variable
+
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
-      if (std::abs(molKind.AtomCharge(a)) < 0.000000001) { // 1.0 &^-9?
-        particleHasNoCharge.push_back(true); // bool -> char 
+
+      if (std::abs(charge) < 1e-9) { 
+        particleHasNoCharge.push_back(1);
       } else {
-        particleHasNoCharge.push_back(false);
+        particleHasNoCharge.push_back(0);
       }
     }
   }

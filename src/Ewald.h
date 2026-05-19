@@ -235,7 +235,9 @@ protected:
   // atom charges
   std::vector<double> particleCharge;
   // which atoms don't have charge
-  std::vector<bool> particleHasNoCharge; ///////// bool -> char
+  std::vector<char> particleHasNoCharge; 
+  //// use char instead of vector<bool> to 
+    // directly check whether each atom has no charge.
 };
 
 #endif /*EWALD_H*/
