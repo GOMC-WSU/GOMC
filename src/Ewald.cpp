@@ -276,11 +276,15 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
           double dotProduct =
               Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
 
+          const double charge = thisKind.AtomCharge(j);
+
           // TODO: sincos() can be used to optimize (GNU compiler only)
           // Windows doesn't have sincos() function and
           // Intel compiler automatically optimizes this part
-          sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
-          sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct)); ////////@@ swtich the order of cos and sin 
+          sumReal += (charge * cos(dotProduct));
+          sumImaginary += (charge * sin(dotProduct));
+          
+        
         }
         // we assume all atom charges are scaled with lambda
         sumRnew[box][i] += (lambdaCoef * sumReal);
