@@ -245,17 +245,7 @@ MoleculeLookup::box_iterator MoleculeLookup::box_iterator::operator++(int) {
   return tmp;
 }
 
-MoleculeLookup::box_iterator::box_iterator(const uint *_pLook,
-                                           const uint *_pSec)
-    : pIt(_pLook + *_pSec) {}
 
-MoleculeLookup::box_iterator MoleculeLookup::BoxBegin(const uint box) const {
-  return box_iterator(molLookup, boxAndKindStart + box * numKinds);
-}
-
-MoleculeLookup::box_iterator MoleculeLookup::BoxEnd(const uint box) const {
-  return box_iterator(molLookup, boxAndKindStart + (box + 1) * numKinds);
-}
 
 MoleculeLookup &MoleculeLookup::operator=(const MoleculeLookup &rhs) {
   molLookupCount = rhs.molLookupCount;

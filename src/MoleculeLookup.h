@@ -246,4 +246,16 @@ private:
   uint const *pIt;
 };
 
+inline MoleculeLookup::box_iterator::box_iterator(const uint *_pLook,
+                                           const uint *_pSec)
+    : pIt(_pLook + *_pSec) {}
+
+inline MoleculeLookup::box_iterator MoleculeLookup::BoxBegin(const uint box) const {
+  return box_iterator(molLookup, boxAndKindStart + box * numKinds);
+}
+
+inline MoleculeLookup::box_iterator MoleculeLookup::BoxEnd(const uint box) const {
+  return box_iterator(molLookup, boxAndKindStart + (box + 1) * numKinds);
+}
+
 #endif /*MOLECULE_LOOKUP_H*/
