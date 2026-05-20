@@ -281,8 +281,9 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
           // TODO: sincos() can be used to optimize (GNU compiler only)
           // Windows doesn't have sincos() function and
           // Intel compiler automatically optimizes this part
-          sumReal += (charge * cos(dotProduct));
           sumImaginary += (charge * sin(dotProduct));
+          sumReal += (charge * cos(dotProduct));
+          
           
         
         }
