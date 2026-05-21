@@ -36,22 +36,14 @@ public:
         atomCharge(NULL) {}
 
   ~MoleculeLookup() {
-    if (molLookup != NULL)
-      delete[] molLookup;
-    if (molIndex != NULL)
-      delete[] molIndex;
-    if (atomIndex != NULL)
-      delete[] atomIndex;
-    if (molKind != NULL)
-      delete[] molKind;
-    if (atomKind != NULL)
-      delete[] atomKind;
-    if (atomCharge != NULL)
-      delete[] atomCharge;
-    if (boxAndKindStart != NULL)
-      delete[] boxAndKindStart;
-    if (boxAndKindSwappableCounts != NULL)
-      delete[] boxAndKindSwappableCounts;
+    delete[] molLookup;
+    delete[] molIndex;
+    delete[] atomIndex;
+    delete[] molKind;
+    delete[] atomKind;
+    delete[] atomCharge;
+    delete[] boxAndKindStart;
+    delete[] boxAndKindSwappableCounts;
   }
 
   MoleculeLookup(const MoleculeLookup &other) = delete;

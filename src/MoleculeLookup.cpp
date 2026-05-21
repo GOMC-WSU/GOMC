@@ -119,7 +119,8 @@ void MoleculeLookup::Init(const Molecules &mols,
   VariablesCUDA *cudaVars = ff.particles->getCUDAVars();
   int numMol = mols.count + 1;
   // allocate memory to store molecule start atom index
-  CUMALLOC((void **)&cudaVars->gpu_startAtomIdx, numMol * sizeof(int));
+  CUMALLOC(reinterpret_cast<void **>(&cudaVars->gpu_startAtomIdx),
+           numMol * sizeof(int));
   // copy start atom index
   cudaMemcpy(cudaVars->gpu_startAtomIdx, mols.start, numMol * sizeof(int),
              cudaMemcpyHostToDevice);
