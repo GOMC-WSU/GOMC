@@ -110,7 +110,7 @@ public:
   // Copy constructor
   XYZ(XYZ const &other) = default;
   // Move constructor
-  XYZ(XYZ const &&other) = default;
+  XYZ(XYZ &&other) = default;
 
   friend inline std::ostream &operator<<(std::ostream &stream, const XYZ &p);
 
@@ -123,7 +123,7 @@ public:
   // Assignment operator
   XYZ &operator=(XYZ const &rhs) = default;
   // Move assignment operator
-  XYZ &operator=(XYZ const &&rhs) = default;
+  XYZ &operator=(XYZ &&rhs) = default;
 
   inline bool operator==(XYZ const &rhs) const {
     return (x == rhs.x && y == rhs.y && z == rhs.z);
