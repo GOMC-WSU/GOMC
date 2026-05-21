@@ -108,9 +108,9 @@ public:
   XYZ() : x(0.0), y(0.0), z(0.0) {}
   XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
   // Copy constructor
-  XYZ(const XYZ &other) = default;
+  XYZ(XYZ const &other) = default;
   // Move constructor
-  XYZ(XYZ &&other) { *this = std::move(other); }
+  XYZ(XYZ const &&other) = default;
 
   friend inline std::ostream &operator<<(std::ostream &stream, const XYZ &p);
 
@@ -120,19 +120,11 @@ public:
 
   void Reset() { x = y = z = 0.0; }
 
-  XYZ &operator=(XYZ const &rhs) {
-    x = rhs.x;
-    y = rhs.y;
-    z = rhs.z;
-    return *this;
-  }
+  // Assignment operator
+  XYZ &operator=(XYZ const &rhs) = default;
   // Move assignment operator
-  XYZ &operator=(XYZ const &&rhs) {
-    x = rhs.x;
-    y = rhs.y;
-    z = rhs.z;
-    return *this;
-  }
+  XYZ &operator=(XYZ const &&rhs) = default;
+
   inline bool operator==(XYZ const &rhs) const {
     return (x == rhs.x && y == rhs.y && z == rhs.z);
   }
