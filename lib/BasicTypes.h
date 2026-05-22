@@ -6,9 +6,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
-// Standard way to get pi constant on most platforms
-// Needs to be defined _before_ including cmath
-// so that the PI constants come from cmath
+// Standard way to get PI constants on most platforms: must be defined _before_
+// including cmath so that the PI constants are defined in cmath
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif
@@ -23,8 +22,7 @@ typedef unsigned long int ulong;
 typedef unsigned short int ushort;
 typedef unsigned int uint;
 
-// Just for debugging stuff
-// e.g.
+// Just for debugging stuff, e.g.,
 // cout << imie(variable) imie(another_variable)
 #define imie(...)                                                              \
   " [" << #__VA_ARGS__ ": " << std::setprecision(15) << (__VA_ARGS__) << "] "
