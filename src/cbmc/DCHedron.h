@@ -48,12 +48,13 @@ private:
 
   DCData *data;
   uint focus, prev;
-  uint nBonds;
-  // atoms bonded to focus, being build
 
   // bond length of atom bonded to focus
   double bondLength[MAX_BONDS];
   double bondLengthOld[MAX_BONDS];
+
+  // atoms bonded to focus, being build
+  uint nBonds;
 
   // angleKinds[i][j] = kind between bonded[i] and bonded[j]
   // except angleKinds[i][i] = kind between bonded[i] and prev

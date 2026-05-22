@@ -36,8 +36,10 @@ struct FindAngle {
 namespace cbmc {
 
 DCHedron::DCHedron(DCData *data, const mol_setup::MolKind &kind, uint focus,
-                   uint prev)
-    : data(data), focus(focus), prev(prev) {
+                   uint prev) : bonded{}, data(data), focus(focus), prev(prev),
+                   bondLength{}, bondLengthOld{}, nBonds(), angleKinds{},
+                   theta{}, thetaWeight{}, phi{}, phiWeight{}, bendEnergy(),
+                   oneThree(), anchorBond(), anchorBondOld() {
   using namespace mol_setup;
   std::vector<Bond> onFocus = AtomBonds(kind, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),

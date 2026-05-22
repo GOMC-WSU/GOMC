@@ -13,18 +13,16 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "Setup.h"
 
 Forcefield::Forcefield() {
-  particles = NULL;
-  angles = NULL;
+  particles = nullptr;
+  angles = nullptr;
   OneThree = false; // default behavior is to turn off 1-3 interaction
   OneFour = true;   // to turn on 1-4 interaction
   OneN = true;      // and turn on 1-n interaction
 }
 
 Forcefield::~Forcefield() {
-  if (particles != NULL)
-    delete particles;
-  if (angles != NULL)
-    delete angles;
+  delete particles;
+  delete angles;
 }
 
 void Forcefield::Init(const Setup &set) {
@@ -39,7 +37,7 @@ void Forcefield::Init(const Setup &set) {
   // If using tabulated potentials, pass the NBtable data to particles->Init()
   if (vdwKind == set.config.sys.ff.VDW_TABULATED_KIND) {
     FF_TABULATED *tabParticles = dynamic_cast<FF_TABULATED *>(particles);
-    if (tabParticles != NULL) {
+    if (tabParticles) {
       // Initialize with NBtable data available
       tabParticles->InitWithNBtable(set.ff.mie, set.ff.nbfix, set.ff.nbtable);
     }
