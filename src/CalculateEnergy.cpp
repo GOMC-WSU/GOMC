@@ -129,7 +129,7 @@ SystemPotential CalculateEnergy::SystemTotal() {
     std::cout << "\nWarning: Large energy detected due to the overlap in "
                  "initial configuration.\n"
                  "         The total energy will be recalculated at EqStep to "
-                 "ensure the accuracy \n"
+                 "ensure the accuracy\n"
                  "         of the computed running energies.\n";
   }
 

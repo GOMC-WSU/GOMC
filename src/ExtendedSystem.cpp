@@ -230,7 +230,7 @@ void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box) {
 
 void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box) {
   char msg[257];
-  sprintf(msg, "Info: Reading extended system file %s \n", filename);
+  sprintf(msg, "Info: Reading extended system file %s\n", filename);
   std::cout << msg << std::endl;
 
   std::ifstream xscFile(filename);
@@ -242,7 +242,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box) {
   char labels[1024];
   do {
     if (!xscFile) {
-      sprintf(msg, "Reading extended system file %s! \n", filename);
+      sprintf(msg, "Reading extended system file %s!\n", filename);
       NAMD_die(msg);
     }
     xscFile.getline(labels, 1023);
@@ -301,7 +301,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box) {
     double tmp;
     xscFile >> tmp;
     if (!xscFile) {
-      sprintf(msg, "Reading BOX %d extended system file %s! \n", box + 1,
+      sprintf(msg, "Reading BOX %d extended system file %s!\n", box + 1,
               filename);
       NAMD_die(msg);
     }
@@ -333,7 +333,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box) {
       origin.z = tmp;
   }
 
-  sprintf(msg, "Info: Finished reading extended system file %s \n", filename);
+  sprintf(msg, "Info: Finished reading extended system file %s\n", filename);
   std::cout << msg << std::endl;
   // Store the cellBasis Vector, and calculate the cell angles
   hasCellBasis[box] = true;

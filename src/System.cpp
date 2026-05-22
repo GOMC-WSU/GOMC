@@ -238,7 +238,7 @@ void System::InitLambda() {
 
     if (!found) {
       std::cout << "Error: No molecule of kind " << statV.freeEnVal.molType
-                << " in the simulation box! \n";
+                << " in the simulation box!\n";
       exit(EXIT_FAILURE);
     }
   }

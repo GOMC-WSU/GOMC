@@ -50,8 +50,8 @@ inline void printFreeMemory() {
   float free_db = static_cast<float>(free_byte) / 1024.0f / 1024.0f;
   float total_db = static_cast<float>(total_byte) / 1024.0f / 1024.0f;
   float used_db = total_db - free_db;
-  printf("GPU memory usage: used = %fMB, free = %fMB, total = %fMB\n",
-         used_db, free_db, total_db);
+  printf("GPU memory usage: used = %fMB, free = %fMB, total = %fMB\n", used_db,
+         free_db, total_db);
 }
 
 class VariablesCUDA {

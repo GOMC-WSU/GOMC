@@ -142,14 +142,14 @@ void ExtendedSystemOutput::Write_Extension_System_Data(Writer &outFile,
   outFile.file << " " << c.x;
   outFile.file << " " << c.y;
   outFile.file << " " << c.z;
-  // Our origin is fix at (0, 0 ,0 ), but we set it to half box length
+  // Our origin is fixed at (0, 0, 0), but we set it to half box length
   // to be compatible with NAMD
   outFile.file << " " << center.x << " " << center.y << " " << center.z;
   outFile.file << std::endl;
 }
 
 void ExtendedSystemOutput::WriteDCDHeader(const int numAtoms, const int box) {
-  printf("Opening DCD coordinate file: %s \n", outDCDStateFile[box]);
+  printf("Opening DCD coordinate file: %s\n", outDCDStateFile[box]);
   stateFileFileid[box] = open_dcd_write(outDCDStateFile[box]);
 
   if (stateFileFileid[box] == DCD_FILEEXISTS) {
@@ -193,7 +193,7 @@ void ExtendedSystemOutput::DoOutput(const ulong step) {
     //  Copy the coordinates for output
     SetCoordinates(molInBox, b);
     //  Write out the values for this step
-    printf("Writing DCD coordinate to file %s at step %lu \n",
+    printf("Writing DCD coordinate to file %s at step %lu\n",
            outDCDStateFile[b], step + 1);
     fflush(stdout);
 
@@ -208,7 +208,7 @@ void ExtendedSystemOutput::DoOutput(const ulong step) {
               outDCDStateFile[b], step + 1);
       NAMD_err(err_msg);
     }
-    printf("Finished writing DCD coordinate to file %s at step %lu \n",
+    printf("Finished writing DCD coordinate to file %s at step %lu\n",
            outDCDStateFile[b], step + 1);
 
     // write the cellbasis data to xst file
@@ -224,24 +224,24 @@ void ExtendedSystemOutput::DoOutputRestart(const ulong step) {
     int numAtomInBox = NumAtomInBox(b);
     // Copy the coordinate data for each box into AOS
     SetMolInBox(b);
-    printf("Writing binary restart coordinate to file %s at step %lu \n",
+    printf("Writing binary restart coordinate to file %s at step %lu\n",
            outDCDRestartFile[b], step + 1);
     //  Generate a binary restart file
     Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
     printf(
-        "Finished writing binary restart coordinate to file %s at step %lu \n",
+        "Finished writing binary restart coordinate to file %s at step %lu\n",
         outDCDRestartFile[b], step + 1);
 
     // output restart velocities
     if (outputVelocity) {
       // Update the velocity in box
       velCurrRef.UpdateVelocityInBox(b);
-      printf("Writing binary restart velocity to file %s at step %lu \n",
+      printf("Writing binary restart velocity to file %s at step %lu\n",
              outVelRestartFile[b], step + 1);
       //  Generate a binary restart velocity file
       Write_binary_file(outVelRestartFile[b], numAtomInBox, restartVel[b]);
       printf(
-          "Finished writing binary restart velocity to file %s at step %lu \n",
+          "Finished writing binary restart velocity to file %s at step %lu\n",
           outVelRestartFile[b], step + 1);
     }
     // write XSC file

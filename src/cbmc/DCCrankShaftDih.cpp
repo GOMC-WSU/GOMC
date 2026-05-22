@@ -107,7 +107,7 @@ DCCrankShaftDih::DCCrankShaftDih(DCData *data, const mol_setup::MolKind &kind,
   }
   /*
   for(uint i = 0; i < dih.size(); i++) {
-    printf("Dinhedral on %d-%d-%d-%d: %d -> %d -> %d -> %d \n", a0, a1, a2, a3,
+    printf("Dinhedral on %d-%d-%d-%d: %d -> %d -> %d -> %d\n", a0, a1, a2, a3,
   dih[i].a0, dih[i].a1, dih[i].a2, dih[i].a3);
   } */
 }

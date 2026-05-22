@@ -23,7 +23,7 @@ const char *acceptorHeader = "!NACC: acceptors";
 const char *excludedHeader = "!NNB";
 const char *groupHeader = "!NGRP";
 
-const char *headerFormat = "%8d %s \n";
+const char *headerFormat = "%8d %s\n";
 // atom ID, segment name, residue ID, residue name,
 // atom name, atom type, charge, mass, and an unused 0
 // const char* atomFormat = "%8d%4s%3d%7s%4s%6s%12.6f%14.4f%12d\n";

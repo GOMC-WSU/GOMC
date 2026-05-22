@@ -111,7 +111,7 @@ void Simulation::RunSimulation(void) {
       double currEnergy = system->potential.totalEnergy.total;
       if (std::fabs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Recalculating the total energies to insure the accuracy"
-               " of the computed \n"
+               " of the computed\n"
                "      running energies.\n\n");
         system->calcEwald->UpdateVectorsAndRecipTerms(true);
         system->potential = system->calcEnergy.SystemTotal();
