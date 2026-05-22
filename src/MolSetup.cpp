@@ -55,7 +55,7 @@ bool Improper::operator!=(const Improper &other) const {
 }
 
 namespace {
-// Assigns numerical mol kind indices to all molKinds
+// Assigns numerical molecule kind indices to all molKinds
 void AssignMolKinds(MolKind &kind, const mol_setup::MoleculeVariables &molVars,
                     const std::string &name);
 void AssignAtomKinds(MolKind &kind, const FFSetup &ffData);
@@ -74,36 +74,36 @@ int ReadPSF(const char *psfFilename, const uint box, MoleculeVariables &molVars,
             MolMap &kindMap, SizeMap &sizeMap, MolMap *kindMapFromBox1 = NULL,
             SizeMap *sizeMapFromBox1 = NULL);
 // adds atoms and molecule data in psf to kindMap
-// pre: stream is at !NATOMS   post: stream is at end of atom section
+// pre: stream is at !NATOMS post: stream is at end of atom section
 int ReadPSFAtoms(FILE *, unsigned int nAtoms,
                  std::vector<mol_setup::Atom> &allAtoms,
                  MoleculeVariables &molVars);
 // adds bonds in psf to kindMap
-// pre: stream is before !BONDS   post: stream is in bond section just after
+// pre: stream is before !BONDS post: stream is in bond section just after
 // the first appearance of the last molecule
 // int ReadPSFBonds(FILE* psf, MolMap& kindMap,
 // std::vector<std::pair<uint, std::string> >& firstAtom,
 // const uint nbonds);
 // adds angles in psf to kindMap
-// pre: stream is before !NTHETA   post: stream is in angle section just
+// pre: stream is before !NTHETA post: stream is in angle section just
 // after the first appearance of the last molecule
 int ReadPSFAngles(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<uint, std::string>> &firstAtom,
                   const uint nangles);
 // adds dihedrals in psf to kindMap
-// pre: stream is before !NPHI   post: stream is in dihedral section just
+// pre: stream is before !NPHI post: stream is in dihedral section just
 // after the first appearance of the last molecule
 int ReadPSFDihedrals(FILE *psf, MolMap &kindMap,
                      std::vector<std::pair<uint, std::string>> &firstAtom,
                      const uint ndihedrals);
 // adds impropers in psf to kindMap
-// pre: stream is before !NPHI   post: stream is in dihedral section just
+// pre: stream is before !NPHI post: stream is in dihedral section just
 // after the first appearance of the last molecule
 int ReadPSFImpropers(FILE *psf, MolMap &kindMap,
                      std::vector<std::pair<uint, std::string>> &firstAtom,
                      const uint ndihedrals);
 // adds donors in psf to kindMap
-// pre: stream is before !NDON   post: stream is in acceptors (NACC) section
+// pre: stream is before !NDON post: stream is in acceptors (NACC) section
 // just after the first appearance of the last donor
 //
 int ReadPSFDonors(FILE *psf, MolMap &kindMap,
@@ -111,7 +111,7 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
                   const uint nDonors);
 
 // adds acceptors in psf to kindMap
-// pre: stream is before !NACC   post: stream is in explicit nonbond exclusions
+// pre: stream is before !NACC post: stream is in explicit nonbond exclusions
 // (NNB) section just after the first appearance of the last donor
 //
 int ReadPSFAcceptors(FILE *psf, MolMap &kindMap,
@@ -119,7 +119,7 @@ int ReadPSFAcceptors(FILE *psf, MolMap &kindMap,
                      const uint nAcceptors);
 
 // adds explicit nonbond exclusions in psf to kindMap
-// pre: stream is before !NNB   post: stream is in groups (NGRP) section just
+// pre: stream is before !NNB post: stream is in groups (NGRP) section just
 // after the first appearance of the last donor
 //
 int ReadPSFExplicitNonbondExclusions(
@@ -127,14 +127,14 @@ int ReadPSFExplicitNonbondExclusions(
     std::vector<std::pair<uint, std::string>> &firstAtom,
     const uint nNonbondExclusions);
 // adds groups in psf to kindMap
-// pre: stream is before !NGRP   post: stream is in cross-terms (NCRTERM)
+// pre: stream is before !NGRP post: stream is in cross-terms (NCRTERM)
 // section just after the first appearance of the last donor
 //
 int ReadPSFGroups(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<uint, std::string>> &firstAtom,
                   const uint nGroups);
 // adds cross terms in psf to kindMap
-// pre: stream is before !NGRP   post: stream is in cross-terms (NCRTERM)
+// pre: stream is before !NGRP post: stream is in cross-terms (NCRTERM)
 // section just after the first appearance of the last donor
 //
 int ReadPSFCrossTerms(FILE *psf, MolMap &kindMap,
@@ -331,19 +331,19 @@ void MolSetup::AssignKinds(const mol_setup::MoleculeVariables &molVars,
 
   // Print bonded Information
   printf("Bonds parameter:\n");
-  printf("%s %33s %15s \n", "Atom Types", "Kb(K)", "b0(A)");
+  printf("%s %33s %15s\n", "Atom Types", "Kb(K)", "b0(A)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefBondKinds(it->second, ffData);
   }
 
   printf("Angles parameter:\n");
-  printf("%s %33s %22s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
+  printf("%s %33s %22s\n", "Atom Types", "Ktheta(K)", "theta0(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefAngleKinds(it->second, ffData);
   }
 
   printf("Dihedrals parameter:\n");
-  printf("%s %33s %4s %16s \n", "Atom Types", "Kchi(K)", "n", "delta(degree)");
+  printf("%s %33s %4s %16s\n", "Atom Types", "Kchi(K)", "n", "delta(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefDihKinds(it->second, ffData);
   }
@@ -568,7 +568,7 @@ void createKindMap(mol_setup::MoleculeVariables &molVars,
           fragName = "PROT" + uniqueSuffixGenerator.uint2String(
                                   molVars.stringSuffixMultiResidue);
           molVars.stringSuffixMultiResidue++;
-          printf("\n%-40s \n",
+          printf("\n%-40s\n",
                  "Warning: A molecule containing > 1 residue is detected.");
           printf("The simulation will name it %s.\n", fragName.c_str());
           printf("See the chart at the end of the output log describing this "
@@ -677,7 +677,7 @@ void AssignAtomKinds(MolKind &kind, const FFSetup &ffData) {
     int thisKind = ffData.mie.Find(&kind.atoms[i].type, ffData.mie.name);
     if (thisKind < 0) {
       fprintf(stderr,
-              "ERROR: Atom Type %s not specified in nonbonded section of "
+              "ERROR: Atom type %s not specified in nonbonded section of "
               "parameter file.\n",
               kind.atoms[i].type.c_str());
       exit(EXIT_FAILURE);
@@ -729,9 +729,9 @@ void BriefBondKinds(MolKind &kind, const FFSetup &ffData) {
     if (find(printed.begin(), printed.end(), bondName) == printed.end()) {
       printf("%s", bondName.c_str());
       if (ffData.bond.GetKb(search) > 99999999)
-        printf("%28s %16.4f \n", "FIX", ffData.bond.Getb0(search));
+        printf("%28s %16.4f\n", "FIX", ffData.bond.Getb0(search));
       else
-        printf("%28.4f %16.4f \n", ffData.bond.GetKb(search),
+        printf("%28.4f %16.4f\n", ffData.bond.GetKb(search),
                ffData.bond.Getb0(search));
 
       printed.push_back(bondName);
@@ -785,9 +785,9 @@ void BriefAngleKinds(MolKind &kind, const FFSetup &ffData) {
     if (find(printed.begin(), printed.end(), angleName) == printed.end()) {
       printf("%s", angleName.c_str());
       if (ffData.angle.GetKtheta(search) > 99999999)
-        printf("%20s %16.4f \n", "FIX", ffData.angle.Gettheta0(search) * coef);
+        printf("%20s %16.4f\n", "FIX", ffData.angle.Gettheta0(search) * coef);
       else
-        printf("%20.4f %16.4f \n", ffData.angle.GetKtheta(search),
+        printf("%20.4f %16.4f\n", ffData.angle.GetKtheta(search),
                ffData.angle.Gettheta0(search) * coef);
 
       printed.push_back(angleName);
@@ -844,7 +844,7 @@ void BriefDihKinds(MolKind &kind, const FFSetup &ffData) {
     if (find(printed.begin(), printed.end(), dihedralName) == printed.end()) {
       for (uint j = 0; j < dihsize; j++) {
         printf("%s", dihedralName.c_str());
-        printf("%12.4f %4d %11.4f \n", ffData.dih.GetKchi(dName, j),
+        printf("%12.4f %4d %11.4f\n", ffData.dih.GetKchi(dName, j),
                ffData.dih.Getn(dName, j), ffData.dih.Getdelta(dName, j) * coef);
       }
       printed.push_back(dihedralName);
@@ -1174,7 +1174,7 @@ int ReadPSF(const char *psfFilename, const uint box, MoleculeVariables &molVars,
 }
 
 // adds atoms and molecule data in psf to kindMap
-// pre: stream is at !NATOMS   post: stream is at end of atom section
+// pre: stream is at !NATOMS post: stream is at end of atom section
 int ReadPSFAtoms(FILE *psf, unsigned int nAtoms,
                  std::vector<mol_setup::Atom> &allAtoms,
                  MoleculeVariables &molVars) {
@@ -1203,7 +1203,7 @@ int ReadPSFAtoms(FILE *psf, unsigned int nAtoms,
 }
 
 // adds angles in psf to kindMap
-// pre: stream is before !NTHETA   post: stream is in angle section just after
+// pre: stream is before !NTHETA post: stream is in angle section just after
 // the first appearance of the last molecule
 int ReadPSFAngles(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
@@ -1213,7 +1213,7 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
   for (uint n = 0; n < nangles; n++) {
     int num = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
     if (num != 3) {
-      fprintf(stderr, "ERROR: Incorrect Number of angles in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect number of angles in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all angles in PSF file ");
@@ -1262,7 +1262,7 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
 // }
 
 // adds dihedrals in psf to kindMap
-// pre: stream is before !NPHI   post: stream is in dihedral section just after
+// pre: stream is before !NPHI post: stream is in dihedral section just after
 // the first appearance of the last molecule
 //
 int ReadPSFDihedrals(
@@ -1274,7 +1274,7 @@ int ReadPSFDihedrals(
   for (uint n = 0; n < ndihedrals; n++) {
     int num = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
     if (num != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of dihedrals in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect number of dihedrals in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all dihedrals in PSF file ");
@@ -1318,7 +1318,7 @@ int ReadPSFDihedrals(
 }
 
 // adds impropers in psf to kindMap
-// pre: stream is before !NIMPHI   post: stream is in donors (NDON) section just
+// pre: stream is before !NIMPHI post: stream is in donors (NDON) section just
 // after the first appearance of the last improper
 //
 int ReadPSFImpropers(
@@ -1330,7 +1330,7 @@ int ReadPSFImpropers(
   for (uint n = 0; n < nimpropers; n++) {
     int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if (num != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect number of impropers in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
@@ -1367,7 +1367,7 @@ int ReadPSFImpropers(
 }
 
 // adds donors in psf to kindMap
-// pre: stream is before !NDON   post: stream is in acceptors (NACC) section
+// pre: stream is before !NDON post: stream is in acceptors (NACC) section
 // just after the first appearance of the last donor
 //
 int ReadPSFDonors(FILE *psf, MolMap &kindMap,
@@ -1378,7 +1378,7 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
   for (uint n = 0; n < nDonors; n++) {
     int num = fscanf(psf, "%u %u", &atom0, &atom1);
     if (num != 2) {
-      fprintf(stderr, "ERROR: Incorrect Number of donors in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect number of donors in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all donors in PSF file ");
@@ -1406,7 +1406,7 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
 }
 
 // adds acceptors in psf to kindMap
-// pre: stream is before !NACC   post: stream is in explicit nonbond exclusions
+// pre: stream is before !NACC post: stream is in explicit nonbond exclusions
 // (NNB) section just after the first appearance of the last donor
 //
 int ReadPSFAcceptors(
@@ -1418,7 +1418,7 @@ int ReadPSFAcceptors(
   for (uint n = 0; n < nAcceptors; n++) {
     int num = fscanf(psf, "%u %u", &atom0, &atom1);
     if (num != 2) {
-      fprintf(stderr, "ERROR: Incorrect Number of acceptors in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect number of acceptors in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all acceptors in PSF file ");
@@ -1469,7 +1469,7 @@ Basically CSR
 */
 
 // adds explicit nonbond exclusions in psf to kindMap
-// pre: stream is before !NNB   post: stream is in groups (NGRP) section just
+// pre: stream is before !NNB post: stream is in groups (NGRP) section just
 // after the first appearance of the last donor
 //
 int ReadPSFExplicitNonbondExclusions(
@@ -1481,10 +1481,10 @@ int ReadPSFExplicitNonbondExclusions(
   for (uint n = 0; n < nNonbondExclusions; n++) {
     int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if (num != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of NNB's in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect number of NNBs in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all NNB's in PSF file ");
+      fprintf(stderr, "ERROR: Could not find all NNBs in PSF file ");
       return errors::READ_ERROR;
     }
 
@@ -1517,7 +1517,7 @@ int ReadPSFExplicitNonbondExclusions(
 }
 
 // adds groups in psf to kindMap
-// pre: stream is before !NGRP   post: stream is in cross-terms (NCRTERM)
+// pre: stream is before !NGRP post: stream is in cross-terms (NCRTERM)
 // section just after the first appearance of the last donor
 //
 int ReadPSFGroups(FILE *psf, MolMap &kindMap,
@@ -1528,7 +1528,7 @@ int ReadPSFGroups(FILE *psf, MolMap &kindMap,
   for (uint n = 0; n < nGroups; n++) {
     int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if (num != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of groups in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect number of groups in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all groups in PSF file ");
@@ -1564,7 +1564,7 @@ int ReadPSFGroups(FILE *psf, MolMap &kindMap,
 }
 
 // adds cross terms in psf to kindMap
-// pre: stream is before !NCRTERM   post: stream is at end of psf
+// pre: stream is before !NCRTERM post: stream is at end of psf
 // two quadruples of atoms per line:
 int ReadPSFCrossTerms(
     FILE *psf, MolMap &kindMap,
@@ -1575,7 +1575,7 @@ int ReadPSFCrossTerms(
   for (uint n = 0; n < nCrossTerms; n++) {
     int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if (num != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of cross terms in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect number of cross terms in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all cross terms in PSF file ");
