@@ -100,8 +100,10 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // Set number of threads.
-#ifndef _OPENMP
+    // Set number of threads with some error checking.
+#ifdef _OPENMP
+    omp_set_num_threads(numThreads);
+#else
     // Can't use multiple threads without OpenMP. Assume this is erroneous user
     // input, so exit with an error message.
     if (numThreads > 1) {
