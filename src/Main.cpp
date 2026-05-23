@@ -102,6 +102,9 @@ int main(int argc, char *argv[]) {
 
     // Set number of threads with some error checking.
 #ifdef _OPENMP
+    // OpenMP correctly handles a request for less than 1 thread, but we need
+    // to write the correct number of threads to the log file, so check anyway
+    numThreads = std::max(1, numThreads);
     omp_set_num_threads(numThreads);
 #else
     // Can't use multiple threads without OpenMP. Assume this is erroneous user
