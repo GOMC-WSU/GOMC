@@ -29,7 +29,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line,
   }
 }
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 inline void checkLastErrorCUDA(const char *file, int line) {
   cudaError_t code = cudaGetLastError();
   if (code != cudaSuccess) {
@@ -38,7 +38,7 @@ inline void checkLastErrorCUDA(const char *file, int line) {
     exit(code);
   }
 }
-#endif
+//#endif
 
 inline void printFreeMemory() {
   size_t free_byte;

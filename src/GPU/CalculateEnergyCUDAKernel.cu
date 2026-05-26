@@ -14,6 +14,74 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "CalculateForceCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 
+void CallCalculateTorqueGPU(VariablesCUDA *vars,
+                            std::vector<int> &moleculeIndex,
+                            XYZArray const &coordinates, XYZArray const &com,
+                            XYZArray const &atomForce,
+                            XYZArray const &atomForceRec, XYZArray &molTorque,
+                            const uint box, BoxDimensions const &boxAxes) {
+
+  /*
+  Maybe there needs to be memcopies here?
+  We will test without and verify the result
+  */
+  // instead of using imageSize we should grab the value of com.length() for the
+  // number of molecules
+  const int numMolecules = com.Count();
+  cudaMemcpy(vars->gpu_mTorquex, molTorque.x, sizeof(double) * numMolecules,
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mTorquey, molTorque.y, sizeof(double) * numMolecules,
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mTorquez, molTorque.z, sizeof(double) * numMolecules,
+             cudaMemcpyHostToDevice);
+
+
+  double3 axis = make_double3(boxAxes.GetAxis(box).x, boxAxes.GetAxis(box).y,
+                              boxAxes.GetAxis(box).z);
+
+  double3 halfAx =
+      make_double3(boxAxes.GetAxis(box).x * 0.5, boxAxes.GetAxis(box).y * 0.5,
+                   boxAxes.GetAxis(box).z * 0.5);
+
+  int threadsPerBlock = THREADS_PER_BLOCK_SM;
+  int blocksPerGrid = (numMolecules + threadsPerBlock - 1) / threadsPerBlock;
+
+  checkLastErrorCUDA(__FILE__, __LINE__);  
+
+  CalculateTorqueGPU<<<blocksPerGrid, threadsPerBlock>>>(
+      vars->gpu_startAtomIdx, vars->gpu_molIndex, vars->gpu_x, vars->gpu_y,
+      vars->gpu_z, vars->gpu_comx, vars->gpu_comy, vars->gpu_comz,
+      vars->gpu_aForcex, vars->gpu_aForcey, vars->gpu_aForcez,
+      vars->gpu_aForceRecx, vars->gpu_aForceRecy, vars->gpu_aForceRecz,
+      vars->gpu_mTorquex, vars->gpu_mTorquey, vars->gpu_mTorquez, box,
+      numMolecules, axis, halfAx);
+      
+  cudaDeviceSynchronize();
+  checkLastErrorCUDA(__FILE__, __LINE__);
+
+  
+  // memcopy back to cpu (torquex, torquey, torquez)
+  cudaMemcpy(molTorque.x, vars->gpu_mTorquex, //sizeof(double) * numMolecules,
+             1, cudaMemcpyDeviceToHost);
+  cudaMemcpy(molTorque.y, vars->gpu_mTorquey, //sizeof(double) * numMolecules,
+             1, cudaMemcpyDeviceToHost);
+  cudaMemcpy(molTorque.z, vars->gpu_mTorquez, //sizeof(double) * numMolecules,
+             1, cudaMemcpyDeviceToHost);
+  
+  checkLastErrorCUDA(__FILE__, __LINE__);
+  /*
+             // make pointers to molTorque arrays
+    double *torquex = molTorque.x;
+    double *torquey = molTorque.y;
+    double *torquez = molTorque.z;
+  
+    for (int i = 0; i < numMolecules; i++) {
+    printf("Torque for molecule %d is (%f, %f, %f)\n", i, torquex[i], torquey[i], torquez[i]);
+  }
+  exit(0);
+  */
+}
+
 void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,
                      XYZArray const &coords, BoxDimensions const &boxAxes,
@@ -79,6 +147,97 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
+}
+
+__global__ void CalculateTorqueGPU(
+    const int *__restrict__ gpu_startAtomIndex, // atom indices
+    const int *__restrict__ gpu_moleculeIndex,  // molecule indices 
+
+    const double *__restrict__ gpu_cx, // x coordinates
+    const double *__restrict__ gpu_cy, // y coordinates
+    const double *__restrict__ gpu_cz, // z coordinates
+
+    const double *__restrict__ gpu_comx, // x center of mass
+    const double *__restrict__ gpu_comy, // y center of mass
+    const double *__restrict__ gpu_comz, // z center of mass
+
+    const double *__restrict__ gpu_atomforcex, // x atom force
+    const double *__restrict__ gpu_atomforcey, // y atom force
+    const double *__restrict__ gpu_atomforcez, // z atom force
+
+    const double *__restrict__ gpu_atomforcerecx, // x atom force reciprocal
+    const double *__restrict__ gpu_atomforcerecy, // y atom force reciprocal
+    const double *__restrict__ gpu_atomforcerecz, // z atom force reciprocal
+
+    double *__restrict__ gpu_moltorquex, // x molecule torque
+    double *__restrict__ gpu_moltorquey, // y molecule torque
+    double *__restrict__ gpu_moltorquez, // z molecule torque
+
+    const uint box,         // box number
+    const uint numMolecules, // number of molecules, if index is above this
+                            // number we should just return
+    const double3 axis,     // lengths in each dimension
+    const double3 halfAx) {
+
+#if defined(NDEBUG) && (__CUDACC_VER_MAJOR__ >= 13)
+  asm volatile(".pragma \"enable_smem_spilling\";");
+#endif
+
+  const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (idx >= numMolecules)
+    return;
+
+  int mIndex = gpu_moleculeIndex[idx];
+
+  int start = gpu_startAtomIndex[mIndex];
+  int nextStart = gpu_startAtomIndex[mIndex + 1];
+  // int length = nextStart - start;
+
+  double tx = 0.0;
+  double ty = 0.0;
+  double tz = 0.0;
+
+  double3 molCOM = make_double3(gpu_comx[mIndex], gpu_comy[mIndex], gpu_comz[mIndex]);
+
+  // atom iterator
+  for (int p = start; p < nextStart; ++p) {
+
+    double3 atomCoords = make_double3(gpu_cx[p], gpu_cy[p], gpu_cz[p]);
+    // double3 distFromCOM = molCOM - atomCoords;
+    double3 distFromCOM = make_double3(molCOM.x - atomCoords.x, molCOM.y - atomCoords.y, molCOM.z - atomCoords.z);
+
+    // XYZ distFromCOM = coordinates.Difference(p, com, mIndex);
+
+    distFromCOM = MinImageGPU(distFromCOM, axis, halfAx);
+
+    double3 atomForceTotal =
+        make_double3(gpu_atomforcex[p] + gpu_atomforcerecx[p],
+                     gpu_atomforcey[p] + gpu_atomforcerecy[p],
+                     gpu_atomforcez[p] + gpu_atomforcerecz[p]);
+
+            double3 tempTorque = CrossProductGPU(distFromCOM, atomForceTotal);
+            // double3 tempTorque = make_double3(distFromCOM.x - atomForceTotal.x, distFromCOM.y - atomForceTotal.y, distFromCOM.z - atomForceTotal.z);
+
+    tx += tempTorque.x;
+    ty += tempTorque.y;
+    tz += tempTorque.z;
+    
+  }
+  
+  gpu_moltorquex[mIndex] = tx;
+  gpu_moltorquey[mIndex] = ty;
+  gpu_moltorquez[mIndex] = tz;  
+  
+  printf("MOLTORQUE X: %f\n", gpu_moltorquex[mIndex]);
+}
+
+__device__ inline double3 CrossProductGPU(const double3 &a, const double3 &b) {
+  // implementation
+  double x = a.y * b.z - a.z * b.y;
+  double y = a.z * b.x - a.x * b.z;
+  double z = a.x * b.y - a.y * b.x;
+
+  return make_double3(x, y, z);
 }
 
 __global__ void

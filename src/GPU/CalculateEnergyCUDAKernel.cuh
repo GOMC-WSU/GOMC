@@ -22,6 +22,47 @@ void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      bool sc_coul, double sc_sigma_6, double sc_alpha,
                      uint sc_power, uint const box);
 
+void CallCalculateTorqueGPU(VariablesCUDA *vars,
+                            std::vector<int> &moleculeIndex,
+                            XYZArray const &coordinates, XYZArray const &com,
+                            XYZArray const &atomForce,
+                            XYZArray const &atomForceRec, XYZArray &molTorque,
+                            const uint box, BoxDimensions const &boxAxes);
+
+__global__ void CalculateTorqueGPU(
+    const int *__restrict__ gpu_startAtomIndex, // atom indices
+    const int *__restrict__ gpu_moleculeIndex,  // molecule indices
+
+    const double *__restrict__ gpu_cx, // x coordinates
+    const double *__restrict__ gpu_cy, // y coordinates
+    const double *__restrict__ gpu_cz, // z coordinates
+
+    const double *__restrict__ gpu_comx, // x center of mass
+    const double *__restrict__ gpu_comy, // y center of mass
+    const double *__restrict__ gpu_comz, // z center of mass
+
+    const double *__restrict__ gpu_atomforcex, // x atom force
+    const double *__restrict__ gpu_atomforcey, // y atom force
+    const double *__restrict__ gpu_atomforcez, // z atom force
+
+    const double *__restrict__ gpu_atomforcerecx, // x atom force reciprocal
+    const double *__restrict__ gpu_atomforcerecy, // y atom force reciprocal
+    const double *__restrict__ gpu_atomforcerecz, // z atom force reciprocal
+
+    double *__restrict__ gpu_moltorquex, // x molecule torque
+    double *__restrict__ gpu_moltorquey, // y molecule torque
+    double *__restrict__ gpu_moltorquez, // z molecule torque
+
+    const uint box,         // box number
+    const uint numMolecules, // number of molecules, if index is above this
+                            // number we should just return
+    const double3 axis,     // lengths in each dimension
+    const double3 halfAx    // half of axis
+);
+
+
+__device__ inline double3 CrossProductGPU(const double3 &a, const double3 &b);
+
 __global__ void
 BoxInterGPU(int *gpu_cellStartIndex, int *gpu_cellVector, int *gpu_neighborList,
             int numberOfCells, double *gpu_x, double *gpu_y, double *gpu_z,
