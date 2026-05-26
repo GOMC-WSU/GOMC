@@ -252,6 +252,34 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
 #else
     std::fill_n(sumRnew[box], imageSize[box], 0.0);
     std::fill_n(sumInew[box], imageSize[box], 0.0);
+
+    std::vector<uint> chargedAtomIDs;
+    std::vector<double> chargedAtomCharges;
+
+    MoleculeLookup::box_iterator atomListMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator atomListEnd = molLookup.BoxEnd(box);
+
+    while (atomListMol != atomListEnd) {
+      MoleculeKind const &atomListKind = mols.GetKind(*atomListMol);
+      const double lambdaCoef = GetLambdaCoef(*atomListMol, box);
+      const uint start = mols.MolStart(*atomListMol);
+      const uint atomCount = atomListKind.NumAtoms();
+
+      for (uint j = 0; j < atomCount; j++) {
+        const uint currentAtom = start + j;
+
+        if (particleHasNoCharge[currentAtom]) {
+          continue;
+        }
+
+        chargedAtomIDs.push_back(currentAtom);
+        chargedAtomCharges.push_back(atomListKind.AtomCharge(j) * lambdaCoef);
+      }
+
+      ++atomListMol;
+    }
+
+
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
@@ -281,7 +309,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
           // TODO: sincos() can be used to optimize (GNU compiler only)
           // Windows doesn't have sincos() function and
           // Intel compiler automatically optimizes this part
-          sumImaginary += (charge * sin(dotProduct));
+          sumImaginary += (charge * sin(dotProduct)); // STD
           sumReal += (charge * cos(dotProduct));
           
           
