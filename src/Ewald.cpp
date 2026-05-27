@@ -253,6 +253,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     std::fill_n(sumRnew[box], imageSize[box], 0.0);
     std::fill_n(sumInew[box], imageSize[box], 0.0);
 
+    auto startAtomList = std::chrono::steady_clock::now();
+
     std::vector<uint> chargedAtomIDs;
     std::vector<double> chargedAtomCharges;
 
@@ -278,6 +280,15 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
 
       ++atomListMol;
     }
+
+    auto endAtomList = std::chrono::steady_clock::now();
+    auto diffAtomList = endAtomList - startAtomList;
+
+    std::cout << "Box " << box << " ChargedAtomList Runtime was "
+              << std::chrono::duration<double, std::milli>(diffAtomList).count()
+              << "ms" << std::endl;
+
+auto startChargedLoop = std::chrono::steady_clock::now();
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
@@ -305,7 +316,14 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
       sumInew[box][i] = sumImaginary;
     }
 
+    auto endChargedLoop = std::chrono::steady_clock::now();
 
+    auto diffChargedLoop = endChargedLoop - startChargedLoop;
+
+    std::cout << "Box " << box << " ChargedAtomLoop Runtime was "
+              << std::chrono::duration<double, std::milli>(diffChargedLoop).count()
+              << "ms" << std::endl;
+  
 //     while (thisMol != end) {
 //       MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
 //       double lambdaCoef = GetLambdaCoef(*thisMol, box);
