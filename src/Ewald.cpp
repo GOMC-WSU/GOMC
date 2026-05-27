@@ -279,48 +279,74 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
       ++atomListMol;
     }
 
-
-    while (thisMol != end) {
-      MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
-      double lambdaCoef = GetLambdaCoef(*thisMol, box);
-      uint start = mols.MolStart(*thisMol);
-      const uint atomCount = thisKind.NumAtoms(); 
-         //  Save the atom count once so the loop does not call NumAtoms() repeatedly.
-
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(box, lambdaCoef, molCoords, start, thisKind, atomCount)
+    shared(box, molCoords, chargedAtomIDs, chargedAtomCharges)
 #endif
-      for (int i = 0; i < (int)imageSize[box]; i++) {
-        double sumReal = 0.0;
-        double sumImaginary = 0.0;
+    for (int i = 0; i < (int)imageSize[box]; i++) {
+      double sumReal = 0.0;
+      double sumImaginary = 0.0;
+
+      for (uint a = 0; a < chargedAtomIDs.size(); a++) {
+        const uint currentAtom = chargedAtomIDs[a];
+        const double charge = chargedAtomCharges[a];
+
+        const double dotProduct =
+            Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
+
+        // TODO: sincos() can be used to optimize (GNU compiler only)
+        // Windows doesn't have sincos() function and
+        // Intel compiler automatically optimizes this part
+        sumImaginary += (charge * sin(dotProduct));
+        sumReal += (charge * cos(dotProduct));
+      }
+
+      sumRnew[box][i] = sumReal;
+      sumInew[box][i] = sumImaginary;
+    }
 
 
-        for (uint j = 0; j < atomCount; j++) { 
-          uint currentAtom = start + j;
-          if (particleHasNoCharge[currentAtom]) {
-            continue;
-          }
-          double dotProduct =
-              Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
+//     while (thisMol != end) {
+//       MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
+//       double lambdaCoef = GetLambdaCoef(*thisMol, box);
+//       uint start = mols.MolStart(*thisMol);
+//       const uint atomCount = thisKind.NumAtoms(); 
+//          //  Save the atom count once so the loop does not call NumAtoms() repeatedly.
 
-          const double charge = thisKind.AtomCharge(j);
+// #ifdef _OPENMP
+// #pragma omp parallel for default(none)                                         \
+//     shared(box, lambdaCoef, molCoords, start, thisKind, atomCount)
+// #endif
+//       for (int i = 0; i < (int)imageSize[box]; i++) {
+//         double sumReal = 0.0;
+//         double sumImaginary = 0.0;
 
-          // TODO: sincos() can be used to optimize (GNU compiler only)
-          // Windows doesn't have sincos() function and
-          // Intel compiler automatically optimizes this part
-          sumImaginary += (charge * sin(dotProduct)); // STD
-          sumReal += (charge * cos(dotProduct));
+
+//         for (uint j = 0; j < atomCount; j++) { 
+//           uint currentAtom = start + j;
+//           if (particleHasNoCharge[currentAtom]) {
+//             continue;
+//           }
+//           double dotProduct =
+//               Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
+
+//           const double charge = thisKind.AtomCharge(j);
+
+//           // TODO: sincos() can be used to optimize (GNU compiler only)
+//           // Windows doesn't have sincos() function and
+//           // Intel compiler automatically optimizes this part
+//           sumImaginary += (charge * sin(dotProduct)); // STD
+//           sumReal += (charge * cos(dotProduct));
           
           
         
-        }
-        // we assume all atom charges are scaled with lambda
-        sumRnew[box][i] += (lambdaCoef * sumReal);
-        sumInew[box][i] += (lambdaCoef * sumImaginary);
-      }
-      ++thisMol;
-    }
+//         }
+//         // we assume all atom charges are scaled with lambda
+//         sumRnew[box][i] += (lambdaCoef * sumReal);
+//         sumInew[box][i] += (lambdaCoef * sumImaginary);
+//       }
+//       ++thisMol;
+//     }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
