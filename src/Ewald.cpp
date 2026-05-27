@@ -321,6 +321,30 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
       }
       ++thisMol;
     }
+ //// ==========================================================
+    const uint checkImages = std::min((uint)5, imageSize[box]);
+
+    for (uint i = 0; i < checkImages; i++) {
+      double testSumReal = 0.0;
+      double testSumImaginary = 0.0;
+
+      for (uint a = 0; a < chargedAtomIDs.size(); a++) {
+        const uint currentAtom = chargedAtomIDs[a];
+        const double charge = chargedAtomCharges[a];
+
+        const double dotProduct =
+            Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
+
+        testSumReal += charge * cos(dotProduct);
+        testSumImaginary += charge * sin(dotProduct);
+      }
+
+      std::cout << "Box " << box << " image " << i
+                << " diff real: " << std::abs(sumRnew[box][i] - testSumReal)
+                << " diff imaginary: "
+                << std::abs(sumInew[box][i] - testSumImaginary) << std::endl;
+    }
+   //// ==========================================================
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
