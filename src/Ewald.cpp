@@ -253,103 +253,51 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     std::fill_n(sumRnew[box], imageSize[box], 0.0);
     std::fill_n(sumInew[box], imageSize[box], 0.0);
 
-    std::vector<uint> chargedAtomIDs;
-    std::vector<XYZ> chargedAtomCoords;
-    std::vector<double> chargedAtomCharges;
+    // Note: We tested a reordered image-by-charged-atom loop using a charged
+    // atom list and a charged coordinate list. The reordered loop was
+    // numerically consistent with the original sums, but it was slower than
+    // the original molecule-based loop on the 10k GEMC case. Therefore, we
+    // keep the original molecule-based loop here for now.
 
-    MoleculeLookup::box_iterator atomListMol = molLookup.BoxBegin(box);
-    MoleculeLookup::box_iterator atomListEnd = molLookup.BoxEnd(box);
-
-    while (atomListMol != atomListEnd) {
-      MoleculeKind const &atomListKind = mols.GetKind(*atomListMol);
-      const double lambdaCoef = GetLambdaCoef(*atomListMol, box);
-      const uint start = mols.MolStart(*atomListMol);
-      const uint atomCount = atomListKind.NumAtoms();
-
-      for (uint j = 0; j < atomCount; j++) {
-        const uint currentAtom = start + j;
-
-        if (particleHasNoCharge[currentAtom]) {
-          continue;
-        }
-
-        chargedAtomIDs.push_back(currentAtom);
-        chargedAtomCoords.push_back(molCoords[currentAtom]);
-        chargedAtomCharges.push_back(atomListKind.AtomCharge(j) * lambdaCoef);
-      }
-
-      ++atomListMol;
-    }
+    while (thisMol != end) {
+      MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
+      double lambdaCoef = GetLambdaCoef(*thisMol, box);
+      uint start = mols.MolStart(*thisMol);
+      const uint atomCount = thisKind.NumAtoms(); 
+      // Save the atom count once so the loop does not call NumAtoms() repeatedly.
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(box, molCoords, chargedAtomIDs, chargedAtomCoords, chargedAtomCharges)
+    shared(box, lambdaCoef, molCoords, start, thisKind, atomCount)
 #endif
-    for (int i = 0; i < (int)imageSize[box]; i++) {
-      double sumReal = 0.0;
-      double sumImaginary = 0.0;
-
-      for (uint a = 0; a < chargedAtomIDs.size(); a++) {
-        const XYZ atomCoord = chargedAtomCoords[a];
-        const double charge = chargedAtomCharges[a];
-
-        const double dotProduct =
-          atomCoord.getX() * kx[box][i] +
-          atomCoord.getY() * ky[box][i] +
-          atomCoord.getZ() * kz[box][i];
-
-        // TODO: sincos() can be used to optimize (GNU compiler only)
-        // Windows doesn't have sincos() function and
-        // Intel compiler automatically optimizes this part
-        sumImaginary += (charge * sin(dotProduct));
-        sumReal += (charge * cos(dotProduct));
-      }
-
-      sumRnew[box][i] = sumReal;
-      sumInew[box][i] = sumImaginary;
-    }
-  
-//     while (thisMol != end) {
-//       MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
-//       double lambdaCoef = GetLambdaCoef(*thisMol, box);
-//       uint start = mols.MolStart(*thisMol);
-//       const uint atomCount = thisKind.NumAtoms(); 
-//          //  Save the atom count once so the loop does not call NumAtoms() repeatedly.
-
-// #ifdef _OPENMP
-// #pragma omp parallel for default(none)                                         \
-//     shared(box, lambdaCoef, molCoords, start, thisKind, atomCount)
-// #endif
-//       for (int i = 0; i < (int)imageSize[box]; i++) {
-//         double sumReal = 0.0;
-//         double sumImaginary = 0.0;
+      for (int i = 0; i < (int)imageSize[box]; i++) {
+        double sumReal = 0.0;
+        double sumImaginary = 0.0;
 
 
-//         for (uint j = 0; j < atomCount; j++) { 
-//           uint currentAtom = start + j;
-//           if (particleHasNoCharge[currentAtom]) {
-//             continue;
-//           }
-//           double dotProduct =
-//               Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
+        for (uint j = 0; j < atomCount; j++) { 
+          uint currentAtom = start + j;
+          if (particleHasNoCharge[currentAtom]) {
+            continue;
+          }
+          double dotProduct =
+              Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
 
-//           const double charge = thisKind.AtomCharge(j);
+          const double charge = thisKind.AtomCharge(j);
 
-//           // TODO: sincos() can be used to optimize (GNU compiler only)
-//           // Windows doesn't have sincos() function and
-//           // Intel compiler automatically optimizes this part
-//           sumImaginary += (charge * sin(dotProduct)); // STD
-//           sumReal += (charge * cos(dotProduct));
-          
-          
+          // TODO: sincos() can be used to optimize (GNU compiler only)
+          // Windows doesn't have sincos() function and
+          // Intel compiler automatically optimizes this part
+          sumImaginary += (charge * sin(dotProduct)); // STD
+          sumReal += (charge * cos(dotProduct));
         
-//         }
-//         // we assume all atom charges are scaled with lambda
-//         sumRnew[box][i] += (lambdaCoef * sumReal);
-//         sumInew[box][i] += (lambdaCoef * sumImaginary);
-//       }
-//       ++thisMol;
-//     }
+        }
+        // we assume all atom charges are scaled with lambda
+        sumRnew[box][i] += (lambdaCoef * sumReal);
+        sumInew[box][i] += (lambdaCoef * sumImaginary);
+      }
+      ++thisMol;
+    }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
