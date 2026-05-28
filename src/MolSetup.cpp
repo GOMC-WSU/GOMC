@@ -1362,7 +1362,14 @@ int ReadPSFImpropers(
       }
     }
   }
-
+  // Check if we defined all impropers
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &currentMol = kindMap[firstAtom[i].second];
+    if (currentMol.atoms.size() > 3 && !defined[i]) {
+      std::cout << "Warning: Improper is missing for " << firstAtom[i].second
+                << " !\n";
+    }
+  }
   return 0;
 }
 
@@ -1401,7 +1408,14 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
       }
     }
   }
-
+  // Check if we defined all donors
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &currentMol = kindMap[firstAtom[i].second];
+    if (currentMol.atoms.size() > 1 && !defined[i]) {
+      std::cout << "Warning: Donor is missing for " << firstAtom[i].second
+                << " !\n";
+    }
+  }
   return 0;
 }
 
@@ -1442,7 +1456,14 @@ int ReadPSFAcceptors(
       }
     }
   }
-
+  // Check if we defined all acceptors
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &currentMol = kindMap[firstAtom[i].second];
+    if (currentMol.atoms.size() > 1 && !defined[i]) {
+      std::cout << "Warning: Acceptor is missing for " << firstAtom[i].second
+                << " !\n";
+    }
+  }
   return 0;
 }
 
@@ -1513,6 +1534,14 @@ int ReadPSFExplicitNonbondExclusions(
       }
     }
   }
+  // Check if we defined all NNBs
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &currentMol = kindMap[firstAtom[i].second];
+    if (currentMol.atoms.size() > 3 && !defined[i]) {
+      std::cout << "Warning: NNB is missing for " << firstAtom[i].second
+                << " !\n";
+    }
+  }
   return 0;
 }
 
@@ -1560,6 +1589,14 @@ int ReadPSFGroups(FILE *psf, MolMap &kindMap,
       }
     }
   }
+  // Check if we defined all groups
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &currentMol = kindMap[firstAtom[i].second];
+    if (currentMol.atoms.size() > 3 && !defined[i]) {
+      std::cout << "Warning: Group is missing for " << firstAtom[i].second
+                << " !\n";
+    }
+  }
   return 0;
 }
 
@@ -1605,6 +1642,14 @@ int ReadPSFCrossTerms(
         defined[i] = true;
         break;
       }
+    }
+  }
+  // Check if we defined all cross terms
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &currentMol = kindMap[firstAtom[i].second];
+    if (currentMol.atoms.size() > 3 && !defined[i]) {
+      std::cout << "Warning: Cross term is missing for " << firstAtom[i].second
+                << " !\n";
     }
   }
   return 0;
