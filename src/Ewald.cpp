@@ -253,9 +253,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     std::fill_n(sumRnew[box], imageSize[box], 0.0);
     std::fill_n(sumInew[box], imageSize[box], 0.0);
 
-    auto startAtomList = std::chrono::steady_clock::now();
-
     std::vector<uint> chargedAtomIDs;
+    std::vector<XYZ> chargedAtomCoords;
     std::vector<double> chargedAtomCharges;
 
     MoleculeLookup::box_iterator atomListMol = molLookup.BoxBegin(box);
@@ -275,35 +274,29 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         }
 
         chargedAtomIDs.push_back(currentAtom);
+        chargedAtomCoords.push_back(molCoords[currentAtom]);
         chargedAtomCharges.push_back(atomListKind.AtomCharge(j) * lambdaCoef);
       }
 
       ++atomListMol;
     }
 
-    auto endAtomList = std::chrono::steady_clock::now();
-    auto diffAtomList = endAtomList - startAtomList;
-
-    std::cout << "Box " << box << " ChargedAtomList Runtime was "
-              << std::chrono::duration<double, std::milli>(diffAtomList).count()
-              << "ms" << std::endl;
-
-auto startChargedLoop = std::chrono::steady_clock::now();
-
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(box, molCoords, chargedAtomIDs, chargedAtomCharges)
+    shared(box, molCoords, chargedAtomIDs, chargedAtomCoords, chargedAtomCharges)
 #endif
     for (int i = 0; i < (int)imageSize[box]; i++) {
       double sumReal = 0.0;
       double sumImaginary = 0.0;
 
       for (uint a = 0; a < chargedAtomIDs.size(); a++) {
-        const uint currentAtom = chargedAtomIDs[a];
+        const XYZ atomCoord = chargedAtomCoords[a];
         const double charge = chargedAtomCharges[a];
 
         const double dotProduct =
-            Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
+          atomCoord.getX() * kx[box][i] +
+          atomCoord.getY() * ky[box][i] +
+          atomCoord.getZ() * kz[box][i];
 
         // TODO: sincos() can be used to optimize (GNU compiler only)
         // Windows doesn't have sincos() function and
@@ -315,14 +308,6 @@ auto startChargedLoop = std::chrono::steady_clock::now();
       sumRnew[box][i] = sumReal;
       sumInew[box][i] = sumImaginary;
     }
-
-    auto endChargedLoop = std::chrono::steady_clock::now();
-
-    auto diffChargedLoop = endChargedLoop - startChargedLoop;
-
-    std::cout << "Box " << box << " ChargedAtomLoop Runtime was "
-              << std::chrono::duration<double, std::milli>(diffChargedLoop).count()
-              << "ms" << std::endl;
   
 //     while (thisMol != end) {
 //       MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
