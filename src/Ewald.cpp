@@ -265,9 +265,13 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
       uint start = mols.MolStart(*thisMol);
       const uint atomCount = thisKind.NumAtoms(); 
       // Save the atom count once so the loop does not call NumAtoms() repeatedly.
+            
+      double *sumR = sumRnew[box];
+      double *sumI = sumInew[box];
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none)                                         \
+#pragma omp parallel for default(none)
+    reduction(+:sumR[:imageSize[box]], sumI[:imageSize[box]])                                           \
     shared(box, lambdaCoef, molCoords, start, thisKind, atomCount)
 #endif
       for (int i = 0; i < (int)imageSize[box]; i++) {
@@ -293,8 +297,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         
         }
         // we assume all atom charges are scaled with lambda
-        sumRnew[box][i] += (lambdaCoef * sumReal);
-        sumInew[box][i] += (lambdaCoef * sumImaginary);
+        sumR[i] += (lambdaCoef * sumReal);
+        sumI[i] += (lambdaCoef * sumImaginary);
       }
       ++thisMol;
     }
