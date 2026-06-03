@@ -274,15 +274,15 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
 
 #ifdef _OPENMP
 #pragma omp parallel default(none)                                             \
-    shared(this, box, molIDs, molCoords, sumR, sumI)
+    shared(box, molIDs, molCoords, sumR, sumI)
 #endif
   {
     for (uint m = 0; m < molIDs.size(); m++) {
       const uint molID = molIDs[m];
 
-      MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
+      MoleculeKind const &thisKind = mols.GetKind(molID); 
       double lambdaCoef = GetLambdaCoef(molID, box);
-      uint start = mols.MolStart(*thisMol);
+      uint start = mols.MolStart(molID);
       const uint atomCount = thisKind.NumAtoms(); 
       // Save the atom count once so the loop does not call NumAtoms() repeatedly.
             
