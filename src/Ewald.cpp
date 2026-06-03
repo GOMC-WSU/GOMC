@@ -269,27 +269,30 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     // the original molecule-based loop on the 10k GEMC case. Therefore, we
     // keep the original molecule-based loop here for now.
 
+    double *sumR = sumRnew[box];
+    double *sumI = sumInew[box];
+
+#ifdef _OPENMP
+#pragma omp parallel default(none)                                             \
+    shared(this, box, molIDs, molCoords, sumR, sumI)
+#endif
+  {
     for (uint m = 0; m < molIDs.size(); m++) {
       const uint molID = molIDs[m];
 
       MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
-      double lambdaCoef = GetLambdaCoef(*thisMol, box);
+      double lambdaCoef = GetLambdaCoef(molID, box);
       uint start = mols.MolStart(*thisMol);
       const uint atomCount = thisKind.NumAtoms(); 
       // Save the atom count once so the loop does not call NumAtoms() repeatedly.
             
-      double *sumR = sumRnew[box];
-      double *sumI = sumInew[box];
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none)
-    reduction(+:sumR[:imageSize[box]], sumI[:imageSize[box]])                                           \
-    shared(box, lambdaCoef, molCoords, start, thisKind, atomCount)
+#pragma omp for reduction(+:sumR[:imageSize[box]], sumI[:imageSize[box]])
 #endif
       for (int i = 0; i < (int)imageSize[box]; i++) {
         double sumReal = 0.0;
         double sumImaginary = 0.0;
-
 
         for (uint j = 0; j < atomCount; j++) { 
           uint currentAtom = start + j;
@@ -309,8 +312,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
         sumR[i] += (lambdaCoef * sumReal);
         sumI[i] += (lambdaCoef * sumImaginary);
       }
-      ++thisMol;
     }
+  }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
