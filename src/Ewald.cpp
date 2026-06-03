@@ -253,13 +253,25 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     std::fill_n(sumRnew[box], imageSize[box], 0.0);
     std::fill_n(sumInew[box], imageSize[box], 0.0);
 
+    std::vector<uint> molIDs;
+
+    MoleculeLookup::box_iterator molIt = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator molEnd = molLookup.BoxEnd(box);
+
+    while (molIt != molEnd) {
+      molIDs.push_back(*molIt);
+      ++molIt;
+    }
+
     // Note: We tested a reordered image-by-charged-atom loop using a charged
     // atom list and a charged coordinate list. The reordered loop was
     // numerically consistent with the original sums, but it was slower than
     // the original molecule-based loop on the 10k GEMC case. Therefore, we
     // keep the original molecule-based loop here for now.
 
-    while (thisMol != end) {
+    for (uint m = 0; m < molIDs.size(); m++) {
+      const uint molID = molIDs[m];
+
       MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
       uint start = mols.MolStart(*thisMol);
@@ -289,9 +301,6 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
 
           const double charge = thisKind.AtomCharge(j);
 
-          // TODO: sincos() can be used to optimize (GNU compiler only)
-          // Windows doesn't have sincos() function and
-          // Intel compiler automatically optimizes this part
           sumImaginary += (charge * sin(dotProduct)); // STD
           sumReal += (charge * cos(dotProduct));
         
