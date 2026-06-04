@@ -287,9 +287,9 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
       // Save the atom count once so the loop does not call NumAtoms() repeatedly.
             
 
-#ifdef _OPENMP
-#pragma omp for reduction(+:sumR[:imageSize[box]], sumI[:imageSize[box]])
-#endif
+// #ifdef _OPENMP
+// #pragma omp for reduction(+:sumR[:imageSize[box]], sumI[:imageSize[box]])
+// #endif
       for (int i = 0; i < (int)imageSize[box]; i++) {
         double sumReal = 0.0;
         double sumImaginary = 0.0;
@@ -301,15 +301,24 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
           }
           double dotProduct =
               Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
+              /// make it local variable 
 
           const double charge = thisKind.AtomCharge(j);
 
-          sumImaginary += (charge * sin(dotProduct)); // STD
-          sumReal += (charge * cos(dotProduct));
-        
+
+          sumImaginary += (charge * std::sin(dotProduct)); // Standard 
+          sumReal += (charge * std::cos(dotProduct));
+        //simulation.cpp
         }
         // we assume all atom charges are scaled with lambda
+        #ifdef _OPENMP
+        #pragma omp atomic
+        #endif
         sumR[i] += (lambdaCoef * sumReal);
+        ///// lambda into charge 
+        #ifdef _OPENMP
+        #pragma omp atomic
+        #endif
         sumI[i] += (lambdaCoef * sumImaginary);
       }
     }
