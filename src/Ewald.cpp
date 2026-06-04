@@ -253,43 +253,23 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     std::fill_n(sumRnew[box], imageSize[box], 0.0);
     std::fill_n(sumInew[box], imageSize[box], 0.0);
 
-    std::vector<uint> molIDs;
-
-    MoleculeLookup::box_iterator molIt = molLookup.BoxBegin(box);
-    MoleculeLookup::box_iterator molEnd = molLookup.BoxEnd(box);
-
-    while (molIt != molEnd) {
-      molIDs.push_back(*molIt);
-      ++molIt;
-    }
-
     // Note: We tested a reordered image-by-charged-atom loop using a charged
     // atom list and a charged coordinate list. The reordered loop was
     // numerically consistent with the original sums, but it was slower than
     // the original molecule-based loop on the 10k GEMC case. Therefore, we
     // keep the original molecule-based loop here for now.
 
-    double *sumR = sumRnew[box];
-    double *sumI = sumInew[box];
-
-#ifdef _OPENMP
-#pragma omp parallel default(none)                                             \
-    shared(box, molIDs, molCoords, sumR, sumI)
-#endif
-  {
-    for (uint m = 0; m < molIDs.size(); m++) {
-      const uint molID = molIDs[m];
-
-      MoleculeKind const &thisKind = mols.GetKind(molID); 
-      double lambdaCoef = GetLambdaCoef(molID, box);
-      uint start = mols.MolStart(molID);
+    while (thisMol != end) {
+      MoleculeKind const &thisKind = mols.GetKind(*thisMol); 
+      double lambdaCoef = GetLambdaCoef(*thisMol, box);
+      uint start = mols.MolStart(*thisMol);
       const uint atomCount = thisKind.NumAtoms(); 
       // Save the atom count once so the loop does not call NumAtoms() repeatedly.
-            
 
-// #ifdef _OPENMP
-// #pragma omp for reduction(+:sumR[:imageSize[box]], sumI[:imageSize[box]])
-// #endif
+#ifdef _OPENMP
+#pragma omp parallel for default(none)                                         \
+    shared(box, lambdaCoef, molCoords, start, thisKind, atomCount)
+#endif
       for (int i = 0; i < (int)imageSize[box]; i++) {
         double sumReal = 0.0;
         double sumImaginary = 0.0;
@@ -299,30 +279,23 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
           if (particleHasNoCharge[currentAtom]) {
             continue;
           }
+
           double dotProduct =
               Dot(currentAtom, kx[box][i], ky[box][i], kz[box][i], molCoords);
-              /// make it local variable 
 
           const double charge = thisKind.AtomCharge(j);
-
-
-          sumImaginary += (charge * std::sin(dotProduct)); // Standard 
-          sumReal += (charge * std::cos(dotProduct));
-        //simulation.cpp
+        
+          sumImaginary += (charge * sin(dotProduct)); 
+          sumReal += (charge * cos(dotProduct));
         }
+
         // we assume all atom charges are scaled with lambda
-        #ifdef _OPENMP
-        #pragma omp atomic
-        #endif
-        sumR[i] += (lambdaCoef * sumReal);
-        ///// lambda into charge 
-        #ifdef _OPENMP
-        #pragma omp atomic
-        #endif
-        sumI[i] += (lambdaCoef * sumImaginary);
+        sumRnew[box][i] += (lambdaCoef * sumReal);
+        sumInew[box][i] += (lambdaCoef * sumImaginary);
       }
+
+      ++thisMol;
     }
-  }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
