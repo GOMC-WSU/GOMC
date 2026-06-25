@@ -41,7 +41,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 System::System(StaticVals &statics, Setup &set, ulong &startStep,
                MultiSim const *const &multisim)
-    : statV(statics), boxDimRef(*BoxDim(statics.isOrthogonal)),
+    : statV(statics), boxDimensions{nullptr},
+      boxDimRef(*BoxDim(statics.isOrthogonal)),
 #ifdef VARIABLE_PARTICLE_NUMBER
       molLookupRef(molLookup),
 #else
@@ -90,10 +91,8 @@ System::System(StaticVals &statics, Setup &set, ulong &startStep,
 }
 
 System::~System() {
-  if (boxDimensions != NULL)
-    delete boxDimensions;
-  if (calcEwald != NULL)
-    delete calcEwald;
+  delete boxDimensions;
+  delete calcEwald;
   for (int m = 0; m < mv::MOVE_KINDS_TOTAL; ++m) {
     delete moves[m];
   }

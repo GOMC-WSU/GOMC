@@ -46,9 +46,10 @@ using namespace geom;
 
 CalculateEnergy::CalculateEnergy(StaticVals &stat, System &sys)
     : forcefield(stat.forcefield), mols(stat.mol),
-      currentCoords(sys.coordinates), currentCOM(sys.com),
+      currentCoords(sys.coordinates), currentCOM(sys.com), calcEwald{nullptr},
       lambdaRef(sys.lambdaRef), atomForceRef(sys.atomForceRef),
-      molForceRef(sys.molForceRef),
+      molForceRef(sys.molForceRef), multiParticleEnabled{false},
+      electrostatic{false}, ewald{false},
 #ifdef VARIABLE_PARTICLE_NUMBER
       molLookup(sys.molLookup),
 #else

@@ -22,9 +22,10 @@ struct FindA1 {
 DCFreeCycle::DCFreeCycle(DCData *data, const mol_setup::MolKind &kind,
                          const std::vector<int> &cycAtoms, uint focus,
                          uint prev)
-    : data(data), seed(data, focus), hed(data, kind, cycAtoms, focus, prev) {
+    : data(data), seed(data, focus), hed(data, kind, cycAtoms, focus, prev),
+      anchorBond(0.0), anchorBondOld(0.0), bondEnergy(0.0), bondLength{{}},
+      bondLengthOld{{}}, bondKinds{{}}, bondedInRing{{}} {
   using namespace mol_setup;
-  std::fill_n(bondedInRing, MAX_BONDS, false);
   std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   for (uint i = 0; i < onFocus.size(); ++i) {
     if (onFocus[i].a1 == prev) {

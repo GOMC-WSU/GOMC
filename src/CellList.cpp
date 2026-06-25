@@ -33,30 +33,9 @@ CellList::CellList(const CellList &other) : mols(other.mols) {
     edgeCells[b][2] = other.edgeCells[b][2];
     cutoff[b] = other.cutoff[b];
   }
-
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    RebuildNeighbors(b);
-  }
-
-  list.resize(other.list.size());
-
-  for (size_t i = 0; i < other.list.size(); i++) {
-    list[i] = other.list[i];
-  }
-
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    for (size_t i = 0; i < other.neighbors[b].size(); i++) {
-      neighbors[b][i] = other.neighbors[b][i];
-    }
-  }
-
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    for (size_t i = 0; i < other.head[b].size(); i++) {
-      head[b][i] = other.head[b][i];
-    }
-  }
-  // neighbors(other.neighbors);
-  // head(other.head);
+  list(other.list);
+  neighbors(other.neighbors);
+  head(other.head);
 }
 
 void CellList::SetCutoff() {
