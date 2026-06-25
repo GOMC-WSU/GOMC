@@ -24,7 +24,9 @@ CellList::CellList(const Molecules &mols, BoxDimensions &dims) : mols(&mols) {
   this->SetCutoff();
 }
 
-CellList::CellList(const CellList &other) : mols(other.mols) {
+CellList::CellList(const CellList &other)
+    : mols(other.mols), list(other.list), neighbors(other.neighbors),
+      head(other.head) {
   dimensions = other.dimensions;
   isBuilt = true;
   for (uint b = 0; b < BOX_TOTAL; b++) {
@@ -33,9 +35,6 @@ CellList::CellList(const CellList &other) : mols(other.mols) {
     edgeCells[b][2] = other.edgeCells[b][2];
     cutoff[b] = other.cutoff[b];
   }
-  list(other.list);
-  neighbors(other.neighbors);
-  head(other.head);
 }
 
 void CellList::SetCutoff() {
