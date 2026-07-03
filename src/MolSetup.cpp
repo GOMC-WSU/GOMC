@@ -651,8 +651,8 @@ void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList &bondAdjList,
     adjNode *ptr = bondAdjList.head[i];
     while (ptr != nullptr) {
       if (i < ptr->val) {
-        kindMap[fragName].bonds.push_back(
-            Bond(i - molBegin, ptr->val - molBegin));
+        kindMap[fragName].bonds.emplace_back(
+            i - molBegin, ptr->val - molBegin);
       }
       ptr = ptr->next;
     }
@@ -1018,8 +1018,8 @@ int ReadPSF(const char *psfFilename, const uint box, MoleculeVariables &molVars,
 
   std::vector<std::pair<unsigned int, std::string>> firstAtomLookup;
   for (MolMap::iterator it = kindMap.begin(); it != kindMap.end(); ++it) {
-    firstAtomLookup.push_back(
-        std::make_pair(it->second.firstAtomID, it->first));
+    firstAtomLookup.emplace_back(
+        it->second.firstAtomID, it->first);
   }
   std::sort(firstAtomLookup.begin(), firstAtomLookup.end());
   // find bond header+count
@@ -1196,8 +1196,8 @@ int ReadPSFAtoms(FILE *psf, unsigned int nAtoms,
     // parse line
     sscanf(input, " %u %10s %u %10s %10s %10s %lf %lf ", &atomID, segment,
            &molID, moleculeName, atomName, atomType, &charge, &mass);
-    allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, segment,
-                                       atomType, charge, mass));
+    allAtoms.emplace_back(atomName, moleculeName, molID, segment,
+                          atomType, charge, mass);
   }
   return 0;
 }
@@ -1229,8 +1229,8 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
       unsigned int molEnd = molBegin + currentMol.atoms.size();
       // assign the angle
       if (atom0 >= molBegin && atom0 < molEnd) {
-        currentMol.angles.push_back(
-            Angle(atom0 - molBegin, atom1 - molBegin, atom2 - molBegin));
+        currentMol.angles.emplace_back(
+            atom0 - molBegin, atom1 - molBegin, atom2 - molBegin);
         // once we found the molecule kind, break from the loop
         defined[i] = true;
         break;
@@ -1401,7 +1401,7 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
       unsigned int molEnd = molBegin + currentMol.atoms.size();
       // assign the bond
       if (atom0 >= molBegin && atom0 < molEnd) {
-        currentMol.donors.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
+        currentMol.donors.emplace_back(atom0 - molBegin, atom1 - molBegin);
         // once we found the molecule kind, break from the loop
         defined[i] = true;
         break;
@@ -1448,8 +1448,8 @@ int ReadPSFAcceptors(
       unsigned int molEnd = molBegin + currentMol.atoms.size();
       // assign the bond
       if (atom0 >= molBegin && atom0 < molEnd) {
-        currentMol.acceptors.push_back(
-            Bond(atom0 - molBegin, atom1 - molBegin));
+        currentMol.acceptors.emplace_back(
+            atom0 - molBegin, atom1 - molBegin);
         // once we found the molecule kind, break from the loop
         defined[i] = true;
         break;
