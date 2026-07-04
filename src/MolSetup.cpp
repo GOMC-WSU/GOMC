@@ -12,6 +12,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include <iostream>
 #include <sstream> // std::stringstream
 #include <utility> //for swap (most modern compilers)
+#include <functional> 
 
 #include "BasicTypes.h"
 #include "ConfigSetup.h" //For definition of restart
@@ -921,6 +922,32 @@ namespace {
 // Initializes system from PSF file (does not include coordinates)
 // returns number of atoms in the file, or errors::READ_ERROR if the read failed
 // somehow
+
+// Helper to seek to a PSF section, read its count, and call the appropriate read fucntion. 
+// returns errors::read_error if the read failed somehow, or 0 on success
+int ReadPSFSection(FILE *psf, char *input, const char *psfFilename, MolMap &kindMap,
+                   std::vector<std::pair<uint, std::string>> &firstAtom, const char *header,
+                   const char *sectionName, std::function<int(FILE*, MolMap&,
+                   std::vector<std::pair<uint, std::string>>&, uint)> readFunction) 
+{
+  fseek(psf, 0, SEEK_SET);
+  while (strstr(input, header) == NULL) {
+    if(fgets(input, 511, psf) == NULL) {
+      fprintf(stderr, "ERROR: Unable to read %s from PSF file %s\n", sectionName, psfFilename);
+      fclose(psf);
+      return errors::READ_ERROR;
+    }
+  }
+
+  uint count = atoi(input);
+  if(readFunction(psf, kindMap, firstAtom, count) == errors::READ_ERROR) {
+    fclose(psf);
+    return errors::READ_ERROR;
+  }
+  return 0;
+}
+
+
 int ReadPSF(const char *psfFilename, const uint box, MoleculeVariables &molVars,
             MolMap &kindMap, SizeMap &sizeMap, MolMap *kindMapFromBox1,
             SizeMap *sizeMapFromBox1) {
@@ -1024,99 +1051,31 @@ int ReadPSF(const char *psfFilename, const uint box, MoleculeVariables &molVars,
   std::sort(firstAtomLookup.begin(), firstAtomLookup.end());
   // find bond header+count
   // make sure molecule has bonds, appears before !NBOND
+  
   // find angle header+count
-  fseek(psf, 0, SEEK_SET);
-  while (strstr(input, "!NTHETA") == NULL) {
-    check = fgets(input, 511, psf);
-    if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read angles from PSF file %s\n",
-              psfFilename);
-      fclose(psf);
-      return errors::READ_ERROR;
-    }
-  }
-  // make sure molecule has angles, count appears before !NTHETA
-  count = atoi(input);
-  if (ReadPSFAngles(psf, kindMap, firstAtomLookup, count) ==
-      errors::READ_ERROR) {
-    fclose(psf);
+  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
+                     "!NTHETA", "angles", ReadPSFAngles) == errors::READ_ERROR)
     return errors::READ_ERROR;
-  }
+
   // find dihedrals header+count
-  fseek(psf, 0, SEEK_SET);
-  while (strstr(input, "!NPHI") == NULL) {
-    check = fgets(input, 511, psf);
-    if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read dihedrals from PSF file %s\n",
-              psfFilename);
-      fclose(psf);
-      return errors::READ_ERROR;
-    }
-  }
-  // make sure molecule has dihs, count appears before !NPHI
-  count = atoi(input);
-  if (ReadPSFDihedrals(psf, kindMap, firstAtomLookup, count) ==
-      errors::READ_ERROR) {
-    fclose(psf);
+  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
+                     "!NPHI", "dihedrals", ReadPSFDihedrals) == errors::READ_ERROR)
     return errors::READ_ERROR;
-  }
 
   // find impropers header+count
-  fseek(psf, 0, SEEK_SET);
-  while (strstr(input, "!NIMPHI") == NULL) {
-    check = fgets(input, 511, psf);
-    if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read impropers from PSF file %s\n",
-              psfFilename);
-      fclose(psf);
-      return errors::READ_ERROR;
-    }
-  }
-  // make sure molecule has imps, count appears before !NIMPHI
-  count = atoi(input);
-  if (ReadPSFImpropers(psf, kindMap, firstAtomLookup, count) ==
-      errors::READ_ERROR) {
-    fclose(psf);
+  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
+                     "!NIMPHI", "impropers", ReadPSFImpropers) == errors::READ_ERROR)
     return errors::READ_ERROR;
-  }
 
   // find donors header+count
-  fseek(psf, 0, SEEK_SET);
-  while (strstr(input, "!NDON") == NULL) {
-    check = fgets(input, 511, psf);
-    if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read donors from PSF file %s\n",
-              psfFilename);
-      fclose(psf);
-      return errors::READ_ERROR;
-    }
-  }
-  // make sure molecule has donors, count appears before !NDON
-  count = atoi(input);
-  if (ReadPSFDonors(psf, kindMap, firstAtomLookup, count) ==
-      errors::READ_ERROR) {
-    fclose(psf);
+  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
+                     "!NDON", "donors", ReadPSFDonors) == errors::READ_ERROR)
     return errors::READ_ERROR;
-  }
 
   // find acceptors header+count
-  fseek(psf, 0, SEEK_SET);
-  while (strstr(input, "!NACC") == NULL) {
-    check = fgets(input, 511, psf);
-    if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read acceptors from PSF file %s\n",
-              psfFilename);
-      fclose(psf);
-      return errors::READ_ERROR;
-    }
-  }
-  // make sure molecule has acceptors, count appears before !NACC
-  count = atoi(input);
-  if (ReadPSFAcceptors(psf, kindMap, firstAtomLookup, count) ==
-      errors::READ_ERROR) {
-    fclose(psf);
+  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
+                     "!NACC", "acceptors", ReadPSFAcceptors) == errors::READ_ERROR)
     return errors::READ_ERROR;
-  }
   /*
 
    //find explicit nonbond exclusions  header+count
