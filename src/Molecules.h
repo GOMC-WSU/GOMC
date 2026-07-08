@@ -87,17 +87,17 @@ public:
   uint32_t *restartOrderedStart;
 
   /* only used for output */
-  uint32_t count;
-  uint32_t atomCount;
+  uint32_t count = 0;
+  uint32_t atomCount = 0;;
   uint32_t *kIndex;
-  uint32_t kIndexCount;
+  uint32_t kIndexCount = 0;;
   uint *countByKind;
   char *chain;
   double *beta;
   double *occ;
 
   MoleculeKind *kinds;
-  uint kindsCount;
+  uint kindsCount = 0;;
   // These are never initialized or used
   // uint fractionKind;
   // uint lambdaSize;

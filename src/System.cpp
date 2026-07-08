@@ -66,8 +66,8 @@ System::System(StaticVals &statics, Setup &set, ulong &startStep,
                     ),
       vel(statics.forcefield, molLookupRef, statics.mol, prng),
       restartFromCheckpoint(set.config.in.restart.restartFromCheckpoint),
-      startStepRef(startStep), trueStep(0) {
-  calcEwald = NULL;
+      startStepRef(startStep), trueStep(0), moveTime{{}}, moves{{}} {
+  calcEwald = nullptr;
 #if GOMC_LIB_MPI
   if (ms->parallelTemperingEnabled)
     prngParallelTemp = new PRNG(molLookupRef);

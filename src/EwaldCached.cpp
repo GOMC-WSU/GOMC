@@ -12,11 +12,12 @@ using namespace geom;
 
 template <class T> void SafeDeleteArray(T *&pVal) {
   delete[] pVal;
-  pVal = NULL;
+  pVal = nullptr;
 }
 
 EwaldCached::EwaldCached(StaticVals &stat, System &sys)
-    : Ewald(stat, sys)
+    : Ewald(stat, sys), cosMolRestore{}, sinMolRestore{}, cosMolRef{},
+      sinMolRef{}, cosMolBoxRecip{}, sinMolBoxRecip{}
 #if ENSEMBLE == GEMC
       ,
       GEMC_KIND(stat.kindOfGEMC)

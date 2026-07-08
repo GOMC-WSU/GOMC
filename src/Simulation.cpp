@@ -44,7 +44,7 @@ Simulation::Simulation(char const *const configFileName,
   if (totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
-
+  remarksCount = 0;
 #if GOMC_LIB_MPI
   // set.config.sys.step.parallelTemp is a boolean for enabling/disabling
   // parallel tempering
@@ -55,6 +55,7 @@ Simulation::Simulation(char const *const configFileName,
                       set.config.sys.step.parallelTemperingAttemptsPerExchange)
                 : NULL;
   exchangeResults.resize(ms->worldSize, false);
+  parity = 0;
 #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::INITIALIZE);
 }

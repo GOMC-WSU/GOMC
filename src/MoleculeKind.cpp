@@ -101,8 +101,13 @@ void MoleculeKind::Init(uint &l_kindIndex, std::string const &l_name,
 }
 
 MoleculeKind::MoleculeKind()
-    : angles(3), dihedrals(4), impropers(4), atomMass(NULL), builder(NULL),
-      atomKind(NULL), atomCharge(NULL) {}
+    : angles(3), dihedrals(4), impropers(4), oneThree{}, oneFour{}, kindIndex{},
+      molMass{}, atomMass{}, isMultiResidue{}, builder{}, numAtoms{},
+      atomKind{}, atomCharge{} {
+#if ENSEMBLE == GCMC
+  chemPot = 0.0;
+#endif
+}
 
 MoleculeKind::~MoleculeKind() {
   delete[] atomKind;
