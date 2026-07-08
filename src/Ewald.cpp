@@ -354,26 +354,25 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
       uint startAtom = mols.MolStart(*thisMol);
+      const uint atomCount = thisKind.NumAtoms();
+      // Save the atom count once so the loop does not call NumAtoms() repeatedly.
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(box, lambdaCoef, molCoords, startAtom, thisKind)
+    shared(box, lambdaCoef, molCoords, startAtom, thisKind, atomCount)
 #endif
       for (int i = 0; i < (int)imageSizeRef[box]; i++) {
         double sumReal = 0.0;
         double sumImaginary = 0.0;
 
-        for (uint j = 0; j < thisKind.NumAtoms(); j++) {
+        for (uint j = 0; j < atomCount; j++) {
           unsigned long currentAtom = startAtom + j;
           if (particleHasNoCharge[currentAtom]) {
             continue;
           }
           double dotProduct = Dot(currentAtom, kxRef[box][i], kyRef[box][i],
                                   kzRef[box][i], molCoords);
-
-          // TODO: sincos() can be used to optimize (GNU compiler only)
-          // Windows doesn't have sincos() function and
-          // Intel compiler automatically optimizes this part
+   
           sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
           sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
         }
@@ -381,7 +380,7 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
         sumRnew[box][i] += (lambdaCoef * sumReal);
         sumInew[box][i] += (lambdaCoef * sumImaginary);
       }
-      thisMol++;
+      ++thisMol;
     }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
