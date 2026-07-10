@@ -27,7 +27,7 @@ const int THREADS_PER_BLOCK_MED = 96;
 
 void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
                      double *lambdaCoulomb, bool *isFraction);
-void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
+void InitGPUForceField(VariablesCUDA *vars, double const *sigmaSq,
                        double const *epsilon_Cn, double const *n, int VDW_Kind,
                        int isMartini, int count, double Rcut, double RcutSq,
                        double const *rCutCoulomb, double const *rCutCoulombSq,

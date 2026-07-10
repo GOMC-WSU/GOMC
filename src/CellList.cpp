@@ -24,7 +24,7 @@ CellList::CellList(Forcefield &forcefield, const Molecules &mols,
   for (uint b = 0; b < BOX_TOTAL; b++) {
     edgeCells[b][0] = edgeCells[b][1] = edgeCells[b][2] = 0;
   }
-  Init();
+  this->SetCutoff();
 }
 
 CellList::CellList(const CellList &other)
@@ -46,12 +46,7 @@ CellList::~CellList() {
 #endif
 }
 
-void CellList::Init() {
-#ifdef GOMC_CUDA
-  InitNeighborListVarsCUDA(ff.particles->getCUDAVars());
-#endif
-  SetCutoff();
-}
+void CellList::Init() { SetCutoff(); }
 
 void CellList::SetCutoff() {
   for (uint b = 0; b < BOX_TOTAL; b++) {
