@@ -24,6 +24,22 @@ CellList::CellList(Forcefield &forcefield, const Molecules &mols,
   for (uint b = 0; b < BOX_TOTAL; b++) {
     edgeCells[b][0] = edgeCells[b][1] = edgeCells[b][2] = 0;
   }
+  Init();
+}
+
+CellList::CellList(const CellList &other) : mols(other.mols) {
+  dimensions = other.dimensions;
+  isBuilt = true;
+  ff(other.ff);
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    edgeCells[b][0] = other.edgeCells[b][0];
+    edgeCells[b][1] = other.edgeCells[b][1];
+    edgeCells[b][2] = other.edgeCells[b][2];
+    cutoff[b] = other.cutoff[b];
+  }
+  list(other.list);
+  neighbors(other.neighbors);
+  head(other.head);
 }
 
 CellList::~CellList() {

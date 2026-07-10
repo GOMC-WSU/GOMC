@@ -25,9 +25,7 @@ class CellList {
 public:
   explicit CellList(Forcefield &forcefield, const Molecules &mols,
                     BoxDimensions &dims);
-  // Disallow the creation of multiple cell lists (for the same box).
-  CellList(const CellList &other) = delete;
-  CellList &operator=(const CellList &other) = delete;
+  CellList(const CellList &other);
   ~CellList();
   void Init();
   void SetCutoff();
