@@ -218,6 +218,15 @@ protected:
   double **kx, **kxRef;
   double **ky, **kyRef;
   double **kz, **kzRef;
+
+  int **kx_ind, **kx_indRef;
+  int **ky_ind, **ky_indRef;
+  int **kz_ind, **kz_indRef;
+
+  XYZ b1_vec[BOX_TOTAL], b1_vecRef[BOX_TOTAL];
+  XYZ b2_vec[BOX_TOTAL], b2_vecRef[BOX_TOTAL];
+  XYZ b3_vec[BOX_TOTAL], b3_vecRef[BOX_TOTAL];
+
   double **hsqr, **hsqrRef;
   double **prefact, **prefactRef;
 
