@@ -7,6 +7,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
+#include <iostream>
 
 #include "BasicTypes.h" //uint
 #include "BoxDimensions.h"
@@ -133,9 +135,29 @@ void Ewald::Init() {
 
 void Ewald::UpdateVectorsAndRecipTerms(bool output) {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+    auto startInit = std::chrono::steady_clock::now();
     RecipInit(b, currentAxes);
+    auto endInit = std::chrono::steady_clock::now();
+    auto diffInit = endInit - startInit;
+    std::cout << "Box " << b << " RecipInit Runtime was "
+              << std::chrono::duration<double, std::milli>(diffInit).count()
+              << "ms" << std::endl;
+
+    auto startSetup = std::chrono::steady_clock::now();
     BoxReciprocalSetup(b, currentCoords);
+    auto endSetup = std::chrono::steady_clock::now();
+    auto diffSetup = endSetup - startSetup;
+    std::cout << "Box " << b << " BoxReciprocalSetup Runtime was "
+              << std::chrono::duration<double, std::milli>(diffSetup).count()
+              << "ms" << std::endl;
+
+    auto startRef = std::chrono::steady_clock::now();
     SetRecipRef(b);
+    auto endRef = std::chrono::steady_clock::now();
+    auto diffRef = endRef - startRef;
+    std::cout << "Box " << b << " SetRecipRef Runtime was "
+              << std::chrono::duration<double, std::milli>(diffRef).count()
+              << "ms" << std::endl;
 
     if (output) {
       printf("Box: %d, RecipVectors: %6d, kmax: %d\n", b, imageSize[b],
@@ -314,26 +336,16 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
     CallBoxReciprocalSumsGPU(ff.particles->getCUDAVars(), thisBoxCoords,
                              chargeBox, imageSizeRef[box], sumRnew[box],
                              sumInew[box], currentEnergyRecip[box], box);
+
 #else
-#ifdef _OPENMP
-#pragma omp parallel sections default(none) shared(box)
-    {
-#pragma omp section
-      std::memset(sumRnew[box], 0.0, sizeof(double) * imageSizeRef[box]);
-#pragma omp section
-      std::memset(sumInew[box], 0.0, sizeof(double) * imageSizeRef[box]);
-    }
-#else
-    std::memset(sumRnew[box], 0.0, sizeof(double) * imageSizeRef[box]);
-    std::memset(sumInew[box], 0.0, sizeof(double) * imageSizeRef[box]);
-#endif
+    std::fill_n(sumRnew[box], imageSizeRef[box], 0.0);
+    std::fill_n(sumInew[box], imageSizeRef[box], 0.0);
 
     while (thisMol != end) {
       MoleculeKind const &thisKind = mols.GetKind(*thisMol);
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
       uint startAtom = mols.MolStart(*thisMol);
       const uint atomCount = thisKind.NumAtoms();
-      // Save the atom count once so the loop does not call NumAtoms() repeatedly.
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
@@ -348,16 +360,20 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const &molCoords) {
           if (particleHasNoCharge[currentAtom]) {
             continue;
           }
+
           double dotProduct = Dot(currentAtom, kxRef[box][i], kyRef[box][i],
                                   kzRef[box][i], molCoords);
    
           sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
           sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
+
         }
+
         // we assume all atom charges are scaled with lambda
         sumRnew[box][i] += (lambdaCoef * sumReal);
         sumInew[box][i] += (lambdaCoef * sumImaginary);
       }
+
       ++thisMol;
     }
 #endif
