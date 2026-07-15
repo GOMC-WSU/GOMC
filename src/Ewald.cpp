@@ -397,13 +397,15 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const &molCoords) {
     build_tiny_cache(flatCoords, kmax_val, numFlatAtoms, b1, b2, b3, cos_x,
                      sin_x, cos_y, sin_y, cos_z, sin_z);
 
+const int imageCount = static_cast<int>(imageSize[box]);
+
 #ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(box, flatCharges, numFlatAtoms, kmax_val, kx_ind, ky_ind, kz_ind,   \
-               sumRnew, sumInew, imageSize, cos_x, sin_x, cos_y, sin_y, cos_z, \
-               sin_z)
+    firstprivate(box, numFlatAtoms, imageCount)                                \
+    shared(flatCharges, kx_ind, ky_ind, kz_ind, sumRnew, sumInew, cos_x,       \
+           sin_x, cos_y, sin_y, cos_z, sin_z)
 #endif
-    for (int i = 0; i < static_cast<int>(imageSize[box]); ++i) {
+    for (int i = 0; i < imageCount; ++i) {
       double totalReal = 0.0;
       double totalImaginary = 0.0;
 
