@@ -39,7 +39,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 using namespace geom;
 
 Ewald::Ewald(StaticVals &stat, System &sys)
-    : ff(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
+    : currentEnergyRecip{}, ff(stat.forcefield), mols(stat.mol),
+      currentCoords(sys.coordinates),
 #ifdef VARIABLE_PARTICLE_NUMBER
       molLookup(sys.molLookup),
 #else
