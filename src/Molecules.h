@@ -88,16 +88,19 @@ public:
 
   /* only used for output */
   uint32_t count = 0;
-  uint32_t atomCount = 0;;
+  uint32_t atomCount = 0;
+  ;
   uint32_t *kIndex;
-  uint32_t kIndexCount = 0;;
+  uint32_t kIndexCount = 0;
+  ;
   uint *countByKind;
   char *chain;
   double *beta;
   double *occ;
 
   MoleculeKind *kinds;
-  uint kindsCount = 0;;
+  uint kindsCount = 0;
+  ;
   // These are never initialized or used
   // uint fractionKind;
   // uint lambdaSize;

@@ -128,12 +128,13 @@ void StaticVals::IsBoxOrthogonal(const double cellAngle[][3]) {
 
 StaticVals::StaticVals(Setup &set)
     : intraMemcVal(set.config.sys.intraMemcVal),
-      freeEnVal(set.config.sys.freeEn), memcVal(set.config.sys.memcVal),
-      neMTMCVal(set.config.sys.neMTMCVal),
+      freeEnVal(set.config.sys.freeEn),
+#ifdef VARIABLE_PARTICLE_NUMBER
+      memcVal(set.config.sys.memcVal), neMTMCVal(set.config.sys.neMTMCVal),
       targetedSwapVal(set.config.sys.targetedSwapCollection),
-      intraTargetedSwapVal(set.config.sys.intraTargetedSwapCollection)
-
-{
+      intraTargetedSwapVal(set.config.sys.intraTargetedSwapCollection),
+#endif
+      movePerc{{}} {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   multiParticleLiquid = set.config.sys.moves.multiParticleLiquid;
   multiParticleGas = set.config.sys.moves.multiParticleGas;
@@ -143,4 +144,10 @@ StaticVals::StaticVals(Setup &set)
   } else {
     IsBoxOrthogonal(set.config.sys.volume);
   }
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
+  kindOfGEMC = set.config.sys.gemc.kind;
+  pressure = set.config.sys.gemc.pressure;
+  fixVolBox0 = set.config.sys.volume.cstVolBox0;
+#endif
+  totalPerc = 0.0;
 }

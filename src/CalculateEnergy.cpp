@@ -473,14 +473,22 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
          nCellIndex++) {
       int neighborCell = neighborList[currCell][nCellIndex];
 
+      if (currentCell > neighborCell)
+        continue;
       int endIndex = cellStartIndex[neighborCell + 1];
       for (int nParticleIndex = cellStartIndex[neighborCell];
            nParticleIndex < endIndex; nParticleIndex++) {
         int nParticle = cellVector[nParticleIndex];
 
         // make sure the pairs are unique and they belong to different molecules
-        if (currParticle < nParticle &&
-            particleMol[currParticle] != particleMol[nParticle]) {
+        // if (currParticle < nParticle &&
+        // particleMol[currParticle] != particleMol[nParticle]) {
+        // if (!((particleMol[currParticle] == particleMol[nParticle]) ||
+        // (currentCell == neighborCell && currParticle > nParticle))) {
+        bool skip = particleMol[currParticle] == particleMol[nParticle] ||
+                    (currentCell == neighborCell &&
+                     particleMol[currParticle] > particleMol[nParticle]);
+        if (!skip) {
           double distSq;
           XYZ virC;
           if (currentAxes.InRcut(distSq, virC, currentCoords, currParticle,

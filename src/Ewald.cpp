@@ -46,7 +46,10 @@ Ewald::Ewald(StaticVals &stat, System &sys)
       molLookup(stat.molLookup),
 #endif
       currentAxes(sys.boxDimRef), currentCOM(sys.com), sysPotRef(sys.potential),
-      lambdaRef(sys.lambdaRef) {
+      lambdaRef(sys.lambdaRef), imageSize{}, imageSizeRef{}, imageTotal{},
+      kmax{}, sumRnew{}, sumInew{}, sumRref{}, sumIref{}, kx{}, kxRef{}, ky{},
+      kyRef{}, kz, kzRef{}, hsqr{}, hsqrRef{}, prefact{}, prefactRef{},
+      boxStart{}, boxEnd{} {
   ewald = false;
   electrostatic = false;
   alpha = 0.0;
