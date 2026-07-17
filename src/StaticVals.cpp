@@ -127,7 +127,7 @@ void StaticVals::IsBoxOrthogonal(const double cellAngle[][3]) {
 }
 
 StaticVals::StaticVals(Setup &set)
-    : intraMemcVal(set.config.sys.intraMemcVal),
+    : simEventFreq(), intraMemcVal(set.config.sys.intraMemcVal),
       freeEnVal(set.config.sys.freeEn),
 #ifdef VARIABLE_PARTICLE_NUMBER
       memcVal(set.config.sys.memcVal), neMTMCVal(set.config.sys.neMTMCVal),
