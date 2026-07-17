@@ -10,8 +10,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "ConfigSetup.h" //for event frequencies from config file.
 
 struct SimEventFrequency {
-  ulong total, perAdjust, tillEquil, pCalcFreq, parallelTempFreq;
-  bool pressureCalc, parallelTemp;
+  ulong total(0), perAdjust(0), tillEquil(0), pCalcFreq(0), parallelTempFreq(0);
+  bool pressureCalc(false), parallelTemp(false);
 
   void Init(config_setup::Step const &s) {
     total = s.total;
