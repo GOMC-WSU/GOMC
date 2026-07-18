@@ -386,8 +386,8 @@ void Bond::Read(Reader &param, const std::string &firstVar) {
   Add(coeff, def);
 }
 void Bond::Add(const double coeff, const double def) {
-  fixed.push_back(coeff > FIXED);
-  Kb.push_back(EnConvIfCHARMM(coeff));
+  fixed.emplace_back(coeff > FIXED);
+  Kb.emplace_back(EnConvIfCHARMM(coeff));
   b0.push_back(def);
 }
 
@@ -408,16 +408,16 @@ void Angle::Read(Reader &param, std::string const &firstVar) {
 }
 void Angle::Add(const double coeff, const double def, const bool hsUB,
                 const double coeffUB, const double defUB) {
-  fixed.push_back(coeff > FIXED);
-  Ktheta.push_back(EnConvIfCHARMM(coeff));
-  theta0.push_back(geom::DegToRad(def));
+  fixed.emplace_back(coeff > FIXED);
+  Ktheta.emplace_back(EnConvIfCHARMM(coeff));
+  theta0.emplace_back(geom::DegToRad(def));
   hasUB.push_back(hsUB);
   if (hsUB) {
-    Kub.push_back(EnConvIfCHARMM(coeffUB));
+    Kub.emplace_back(EnConvIfCHARMM(coeffUB));
     bUB0.push_back(defUB);
   } else {
-    Kub.push_back(0.0);
-    bUB0.push_back(0.0);
+    Kub.emplace_back(0.0);
+    bUB0.emplace_back(0.0);
   }
 }
 
@@ -468,9 +468,9 @@ void Dihedral::Add(const std::string &fileName, const std::string &merged,
     delta_it++;
   }
   ++countTerms;
-  Kchi[merged].push_back(EnConvIfCHARMM(coeff));
+  Kchi[merged].emplace_back(EnConvIfCHARMM(coeff));
   n[merged].push_back(index);
-  delta[merged].push_back(geom::DegToRad(def));
+  delta[merged].emplace_back(geom::DegToRad(def));
 }
 
 void Improper::Read(Reader &param, std::string const &firstVar) {
@@ -489,7 +489,7 @@ void Improper::Read(Reader &param, std::string const &firstVar) {
   }
 }
 void Improper::Add(const double coeff, const double def) {
-  Komega.push_back(EnConvIfCHARMM(coeff));
+  Komega.emplace_back(EnConvIfCHARMM(coeff));
   omega0.push_back(def);
 }
 
@@ -511,7 +511,7 @@ void CMap::Read(Reader &param, std::string const &firstVar) {
 }
 // Currently dummy method, exactly the same as improper
 void CMap::Add(const double coeff, const double def) {
-  Komega.push_back(EnConvIfCHARMM(coeff));
+  Komega.emplace_back(EnConvIfCHARMM(coeff));
   omega0.push_back(def);
 }
 
@@ -534,7 +534,7 @@ void HBond::Read(Reader &param, std::string const &firstVar) {
 
 // Currently dummy method, exact same as improper
 void HBond::Add(const double coeff, const double def) {
-  Komega.push_back(EnConvIfCHARMM(coeff));
+  Komega.emplace_back(EnConvIfCHARMM(coeff));
   omega0.push_back(def);
 }
 
