@@ -269,11 +269,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       }
     } else if (CheckString(line[0], "Parameters")) {
       if (line.size() > 1) {
-        in.files.param.push_back(config_setup::FileName(line[1], true));
+        in.files.param.emplace_back(config_setup::FileName(line[1], true));
       }
     } else if (CheckString(line[0], "TabulatedEnergiesFile")) {
       if (line.size() > 1) {
-        in.files.tabulated_potential.push_back(
+        in.files.tabulated_potential.emplace_back(
             config_setup::FileName(line[1], true));
       }
     } else if (CheckString(line[0], "tableInterpType")) {
