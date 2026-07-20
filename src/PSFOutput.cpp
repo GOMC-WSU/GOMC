@@ -44,7 +44,8 @@ PSFOutput::PSFOutput(const Molecules &molecules, const System &sys, Setup &set)
       totalAngles{}, totalDihs{}, totalImps{}, totalDons{}, totalAccs{},
       totalNNBs{}, totalGrps{}, totalCrtrms{}, boxAtoms{{}}, boxBonds{{}},
       boxAngles{{}}, boxDihs{{}}, boxImps{{}}, boxDons{{}}, boxAccs{{}},
-      boxNNBs{{}}, boxGrps{{}}, boxCrtrms{{}},
+      boxNNBs{{}}, boxGrps{{}}, boxCrtrms{{}}, outRebuildRestart{{}},
+      outRebuildRestartFName{{}},
       moleculeSegmentNames(set.mol.molVars.moleculeSegmentNames) {
   molKinds.resize(set.mol.kindMap.size());
   for (uint i = 0; i < set.mol.molVars.uniqueMapKeys.size(); ++i) {
