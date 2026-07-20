@@ -12,12 +12,21 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "FFTabulated.h"
 #include "Setup.h"
 
-Forcefield::Forcefield() {
+Forcefield::Forcefield()
+    : useLRC{}, useIPC{}, T_in_K{}, beta{}, rCut{}, rCutSq{}, rCutLow{},
+      rCutLowSq{}, rCutCoulomb{{}}, rCutCoulombSq{{}}, alpha{{}}, alphaSq{{}},
+      recip_rcut{{}}, recip_rcut_Sq{{}}, tolerance{}, rswitch{}, dielectric{},
+      scaling_14{}, sc_alpha{}, sc_sigma{}, sc_sigma_6{}, electrostatic{},
+      ewald{}, vdwGeometricSigma{}, isMartini{}, exp6{}, freeEnergy{},
+      sc_coul{}, vdwKind{}, exckind{}, sc_power{}, isCHARMM{} {
   particles = nullptr;
   angles = nullptr;
   OneThree = false; // default behavior is to turn off 1-3 interaction
   OneFour = true;   // to turn on 1-4 interaction
   OneN = true;      // and turn on 1-n interaction
+#if ENSEMBLE == GCMC
+  isFugacity = false;
+#endif
 }
 
 Forcefield::~Forcefield() {
