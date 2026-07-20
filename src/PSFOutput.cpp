@@ -40,7 +40,11 @@ const int acceptorPerLine = 4;
 
 PSFOutput::PSFOutput(const Molecules &molecules, const System &sys, Setup &set)
     : molecules(&molecules), molLookRef(sys.molLookup),
-      molNames(set.mol.molVars.moleculeKindNames),
+      molNames(set.mol.molVars.moleculeKindNames), totalAtoms{}, totalBonds{},
+      totalAngles{}, totalDihs{}, totalImps{}, totalDons{}, totalAccs{},
+      totalNNBs{}, totalGrps{}, totalCrtrms{}, boxAtoms{{}}, boxBonds{{}},
+      boxAngles{{}}, boxDihs{{}}, boxImps{{}}, boxDons{{}}, boxAccs{{}},
+      boxNNBs{{}}, boxGrps{{}}, boxCrtrms{{}},
       moleculeSegmentNames(set.mol.molVars.moleculeSegmentNames) {
   molKinds.resize(set.mol.kindMap.size());
   for (uint i = 0; i < set.mol.molVars.uniqueMapKeys.size(); ++i) {
