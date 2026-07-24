@@ -5,6 +5,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 ******************************************************************************/
 #include "Simulation.h"
 
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 
@@ -21,7 +22,13 @@ Simulation::Simulation(char const *const configFileName,
     : ms(multisim) {
   GOMC_EVENT_START(1, GomcProfileEvent::INITIALIZE);
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
+  auto start = std::chrono::steady_clock::now();
   set.Init(configFileName, multisim);
+  auto end = std::chrono::steady_clock::now();
+  auto diff = end - start;
+  std::cout << "Input file reading time: "
+            << std::chrono::duration<double, std::milli>(diff).count()
+            << "ms" << std::endl << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
   startStep = 0;
   totalSteps = set.config.sys.step.total;
