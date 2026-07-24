@@ -28,7 +28,6 @@ A copy of the MIT License can be found in License.txt with this program or at
 class ParallelTemperingPreprocessor {
 public:
 #if GOMC_LIB_MPI
-
   explicit ParallelTemperingPreprocessor(int argc, char *argv[]);
   bool checkIfValidRank();
   bool checkIfExpandedEnsemble(const char *fileName);
@@ -71,6 +70,8 @@ private:
 class MultiSim {
 public:
   explicit MultiSim(ParallelTemperingPreprocessor &pt);
+  MultiSim(const MultiSim &) = delete;
+  MultiSim &operator=(const MultiSim &) = delete;
   const int worldSize, worldRank;
   const std::string replicaInputDirectoryPath;
   const std::string replicaOutputDirectoryPath;
