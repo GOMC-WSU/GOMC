@@ -39,6 +39,8 @@ class MoleculeKind {
 public:
   MoleculeKind();
   ~MoleculeKind();
+  MoleculeKind(const MoleculeKind &) = delete;
+  MoleculeKind &operator=(const MoleculeKind &) = delete;
 
   uint NumAtoms() const { return numAtoms; }
   uint NumBonds() const { return bondList.count; }

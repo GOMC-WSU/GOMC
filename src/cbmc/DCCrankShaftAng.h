@@ -24,6 +24,8 @@ public:
   DCCrankShaftAng(DCData *data, const mol_setup::MolKind &kind, uint a0,
                   uint a1, uint a2);
   ~DCCrankShaftAng() { delete[] multiPosRotions; }
+  DCCrankShaftAng(const DCCrankShaftAng &) = delete;
+  DCCrankShaftAng &operator=(const DCCrankShaftAng &) = delete;
   void PrepareNew(TrialMol &newMol, uint molIndex);
   void PrepareOld(TrialMol &oldMol, uint molIndex);
   void BuildOld(TrialMol &oldMol, uint molIndex);

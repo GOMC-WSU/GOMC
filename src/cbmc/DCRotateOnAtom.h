@@ -24,6 +24,8 @@ public:
   DCRotateOnAtom(DCData *data, const mol_setup::MolKind &kind, uint a0, uint a1,
                  uint a2);
   ~DCRotateOnAtom() { delete[] multiPosRotions; }
+  DCRotateOnAtom(const DCRotateOnAtom &) = delete;
+  DCRotateOnAtom &operator=(const DCRotateOnAtom &) = delete;
   void PrepareNew(TrialMol &newMol, uint molIndex);
   void PrepareOld(TrialMol &oldMol, uint molIndex);
   void BuildOld(TrialMol &oldMol, uint molIndex);

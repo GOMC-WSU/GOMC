@@ -21,6 +21,8 @@ class DCRotateCOM : public DCComponent {
 public:
   DCRotateCOM(DCData *data, const mol_setup::MolKind kind);
   ~DCRotateCOM() { delete[] multiPosRotions; }
+  DCRotateCOM(const DCRotateCOM &) = delete;
+  DCRotateCOM &operator=(const DCRotateCOM &) = delete;
   void PrepareNew(TrialMol &newMol, uint molIndex);
   void PrepareOld(TrialMol &oldMol, uint molIndex);
   void PickTransferCOMNew(TrialMol &newMol, uint molIndex);
