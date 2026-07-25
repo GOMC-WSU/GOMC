@@ -1045,10 +1045,9 @@ void CalculateEnergy::MolNonbond(double &energy, cbmc::TrialMol const &mol,
     return;
 
   double distSq;
-  double qi_qj_fact;
-  uint count = molKind.nonBonded.count;
+  const int count = molKind.nonBonded.count;
 
-  for (uint i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
     uint p1 = molKind.nonBonded.part1[i];
     uint p2 = molKind.nonBonded.part2[i];
     if (mol.AtomExists(p1) && mol.AtomExists(p2)) {
@@ -1056,7 +1055,7 @@ void CalculateEnergy::MolNonbond(double &energy, cbmc::TrialMol const &mol,
         energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind(p1),
                                                molKind.AtomKind(p2), 1.0);
         if (electrostatic) {
-          qi_qj_fact =
+          double qi_qj_fact =
               num::qqFact * molKind.AtomCharge(1) * molKind.AtomCharge(p2);
 
           if (qi_qj_fact != 0.0) {
@@ -1078,7 +1077,6 @@ void CalculateEnergy::MolNonbond_1_4(double &energy,
     return;
 
   double distSq;
-  double qi_qj_fact;
 
   for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4.part1[i];
@@ -1088,9 +1086,9 @@ void CalculateEnergy::MolNonbond_1_4(double &energy,
           energy, distSq, molKind.AtomKind(molKind.nonBonded_1_4.part1[i]),
           molKind.AtomKind(molKind.nonBonded_1_4.part2[i]));
       if (electrostatic) {
-        qi_qj_fact = num::qqFact *
-                     molKind.AtomCharge(molKind.nonBonded_1_4.part1[i]) *
-                     molKind.AtomCharge(molKind.nonBonded_1_4.part2[i]);
+        double qi_qj_fact = num::qqFact *
+                            molKind.AtomCharge(molKind.nonBonded_1_4.part1[i]) *
+                            molKind.AtomCharge(molKind.nonBonded_1_4.part2[i]);
 
         if (qi_qj_fact != 0.0) {
           forcefield.particles->CalcCoulombAdd_1_4(energy, distSq, qi_qj_fact,
@@ -1108,7 +1106,6 @@ void CalculateEnergy::MolNonbond_1_4(double &energy, cbmc::TrialMol const &mol,
     return;
 
   double distSq;
-  double qi_qj_fact;
   uint count = molKind.nonBonded_1_4.count;
 
   for (uint i = 0; i < count; ++i) {
@@ -1119,7 +1116,7 @@ void CalculateEnergy::MolNonbond_1_4(double &energy, cbmc::TrialMol const &mol,
         forcefield.particles->CalcAdd_1_4(energy, distSq, molKind.AtomKind(p1),
                                           molKind.AtomKind(p2));
         if (electrostatic) {
-          qi_qj_fact =
+          double qi_qj_fact =
               num::qqFact * molKind.AtomCharge(p1) * molKind.AtomCharge(p2);
 
           if (qi_qj_fact != 0.0) {
@@ -1141,7 +1138,6 @@ void CalculateEnergy::MolNonbond_1_3(double &energy,
     return;
 
   double distSq;
-  double qi_qj_fact;
 
   for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
@@ -1151,9 +1147,9 @@ void CalculateEnergy::MolNonbond_1_3(double &energy,
           energy, distSq, molKind.AtomKind(molKind.nonBonded_1_3.part1[i]),
           molKind.AtomKind(molKind.nonBonded_1_3.part2[i]));
       if (electrostatic) {
-        qi_qj_fact = num::qqFact *
-                     molKind.AtomCharge(molKind.nonBonded_1_3.part1[i]) *
-                     molKind.AtomCharge(molKind.nonBonded_1_3.part2[i]);
+        double qi_qj_fact = num::qqFact *
+                            molKind.AtomCharge(molKind.nonBonded_1_3.part1[i]) *
+                            molKind.AtomCharge(molKind.nonBonded_1_3.part2[i]);
 
         if (qi_qj_fact != 0.0) {
           forcefield.particles->CalcCoulombAdd_1_4(energy, distSq, qi_qj_fact,
@@ -1171,10 +1167,9 @@ void CalculateEnergy::MolNonbond_1_3(double &energy, cbmc::TrialMol const &mol,
     return;
 
   double distSq;
-  double qi_qj_fact;
-  uint count = molKind.nonBonded_1_3.count;
+  const int count = molKind.nonBonded_1_3.count;
 
-  for (uint i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
     uint p1 = molKind.nonBonded_1_3.part1[i];
     uint p2 = molKind.nonBonded_1_3.part2[i];
     if (mol.AtomExists(p1) && mol.AtomExists(p2)) {
@@ -1182,7 +1177,7 @@ void CalculateEnergy::MolNonbond_1_3(double &energy, cbmc::TrialMol const &mol,
         forcefield.particles->CalcAdd_1_4(energy, distSq, molKind.AtomKind(p1),
                                           molKind.AtomKind(p2));
         if (electrostatic) {
-          qi_qj_fact =
+          double qi_qj_fact =
               num::qqFact * molKind.AtomCharge(p1) * molKind.AtomCharge(p2);
 
           if (qi_qj_fact != 0.0) {
