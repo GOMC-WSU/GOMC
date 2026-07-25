@@ -285,7 +285,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   double *mForcex = molForce.x;
   double *mForcey = molForce.y;
   double *mForcez = molForce.z;
-#if defined GOMC_CUDA || defined _OPENMP && _OPENMP >= 201511
+#if defined _OPENMP && _OPENMP >= 201511
   int atomCount = atomForce.Count();
   int molCount = molForce.Count();
 #endif
@@ -320,8 +320,8 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                   cellStartIndex, neighborList, mapParticleToCell, coords,
                   boxAxes, electrostatic, particleCharge, particleKind,
                   particleMol, tempREn, tempLJEn, aForcex, aForcey, aForcez,
-                  mForcex, mForcey, mForcez, atomCount, molCount,
-                  forcefield.sc_coul, forcefield.sc_sigma_6,
+                  mForcex, mForcey, mForcez, atomForce.Count(),
+                  molForce.Count(), forcefield.sc_coul, forcefield.sc_sigma_6,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 
 #else
@@ -352,7 +352,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
         if (currParticle < nParticle &&
             particleMol[currParticle] != particleMol[nParticle]) {
           double distSq;
-          XYZ virComponents, forceLJ, forceReal;
+          XYZ virComponents;
           if (boxAxes.InRcut(distSq, virComponents, coords, currParticle,
                              nParticle, box)) {
             double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
@@ -367,7 +367,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                     distSq, particleKind[currParticle], particleKind[nParticle],
                     qi_qj_fact, lambdaCoulomb, box);
                 // Calculating the force
-                forceReal =
+                XYZ forceReal =
                     virComponents * forcefield.particles->CalcCoulombVir(
                                         distSq, particleKind[currParticle],
                                         particleKind[nParticle], qi_qj_fact,
@@ -377,9 +377,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
             tempLJEn += forcefield.particles->CalcEn(
                 distSq, particleKind[currParticle], particleKind[nParticle],
                 lambdaVDW);
-            forceLJ = virComponents * forcefield.particles->CalcVir(
-                                          distSq, particleKind[currParticle],
-                                          particleKind[nParticle], lambdaVDW);
+            XYZ forceLJ =
+                virComponents * forcefield.particles->CalcVir(
+                                    distSq, particleKind[currParticle],
+                                    particleKind[nParticle], lambdaVDW);
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
             aForcez[currParticle] += forceLJ.z + forceReal.z;

@@ -267,14 +267,13 @@ void ExtendedSystemOutput::SetMolInBox(const int box) {
 #endif
 
   uint i = 0, pStart = 0, pEnd = 0;
-  XYZ ref, coor;
   MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
                                end = molLookupRef.BoxEnd(box);
   while (m != end) {
     molRef.GetRangeStartStop(pStart, pEnd, *m);
-    ref = comCurrRef.Get(*m);
+    XYZ ref = comCurrRef.Get(*m);
     for (uint p = pStart; p < pEnd; ++p) {
-      coor = coordCurrRef.Get(p);
+      XYZ coor = coordCurrRef.Get(p);
       boxDimRef.UnwrapPBC(coor, box, ref);
 
       restartCoor[box][i].x = coor.x;

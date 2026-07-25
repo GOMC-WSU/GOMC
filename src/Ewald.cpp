@@ -851,7 +851,6 @@ void Ewald::backupMolCache() { return; }
 void Ewald::RecipInitOrth(uint box, BoxDimensions const &boxAxes) {
   uint counter = 0;
   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
-  double ksqr, kX, kY, kZ;
   double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
   XYZ constValue = boxAxes.axis.Get(box);
   constValue.Inverse();
@@ -879,10 +878,10 @@ void Ewald::RecipInitOrth(uint box, BoxDimensions const &boxAxes) {
         nkz_min = -nkz_max;
 
       for (z = nkz_min; z <= nkz_max; z++) {
-        kX = constValue.x * x;
-        kY = constValue.y * y;
-        kZ = constValue.z * z;
-        ksqr = kX * kX + kY * kY + kZ * kZ;
+        double kX = constValue.x * x;
+        double kY = constValue.y * y;
+        double kZ = constValue.z * z;
+        double ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if (ksqr < ff.recip_rcut_Sq[box]) {
           kx[box][counter] = kX;
@@ -1316,7 +1315,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol &trialMol) const {
     return 0.0;
 
   GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
-  double dist, distSq;
+  double distSq;
   double correction = 0.0;
   XYZ virComponents;
   const MoleculeKind &thisKind = trialMol.GetKind();
@@ -1327,7 +1326,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol &trialMol) const {
       currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, j,
                          box);
 
-      dist = sqrt(distSq);
+      double dist = sqrt(distSq);
       correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                      erf(ff.alpha[box] * dist) / dist);
     }
