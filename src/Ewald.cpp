@@ -942,7 +942,7 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const &boxAxes) {
         double kX = Dot(cellB_Inv.Get(0), XYZ(x, y, z));
         double kY = Dot(cellB_Inv.Get(1), XYZ(x, y, z));
         double kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
-        ksqr = kX * kX + kY * kY + kZ * kZ;
+        double ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if (ksqr < ff.recip_rcut_Sq[box]) {
           kx[box][counter] = kX;
