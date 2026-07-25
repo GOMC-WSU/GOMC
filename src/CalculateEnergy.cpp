@@ -328,8 +328,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none)                                         \
     shared(boxAxes, cellStartIndex, cellVector, coords, mapParticleToCell,     \
-               neighborList)                                                   \
-    firstprivate(box, atomCount, molCount, num::qqFact)                        \
+               neighborList) firstprivate(box, num::qqFact)                    \
     reduction(+ : tempREn, tempLJEn, aForcex[ : atomCount],                    \
                   aForcey[ : atomCount], aForcez[ : atomCount],                \
                   mForcex[ : molCount], mForcey[ : molCount],                  \
@@ -352,9 +351,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
         if (currParticle < nParticle &&
             particleMol[currParticle] != particleMol[nParticle]) {
           double distSq;
-          XYZ forceReal, virComponents;
+          XYZ virComponents;
           if (boxAxes.InRcut(distSq, virComponents, coords, currParticle,
                              nParticle, box)) {
+            XYZ forceReal;
             double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
                                             particleMol[nParticle], box);
             if (electrostatic) {
@@ -1016,7 +1016,6 @@ void CalculateEnergy::MolNonbond(double &energy, MoleculeKind const &molKind,
     return;
 
   double distSq;
-  double qi_qj_fact;
 
   for (uint i = 0; i < molKind.nonBonded.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
@@ -1026,9 +1025,9 @@ void CalculateEnergy::MolNonbond(double &energy, MoleculeKind const &molKind,
           distSq, molKind.AtomKind(molKind.nonBonded.part1[i]),
           molKind.AtomKind(molKind.nonBonded.part2[i]), 1.0);
       if (electrostatic) {
-        qi_qj_fact = num::qqFact *
-                     molKind.AtomCharge(molKind.nonBonded.part1[i]) *
-                     molKind.AtomCharge(molKind.nonBonded.part2[i]);
+        double qi_qj_fact = num::qqFact *
+                            molKind.AtomCharge(molKind.nonBonded.part1[i]) *
+                            molKind.AtomCharge(molKind.nonBonded.part2[i]);
 
         if (qi_qj_fact != 0.0) {
           forcefield.particles->CalcCoulombAdd_1_4(energy, distSq, qi_qj_fact,

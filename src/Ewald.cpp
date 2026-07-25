@@ -908,7 +908,6 @@ void Ewald::RecipInitOrth(uint box, BoxDimensions const &boxAxes) {
 void Ewald::RecipInitNonOrth(uint box, BoxDimensions const &boxAxes) {
   uint counter = 0;
   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
-  double ksqr, kX, kY, kZ;
   double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
   XYZArray cellB(boxAxes.cellBasis[box]);
   cellB.Scale(0, boxAxes.axis.Get(box).x);
@@ -940,9 +939,9 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const &boxAxes) {
         nkz_min = -nkz_max;
 
       for (z = nkz_min; z <= nkz_max; z++) {
-        kX = Dot(cellB_Inv.Get(0), XYZ(x, y, z));
-        kY = Dot(cellB_Inv.Get(1), XYZ(x, y, z));
-        kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
+        double kX = Dot(cellB_Inv.Get(0), XYZ(x, y, z));
+        double kY = Dot(cellB_Inv.Get(1), XYZ(x, y, z));
+        double kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
         ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if (ksqr < ff.recip_rcut_Sq[box]) {
