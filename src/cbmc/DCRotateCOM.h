@@ -30,8 +30,8 @@ public:
   void BuildOld(TrialMol &oldMol, uint molIndex);
   void BuildNew(TrialMol &newMol, uint molIndex);
   void RandRotateZ();
-  //unused -- if needed, define copy constructor
-  // DCComponent *Clone() { return new DCRotateCOM(*this); };
+  // unused -- if needed, define copy constructor
+  //  DCComponent *Clone() { return new DCRotateCOM(*this); };
 
 private:
   DCData *data;
