@@ -352,7 +352,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
         if (currParticle < nParticle &&
             particleMol[currParticle] != particleMol[nParticle]) {
           double distSq;
-          XYZ virComponents;
+          XYZ forceReal, virComponents;
           if (boxAxes.InRcut(distSq, virComponents, coords, currParticle,
                              nParticle, box)) {
             double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
@@ -367,7 +367,7 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                     distSq, particleKind[currParticle], particleKind[nParticle],
                     qi_qj_fact, lambdaCoulomb, box);
                 // Calculating the force
-                XYZ forceReal =
+                forceReal =
                     virComponents * forcefield.particles->CalcCoulombVir(
                                         distSq, particleKind[currParticle],
                                         particleKind[nParticle], qi_qj_fact,
