@@ -31,7 +31,7 @@ public:
   void BuildNew(TrialMol &newMol, uint molIndex);
   void RandRotateZ();
   // unused -- if needed, define copy constructor
-  //  DCComponent *Clone() { return new DCRotateCOM(*this); };
+  // DCComponent *Clone() { return new DCRotateCOM(*this); };
 
 private:
   DCData *data;
