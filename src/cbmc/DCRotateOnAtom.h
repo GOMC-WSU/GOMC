@@ -17,7 +17,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 using namespace mol_setup;
 
 namespace cbmc {
-class DCRotateOnAtom;
+class DCData;
 
 class DCRotateOnAtom : public DCComponent {
 public:
@@ -30,7 +30,8 @@ public:
   void PrepareOld(TrialMol &oldMol, uint molIndex);
   void BuildOld(TrialMol &oldMol, uint molIndex);
   void BuildNew(TrialMol &newMol, uint molIndex);
-  DCComponent *Clone() { return new DCRotateOnAtom(*this); }
+  //unused -- if needed, define copy constructor
+  // DCComponent *Clone() { return new DCRotateOnAtom(*this); }
 
 private:
   void ChooseTorsion(TrialMol &mol, uint molIndex, RotationMatrix &cross,

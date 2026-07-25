@@ -30,7 +30,8 @@ public:
   void PrepareOld(TrialMol &oldMol, uint molIndex);
   void BuildOld(TrialMol &oldMol, uint molIndex);
   void BuildNew(TrialMol &newMol, uint molIndex);
-  DCComponent *Clone() { return new DCCrankShaftAng(*this); }
+  //unused -- if needed, define copy constructor
+  // DCComponent *Clone() { return new DCCrankShaftAng(*this); }
 
 private:
   void ChooseTorsion(TrialMol &mol, uint molIndex, RotationMatrix &cross,
