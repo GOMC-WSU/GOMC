@@ -6,6 +6,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "CalculateEnergy.h" //header for this
 
 #include <cassert>
+#include <chrono>
+#include <iostream>
 
 #include "BasicTypes.h" //uint
 #include "BoxDimensions.h"
@@ -416,6 +418,7 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
     return tempVir;
 
   GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_VIRIAL);
+  auto virialStart = std::chrono::steady_clock::now();
 
   // tensors for VDW and real part of electrostatic
   double vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
@@ -470,15 +473,23 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
          nCellIndex++) {
       int neighborCell = neighborList[currCell][nCellIndex];
 
+      if (currCell > neighborCell) {
+        continue;
+      }
+
       int endIndex = cellStartIndex[neighborCell + 1];
       for (int nParticleIndex = cellStartIndex[neighborCell];
            nParticleIndex < endIndex; nParticleIndex++) {
         int nParticle = cellVector[nParticleIndex];
 
         // make sure the pairs are unique and they belong to different molecules
-        if (currParticle < nParticle &&
-            particleMol[currParticle] != particleMol[nParticle]) {
-          double distSq;
+        bool skip =
+            particleMol[currParticle] == particleMol[nParticle] ||
+            (currCell == neighborCell && currParticle > nParticle);
+
+        if(!skip) {
+            double distSq;
+         
           XYZ virC;
           if (currentAxes.InRcut(distSq, virC, currentCoords, currParticle,
                                  nParticle, box)) {
@@ -575,6 +586,11 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
   tempVir = calcEwald->VirialReciprocal(tempVir, box);
 
   tempVir.Total();
+
+  auto virialEnd = std::chrono::steady_clock::now();
+  std::cout << "[VIRIAL TIMING] VirialCalc box " << box << " took "
+            << std::chrono::duration<double>(virialEnd - virialStart).count()
+            << " seconds" << std::endl;
   return tempVir;
 }
 
