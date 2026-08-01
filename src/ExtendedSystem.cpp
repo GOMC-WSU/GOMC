@@ -16,14 +16,19 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "StrLib.h"           //for string comparison wrapper
 #include "Velocity.h"         // for velocity data
 
-ExtendedSystem::ExtendedSystem() {
-  firstStep = 0;
+ExtendedSystem::ExtendedSystem() : firstStep(0) {
   axis.Init(BOX_TOTAL);
   for (int b = 0; b < BOX_TOTAL; b++) {
-    cellBasis[b] = XYZArray(3);
-    hasCellBasis[b] = false;
     center[b].Reset();
+    cellBasis[b] = XYZArray(3);
+    for (int i = 0; i < 3; ++i) {
+      cosAngle[b][i] = 0.0;
+      cellAngle[b][i] = 0.0;
+    }
+    hasCellBasis[b] = false;
+    boxMoleculeOffset[b] = 0.0;
   }
+  boxMoleculeOffset[BOX_TOTAL] = 0.0;
 }
 
 // Equality operator for unit testing
@@ -31,7 +36,7 @@ bool ExtendedSystem::operator==(const ExtendedSystem &other) {
   bool result = true;
   result &= (firstStep == other.firstStep);
   result &= (axis == other.axis);
-  // These are cleared after use, so unneccessary
+  // These are cleared after use, so unnecessary
   // result &= (binaryCoor == other.binaryCoor);
   // result &= (binaryVeloc == other.binaryVeloc);
 
@@ -225,7 +230,7 @@ void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box) {
 
 void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box) {
   char msg[257];
-  sprintf(msg, "Info: Reading extended system file %s \n", filename);
+  sprintf(msg, "Info: Reading extended system file %s\n", filename);
   std::cout << msg << std::endl;
 
   std::ifstream xscFile(filename);
@@ -237,7 +242,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box) {
   char labels[1024];
   do {
     if (!xscFile) {
-      sprintf(msg, "Reading extended system file %s! \n", filename);
+      sprintf(msg, "Reading extended system file %s!\n", filename);
       NAMD_die(msg);
     }
     xscFile.getline(labels, 1023);
@@ -296,7 +301,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box) {
     double tmp;
     xscFile >> tmp;
     if (!xscFile) {
-      sprintf(msg, "Reading BOX %d extended system file %s! \n", box + 1,
+      sprintf(msg, "Reading BOX %d extended system file %s!\n", box + 1,
               filename);
       NAMD_die(msg);
     }
@@ -328,7 +333,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box) {
       origin.z = tmp;
   }
 
-  sprintf(msg, "Info: Finished reading extended system file %s \n", filename);
+  sprintf(msg, "Info: Finished reading extended system file %s\n", filename);
   std::cout << msg << std::endl;
   // Store the cellBasis Vector, and calculate the cell angles
   hasCellBasis[box] = true;

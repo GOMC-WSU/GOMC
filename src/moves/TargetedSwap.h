@@ -287,7 +287,7 @@ void TargetedSwap::PrintAcceptKind() {
           char msg[257];
           sprintf(msg, "%% Accepted Targeted-Trans(%d)", idx);
           printf("%-30s %-5s ", msg, molRef.kinds[tsKind].name.c_str());
-          printf("%10.5f %10.5f \n", percentAccept, percentAccept);
+          printf("%10.5f %10.5f\n", percentAccept, percentAccept);
         }
       }
     }
@@ -802,12 +802,11 @@ void TargetedSwap::PrintTargetedSwapInfo() {
   for (b = 0; b < BOX_TOTAL; ++b) {
     for (i = 0; i < (int)targetSwapParam[b].size(); ++i) {
       TSwapParam tsp = targetSwapParam[b][i];
-      printf("%-40s %d: \n",
-             "Info: Targeted-Swap parameter for subVolume index",
+      printf("%-40s %d:\n", "Info: Targeted-Swap parameter for subVolume index",
              tsp.subVolumeIdx);
-      printf("%-40s %d \n", "      SubVolume Box:", b);
+      printf("%-40s %d\n", "      SubVolume Box:", b);
       if (tsp.calcSubVolCenter) {
-        printf("%-40s Using %zu defined atom indexes \n",
+        printf("%-40s Using %zu defined atom indexes\n",
                "      Calculating subVolume center:", tsp.atomList.size());
         int max = *std::max_element(tsp.atomList.begin(), tsp.atomList.end());
         if (max >= (int)coordCurrRef.Count()) {
@@ -818,18 +817,18 @@ void TargetedSwap::PrintTargetedSwapInfo() {
           exit(EXIT_FAILURE);
         }
       } else {
-        printf("%-40s %g %g %g \n",
+        printf("%-40s %g %g %g\n",
                "      SubVolume center:", tsp.subVolumeCenter.x,
                tsp.subVolumeCenter.y, tsp.subVolumeCenter.z);
       }
 
-      printf("%-40s %s%s%s \n",
+      printf("%-40s %s%s%s\n",
              "      SubVolume PBC:", (tsp.xyzPBC[0] ? "X" : ""),
              (tsp.xyzPBC[1] ? "Y" : ""), (tsp.xyzPBC[2] ? "Z" : ""));
-      printf("%-40s %g %g %g \n",
+      printf("%-40s %g %g %g\n",
              "      SubVolume dimension:", tsp.subVolumeDim.x,
              tsp.subVolumeDim.y, tsp.subVolumeDim.z);
-      printf("%-40s %s \n", "      SubVolume Swap type:",
+      printf("%-40s %s\n", "      SubVolume Swap type:",
              (tsp.rigidSwap ? "Rigid body" : "Flexible"));
       printf("%-40s ", "      Targeted residue kind:");
       for (k = 0; k < (int)tsp.selectedResKind.size(); ++k) {
@@ -839,7 +838,7 @@ void TargetedSwap::PrintTargetedSwapInfo() {
       if (!tsp.rigidSwap) {
         for (k = 0; k < (int)tsp.selectedResKind.size(); ++k) {
           int kIdx = tsp.selectedResKind[k];
-          printf("%-40s %s: (%d, %s) \n",
+          printf("%-40s %s: (%d, %s)\n",
                  "      Starting atom (index, name) for",
                  molRef.kinds[kIdx].name.c_str(), growingAtomIndex[kIdx],
                  molRef.kinds[kIdx].atomNames[growingAtomIndex[kIdx]].c_str());

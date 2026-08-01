@@ -46,9 +46,10 @@ using namespace geom;
 
 CalculateEnergy::CalculateEnergy(StaticVals &stat, System &sys)
     : forcefield(stat.forcefield), mols(stat.mol),
-      currentCoords(sys.coordinates), currentCOM(sys.com),
+      currentCoords(sys.coordinates), currentCOM(sys.com), calcEwald{nullptr},
       lambdaRef(sys.lambdaRef), atomForceRef(sys.atomForceRef),
-      molForceRef(sys.molForceRef),
+      molForceRef(sys.molForceRef), multiParticleEnabled{false},
+      electrostatic{false}, ewald{false},
 #ifdef VARIABLE_PARTICLE_NUMBER
       molLookup(sys.molLookup),
 #else
@@ -129,7 +130,7 @@ SystemPotential CalculateEnergy::SystemTotal() {
     std::cout << "\nWarning: Large energy detected due to the overlap in "
                  "initial configuration.\n"
                  "         The total energy will be recalculated at EqStep to "
-                 "ensure the accuracy \n"
+                 "ensure the accuracy\n"
                  "         of the computed running energies.\n";
   }
 
@@ -284,8 +285,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   double *mForcex = molForce.x;
   double *mForcey = molForce.y;
   double *mForcez = molForce.z;
+#if defined _OPENMP && _OPENMP >= 201511
   int atomCount = atomForce.Count();
   int molCount = molForce.Count();
+#endif
 
   // Reset Force Arrays
   ResetForce(atomForce, molForce, box);
@@ -317,16 +320,15 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
                   cellStartIndex, neighborList, mapParticleToCell, coords,
                   boxAxes, electrostatic, particleCharge, particleKind,
                   particleMol, tempREn, tempLJEn, aForcex, aForcey, aForcez,
-                  mForcex, mForcey, mForcez, atomCount, molCount,
-                  forcefield.sc_coul, forcefield.sc_sigma_6,
+                  mForcex, mForcey, mForcez, atomForce.Count(),
+                  molForce.Count(), forcefield.sc_coul, forcefield.sc_sigma_6,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(none)                                         \
     shared(boxAxes, cellStartIndex, cellVector, coords, mapParticleToCell,     \
-               neighborList)                                                   \
-    firstprivate(box, atomCount, molCount, num::qqFact)                        \
+               neighborList) firstprivate(box, num::qqFact)                    \
     reduction(+ : tempREn, tempLJEn, aForcex[ : atomCount],                    \
                   aForcey[ : atomCount], aForcez[ : atomCount],                \
                   mForcex[ : molCount], mForcey[ : molCount],                  \
@@ -349,9 +351,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
         if (currParticle < nParticle &&
             particleMol[currParticle] != particleMol[nParticle]) {
           double distSq;
-          XYZ virComponents, forceLJ, forceReal;
+          XYZ virComponents;
           if (boxAxes.InRcut(distSq, virComponents, coords, currParticle,
                              nParticle, box)) {
+            XYZ forceReal;
             double lambdaVDW = GetLambdaVDW(particleMol[currParticle],
                                             particleMol[nParticle], box);
             if (electrostatic) {
@@ -374,9 +377,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
             tempLJEn += forcefield.particles->CalcEn(
                 distSq, particleKind[currParticle], particleKind[nParticle],
                 lambdaVDW);
-            forceLJ = virComponents * forcefield.particles->CalcVir(
-                                          distSq, particleKind[currParticle],
-                                          particleKind[nParticle], lambdaVDW);
+            XYZ forceLJ =
+                virComponents * forcefield.particles->CalcVir(
+                                    distSq, particleKind[currParticle],
+                                    particleKind[nParticle], lambdaVDW);
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
             aForcez[currParticle] += forceLJ.z + forceReal.z;
@@ -1012,7 +1016,6 @@ void CalculateEnergy::MolNonbond(double &energy, MoleculeKind const &molKind,
     return;
 
   double distSq;
-  double qi_qj_fact;
 
   for (uint i = 0; i < molKind.nonBonded.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
@@ -1022,9 +1025,9 @@ void CalculateEnergy::MolNonbond(double &energy, MoleculeKind const &molKind,
           distSq, molKind.AtomKind(molKind.nonBonded.part1[i]),
           molKind.AtomKind(molKind.nonBonded.part2[i]), 1.0);
       if (electrostatic) {
-        qi_qj_fact = num::qqFact *
-                     molKind.AtomCharge(molKind.nonBonded.part1[i]) *
-                     molKind.AtomCharge(molKind.nonBonded.part2[i]);
+        double qi_qj_fact = num::qqFact *
+                            molKind.AtomCharge(molKind.nonBonded.part1[i]) *
+                            molKind.AtomCharge(molKind.nonBonded.part2[i]);
 
         if (qi_qj_fact != 0.0) {
           forcefield.particles->CalcCoulombAdd_1_4(energy, distSq, qi_qj_fact,
@@ -1042,10 +1045,9 @@ void CalculateEnergy::MolNonbond(double &energy, cbmc::TrialMol const &mol,
     return;
 
   double distSq;
-  double qi_qj_fact;
-  uint count = molKind.nonBonded.count;
+  const int count = molKind.nonBonded.count;
 
-  for (uint i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
     uint p1 = molKind.nonBonded.part1[i];
     uint p2 = molKind.nonBonded.part2[i];
     if (mol.AtomExists(p1) && mol.AtomExists(p2)) {
@@ -1053,7 +1055,7 @@ void CalculateEnergy::MolNonbond(double &energy, cbmc::TrialMol const &mol,
         energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind(p1),
                                                molKind.AtomKind(p2), 1.0);
         if (electrostatic) {
-          qi_qj_fact =
+          double qi_qj_fact =
               num::qqFact * molKind.AtomCharge(1) * molKind.AtomCharge(p2);
 
           if (qi_qj_fact != 0.0) {
@@ -1075,7 +1077,6 @@ void CalculateEnergy::MolNonbond_1_4(double &energy,
     return;
 
   double distSq;
-  double qi_qj_fact;
 
   for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4.part1[i];
@@ -1085,9 +1086,9 @@ void CalculateEnergy::MolNonbond_1_4(double &energy,
           energy, distSq, molKind.AtomKind(molKind.nonBonded_1_4.part1[i]),
           molKind.AtomKind(molKind.nonBonded_1_4.part2[i]));
       if (electrostatic) {
-        qi_qj_fact = num::qqFact *
-                     molKind.AtomCharge(molKind.nonBonded_1_4.part1[i]) *
-                     molKind.AtomCharge(molKind.nonBonded_1_4.part2[i]);
+        double qi_qj_fact = num::qqFact *
+                            molKind.AtomCharge(molKind.nonBonded_1_4.part1[i]) *
+                            molKind.AtomCharge(molKind.nonBonded_1_4.part2[i]);
 
         if (qi_qj_fact != 0.0) {
           forcefield.particles->CalcCoulombAdd_1_4(energy, distSq, qi_qj_fact,
@@ -1105,7 +1106,6 @@ void CalculateEnergy::MolNonbond_1_4(double &energy, cbmc::TrialMol const &mol,
     return;
 
   double distSq;
-  double qi_qj_fact;
   uint count = molKind.nonBonded_1_4.count;
 
   for (uint i = 0; i < count; ++i) {
@@ -1116,7 +1116,7 @@ void CalculateEnergy::MolNonbond_1_4(double &energy, cbmc::TrialMol const &mol,
         forcefield.particles->CalcAdd_1_4(energy, distSq, molKind.AtomKind(p1),
                                           molKind.AtomKind(p2));
         if (electrostatic) {
-          qi_qj_fact =
+          double qi_qj_fact =
               num::qqFact * molKind.AtomCharge(p1) * molKind.AtomCharge(p2);
 
           if (qi_qj_fact != 0.0) {
@@ -1138,7 +1138,6 @@ void CalculateEnergy::MolNonbond_1_3(double &energy,
     return;
 
   double distSq;
-  double qi_qj_fact;
 
   for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
@@ -1148,9 +1147,9 @@ void CalculateEnergy::MolNonbond_1_3(double &energy,
           energy, distSq, molKind.AtomKind(molKind.nonBonded_1_3.part1[i]),
           molKind.AtomKind(molKind.nonBonded_1_3.part2[i]));
       if (electrostatic) {
-        qi_qj_fact = num::qqFact *
-                     molKind.AtomCharge(molKind.nonBonded_1_3.part1[i]) *
-                     molKind.AtomCharge(molKind.nonBonded_1_3.part2[i]);
+        double qi_qj_fact = num::qqFact *
+                            molKind.AtomCharge(molKind.nonBonded_1_3.part1[i]) *
+                            molKind.AtomCharge(molKind.nonBonded_1_3.part2[i]);
 
         if (qi_qj_fact != 0.0) {
           forcefield.particles->CalcCoulombAdd_1_4(energy, distSq, qi_qj_fact,
@@ -1168,10 +1167,9 @@ void CalculateEnergy::MolNonbond_1_3(double &energy, cbmc::TrialMol const &mol,
     return;
 
   double distSq;
-  double qi_qj_fact;
-  uint count = molKind.nonBonded_1_3.count;
+  const int count = molKind.nonBonded_1_3.count;
 
-  for (uint i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
     uint p1 = molKind.nonBonded_1_3.part1[i];
     uint p2 = molKind.nonBonded_1_3.part2[i];
     if (mol.AtomExists(p1) && mol.AtomExists(p2)) {
@@ -1179,7 +1177,7 @@ void CalculateEnergy::MolNonbond_1_3(double &energy, cbmc::TrialMol const &mol,
         forcefield.particles->CalcAdd_1_4(energy, distSq, molKind.AtomKind(p1),
                                           molKind.AtomKind(p2));
         if (electrostatic) {
-          qi_qj_fact =
+          double qi_qj_fact =
               num::qqFact * molKind.AtomCharge(p1) * molKind.AtomCharge(p2);
 
           if (qi_qj_fact != 0.0) {
@@ -1408,21 +1406,19 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
 void CalculateEnergy::ResetForce(XYZArray &atomForce, XYZArray &molForce,
                                  uint box) {
   if (multiParticleEnabled) {
-    uint length, start;
-
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
     while (thisMol != end) {
-      length = mols.GetKind(*thisMol).NumAtoms();
-      start = mols.MolStart(*thisMol);
+      uint length = mols.GetKind(*thisMol).NumAtoms();
+      uint start = mols.MolStart(*thisMol);
 
       molForce.Set(*thisMol, 0.0, 0.0, 0.0);
       for (uint p = start; p < start + length; p++) {
         atomForce.Set(p, 0.0, 0.0, 0.0);
       }
-      thisMol++;
+      ++thisMol;
     }
   }
 }
@@ -1480,7 +1476,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector<std::vector<uint>> &mol,
             mol[k].push_back(molIndex);
         }
       }
-      n++;
+      ++n;
     }
   }
 

@@ -223,12 +223,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const {
 void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const {
   uint offset = box * var->numKinds;
 
-  std::string title = "STAT_";
-  sstrm::Converter toStr;
-  std::string numStr = "";
-  toStr << box;
-  toStr >> numStr;
-  title += numStr + ":";
+  std::string title = "STAT_" + std::to_string(box) + ":";
   printElementStep(title, step + 1, elementWidth);
 
   if (enableVolume)
@@ -246,14 +241,16 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const {
     printElement(var->numByBox[box], elementWidth);
 
     for (uint k = 0; k < var->numKinds; k++) {
-      uint kb = k + offset;
-      if (var->numKinds > 1)
+      if (var->numKinds > 1) {
+        uint kb = k + offset;
         printElement(var->molFractionByKindBox[kb], elementWidth, 8);
+      }
     }
     for (uint k = 0; k < var->numKinds; k++) {
-      uint kb = k + offset;
-      if (var->numKinds > 1)
+      if (var->numKinds > 1) {
+        uint kb = k + offset;
         printElement(var->densityByKindBox[kb], elementWidth, 8);
+      }
     }
   }
 
@@ -267,12 +264,7 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const {
 
 void ConsoleOutput::PrintPressureTensor(const uint box,
                                         const ulong step) const {
-  std::string title = "PRES_";
-  sstrm::Converter toStr;
-  std::string numStr = "";
-  toStr << box;
-  toStr >> numStr;
-  title += numStr + ":";
+  std::string title = "PRES_" + std::to_string(box) + ":";
   printElementStep(title, step + 1, elementWidth);
 
   for (uint i = 0; i < 3; i++) {
@@ -292,12 +284,7 @@ void ConsoleOutput::PrintPressureTensor(const uint box,
 
 void ConsoleOutput::PrintEnergy(const uint box, Energy const &en,
                                 const ulong step) const {
-  std::string title = "ENER_";
-  sstrm::Converter toStr;
-  std::string numStr = "";
-  toStr << box;
-  toStr >> numStr;
-  title += numStr + ":";
+  std::string title = "ENER_" + std::to_string(box) + ":";
   printElementStep(title, step + 1, elementWidth);
 
   printElement(en.total, elementWidth);
@@ -480,7 +467,7 @@ void ConsoleOutput::PrintMoveTitle() {
   std::cout << std::endl;
 }
 
-void ConsoleOutput::printElement(const double t, const int width,
+void ConsoleOutput::printElement(const double &t, const int width,
                                  uint precision) const {
   const char separator = ' ';
   if (std::abs(t) > 1e99) {
@@ -493,20 +480,20 @@ void ConsoleOutput::printElement(const double t, const int width,
   }
 }
 
-void ConsoleOutput::printElement(const uint t, const int width) const {
+void ConsoleOutput::printElement(const uint &t, const int width) const {
   const char separator = ' ';
   std::cout << std::right << std::scientific << std::setw(width)
             << std::setfill(separator) << t;
 }
 
-void ConsoleOutput::printElement(const std::string t, const int width) const {
+void ConsoleOutput::printElement(const std::string &t, const int width) const {
   const char separator = ' ';
   std::cout << std::right << std::scientific << std::setw(width)
             << std::setfill(separator) << t;
 }
 
 template <typename T>
-void ConsoleOutput::printElementStep(const T t, const ulong step,
+void ConsoleOutput::printElementStep(const T &t, const ulong step,
                                      const int width) const {
   std::cout << t << std::right << std::setw(width - 7) << step;
 }

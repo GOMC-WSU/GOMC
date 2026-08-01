@@ -18,7 +18,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 namespace {
 // Wish I could use lambdas..
 struct FindA1 {
-  FindA1(uint x) : x(x){};
+  explicit FindA1(uint x) : x(x){};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };
@@ -37,7 +37,9 @@ namespace cbmc {
 
 DCHedron::DCHedron(DCData *data, const mol_setup::MolKind &kind, uint focus,
                    uint prev)
-    : data(data), focus(focus), prev(prev) {
+    : bonded{}, data(data), focus(focus), prev(prev), bondLength{},
+      bondLengthOld{}, nBonds(), angleKinds{}, theta{}, thetaWeight{}, phi{},
+      phiWeight{}, bendEnergy(), oneThree(), anchorBond(), anchorBondOld() {
   using namespace mol_setup;
   std::vector<Bond> onFocus = AtomBonds(kind, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
@@ -272,7 +274,7 @@ void DCHedron::ConstrainedAngles(TrialMol &newMol, uint molIndex,
         double ang = acos(var) + phi[c];
         std::fill_n(angles, nTrials, ang);
         if (std::isnan(ang)) {
-          // printf("Val: %2.10f, angle: %2.5f \n", var, ang);
+          // printf("Val: %2.10f, angle: %2.5f\n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for "
                     << newMol.GetKind().atomTypeNames[bonded[b]] << " "
                     << newMol.GetKind().atomTypeNames[focus] << " "
@@ -347,7 +349,7 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol &oldMol,
         double ang = acos(var) + phi[c];
         std::fill_n(angles, nTrials, ang);
         if (std::isnan(ang)) {
-          // printf("Val: %2.10f, angle: %2.5f \n", var, ang);
+          // printf("Val: %2.10f, angle: %2.5f\n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for "
                     << oldMol.GetKind().atomTypeNames[bonded[b]] << " "
                     << oldMol.GetKind().atomTypeNames[focus] << " "

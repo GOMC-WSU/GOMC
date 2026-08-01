@@ -19,21 +19,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 ExtendedSystemOutput::ExtendedSystemOutput(System &sys, StaticVals const &statV)
     : moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
       boxDimRef(sys.boxDimRef), molRef(statV.mol), velCurrRef(sys.vel),
-      coordCurrRef(sys.coordinates), comCurrRef(sys.com) {
-  x = NULL;
-  y = NULL;
-  z = NULL;
-  for (uint b = 0; b < BOX_TOTAL; ++b) {
-    stateFileFileid[b] = 0;
-    restartCoor[b] = NULL;
-    restartVel[b] = NULL;
-    outDCDStateFile[b] = NULL;
-    outDCDRestartFile[b] = NULL;
-    outVelRestartFile[b] = NULL;
-    outXSTFile[b] = NULL;
-    outXSCFile[b] = NULL;
-  }
-}
+      coordCurrRef(sys.coordinates), comCurrRef(sys.com), outDCDStateFile{{}},
+      outDCDRestartFile{{}}, outVelRestartFile{{}}, outXSTFile{{}},
+      outXSCFile{{}}, stateFileFileid{{}}, outputVelocity{}, x{}, y{}, z{},
+      restartCoor{{}}, restartVel{{}} {}
 
 void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
                                 config_setup::Output const &output) {
@@ -60,7 +49,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
     z = x + 2 * numAtoms;
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       std::string fileName = output.state_dcd.files.dcd.name[b];
-      int baselen = strlen(fileName.c_str());
+      int baselen = fileName.length();
       outDCDStateFile[b] = new char[baselen + 1];
       strcpy(outDCDStateFile[b], fileName.c_str());
       //  Write out the header with lattice parameter
@@ -68,7 +57,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
       // prepare the xst file
       fileName = output.statistics.settings.uniqueStr.val;
       fileName += "_BOX_" + std::to_string(b) + ".xst";
-      baselen = strlen(fileName.c_str());
+      baselen = fileName.length();
       outXSTFile[b] = new char[baselen + 1];
       strcpy(outXSTFile[b], fileName.c_str());
       xstFile[b].Init(fileName, " output XST", true, printNotify);
@@ -84,7 +73,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
       // prepare coor file
       std::string fileName = output.restart_dcd.files.dcd.name[b];
       restartCoor[b] = new XYZ[NumAtomInBox(b)];
-      int baselen = strlen(fileName.c_str());
+      int baselen = fileName.length();
       outDCDRestartFile[b] = new char[baselen + 1];
       strcpy(outDCDRestartFile[b], fileName.c_str());
 
@@ -92,7 +81,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
       if (outputVelocity) {
         std::string fileName = output.restart_vel.files.dcd.name[b];
         restartVel[b] = new XYZ[NumAtomInBox(b)];
-        baselen = strlen(fileName.c_str());
+        baselen = fileName.length();
         outVelRestartFile[b] = new char[baselen + 1];
         strcpy(outVelRestartFile[b], fileName.c_str());
       }
@@ -100,7 +89,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
       // prepare the xsc file
       fileName = output.statistics.settings.uniqueStr.val;
       fileName += "_BOX_" + std::to_string(b) + "_restart.xsc";
-      baselen = strlen(fileName.c_str());
+      baselen = fileName.length();
       outXSCFile[b] = new char[baselen + 1];
       strcpy(outXSCFile[b], fileName.c_str());
       xscFile[b].Init(fileName, " output XSC", true, printNotify);
@@ -142,14 +131,14 @@ void ExtendedSystemOutput::Write_Extension_System_Data(Writer &outFile,
   outFile.file << " " << c.x;
   outFile.file << " " << c.y;
   outFile.file << " " << c.z;
-  // Our origin is fix at (0, 0 ,0 ), but we set it to half box length
+  // Our origin is fixed at (0, 0, 0), but we set it to half box length
   // to be compatible with NAMD
   outFile.file << " " << center.x << " " << center.y << " " << center.z;
   outFile.file << std::endl;
 }
 
 void ExtendedSystemOutput::WriteDCDHeader(const int numAtoms, const int box) {
-  printf("Opening DCD coordinate file: %s \n", outDCDStateFile[box]);
+  printf("Opening DCD coordinate file: %s\n", outDCDStateFile[box]);
   stateFileFileid[box] = open_dcd_write(outDCDStateFile[box]);
 
   if (stateFileFileid[box] == DCD_FILEEXISTS) {
@@ -193,7 +182,7 @@ void ExtendedSystemOutput::DoOutput(const ulong step) {
     //  Copy the coordinates for output
     SetCoordinates(molInBox, b);
     //  Write out the values for this step
-    printf("Writing DCD coordinate to file %s at step %lu \n",
+    printf("Writing DCD coordinate to file %s at step %lu\n",
            outDCDStateFile[b], step + 1);
     fflush(stdout);
 
@@ -208,7 +197,7 @@ void ExtendedSystemOutput::DoOutput(const ulong step) {
               outDCDStateFile[b], step + 1);
       NAMD_err(err_msg);
     }
-    printf("Finished writing DCD coordinate to file %s at step %lu \n",
+    printf("Finished writing DCD coordinate to file %s at step %lu\n",
            outDCDStateFile[b], step + 1);
 
     // write the cellbasis data to xst file
@@ -224,24 +213,24 @@ void ExtendedSystemOutput::DoOutputRestart(const ulong step) {
     int numAtomInBox = NumAtomInBox(b);
     // Copy the coordinate data for each box into AOS
     SetMolInBox(b);
-    printf("Writing binary restart coordinate to file %s at step %lu \n",
+    printf("Writing binary restart coordinate to file %s at step %lu\n",
            outDCDRestartFile[b], step + 1);
     //  Generate a binary restart file
     Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
     printf(
-        "Finished writing binary restart coordinate to file %s at step %lu \n",
+        "Finished writing binary restart coordinate to file %s at step %lu\n",
         outDCDRestartFile[b], step + 1);
 
     // output restart velocities
     if (outputVelocity) {
       // Update the velocity in box
       velCurrRef.UpdateVelocityInBox(b);
-      printf("Writing binary restart velocity to file %s at step %lu \n",
+      printf("Writing binary restart velocity to file %s at step %lu\n",
              outVelRestartFile[b], step + 1);
       //  Generate a binary restart velocity file
       Write_binary_file(outVelRestartFile[b], numAtomInBox, restartVel[b]);
       printf(
-          "Finished writing binary restart velocity to file %s at step %lu \n",
+          "Finished writing binary restart velocity to file %s at step %lu\n",
           outVelRestartFile[b], step + 1);
     }
     // write XSC file
@@ -278,14 +267,13 @@ void ExtendedSystemOutput::SetMolInBox(const int box) {
 #endif
 
   uint i = 0, pStart = 0, pEnd = 0;
-  XYZ ref, coor;
   MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
                                end = molLookupRef.BoxEnd(box);
   while (m != end) {
     molRef.GetRangeStartStop(pStart, pEnd, *m);
-    ref = comCurrRef.Get(*m);
+    XYZ ref = comCurrRef.Get(*m);
     for (uint p = pStart; p < pEnd; ++p) {
-      coor = coordCurrRef.Get(p);
+      XYZ coor = coordCurrRef.Get(p);
       boxDimRef.UnwrapPBC(coor, box, ref);
 
       restartCoor[box][i].x = coor.x;
@@ -321,7 +309,6 @@ void ExtendedSystemOutput::Write_binary_file(char *fname, int n, XYZ *vec) {
 void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox,
                                           const int box) {
   uint d, dataStart, dataEnd, dataI;
-  int numMolecules = molRef.count;
   XYZ ref, coor;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
@@ -343,7 +330,6 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox,
     }
   }
 #else
-    bool inThisBox;
     // Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
@@ -351,7 +337,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox,
       dataI = *m;
       molRef.GetRangeStartStop(dataStart, dataEnd, dataI);
       ref = comCurrRef.Get(dataI);
-      inThisBox = (molInBox[dataI] == box);
+      bool inThisBox = (molInBox[dataI] == box);
       for (d = dataStart; d < dataEnd; ++d) {
         if (inThisBox) {
           coor = coordCurrRef.Get(d);

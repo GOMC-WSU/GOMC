@@ -25,10 +25,8 @@ void Coordinates::WrapCoordinate(const XYZ min[BOX_TOTAL],
                                  const XYZ max[BOX_TOTAL]) {
   int p, start, atom;
 
-  bool sawZeroCoordinate;
-
   for (uint b = 0; b < BOX_TOTAL; b++) {
-    sawZeroCoordinate = false;
+    bool sawZeroCoordinate = false;
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
                                  end = molLookRef.BoxEnd(b),
                                  endc = molLookRef.BoxEnd(b);

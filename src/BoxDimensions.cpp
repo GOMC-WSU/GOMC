@@ -152,7 +152,7 @@ uint BoxDimensions::ExchangeVolume(BoxDimensions &newDim, XYZ *scale,
 }
 
 BoxDimensions::BoxDimensions(BoxDimensions const &other)
-    : axis(other.axis), halfAx(other.halfAx) {
+    : axis(other.axis), halfAx(other.halfAx), constArea(other.constArea) {
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     cellBasis[b] = XYZArray(3);
     other.cellBasis[b].CopyRange(cellBasis[b], 0, 0, 3);
@@ -160,13 +160,13 @@ BoxDimensions::BoxDimensions(BoxDimensions const &other)
     volInv[b] = other.volInv[b];
     rCut[b] = other.rCut[b];
     rCutSq[b] = other.rCutSq[b];
+    minVol[b] = other.minVol[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
-    for (uint i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; ++i) {
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
-  constArea = other.constArea;
 }
 
 BoxDimensions &BoxDimensions::operator=(BoxDimensions const &other) {
@@ -176,9 +176,10 @@ BoxDimensions &BoxDimensions::operator=(BoxDimensions const &other) {
     volInv[b] = other.volInv[b];
     rCut[b] = other.rCut[b];
     rCutSq[b] = other.rCutSq[b];
+    minVol[b] = other.minVol[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
-    for (uint i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; ++i) {
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }

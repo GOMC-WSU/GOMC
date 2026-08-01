@@ -75,12 +75,12 @@ private:
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();
-  void printElement(const double t, const int width, uint precision = 8) const;
-  void printElement(const uint t, const int width) const;
-  void printElement(const std::string t, const int width) const;
+  void printElement(const double &t, const int width, uint precision = 8) const;
+  void printElement(const uint &t, const int width) const;
+  void printElement(const std::string &t, const int width) const;
 
   template <typename T>
-  void printElementStep(const T t, const ulong step, const int width) const;
+  void printElementStep(const T &t, const ulong step, const int width) const;
 };
 
 #endif /*CONSOLE_OUTPUT_H*/

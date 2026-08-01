@@ -17,7 +17,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 **
 *****************************/
 
-InputFileReader::InputFileReader(const std::string& inputFileName) {
+InputFileReader::InputFileReader(const std::string &inputFileName) {
   fs.open(inputFileName.c_str(), std::fstream::in);
 }
 
@@ -27,7 +27,7 @@ InputFileReader::~InputFileReader() {
   }
 }
 
-void InputFileReader::Open(const std::string& inputFileName) {
+void InputFileReader::Open(const std::string &inputFileName) {
   fs.open(inputFileName.c_str(), std::fstream::in);
   if (!fs.is_open()) {
     std::cout << "Cannot open input file!" << std::endl;
@@ -39,7 +39,7 @@ void InputFileReader::Open(const std::string& inputFileName) {
 // input, and generate an appropriate error message if it can't be. If the file
 // is opened, then we close the file, since it's not being used yet, just
 // verified.
-void InputFileReader::Test(const std::string& inputFileName) {
+void InputFileReader::Test(const std::string &inputFileName) {
   fs.open(inputFileName.c_str(), std::fstream::in);
 
   // Check if file has been opened. If not, output an error message and exit

@@ -15,7 +15,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 namespace cbmc {
 DCOnSphere::DCOnSphere(DCData *data, const mol_setup::MolKind kind, uint atom,
                        uint focus)
-    : data(data), atom(atom), focus(focus) {
+    : data(data), atom(atom), focus(focus), bondKind{}, bondLength{},
+      bondLengthOld{}, bondEnergy{} {
   using namespace mol_setup;
   std::vector<Bond> bonds = AtomBonds(kind, atom);
   for (uint i = 0; i < bonds.size(); ++i) {

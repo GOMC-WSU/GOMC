@@ -38,7 +38,10 @@ class Lambda;
 class System {
 public:
   explicit System(StaticVals &statics, Setup &set, ulong &startStep,
-                  MultiSim const *const &multisim = NULL);
+                  MultiSim const *const &multisim = nullptr);
+  // Allow only one System object
+  System(const System &) = delete;
+  System &operator=(const System &) = delete;
 
   void Init(Setup &setupData);
 
@@ -64,7 +67,6 @@ public:
   MoveBase *GetMoveObject(const uint moveIndex) { return moves[moveIndex]; }
 
   BoxDimensions *BoxDim(const bool isOrthogonal) {
-    boxDimensions = NULL;
     if (isOrthogonal) {
       boxDimensions = new BoxDimensions();
     } else {

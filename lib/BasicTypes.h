@@ -6,9 +6,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
-// Standard way to get pi constant on most platforms
-// Needs to be defined _before_ including cmath
-// so that the PI constants come from cmath
+// Standard way to get PI constants on most platforms: must be defined _before_
+// including cmath so that the PI constants are defined in cmath
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif
@@ -23,8 +22,7 @@ typedef unsigned long int ulong;
 typedef unsigned short int ushort;
 typedef unsigned int uint;
 
-// Just for debugging stuff
-// e.g.
+// Just for debugging stuff, e.g.,
 // cout << imie(variable) imie(another_variable)
 #define imie(...)                                                              \
   " [" << #__VA_ARGS__ ": " << std::setprecision(15) << (__VA_ARGS__) << "] "
@@ -107,6 +105,10 @@ class XYZ {
 public:
   XYZ() : x(0.0), y(0.0), z(0.0) {}
   XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
+  // Copy constructor
+  XYZ(XYZ const &) = default;
+  // Move constructor
+  XYZ(XYZ &&) = default;
 
   friend inline std::ostream &operator<<(std::ostream &stream, const XYZ &p);
 
@@ -115,12 +117,12 @@ public:
   inline double getZ() const { return z; }
 
   void Reset() { x = y = z = 0.0; }
-  XYZ &operator=(XYZ const &rhs) {
-    x = rhs.x;
-    y = rhs.y;
-    z = rhs.z;
-    return *this;
-  }
+
+  // Assignment operator
+  XYZ &operator=(XYZ const &) = default;
+  // Move assignment operator
+  XYZ &operator=(XYZ &&) = default;
+
   inline bool operator==(XYZ const &rhs) const {
     return (x == rhs.x && y == rhs.y && z == rhs.z);
   }

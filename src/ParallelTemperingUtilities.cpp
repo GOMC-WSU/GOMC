@@ -156,7 +156,6 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step) {
 
 #endif
   double uBoltz;
-  bool bPrint = false;
   double printRecord;
   if (bMultiEx) {
     int i0, i1, a, b, ap, bp;
@@ -177,8 +176,7 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step) {
       ap = pind[i0];
       bp = pind[i1];
 
-      bPrint = false; /* too noisy */
-                      /* calculate the energy difference */
+      /* calculate the energy difference */
 #if ENSEMBLE == NVT
       uBoltz = exp((global_betas[b] - global_betas[a]) *
                    (global_energies[bp] - global_energies[ap]));
@@ -204,7 +202,6 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step) {
     int parity = step / parallelTempFreq % 2;
 
     for (int i = 1; i < ms->worldSize; i++) {
-      bPrint = ms->worldRank == i || ms->worldRank == i - 1;
       if (i % 2 == parity) {
 #if ENSEMBLE == NVT
         uBoltz = exp((global_betas[i] - global_betas[i - 1]) *
@@ -241,13 +238,11 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step) {
 
 void ParallelTemperingUtilities::prepareToDoExchange(
     const int replica_id, int *maxswap, bool *bThisReplicaExchanged) {
-  int i, j;
-  /* Hold the cyclic decomposition of the (multiple) replica
-   * exchange. */
+  // Hold the cyclic decomposition of the (multiple) replica exchange
   bool bAnyReplicaExchanged = false;
   *bThisReplicaExchanged = false;
 
-  for (i = 0; i < ms->worldSize; i++) {
+  for (int i = 0; i < ms->worldSize; i++) {
     if (pind[i] != ind[i]) {
       /* only mark as exchanged if the index has been shuffled */
       bAnyReplicaExchanged = true;
@@ -256,8 +251,8 @@ void ParallelTemperingUtilities::prepareToDoExchange(
   }
   if (bAnyReplicaExchanged) {
     /* reinitialize the placeholder arrays */
-    for (i = 0; i < ms->worldSize; i++) {
-      for (j = 0; j < ms->worldSize; j++) {
+    for (int i = 0; i < ms->worldSize; i++) {
+      for (int j = 0; j < ms->worldSize; j++) {
         cyclic[i][j] = -1;
         order[i][j] = -1;
       }
@@ -272,7 +267,7 @@ void ParallelTemperingUtilities::prepareToDoExchange(
     computeExchangeOrder(cyclic, order, ms->worldSize, *maxswap);
 
     /* Did this replica do any exchange at any point? */
-    for (j = 0; j < *maxswap; j++) {
+    for (int j = 0; j < *maxswap; j++) {
       if (replica_id != order[replica_id][j]) {
         *bThisReplicaExchanged = true;
         break;
@@ -284,21 +279,21 @@ void ParallelTemperingUtilities::prepareToDoExchange(
 void ParallelTemperingUtilities::cyclicDecomposition(
     const std::vector<int> &destinations, std::vector<std::vector<int>> &cyclic,
     std::vector<bool> &incycle, const int nrepl, int *nswap) {
-  int i, j, c, p;
   int maxlen = 1;
-  for (i = 0; i < nrepl; i++) {
+
+  for (int i = 0; i < nrepl; i++) {
     incycle[i] = false;
   }
-  for (i = 0; i < nrepl; i++) { /* one cycle for each replica */
+  for (int i = 0; i < nrepl; i++) { /* one cycle for each replica */
     if (incycle[i]) {
       cyclic[i][0] = -1;
       continue;
     }
     cyclic[i][0] = i;
     incycle[i] = true;
-    c = 1;
-    p = i;
-    for (j = 0; j < nrepl;
+    int c = 1;
+    int p = i;
+    for (int j = 0; j < nrepl;
          j++) { /* potentially all cycles are part, but we will break first */
       p = destinations[p]; /* start permuting */
       if (p == i) {
@@ -318,7 +313,7 @@ void ParallelTemperingUtilities::cyclicDecomposition(
   *nswap = maxlen - 1;
 
 #ifndef NDEBUG
-  for (i = 0; i < nrepl; i++) {
+  for (int i = 0; i < nrepl; i++) {
     fprintf(fplog, "Cycle %d:", i);
     for (j = 0; j < nrepl; j++) {
       if (cyclic[i][j] < 0) {
@@ -335,15 +330,14 @@ void ParallelTemperingUtilities::cyclicDecomposition(
 void ParallelTemperingUtilities::computeExchangeOrder(
     std::vector<std::vector<int>> &cyclic, std::vector<std::vector<int>> &order,
     const int nrepl, const int maxswap) {
-  int i, j;
-  for (j = 0; j < maxswap; j++) {
-    for (i = 0; i < nrepl; i++) {
+  for (int j = 0; j < maxswap; j++) {
+    for (int i = 0; i < nrepl; i++) {
       if (cyclic[i][j + 1] >= 0) {
         order[cyclic[i][j + 1]][j] = cyclic[i][j];
         order[cyclic[i][j]][j] = cyclic[i][j + 1];
       }
     }
-    for (i = 0; i < nrepl; i++) {
+    for (int i = 0; i < nrepl; i++) {
       if (order[i][j] < 0) {
         order[i][j] = i; /* if it's not exchanging, it should stay this round*/
         fprintf(fplog, "order[%d][%d] = %d\n", i, j, order[i][j]);
@@ -356,9 +350,9 @@ void ParallelTemperingUtilities::computeExchangeOrder(
 #ifndef NDEBUG
 
   fprintf(fplog, "Replica Exchange Order\n");
-  for (i = 0; i < nrepl; i++) {
+  for (int i = 0; i < nrepl; i++) {
     fprintf(fplog, "Replica %d:", i);
-    for (j = 0; j < maxswap; j++) {
+    for (int j = 0; j < maxswap; j++) {
       if (order[i][j] < 0) {
         break;
       }
@@ -373,12 +367,10 @@ void ParallelTemperingUtilities::computeExchangeOrder(
 void ParallelTemperingUtilities::conductExchanges(
     Coordinates &coordCurrRef, COM &comCurrRef, MultiSim const *const &ms,
     const int &maxSwap, const bool &bThisReplicaExchanged) {
-  int exchangePartner;
-  int replicaID = ms->worldRank;
-
   if (bThisReplicaExchanged) {
+    const int replicaID = ms->worldRank;
     for (int j = 0; j < maxSwap; j++) {
-      exchangePartner = order[replicaID][j];
+      int exchangePartner = order[replicaID][j];
 
       if (exchangePartner != replicaID) {
         /* Exchange the global states between the master nodes */
@@ -454,7 +446,7 @@ void ParallelTemperingUtilities::exchangePositions(
     bool leader) {
   XYZArray buffer(myPos);
 
-  // if im 0, im the follower and i get 1 as a
+  // if I'm 0, I'm the follower and I get 1 as a
   if (leader) {
     MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
              MPI_COMM_WORLD);
@@ -542,8 +534,7 @@ void ParallelTemperingUtilities::exchangeCellLists(
             << " myCellList head Size : " << myCellList.head[0].size()
             << std::endl;
 
-  // if im 0, im the follower and i get 1 as a
-
+  // if I'm 0, I'm the follower and I get 1 as a
   if (leader) {
     MPI_Send(&buffer.list[0], buffer.list.size(), MPI_INT, exchangePartner, 0,
              MPI_COMM_WORLD);
@@ -823,7 +814,7 @@ void ParallelTemperingUtilities::exchangeVirials(
     int exchangePartner, bool leader) {
   SystemPotential buffer(mySystemPotential);
 
-  // if im 0, im the follower and i get 1 as a
+  // if I'm 0, I'm the follower and I get 1 as a
 
   if (leader) {
     MPI_Send(&buffer.totalVirial.total, 1, MPI_DOUBLE, exchangePartner, 0,
@@ -1160,10 +1151,8 @@ void ParallelTemperingUtilities::exchangeVirials(
 void ParallelTemperingUtilities::print_ind(FILE *fplog, const char *leg, int n,
                                            const std::vector<int> &ind,
                                            const std::vector<bool> &bEx) {
-  int i;
-
   fprintf(fplog, "Repl %2s %2d", leg, ind[0]);
-  for (i = 1; i < n; i++) {
+  for (int i = 1; i < n; i++) {
     fprintf(fplog, " %c %2d", (bEx.empty() != true && bEx[i]) ? 'x' : ' ',
             ind[i]);
   }
@@ -1172,11 +1161,10 @@ void ParallelTemperingUtilities::print_ind(FILE *fplog, const char *leg, int n,
 
 void ParallelTemperingUtilities::print_prob(FILE *fplog, const char *leg, int n,
                                             const std::vector<double> &prob) {
-  int i;
   char buf[8];
 
   fprintf(fplog, "Repl %2s ", leg);
-  for (i = 1; i < n; i++) {
+  for (int i = 1; i < n; i++) {
     if (prob[i] >= 0) {
       sprintf(buf, "%4.2f", prob[i]);
       fprintf(fplog, "  %3s", buf[0] == '1' ? "1.0" : buf + 1);
@@ -1190,10 +1178,8 @@ void ParallelTemperingUtilities::print_prob(FILE *fplog, const char *leg, int n,
 void ParallelTemperingUtilities::print_count(FILE *fplog, const char *leg,
                                              int n,
                                              const std::vector<int> &count) {
-  int i;
-
   fprintf(fplog, "Repl %2s ", leg);
-  for (i = 1; i < n; i++) {
+  for (int i = 1; i < n; i++) {
     fprintf(fplog, " %4d", count[i]);
   }
   fprintf(fplog, "\n");
@@ -1202,27 +1188,25 @@ void ParallelTemperingUtilities::print_count(FILE *fplog, const char *leg,
 void ParallelTemperingUtilities::print_transition_matrix(
     FILE *fplog, int n, const std::vector<std::vector<int>> &nmoves,
     const std::vector<int> &nattempt) {
-  int i, j, ntot;
-  float Tprint;
+  int ntot = nattempt[0] + nattempt[1];
 
-  ntot = nattempt[0] + nattempt[1];
   fprintf(fplog, "\n");
   fprintf(fplog, "Repl");
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     fprintf(fplog, "    "); /* put the title closer to the center */
   }
   fprintf(fplog, "Empirical Transition Matrix\n");
 
   fprintf(fplog, "Repl");
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     fprintf(fplog, "%8d", (i + 1));
   }
   fprintf(fplog, "\n");
 
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     fprintf(fplog, "Repl");
-    for (j = 0; j < n; j++) {
-      Tprint = 0.0;
+    for (int j = 0; j < n; j++) {
+      float Tprint = 0.0;
       if (nmoves[i][j] > 0) {
         Tprint = nmoves[i][j] / (2.0 * ntot);
       }
@@ -1234,22 +1218,20 @@ void ParallelTemperingUtilities::print_transition_matrix(
 
 void ParallelTemperingUtilities::print_replica_exchange_statistics(
     FILE *fplog) {
-  int i;
-  std::vector<bool> nullVec;
-
   fprintf(fplog, "\nReplica exchange statistics\n");
   if (!bMultiEx) {
     fprintf(fplog, "Repl  %d attempts, %d odd, %d even\n",
             nattempt[0] + nattempt[1], nattempt[1], nattempt[0]);
 
     fprintf(fplog, "Repl  average probabilities:\n");
-    for (i = 1; i < ms->worldSize; i++) {
+    for (int i = 1; i < ms->worldSize; i++) {
       if (nattempt[i % 2] == 0) {
         exchangeProbabilities[i] = 0;
       } else {
         exchangeProbabilities[i] = prob_sum[i] / nattempt[i % 2];
       }
     }
+    std::vector<bool> nullVec;
     print_ind(fplog, "", ms->worldSize, ind, nullVec);
     print_prob(fplog, "", ms->worldSize, exchangeProbabilities);
 
@@ -1258,7 +1240,7 @@ void ParallelTemperingUtilities::print_replica_exchange_statistics(
     print_count(fplog, "", ms->worldSize, nexchange);
 
     fprintf(fplog, "Repl  average number of exchanges:\n");
-    for (i = 1; i < ms->worldSize; i++) {
+    for (int i = 1; i < ms->worldSize; i++) {
       if (nattempt[i % 2] == 0) {
         exchangeProbabilities[i] = 0;
       } else {
@@ -1278,17 +1260,15 @@ void ParallelTemperingUtilities::print_replica_exchange_statistics(
 void ParallelTemperingUtilities::print_allswitchind(
     FILE *fplog, int n, const std::vector<int> &pind,
     std::vector<int> &allswaps, std::vector<int> &tmpswap) {
-  int i;
-
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     tmpswap[i] = allswaps[i];
   }
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     allswaps[i] = tmpswap[pind[i]];
   }
 
   fprintf(fplog, "\nAccepted Exchanges:   ");
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     fprintf(fplog, "%d ", pind[i]);
   }
   fprintf(fplog, "\n");
@@ -1305,7 +1285,7 @@ void ParallelTemperingUtilities::print_allswitchind(
      configuration starting in simulation 2 is now in simulation 3
    */
   fprintf(fplog, "Order After Exchange: ");
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     fprintf(fplog, "%d ", allswaps[i]);
   }
   fprintf(fplog, "\n\n");

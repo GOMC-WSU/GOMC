@@ -19,7 +19,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 namespace {
 // Wish I could use lambdas..
 struct FindA1 {
-  FindA1(uint x) : x(x){};
+  explicit FindA1(uint x) : x(x){};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };
@@ -50,11 +50,18 @@ bool IsInRing(const std::vector<int> &cycAtoms, const mol_setup::Angle &a) {
 } // namespace
 
 namespace cbmc {
+double bendEnergy, oneThree;
+double anchorBond, anchorBondOld;
+RotationMatrix growthToWorld;
+RotationMatrix worldToGrowth;
 
 DCHedronCycle::DCHedronCycle(DCData *data, const mol_setup::MolKind &kind,
                              const std::vector<int> &cycAtoms, uint focus,
                              uint prev)
-    : data(data), focus(focus), prev(prev) {
+    : data(data), focus(focus), prev(prev), bondLength{{}}, bondLengthOld{{}},
+      angleKinds{{}}, angleInRing{{}}, theta{{}}, thetaWeight{{}}, phi{{}},
+      phiWeight{{}}, bendEnergy{}, oneThree{}, anchorBond{}, anchorBondOld{},
+      growthToWorld{}, worldToGrowth{} {
   using namespace mol_setup;
   std::vector<Bond> onFocus = AtomBonds(kind, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
