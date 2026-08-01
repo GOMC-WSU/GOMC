@@ -61,7 +61,7 @@ private:
   DCData *data;
   uint focus, prev;
   uint nBonds;
-  // atoms bonded to focus, being build
+  // atoms bonded to focus, being built
 
   // bond length of atom bonded to focus
   double bondLength[MAX_BONDS];

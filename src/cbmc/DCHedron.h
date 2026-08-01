@@ -53,7 +53,7 @@ private:
   double bondLength[MAX_BONDS];
   double bondLengthOld[MAX_BONDS];
 
-  // atoms bonded to focus, being build
+  // atoms bonded to focus, being built
   uint nBonds;
 
   // angleKinds[i][j] = kind between bonded[i] and bonded[j]
