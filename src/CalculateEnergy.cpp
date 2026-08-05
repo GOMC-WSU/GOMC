@@ -458,7 +458,7 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
                        forcefield.sc_alpha, forcefield.sc_power, box);
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(none)                                         \
+#pragma omp parallel for default(none) schedule(dynamic, 16)                   \
     shared(cellStartIndex, cellVector, mapParticleToCell, neighborList)        \
     firstprivate(box) reduction(+ : vT11, vT12, vT13, vT22, vT23, vT33, rT11,  \
                                     rT12, rT13, rT22, rT23, rT33)
