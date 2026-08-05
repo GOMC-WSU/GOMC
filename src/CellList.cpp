@@ -284,7 +284,7 @@ void CellList::GetCellListNeighbor(uint box, int coordinateSize,
   cellVector.resize(vector_index);
 }
 
-std::vector<std::vector<int>> CellList::GetNeighborList(uint box) const {
+const std::vector<std::vector<int>>& CellList::GetNeighborList(uint box) const {
   return neighbors[box];
 }
 

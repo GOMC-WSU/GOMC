@@ -169,10 +169,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double tempREn = 0.0, tempLJEn = 0.0;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
-  std::vector<std::vector<int>> neighborList;
   cellList.GetCellListNeighbor(box, currentCoords.Count(), cellVector,
                                cellStartIndex, mapParticleToCell);
-  neighborList = cellList.GetNeighborList(box);
+  const auto& neighborList = cellList.GetNeighborList(box);
 
 #ifdef GOMC_CUDA
   // update unitcell in GPU
@@ -293,10 +292,10 @@ CalculateEnergy::BoxForce(SystemPotential potential, XYZArray const &coords,
   ResetForce(atomForce, molForce, box);
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
-  std::vector<std::vector<int>> neighborList;
+
   cellList.GetCellListNeighbor(box, coords.Count(), cellVector, cellStartIndex,
                                mapParticleToCell);
-  neighborList = cellList.GetNeighborList(box);
+  const auto& neighborList = cellList.GetNeighborList(box);
 
 #ifdef GOMC_CUDA
   // update unitcell in GPU
@@ -427,10 +426,10 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
   double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
-  std::vector<std::vector<int>> neighborList;
+
   cellList.GetCellListNeighbor(box, currentCoords.Count(), cellVector,
                                cellStartIndex, mapParticleToCell);
-  neighborList = cellList.GetNeighborList(box);
+  const auto& neighborList = cellList.GetNeighborList(box);
 
 #ifdef GOMC_CUDA
   // update unitcell in GPU
@@ -473,10 +472,6 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
          nCellIndex++) {
       int neighborCell = neighborList[currCell][nCellIndex];
 
-      if (currCell > neighborCell) {
-        continue;
-      }
-
       int endIndex = cellStartIndex[neighborCell + 1];
       for (int nParticleIndex = cellStartIndex[neighborCell];
            nParticleIndex < endIndex; nParticleIndex++) {
@@ -484,8 +479,8 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
 
         // make sure the pairs are unique and they belong to different molecules
         bool skip =
-            particleMol[currParticle] == particleMol[nParticle] ||
-            (currCell == neighborCell && currParticle > nParticle);
+          particleMol[currParticle] == particleMol[nParticle] ||
+          currParticle > nParticle;
 
         if(!skip) {
             double distSq;
