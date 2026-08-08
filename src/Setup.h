@@ -9,6 +9,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include <cereal/archives/binary.hpp>
 #include <cstdlib>
 #include <string> //for filename
+#include <chrono>
 
 #include "ConfigSetup.h"
 #include "FFSetup.h"
@@ -31,13 +32,28 @@ public:
 
   void Init(char const *const configFileName, MultiSim const *const &multisim) {
     // Read in all config data
+    auto start = std::chrono::steady_clock::now();
     config.Init(configFileName, multisim);
-    // Read in FF data.
-    ff.Init(config.in.files.param, config.in.ffKind.isCHARMM);
-    // Read in PDB data
-    pdb.Init(config.in.restart, config.in.files.pdb.name);
-    // Initialize PRNG
-    prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
+    auto end = std::chrono::steady_clock::now();
+    std::cout << "Config reading time: "
+              << std::chrono::duration<double, std::milli>(end - start).count()
+              << "ms" << std::endl;
+
+    start = std::chrono::steady_clock::now();
+    ff.Init(config.in.files.param, config.in.ffKind.isCHARMM); //read in ff data
+    end = std::chrono::steady_clock::now();
+    std::cout << "FF reading time: "
+              << std::chrono::duration<double, std::milli>(end - start).count()
+              << "ms" << std::endl;
+
+    start = std::chrono::steady_clock::now();
+    pdb.Init(config.in.restart, config.in.files.pdb.name); //read in PDB data
+    end = std::chrono::steady_clock::now();
+    std::cout << "PDB reading time: "
+              << std::chrono::duration<double, std::milli>(end - start).count()
+              << "ms" << std::endl;
+
+    prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name); //read in PRNG data
 #if GOMC_LIB_MPI
     if (multisim->parallelTemperingEnabled)
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering,
