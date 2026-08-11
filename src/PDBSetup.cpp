@@ -232,11 +232,17 @@ void PDBSetup::Init(config_setup::RestartSettings const &restart,
 
       // Call reader function if remarks were reached,
       // or it is a remark
-      dataKind = dataKinds.find(varName);
-      if (dataKind != dataKinds.end() &&
-          (remarks.reached[b] ||
-           str::compare(dataKind->first, pdb_entry::label::REMARK))) {
-        dataKind->second->Read(pdb[b]);
+      if (varName == pdb_entry::label::ATOM) {
+        if (remarks.reached[b]) {
+          atoms.Read(pdb[b]);
+        }
+      } else {
+        dataKind = dataKinds.find(varName);
+        if (dataKind != dataKinds.end() &&
+            (remarks.reached[b] ||
+             str::compare(dataKind->first, pdb_entry::label::REMARK))) {
+          dataKind->second->Read(pdb[b]);
+        }
       }
     }
     // If the recalcTrajectory is true and reached was still false
