@@ -62,10 +62,15 @@ public:
     // Load the MolSetup from checkpoint
     if (!config.in.restart.restartFromCheckpoint) {
       // Read molecule data from psf
+      auto molStart = std::chrono::steady_clock::now();
       if (mol.Init(config.in.files.psf.name, config.in.files.psf.defined,
-                   pdb.atoms) != 0) {
+                  pdb.atoms) != 0) {
         exit(EXIT_FAILURE);
       }
+      auto molEnd = std::chrono::steady_clock::now();
+      std::cout << "MolSetup reading time: "
+                << std::chrono::duration<double, std::milli>(molEnd - molStart).count()
+                << "ms" << std::endl;
       mol.AssignKinds(mol.molVars, ff);
     }
   }
