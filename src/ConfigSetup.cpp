@@ -1745,10 +1745,7 @@ void ConfigSetup::fillDefaults(void) {
   out.state.files.psf.name =
       out.statistics.settings.uniqueStr.val + "_merged.psf";
   for (int i = 0; i < BOX_TOTAL; i++) {
-    sstrm::Converter toStr;
-    std::string numStr = "";
-    toStr << i;
-    toStr >> numStr;
+    std::string numStr = std::to_string(i);
     out.state.files.pdb.name[i] =
         out.statistics.settings.uniqueStr.val + "_BOX_" + numStr + ".pdb";
     out.restart.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +

@@ -316,11 +316,7 @@ void System::PrintAcceptance() {
   std::cout << std::endl;
   printf("%-24s %-15s", "Move Type", "Mol. Kind");
   for (uint b = 0; b < BOX_TOTAL; b++) {
-    sstrm::Converter toStr;
-    std::string numStr = "";
-    toStr << b;
-    toStr >> numStr;
-    numStr = "BOX_" + numStr;
+    std::string numStr = "BOX_" + std::to_string(b);
     printf("%-11s", numStr.c_str());
   }
   std::cout << std::endl;
