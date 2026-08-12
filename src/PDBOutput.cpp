@@ -89,14 +89,14 @@ void PDBOutput::Init(pdb_setup::Atoms const &atoms,
 }
 
 void PDBOutput::InitPartVec() {
-  uint dataStart = 0, dataEnd = 0, molecule = 0, atomIndex = 0, mI;
+  uint dataStart = 0, dataEnd = 0, molecule = 0, atomIndex = 0;
   // Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
 
     while (m != end) {
-      mI = *m;
+      uint mI = *m;
       molRef.GetRangeStartStop(dataStart, dataEnd, mI);
 
       for (uint d = dataStart; d < dataEnd; ++d) {
@@ -122,7 +122,7 @@ void PDBOutput::InitPartVec() {
       if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue) {
         molecule += molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs.back();
       }
-      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000 */
       if (molecule == 9999)
         molecule = 0;
       /* If you want to keep orig resID's comment these out */
@@ -296,18 +296,17 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> &mBox) {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
 
-  uint d, dataStart, dataEnd, dataI;
   // Start particle numbering @ 1
   for (uint box = 0; box < BOX_TOTAL; ++box) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
                                  end = molLookupRef.BoxEnd(box);
     while (m != end) {
-      dataI = *m;
-      // Loop through particles in mol.
+      uint dataStart, dataEnd, dataI = *m;
+      // Loop through particles in molecule
       molRef.GetRangeStartStop(dataStart, dataEnd, dataI);
       XYZ ref = comCurrRef.Get(dataI);
       bool inThisBox = (mBox[dataI] == b);
-      for (d = dataStart; d < dataEnd; ++d) {
+      for (uint d = dataStart; d < dataEnd; ++d) {
         XYZ coor;
         if (inThisBox) {
           coor = coordCurrRef.Get(d);

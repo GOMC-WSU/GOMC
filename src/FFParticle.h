@@ -48,6 +48,8 @@ struct FFParticle {
 public:
   FFParticle(Forcefield &ff);
   virtual ~FFParticle(void);
+  FFParticle(const FFParticle &) = delete;
+  FFParticle &operator=(const FFParticle &) = delete;
 
   virtual void Init(ff_setup::Particle const &mie,
                     ff_setup::NBfix const &nbfix);

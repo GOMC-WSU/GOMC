@@ -31,6 +31,8 @@ public:
 
   Forcefield();
   ~Forcefield();
+  Forcefield(const Forcefield &) = delete;
+  Forcefield &operator=(const Forcefield &) = delete;
   // Initialize contained FFxxxx structs from setup data
   void Init(const Setup &set);
 

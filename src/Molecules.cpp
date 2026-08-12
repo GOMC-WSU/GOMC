@@ -20,9 +20,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 class System;
 
 Molecules::Molecules()
-    : start(NULL), restartOrderedStart(NULL), kIndex(NULL), countByKind(NULL),
-      chain(NULL), kinds(NULL), pairEnCorrections(NULL),
-      pairVirCorrections(NULL), printFlag(true) {}
+    : start(nullptr), restartOrderedStart(nullptr), kIndex(nullptr),
+      countByKind(nullptr), chain(nullptr), beta(nullptr), occ(nullptr),
+      kinds(nullptr), pairEnCorrections(nullptr), pairVirCorrections(nullptr),
+      printFlag(true), restartFromCheckpoint{} {}
 
 Molecules::~Molecules(void) {
   delete[] start;

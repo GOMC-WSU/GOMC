@@ -17,18 +17,21 @@ A copy of the MIT License can be found in License.txt with this program or at
 using namespace mol_setup;
 
 namespace cbmc {
-class DCRotateOnAtom;
+class DCData;
 
 class DCRotateOnAtom : public DCComponent {
 public:
   DCRotateOnAtom(DCData *data, const mol_setup::MolKind &kind, uint a0, uint a1,
                  uint a2);
   ~DCRotateOnAtom() { delete[] multiPosRotions; }
+  DCRotateOnAtom(const DCRotateOnAtom &) = delete;
+  DCRotateOnAtom &operator=(const DCRotateOnAtom &) = delete;
   void PrepareNew(TrialMol &newMol, uint molIndex);
   void PrepareOld(TrialMol &oldMol, uint molIndex);
   void BuildOld(TrialMol &oldMol, uint molIndex);
   void BuildNew(TrialMol &newMol, uint molIndex);
-  DCComponent *Clone() { return new DCRotateOnAtom(*this); }
+  // unused -- if needed, define copy constructor
+  // DCComponent *Clone() { return new DCRotateOnAtom(*this); }
 
 private:
   void ChooseTorsion(TrialMol &mol, uint molIndex, RotationMatrix &cross,

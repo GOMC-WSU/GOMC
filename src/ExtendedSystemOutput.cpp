@@ -19,21 +19,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 ExtendedSystemOutput::ExtendedSystemOutput(System &sys, StaticVals const &statV)
     : moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
       boxDimRef(sys.boxDimRef), molRef(statV.mol), velCurrRef(sys.vel),
-      coordCurrRef(sys.coordinates), comCurrRef(sys.com) {
-  x = NULL;
-  y = NULL;
-  z = NULL;
-  for (uint b = 0; b < BOX_TOTAL; ++b) {
-    stateFileFileid[b] = 0;
-    restartCoor[b] = NULL;
-    restartVel[b] = NULL;
-    outDCDStateFile[b] = NULL;
-    outDCDRestartFile[b] = NULL;
-    outVelRestartFile[b] = NULL;
-    outXSTFile[b] = NULL;
-    outXSCFile[b] = NULL;
-  }
-}
+      coordCurrRef(sys.coordinates), comCurrRef(sys.com), outDCDStateFile{{}},
+      outDCDRestartFile{{}}, outVelRestartFile{{}}, outXSTFile{{}},
+      outXSCFile{{}}, stateFileFileid{{}}, outputVelocity{}, x{}, y{}, z{},
+      restartCoor{{}}, restartVel{{}} {}
 
 void ExtendedSystemOutput::Init(pdb_setup::Atoms const &atoms,
                                 config_setup::Output const &output) {
@@ -278,14 +267,13 @@ void ExtendedSystemOutput::SetMolInBox(const int box) {
 #endif
 
   uint i = 0, pStart = 0, pEnd = 0;
-  XYZ ref, coor;
   MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
                                end = molLookupRef.BoxEnd(box);
   while (m != end) {
     molRef.GetRangeStartStop(pStart, pEnd, *m);
-    ref = comCurrRef.Get(*m);
+    XYZ ref = comCurrRef.Get(*m);
     for (uint p = pStart; p < pEnd; ++p) {
-      coor = coordCurrRef.Get(p);
+      XYZ coor = coordCurrRef.Get(p);
       boxDimRef.UnwrapPBC(coor, box, ref);
 
       restartCoor[box][i].x = coor.x;

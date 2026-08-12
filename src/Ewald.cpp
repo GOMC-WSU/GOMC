@@ -39,14 +39,18 @@ A copy of the MIT License can be found in License.txt with this program or at
 using namespace geom;
 
 Ewald::Ewald(StaticVals &stat, System &sys)
-    : ff(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
+    : currentEnergyRecip{}, ff(stat.forcefield), mols(stat.mol),
+      currentCoords(sys.coordinates),
 #ifdef VARIABLE_PARTICLE_NUMBER
       molLookup(sys.molLookup),
 #else
       molLookup(stat.molLookup),
 #endif
       currentAxes(sys.boxDimRef), currentCOM(sys.com), sysPotRef(sys.potential),
-      lambdaRef(sys.lambdaRef) {
+      lambdaRef(sys.lambdaRef), imageSize{}, imageSizeRef{}, imageTotal{},
+      kmax{}, sumRnew{}, sumInew{}, sumRref{}, sumIref{}, kx{}, kxRef{}, ky{},
+      kyRef{}, kz{}, kzRef{}, hsqr{}, hsqrRef{}, prefact{}, prefactRef{},
+      boxStart{}, boxEnd{} {
   ewald = false;
   electrostatic = false;
   alpha = 0.0;
@@ -847,7 +851,6 @@ void Ewald::backupMolCache() { return; }
 void Ewald::RecipInitOrth(uint box, BoxDimensions const &boxAxes) {
   uint counter = 0;
   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
-  double ksqr, kX, kY, kZ;
   double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
   XYZ constValue = boxAxes.axis.Get(box);
   constValue.Inverse();
@@ -875,10 +878,10 @@ void Ewald::RecipInitOrth(uint box, BoxDimensions const &boxAxes) {
         nkz_min = -nkz_max;
 
       for (z = nkz_min; z <= nkz_max; z++) {
-        kX = constValue.x * x;
-        kY = constValue.y * y;
-        kZ = constValue.z * z;
-        ksqr = kX * kX + kY * kY + kZ * kZ;
+        double kX = constValue.x * x;
+        double kY = constValue.y * y;
+        double kZ = constValue.z * z;
+        double ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if (ksqr < ff.recip_rcut_Sq[box]) {
           kx[box][counter] = kX;
@@ -905,7 +908,6 @@ void Ewald::RecipInitOrth(uint box, BoxDimensions const &boxAxes) {
 void Ewald::RecipInitNonOrth(uint box, BoxDimensions const &boxAxes) {
   uint counter = 0;
   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
-  double ksqr, kX, kY, kZ;
   double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
   XYZArray cellB(boxAxes.cellBasis[box]);
   cellB.Scale(0, boxAxes.axis.Get(box).x);
@@ -937,10 +939,10 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const &boxAxes) {
         nkz_min = -nkz_max;
 
       for (z = nkz_min; z <= nkz_max; z++) {
-        kX = Dot(cellB_Inv.Get(0), XYZ(x, y, z));
-        kY = Dot(cellB_Inv.Get(1), XYZ(x, y, z));
-        kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
-        ksqr = kX * kX + kY * kY + kZ * kZ;
+        double kX = Dot(cellB_Inv.Get(0), XYZ(x, y, z));
+        double kY = Dot(cellB_Inv.Get(1), XYZ(x, y, z));
+        double kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
+        double ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if (ksqr < ff.recip_rcut_Sq[box]) {
           kx[box][counter] = kX;
@@ -1312,7 +1314,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol &trialMol) const {
     return 0.0;
 
   GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
-  double dist, distSq;
+  double distSq;
   double correction = 0.0;
   XYZ virComponents;
   const MoleculeKind &thisKind = trialMol.GetKind();
@@ -1323,7 +1325,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol &trialMol) const {
       currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(), i, j,
                          box);
 
-      dist = sqrt(distSq);
+      double dist = sqrt(distSq);
       correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                      erf(ff.alpha[box] * dist) / dist);
     }
