@@ -205,15 +205,9 @@ void PDBSetup::Init(config_setup::RestartSettings const &restart,
     remarks.SetFrameNumber(b, frameNum);
     cryst.SetBox(b);
     atoms.SetBox(b);
-    std::string alias;
+    std::string alias = pdbAlias[b];
     if (remarks.recalcTrajectory) {
-      sstrm::Converter toStr;
-      std::string numStr = "";
-      toStr << frameNum;
-      toStr >> numStr;
-      alias = pdbAlias[b] + " frame " + numStr;
-    } else {
-      alias = pdbAlias[b];
+      alias += " frame " + std::to_string(frameNum);
     }
     pdb[b].SetData(name[b], alias);
 
