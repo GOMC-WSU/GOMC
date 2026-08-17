@@ -521,4 +521,68 @@ inline double XYZArray::AdjointMatrix(XYZArray &Inv) {
   return det;
 }
 
+// Array of XYZ objects for testing an alternative memory layout.
+class XYZArray2 {
+public:
+  XYZArray2() : data(nullptr), count(0) {}
+
+  explicit XYZArray2(const uint n) : data(nullptr), count(0) {
+    Init(n);
+  }
+
+  ~XYZArray2() {
+    delete[] data;
+  }
+
+  void Init(const uint n) {
+    delete[] data;
+
+    count = n;
+    data = new XYZ[n];
+
+    for (uint i = 0; i < n; ++i) {
+      data[i] = XYZ(0.0, 0.0, 0.0);
+    }
+  }
+
+  uint Count() const {
+    return count;
+  }
+
+  XYZ Get(const uint i) const {
+    return data[i];
+  }
+
+  XYZ &operator[](const uint i) {
+    return data[i];
+  }
+
+  const XYZ &operator[](const uint i) const {
+    return data[i];
+  }
+
+  void Set(const uint i, const double x, const double y, const double z) {
+    data[i] = XYZ(x, y, z);
+  }
+
+  void Set(const uint i, const XYZ &value) {
+    data[i] = value;
+  }
+
+  void Reset() {
+    for (uint i = 0; i < count; ++i) {
+      data[i] = XYZ(0.0, 0.0, 0.0);
+    }
+  }
+  void Add(const uint i, const double x, const double y, const double z) {
+    data[i].x += x;
+    data[i].y += y;
+    data[i].z += z;
+  }
+
+private:
+  XYZ *data;
+  uint count;
+};
+
 #endif /*XYZ_ARRAY_H*/

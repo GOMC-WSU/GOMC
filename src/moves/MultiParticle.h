@@ -435,8 +435,54 @@ inline void MultiParticle::CalcEn() {
   // Calculate Torque for new positions
   calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
                             atomForceRecNew, molTorqueNew, bPick);
+  
+    // Compare torque with XYZArray2
+  XYZArray2 atomForceNew2(atomForceNew.Count());
+  XYZArray2 atomForceRecTorque2(atomForceRecNew.Count());
+  XYZArray molTorqueNew2(molTorqueNew.Count());
+
+  for (uint i = 0; i < atomForceNew.Count(); ++i)
+    atomForceNew2.Set(i, atomForceNew[i]);
+
+  for (uint i = 0; i < atomForceRecNew.Count(); ++i)
+    atomForceRecTorque2.Set(i, atomForceRecNew[i]);
+
+  calcEnRef.CalculateTorque2(moleculeIndex, newMolsPos, newCOMs,
+                             atomForceNew2, atomForceRecTorque2,
+                             molTorqueNew2, bPick);
+
+  for (uint m = 0; m < moleculeIndex.size(); ++m) {
+    uint i = moleculeIndex[m];
+    if (molTorqueNew[i] != molTorqueNew2[i])
+      std::cout << "Torque mismatch at molecule " << i << std::endl;
+  }
+
+
+  // Compare reciprocal force with XYZArray2
+  XYZArray2 atomForceRecNew2(atomForceRecNew.Count());
+  XYZArray molForceRecNew2(molForceRecNew.Count());
+
+  calcEwald->BoxForceReciprocal2(newMolsPos, atomForceRecNew2,
+                                 molForceRecNew2, bPick);
+
+  MoleculeLookup::box_iterator testMol = molLookup.BoxBegin(bPick);
+  MoleculeLookup::box_iterator testEnd = molLookup.BoxEnd(bPick);
+
+  while (testMol != testEnd) {
+    uint molIndex = *testMol;
+    uint length = molRef.GetKind(molIndex).NumAtoms();
+    uint start = molRef.MolStart(molIndex);
+
+    for (uint p = start; p < start + length; ++p) {
+      if (atomForceRecNew[p] != atomForceRecNew2[p])
+        std::cout << "Reciprocal force mismatch at atom " << p << std::endl;
+    }
+
+    ++testMol;
+  }
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
+
 }
 
 inline double MultiParticle::CalculateWRatio(XYZ const &lb_new,

@@ -158,6 +158,10 @@ public:
   virtual void BoxForceReciprocal(XYZArray const &molCoords,
                                   XYZArray &atomForceRec, XYZArray &molForceRec,
                                   uint box);
+  void BoxForceReciprocal2(XYZArray const &molCoords,
+                         XYZArray2 &atomForceRec,
+                         XYZArray &molForceRec,
+                         uint box);  
 
   inline double GetLambdaCoef(uint molA, uint box) const {
     double lambda = lambdaRef.GetLambdaCoulomb(molA, box);

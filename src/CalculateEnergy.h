@@ -155,6 +155,12 @@ public:
                        XYZArray const &coordinates, XYZArray const &com,
                        XYZArray const &atomForce, XYZArray const &atomForceRec,
                        XYZArray &molTorque, const uint box);
+  void CalculateTorque2(std::vector<uint> &moleculeIndex,
+                      XYZArray const &coordinates,
+                      XYZArray const &com,
+                      XYZArray2 const &atomForce,
+                      XYZArray2 const &atomForceRec,
+                      XYZArray &molTorque, const uint box);
 
   // Finding the molecule inside cavity using geometric center
   // and store the molecule Index.

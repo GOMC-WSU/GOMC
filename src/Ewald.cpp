@@ -2103,6 +2103,8 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
                                XYZArray &atomForceRec, XYZArray &molForceRec,
                                uint box) {
   if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
+    auto forceStart = std::chrono::high_resolution_clock::now();                              
+
     GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_FORCE);
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = ff.alpha[box] * M_2_SQRTPI;
@@ -2265,6 +2267,165 @@ void Ewald::BoxForceReciprocal(XYZArray const &molCoords,
       delete[] flatZ;
     }
 #endif
+    auto forceEnd = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> forceElapsed = forceEnd - forceStart;
+
+    std::cout << "[RECIP FORCE OLD TIMING] box " << box
+              << " took " << forceElapsed.count()
+              << " seconds" << std::endl;
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_FORCE);
+  }
+}
+
+
+void Ewald::BoxForceReciprocal2(XYZArray const &molCoords,
+                                XYZArray2 &atomForceRec,
+                                XYZArray &molForceRec,
+                                uint box) {
+
+  if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
+    auto forceStart = std::chrono::high_resolution_clock::now();
+
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_FORCE);
+
+    double constValue = ff.alpha[box] * M_2_SQRTPI;
+
+#ifdef GOMC_CUDA
+   // First XYZArray2 experiment is CPU-only.
+    std::cerr << "BoxForceReciprocal2 is not implemented for CUDA."
+              << std::endl; 
+#else
+    // molecule iterator
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+
+    std::vector<XYZ> flatCoords;
+    std::vector<double> flatCharges;
+    std::vector<uint> flatAtomIndices;
+
+    while (thisMol != end) {
+      uint molIndex = *thisMol;
+      uint length, start, p;
+      double distSq;
+      XYZ distVect;
+      molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
+      length = mols.GetKind(molIndex).NumAtoms();
+      start = mols.MolStart(molIndex);
+      double lambdaCoef = GetLambdaCoef(molIndex, box);
+
+      for (p = start; p < start + length; p++) {
+        double X = 0.0, Y = 0.0, Z = 0.0;
+
+        if (!particleHasNoCharge[p]) {
+          // subtract the intra forces(correction)
+          for (uint j = start; j < start + length; j++) {
+            // no self term in force
+            if (p != j) {
+              currentAxes.InRcut(distSq, distVect, molCoords, p, j, box);
+              double dist = sqrt(distSq);
+              double expConstValue = exp(-1.0 * ff.alphaSq[box] * distSq);
+              double qiqj = particleCharge[p] * particleCharge[j] * num::qqFact;
+              double intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
+              intraForce *= ((erf(ff.alpha[box] * dist) / dist) -
+                             constValue * expConstValue);
+              X -= intraForce * distVect.x;
+              Y -= intraForce * distVect.y;
+              Z -= intraForce * distVect.z;
+            }
+          }
+          flatCoords.push_back(molCoords.Get(p));
+          flatCharges.push_back(particleCharge[p] * lambdaCoef);
+          flatAtomIndices.push_back(p);
+        }
+        atomForceRec.Set(p, X, Y, Z);
+        molForceRec.Add(molIndex, X, Y, Z);
+      }
+      thisMol++;
+    }
+
+    int numFlatAtoms = flatCoords.size();
+    if (numFlatAtoms > 0) {
+      int kmax_val = kmax[box];
+      int cacheSize = (kmax_val + 1) * numFlatAtoms;
+
+      std::vector<double> cos_x(cacheSize), sin_x(cacheSize);
+      std::vector<double> cos_y(cacheSize), sin_y(cacheSize);
+      std::vector<double> cos_z(cacheSize), sin_z(cacheSize);
+
+      XYZ b1 = b1_vecRef[box];
+      XYZ b2 = b2_vecRef[box];
+      XYZ b3 = b3_vecRef[box];
+
+      build_tiny_cache(flatCoords, kmax_val, numFlatAtoms, b1, b2, b3,
+                       cos_x, sin_x, cos_y, sin_y, cos_z, sin_z);
+
+      double* flatX = new double[numFlatAtoms];
+      double* flatY = new double[numFlatAtoms];
+      double* flatZ = new double[numFlatAtoms];
+      std::fill_n(flatX, numFlatAtoms, 0.0);
+      std::fill_n(flatY, numFlatAtoms, 0.0);
+      std::fill_n(flatZ, numFlatAtoms, 0.0);
+
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#pragma omp parallel for default(none) shared(box, numFlatAtoms, kmax_val, kx_indRef, ky_indRef, kz_indRef, sumRnew, sumInew, prefactRef, imageSizeRef, cos_x, sin_x, cos_y, sin_y, cos_z, sin_z, flatCharges, kxRef, kyRef, kzRef) \
+      reduction(+ : flatX[:numFlatAtoms], flatY[:numFlatAtoms], flatZ[:numFlatAtoms])
+#endif
+      for (int i = 0; i < (int)imageSizeRef[box]; i++) {
+        int nx = std::abs(kx_indRef[box][i]);
+        int ny = std::abs(ky_indRef[box][i]);
+        int nz = std::abs(kz_indRef[box][i]);
+        int sign_x = kx_indRef[box][i] < 0 ? -1 : 1;
+        int sign_y = ky_indRef[box][i] < 0 ? -1 : 1;
+        int sign_z = kz_indRef[box][i] < 0 ? -1 : 1;
+
+        int nx_offset = nx * numFlatAtoms;
+        int ny_offset = ny * numFlatAtoms;
+        int nz_offset = nz * numFlatAtoms;
+
+        double sumI = sumInew[box][i];
+        double sumR = sumRnew[box][i];
+        double prefact = prefactRef[box][i] * 2.0;
+
+#pragma omp simd
+        for (int j = 0; j < numFlatAtoms; ++j) {
+           double cx = cos_x[nx_offset + j];
+           double sx = sin_x[nx_offset + j] * sign_x;
+           double cy = cos_y[ny_offset + j];
+           double sy = sin_y[ny_offset + j] * sign_y;
+           double cz = cos_z[nz_offset + j];
+           double sz = sin_z[nz_offset + j] * sign_z;
+
+           double cxy = cx * cy - sx * sy;
+           double sxy = sx * cy + cx * sy;
+           double c = cxy * cz - sxy * sz;
+           double s = sxy * cz + cxy * sz;
+
+           double factor = prefact * flatCharges[j] * (s * sumR - c * sumI);
+
+           flatX[j] += factor * kxRef[box][i];
+           flatY[j] += factor * kyRef[box][i];
+           flatZ[j] += factor * kzRef[box][i];
+        }
+      }
+
+      for (int j = 0; j < numFlatAtoms; ++j) {
+        uint p = flatAtomIndices[j];
+        uint molIndex = particleMol[p];
+        atomForceRec.Add(p, flatX[j], flatY[j], flatZ[j]);
+        molForceRec.Add(molIndex, flatX[j], flatY[j], flatZ[j]);
+      }
+
+      delete[] flatX;
+      delete[] flatY;
+      delete[] flatZ;
+    }
+#endif
+    auto forceEnd = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> forceElapsed = forceEnd - forceStart;
+
+    std::cout << "[RECIP FORCE NEW TIMING] box " << box
+              << " took " << forceElapsed.count()
+              << " seconds" << std::endl;
     GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_FORCE);
   }
 }

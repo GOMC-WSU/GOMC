@@ -1416,6 +1416,48 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
   GOMC_EVENT_STOP(1, GomcProfileEvent::BOX_TORQUE);
 }
 
+void CalculateEnergy::CalculateTorque2(
+    std::vector<uint> &moleculeIndex,
+    XYZArray const &coordinates,
+    XYZArray const &com,
+    XYZArray2 const &atomForce,
+    XYZArray2 const &atomForceRec,
+    XYZArray &molTorque,
+    const uint box) {
+
+  if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
+    double *torquex = molTorque.x;
+    double *torquey = molTorque.y;
+    double *torquez = molTorque.z;
+
+    for (int m = 0; m < (int)moleculeIndex.size(); m++) {
+      int mIndex = moleculeIndex[m];
+      int length = mols.GetKind(mIndex).NumAtoms();
+      int start = mols.MolStart(mIndex);
+
+      double tx = 0.0;
+      double ty = 0.0;
+      double tz = 0.0;
+
+      for (int p = start; p < start + length; p++) {
+        XYZ distFromCOM = coordinates.Difference(p, com, mIndex);
+        distFromCOM = currentAxes.MinImage(distFromCOM, box);
+
+        XYZ tempTorque =
+            Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
+
+        tx += tempTorque.x;
+        ty += tempTorque.y;
+        tz += tempTorque.z;
+      }
+
+      torquex[mIndex] = tx;
+      torquey[mIndex] = ty;
+      torquez[mIndex] = tz;
+    }
+  }
+}
+
 void CalculateEnergy::ResetForce(XYZArray &atomForce, XYZArray &molForce,
                                  uint box) {
   if (multiParticleEnabled) {
