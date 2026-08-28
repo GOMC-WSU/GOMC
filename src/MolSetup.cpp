@@ -1143,6 +1143,7 @@ int ReadPSFAtoms(FILE *psf, unsigned int nAtoms,
   char segment[11], moleculeName[11], atomName[11], atomType[11];
   double charge, mass;
 
+  allAtoms.reserve(nAtoms);
   while (atomID < nAtoms) {
     char *check = fgets(input, 511, psf);
     if (check == NULL) {
