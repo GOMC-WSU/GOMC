@@ -243,14 +243,7 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
     }
   }
 
-  if (moveType == mp::MPROTATE) {
-    cudaMemcpy(aForcex, vars->gpu_aForcex, sizeof(double) * atomCount,
-               cudaMemcpyDeviceToHost);
-    cudaMemcpy(aForcey, vars->gpu_aForcey, sizeof(double) * atomCount,
-               cudaMemcpyDeviceToHost);
-    cudaMemcpy(aForcez, vars->gpu_aForcez, sizeof(double) * atomCount,
-               cudaMemcpyDeviceToHost);
-  } else if (moveType == mp::MPDISPLACE) {
+  if (moveType == mp::MPDISPLACE) {
     cudaMemcpy(mForcex, vars->gpu_mForcex, sizeof(double) * molCount,
                cudaMemcpyDeviceToHost);
     cudaMemcpy(mForcey, vars->gpu_mForcey, sizeof(double) * molCount,

@@ -161,14 +161,7 @@ void CallBoxForceReciprocalGPU(
   checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 
-  if (moveType == mp::MPROTATE) {
-    cudaMemcpy(atomForceRec.x, vars->gpu_aForceRecx, sizeof(double) * atomCount,
-               cudaMemcpyDeviceToHost);
-    cudaMemcpy(atomForceRec.y, vars->gpu_aForceRecy, sizeof(double) * atomCount,
-               cudaMemcpyDeviceToHost);
-    cudaMemcpy(atomForceRec.z, vars->gpu_aForceRecz, sizeof(double) * atomCount,
-               cudaMemcpyDeviceToHost);
-  } else if (moveType == mp::MPDISPLACE) {
+  if (moveType == mp::MPDISPLACE) {
     cudaMemcpy(molForceRec.x, vars->gpu_mForceRecx, sizeof(double) * molCount,
                cudaMemcpyDeviceToHost);
     cudaMemcpy(molForceRec.y, vars->gpu_mForceRecy, sizeof(double) * molCount,
