@@ -29,7 +29,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line,
   }
 }
 
-//#ifndef NDEBUG
+#ifndef NDEBUG
 inline void checkLastErrorCUDA(const char *file, int line) {
   cudaError_t code = cudaGetLastError();
   if (code != cudaSuccess) {
@@ -38,24 +38,22 @@ inline void checkLastErrorCUDA(const char *file, int line) {
     exit(code);
   }
 }
-//#endif
+#endif
 
 inline void printFreeMemory() {
   size_t free_byte;
   size_t total_byte;
   cudaError_t cuda_status = cudaMemGetInfo(&free_byte, &total_byte);
-
-  if (cudaSuccess != cuda_status) {
-    printf("Error: cudaMemGetInfo fails, %s \n",
+  if (cuda_status != cudaSuccess) {
+    printf("Error: cudaMemGetInfo fails, %s\n",
            cudaGetErrorString(cuda_status));
-    exit(1);
+    exit(cuda_status);
   }
-  double free_db = (double)free_byte;
-  double total_db = (double)total_byte;
-  double used_db = total_db - free_db;
-  printf("GPU memory usage: used = %f, free = %f MB, total = %f MB\n",
-         used_db / 1024.0 / 1024.0, free_db / 1024.0 / 1024.0,
-         total_db / 1024.0 / 1024.0);
+  float free_db = static_cast<float>(free_byte) / 1024.0f / 1024.0f;
+  float total_db = static_cast<float>(total_byte) / 1024.0f / 1024.0f;
+  float used_db = total_db - free_db;
+  printf("GPU memory usage: used = %fMB, free = %fMB, total = %fMB\n", used_db,
+         free_db, total_db);
 }
 
 class VariablesCUDA {
