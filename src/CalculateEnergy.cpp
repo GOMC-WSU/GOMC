@@ -197,7 +197,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   tempLJEn, forcefield.sc_coul, forcefield.sc_sigma_6,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
-#if defined _OPENMP
+#ifdef _OPENMP
 #pragma omp parallel for default(none) shared(                                 \
         cellStartIndex, cellVector, coords, mapParticleToCell, neighborList)   \
     firstprivate(box, boxAxes, num::qqFact) reduction(+ : tempREn, tempLJEn)
@@ -467,7 +467,7 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
                        forcefield.sc_coul, forcefield.sc_sigma_6,
                        forcefield.sc_alpha, forcefield.sc_power, box);
 #else
-#if defined _OPENMP
+#ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
     shared(cellStartIndex, cellVector, mapParticleToCell, neighborList)        \
     firstprivate(box) reduction(+ : vT11, vT12, vT13, vT22, vT23, vT33, rT11,  \
@@ -1405,7 +1405,7 @@ void CalculateEnergy::VirialCorrection(Virial &virial,
 #endif
 }
 
-//! Calculate Torque
+// Calculate Torque
 void CalculateEnergy::CalculateTorque(std::vector<int> &moleculeIndex,
                                       XYZArray const &coordinates,
                                       XYZArray const &com,
@@ -1419,24 +1419,13 @@ void CalculateEnergy::CalculateTorque(std::vector<int> &moleculeIndex,
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;
 #ifdef GOMC_CUDA
-int numOfMolecules = com.Count();
-/*
-for (int i = 0; i < numOfMolecules; i++) {
-    printf("Torque for molecule %d is (%f, %f, %f)\n", i, torquex[i], torquey[i], torquez[i]);
-  }
-*/
     CallCalculateTorqueGPU(forcefield.particles->getCUDAVars(), moleculeIndex,
                            coordinates, com, atomForce, atomForceRec, molTorque,
                            box, currentAxes);
-    
-     for (int i = 0; i < numOfMolecules; i++) {
-    printf("Torque for molecule %d is (%lf, %lf, %lf)\n", i, torquex[i], torquey[i], torquez[i]);
-  }
-  exit(0);
 #else
-#if defined _OPENMP
-#pragma omp parallel for default(none)                                         
-    shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  
+#ifdef _OPENMP
+#pragma omp parallel for default(none)                                         \
+    shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  \
                torquey, torquez) firstprivate(box)
 #endif
     for (int m = 0; m < (int)moleculeIndex.size(); ++m) {
@@ -1460,227 +1449,107 @@ for (int i = 0; i < numOfMolecules; i++) {
       torquey[mIndex] = ty;
       torquez[mIndex] = tz;
     }
-  }
 #endif
     GOMC_EVENT_STOP(1, GomcProfileEvent::BOX_TORQUE);
+  }
 }
+
+void CalculateEnergy::ResetForce(XYZArray &atomForce, XYZArray &molForce,
+                                 uint box) {
+  if (multiParticleEnabled) {
+    uint length, start;
+
+    // molecule iterator
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+
+    while (thisMol != end) {
+      length = mols.GetKind(*thisMol).NumAtoms();
+      start = mols.MolStart(*thisMol);
+
+      molForce.Set(*thisMol, 0.0, 0.0, 0.0);
+      for (uint p = start; p < start + length; p++) {
+        atomForce.Set(p, 0.0, 0.0, 0.0);
+      }
+      thisMol++;
+    }
+  }
 }
 
+uint CalculateEnergy::NumberOfParticlesInsideBox(uint box) {
+  uint numberOfAtoms = 0;
 
-  void CalculateEnergy::ResetForce(XYZArray & atomForce, XYZArray & molForce,
-                                   uint box) {
-    if (multiParticleEnabled) {
-      uint length, start;
-
-      // molecule iterator
-      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
-      MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-
-      while (thisMol != end) {
-        length = mols.GetKind(*thisMol).NumAtoms();
-        start = mols.MolStart(*thisMol);
-
-        molForce.Set(*thisMol, 0.0, 0.0, 0.0);
-        for (uint p = start; p < start + length; p++) {
-          atomForce.Set(p, 0.0, 0.0, 0.0);
-        }
-        thisMol++;
-      }
-    }
+  for (int k = 0; k < (int)mols.GetKindsCount(); k++) {
+    MoleculeKind const &thisKind = mols.kinds[k];
+    numberOfAtoms += thisKind.NumAtoms() * molLookup.NumKindInBox(k, box);
   }
 
-  uint CalculateEnergy::NumberOfParticlesInsideBox(uint box) {
-    uint numberOfAtoms = 0;
+  return numberOfAtoms;
+}
 
-    for (int k = 0; k < (int)mols.GetKindsCount(); k++) {
-      MoleculeKind const &thisKind = mols.kinds[k];
-      numberOfAtoms += thisKind.NumAtoms() * molLookup.NumKindInBox(k, box);
-    }
+bool CalculateEnergy::FindMolInCavity(std::vector<std::vector<uint>> &mol,
+                                      const XYZ &center, const XYZ &cavDim,
+                                      const XYZArray &invCav, const uint box,
+                                      const uint kind, const uint exRatio) {
+  uint k;
+  mol.clear();
+  mol.resize(molLookup.GetNumKind());
+  double maxLength = cavDim.Max();
 
-    return numberOfAtoms;
-  }
-
-  bool CalculateEnergy::FindMolInCavity(std::vector<std::vector<uint>> & mol,
-                                        const XYZ &center, const XYZ &cavDim,
-                                        const XYZArray &invCav, const uint box,
-                                        const uint kind, const uint exRatio) {
-    uint k;
-    mol.clear();
-    mol.resize(molLookup.GetNumKind());
-    double maxLength = cavDim.Max();
-
-    if (maxLength <= currentAxes.rCut[box]) {
-      CellList::Neighbors n = cellList.EnumerateLocal(center, box);
-      while (!n.Done()) {
-        if (currentAxes.InCavity(currentCOM.Get(particleMol[*n]), center,
-                                 cavDim, invCav, box)) {
-          uint molIndex = particleMol[*n];
-          // if molecule can be transfer between boxes
-          if (!molLookup.IsNoSwap(molIndex)) {
-            k = mols.GetMolKind(molIndex);
-            bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
-                         mol[k].end();
-            if (!exist)
-              mol[k].push_back(molIndex);
-          }
-        }
-        n.Next();
-      }
-    } else {
-      MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
-      MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-      while (n != end) {
-        if (currentAxes.InCavity(currentCOM.Get(*n), center, cavDim, invCav,
-                                 box)) {
-          uint molIndex = *n;
-          // if molecule can be transfer between boxes
-          if (!molLookup.IsNoSwap(molIndex)) {
-            k = mols.GetMolKind(molIndex);
-            bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
-                         mol[k].end();
-            if (!exist)
-              mol[k].push_back(molIndex);
-          }
-        }
-        n++;
-      }
-    }
-
-    // If the is exRate and more molecule kind in cavity, return true.
-    if (mol[kind].size() >= exRatio)
-      return true;
-    else
-      return false;
-  }
-
-  void CalculateEnergy::SingleMoleculeInter(
-      Energy & interEnOld, Energy & interEnNew, const double lambdaOldVDW,
-      const double lambdaNewVDW, const double lambdaOldCoulomb,
-      const double lambdaNewCoulomb, const uint molIndex, const uint box)
-      const {
-    double tempREnOld = 0.0, tempLJEnOld = 0.0;
-    double tempREnNew = 0.0, tempLJEnNew = 0.0;
-    if (box < BOXES_WITH_U_NB) {
-      uint length = mols.GetKind(molIndex).NumAtoms();
-      uint start = mols.MolStart(molIndex);
-
-      for (uint p = 0; p < length; ++p) {
-        uint atom = start + p;
-        CellList::Neighbors n =
-            cellList.EnumerateLocal(currentCoords[atom], box);
-
-        std::vector<uint> nIndex;
-        // store atom index in neighboring cell
-        while (!n.Done()) {
-          if (particleMol[*n] != (int)molIndex) {
-            nIndex.push_back(*n);
-          }
-          n.Next();
-        }
-
-#ifdef _OPENMP
-#pragma omp parallel for default(none) shared(nIndex)                          \
-    firstprivate(atom, box, lambdaNewCoulomb, lambdaNewVDW, lambdaOldCoulomb,  \
-                     lambdaOldVDW, num::qqFact)                                \
-    reduction(+ : tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
-#endif
-        for (int i = 0; i < (int)nIndex.size(); i++) {
-          double distSq = 0.0;
-          XYZ virComponents;
-          if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
-                                 nIndex[i], box)) {
-            if (electrostatic) {
-              double qi_qj_fact = particleCharge[atom] *
-                                  particleCharge[nIndex[i]] * num::qqFact;
-              if (qi_qj_fact != 0.0) {
-                tempREnNew += forcefield.particles->CalcCoulomb(
-                    distSq, particleKind[atom], particleKind[nIndex[i]],
-                    qi_qj_fact, lambdaNewCoulomb, box);
-                tempREnOld += forcefield.particles->CalcCoulomb(
-                    distSq, particleKind[atom], particleKind[nIndex[i]],
-                    qi_qj_fact, lambdaOldCoulomb, box);
-              }
-            }
-
-            tempLJEnNew += forcefield.particles->CalcEn(
-                distSq, particleKind[atom], particleKind[nIndex[i]],
-                lambdaNewVDW);
-            tempLJEnOld += forcefield.particles->CalcEn(
-                distSq, particleKind[atom], particleKind[nIndex[i]],
-                lambdaOldVDW);
-          }
+  if (maxLength <= currentAxes.rCut[box]) {
+    CellList::Neighbors n = cellList.EnumerateLocal(center, box);
+    while (!n.Done()) {
+      if (currentAxes.InCavity(currentCOM.Get(particleMol[*n]), center, cavDim,
+                               invCav, box)) {
+        uint molIndex = particleMol[*n];
+        // if molecule can be transfer between boxes
+        if (!molLookup.IsNoSwap(molIndex)) {
+          k = mols.GetMolKind(molIndex);
+          bool exist =
+              std::find(mol[k].begin(), mol[k].end(), molIndex) != mol[k].end();
+          if (!exist)
+            mol[k].push_back(molIndex);
         }
       }
+      n.Next();
     }
-
-    interEnNew.inter = tempLJEnNew;
-    interEnNew.real = tempREnNew;
-    interEnOld.inter = tempLJEnOld;
-    interEnOld.real = tempREnOld;
+  } else {
+    MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+    while (n != end) {
+      if (currentAxes.InCavity(currentCOM.Get(*n), center, cavDim, invCav,
+                               box)) {
+        uint molIndex = *n;
+        // if molecule can be transfer between boxes
+        if (!molLookup.IsNoSwap(molIndex)) {
+          k = mols.GetMolKind(molIndex);
+          bool exist =
+              std::find(mol[k].begin(), mol[k].end(), molIndex) != mol[k].end();
+          if (!exist)
+            mol[k].push_back(molIndex);
+        }
+      }
+      n++;
+    }
   }
 
-  double CalculateEnergy::GetLambdaVDW(uint molA, uint molB, uint box) const {
-    double lambda = 1.0;
-    lambda *= lambdaRef.GetLambdaVDW(molA, box);
-    lambda *= lambdaRef.GetLambdaVDW(molB, box);
-    return lambda;
-  }
+  // If the is exRate and more molecule kind in cavity, return true.
+  if (mol[kind].size() >= exRatio)
+    return true;
+  else
+    return false;
+}
 
-  double CalculateEnergy::GetLambdaCoulomb(uint molA, uint molB, uint box)
-      const {
-    double lambda = 1.0;
-    lambda *= lambdaRef.GetLambdaCoulomb(molA, box);
-    lambda *= lambdaRef.GetLambdaCoulomb(molB, box);
-    // no need for sq root for inter energy. Always one of the molecules has
-    // lambda 1
-    return lambda;
-  }
-
-  // Calculates the change in the TC from adding numChange atoms of a kind
-  double CalculateEnergy::MoleculeTailChange(
-      const uint box, const uint kind, const std::vector<uint> &kCount,
-      const double lambdaOld, const double lambdaNew) const {
-    if (box >= BOXES_WITH_U_NB) {
-      return 0.0;
-    }
-
-    double tcDiff = 0.0;
-    uint ktot = mols.GetKindsCount();
-    for (uint i = 0; i < ktot; ++i) {
-      // We should have only one molecule of fractional kind
-      double rhoDeltaIJ_2 = 2.0 * (double)(kCount[i]) * currentAxes.volInv[box];
-      uint index = kind * ktot + i;
-      tcDiff += (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] *
-                rhoDeltaIJ_2;
-    }
-    uint index = kind * ktot + kind;
-    tcDiff += (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] *
-              currentAxes.volInv[box];
-
-    return tcDiff;
-  }
-
-  // Calculate the change in energy due to lambda
-  void CalculateEnergy::EnergyChange(
-      Energy * energyDiff, Energy & dUdL_VDW, Energy & dUdL_Coul,
-      const std::vector<double> &lambda_VDW,
-      const std::vector<double> &lambda_Coul, const uint iState,
-      const uint molIndex, const uint box) const {
-    if (box >= BOXES_WITH_U_NB) {
-      return;
-    }
-
-    GOMC_EVENT_START(1, GomcProfileEvent::FREE_ENERGY);
+void CalculateEnergy::SingleMoleculeInter(
+    Energy &interEnOld, Energy &interEnNew, const double lambdaOldVDW,
+    const double lambdaNewVDW, const double lambdaOldCoulomb,
+    const double lambdaNewCoulomb, const uint molIndex, const uint box) const {
+  double tempREnOld = 0.0, tempLJEnOld = 0.0;
+  double tempREnNew = 0.0, tempLJEnNew = 0.0;
+  if (box < BOXES_WITH_U_NB) {
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
-    uint lambdaSize = lambda_VDW.size();
-    double *tempLJEnDiff = new double[lambdaSize];
-    double *tempREnDiff = new double[lambdaSize];
-    double dudl_VDW = 0.0, dudl_Coul = 0.0;
-    std::fill_n(tempLJEnDiff, lambdaSize, 0.0);
-    std::fill_n(tempREnDiff, lambdaSize, 0.0);
 
-    // Calculate the vdw, short range electrostatic energy
     for (uint p = 0; p < length; ++p) {
       uint atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
@@ -1694,119 +1563,236 @@ for (int i = 0; i < numOfMolecules; i++) {
         n.Next();
       }
 
-#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(none) shared(lambda_Coul, lambda_VDW, nIndex) \
-    firstprivate(atom, box, iState, lambdaSize, num::qqFact)                   \
-    reduction(+ : dudl_VDW, dudl_Coul, tempREnDiff[ : lambdaSize],             \
-                  tempLJEnDiff[ : lambdaSize])
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(nIndex)                          \
+    firstprivate(atom, box, lambdaNewCoulomb, lambdaNewVDW, lambdaOldCoulomb,  \
+                     lambdaOldVDW, num::qqFact)                                \
+    reduction(+ : tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
 #endif
       for (int i = 0; i < (int)nIndex.size(); i++) {
         double distSq = 0.0;
         XYZ virComponents;
         if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
                                nIndex[i], box)) {
-          double qi_qj_fact = 0.0, energyOldCoul = 0.0;
-          // Calculate the energy of current state
-          double energyOldVDW = forcefield.particles->CalcEn(
-              distSq, particleKind[atom], particleKind[nIndex[i]],
-              lambda_VDW[iState]);
-          // Calculate du/dl in VDW for current state
-          dudl_VDW += forcefield.particles->CalcdEndL(
-              distSq, particleKind[atom], particleKind[nIndex[i]],
-              lambda_VDW[iState]);
-
           if (electrostatic) {
-            qi_qj_fact =
+            double qi_qj_fact =
                 particleCharge[atom] * particleCharge[nIndex[i]] * num::qqFact;
             if (qi_qj_fact != 0.0) {
-              energyOldCoul = forcefield.particles->CalcCoulomb(
+              tempREnNew += forcefield.particles->CalcCoulomb(
                   distSq, particleKind[atom], particleKind[nIndex[i]],
-                  qi_qj_fact, lambda_Coul[iState], box);
-              // Calculate du/dl in Coulomb for current state.
-              dudl_Coul += forcefield.particles->CalcCoulombdEndL(
+                  qi_qj_fact, lambdaNewCoulomb, box);
+              tempREnOld += forcefield.particles->CalcCoulomb(
                   distSq, particleKind[atom], particleKind[nIndex[i]],
-                  qi_qj_fact, lambda_Coul[iState], box);
+                  qi_qj_fact, lambdaOldCoulomb, box);
             }
           }
 
-          for (int s = 0; s < (int)lambdaSize; s++) {
-            // Calculate the energy of other state
-            tempLJEnDiff[s] += forcefield.particles->CalcEn(
-                distSq, particleKind[atom], particleKind[nIndex[i]],
-                lambda_VDW[s]);
-            tempLJEnDiff[s] += -energyOldVDW;
-            if (electrostatic && qi_qj_fact != 0.0) {
-              tempREnDiff[s] += forcefield.particles->CalcCoulomb(
-                  distSq, particleKind[atom], particleKind[nIndex[i]],
-                  qi_qj_fact, lambda_Coul[s], box);
-              tempREnDiff[s] += -energyOldCoul;
-            }
-          }
+          tempLJEnNew += forcefield.particles->CalcEn(
+              distSq, particleKind[atom], particleKind[nIndex[i]],
+              lambdaNewVDW);
+          tempLJEnOld += forcefield.particles->CalcEn(
+              distSq, particleKind[atom], particleKind[nIndex[i]],
+              lambdaOldVDW);
         }
       }
     }
-
-    dUdL_VDW.inter = dudl_VDW;
-    dUdL_Coul.real = dudl_Coul;
-    for (int s = 0; s < (int)lambdaSize; s++) {
-      energyDiff[s].inter += tempLJEnDiff[s];
-      energyDiff[s].real += tempREnDiff[s];
-    }
-    delete[] tempLJEnDiff;
-    delete[] tempREnDiff;
-
-    if (forcefield.useLRC) {
-      // Need to calculate change in LRC
-      ChangeLRC(energyDiff, dUdL_VDW, lambda_VDW, iState, molIndex, box);
-    }
-    // Need to calculate change in self
-    calcEwald->ChangeSelf(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
-                          box);
-    // Need to calculate change in correction
-    calcEwald->ChangeCorrection(energyDiff, dUdL_Coul, lambda_Coul, iState,
-                                molIndex, box);
-    // Need to calculate change in Reciprocal
-    calcEwald->ChangeRecip(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
-                           box);
-    GOMC_EVENT_STOP(1, GomcProfileEvent::FREE_ENERGY);
   }
 
-  // Calculate the change in LRC for each state
-  void CalculateEnergy::ChangeLRC(Energy * energyDiff, Energy & dUdL_VDW,
-                                  const std::vector<double> &lambda_VDW,
-                                  const uint iState, const uint molIndex,
-                                  const uint box) const {
-    // Get the kind and lambda value
-    uint fk = mols.GetMolKind(molIndex);
-    double lambda_istate = lambda_VDW[iState];
+  interEnNew.inter = tempLJEnNew;
+  interEnNew.real = tempREnNew;
+  interEnOld.inter = tempLJEnOld;
+  interEnOld.real = tempREnOld;
+}
 
-    // Add the LRC for fractional molecule
-    for (size_t s = 0; s < lambda_VDW.size(); s++) {
-      double lambdaVDW = lambda_VDW[s];
-      for (uint i = 0; i < mols.GetKindsCount(); ++i) {
-        uint molNum = molLookup.NumKindInBox(i, box);
-        if (i == fk) {
-          --molNum; // We have one less molecule (it is fractional molecule)
+double CalculateEnergy::GetLambdaVDW(uint molA, uint molB, uint box) const {
+  double lambda = 1.0;
+  lambda *= lambdaRef.GetLambdaVDW(molA, box);
+  lambda *= lambdaRef.GetLambdaVDW(molB, box);
+  return lambda;
+}
+
+double CalculateEnergy::GetLambdaCoulomb(uint molA, uint molB, uint box) const {
+  double lambda = 1.0;
+  lambda *= lambdaRef.GetLambdaCoulomb(molA, box);
+  lambda *= lambdaRef.GetLambdaCoulomb(molB, box);
+  // no need for sq root for inter energy. Always one of the molecules has
+  // lambda 1
+  return lambda;
+}
+
+// Calculates the change in the TC from adding numChange atoms of a kind
+double CalculateEnergy::MoleculeTailChange(const uint box, const uint kind,
+                                           const std::vector<uint> &kCount,
+                                           const double lambdaOld,
+                                           const double lambdaNew) const {
+  if (box >= BOXES_WITH_U_NB) {
+    return 0.0;
+  }
+
+  double tcDiff = 0.0;
+  uint ktot = mols.GetKindsCount();
+  for (uint i = 0; i < ktot; ++i) {
+    // We should have only one molecule of fractional kind
+    double rhoDeltaIJ_2 = 2.0 * (double)(kCount[i]) * currentAxes.volInv[box];
+    uint index = kind * ktot + i;
+    tcDiff +=
+        (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] * rhoDeltaIJ_2;
+  }
+  uint index = kind * ktot + kind;
+  tcDiff += (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] *
+            currentAxes.volInv[box];
+
+  return tcDiff;
+}
+
+// Calculate the change in energy due to lambda
+void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
+                                   Energy &dUdL_Coul,
+                                   const std::vector<double> &lambda_VDW,
+                                   const std::vector<double> &lambda_Coul,
+                                   const uint iState, const uint molIndex,
+                                   const uint box) const {
+  if (box >= BOXES_WITH_U_NB) {
+    return;
+  }
+
+  GOMC_EVENT_START(1, GomcProfileEvent::FREE_ENERGY);
+  uint length = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_VDW.size();
+  double *tempLJEnDiff = new double[lambdaSize];
+  double *tempREnDiff = new double[lambdaSize];
+  double dudl_VDW = 0.0, dudl_Coul = 0.0;
+  std::fill_n(tempLJEnDiff, lambdaSize, 0.0);
+  std::fill_n(tempREnDiff, lambdaSize, 0.0);
+
+  // Calculate the vdw, short range electrostatic energy
+  for (uint p = 0; p < length; ++p) {
+    uint atom = start + p;
+    CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
+
+    std::vector<uint> nIndex;
+    // store atom index in neighboring cell
+    while (!n.Done()) {
+      if (particleMol[*n] != (int)molIndex) {
+        nIndex.push_back(*n);
+      }
+      n.Next();
+    }
+
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#pragma omp parallel for default(none) shared(lambda_Coul, lambda_VDW, nIndex) \
+    firstprivate(atom, box, iState, lambdaSize, num::qqFact)                   \
+    reduction(+ : dudl_VDW, dudl_Coul, tempREnDiff[ : lambdaSize],             \
+                  tempLJEnDiff[ : lambdaSize])
+#endif
+    for (int i = 0; i < (int)nIndex.size(); i++) {
+      double distSq = 0.0;
+      XYZ virComponents;
+      if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
+                             nIndex[i], box)) {
+        double qi_qj_fact = 0.0, energyOldCoul = 0.0;
+        // Calculate the energy of current state
+        double energyOldVDW = forcefield.particles->CalcEn(
+            distSq, particleKind[atom], particleKind[nIndex[i]],
+            lambda_VDW[iState]);
+        // Calculate du/dl in VDW for current state
+        dudl_VDW += forcefield.particles->CalcdEndL(distSq, particleKind[atom],
+                                                    particleKind[nIndex[i]],
+                                                    lambda_VDW[iState]);
+
+        if (electrostatic) {
+          qi_qj_fact =
+              particleCharge[atom] * particleCharge[nIndex[i]] * num::qqFact;
+          if (qi_qj_fact != 0.0) {
+            energyOldCoul = forcefield.particles->CalcCoulomb(
+                distSq, particleKind[atom], particleKind[nIndex[i]], qi_qj_fact,
+                lambda_Coul[iState], box);
+            // Calculate du/dl in Coulomb for current state.
+            dudl_Coul += forcefield.particles->CalcCoulombdEndL(
+                distSq, particleKind[atom], particleKind[nIndex[i]], qi_qj_fact,
+                lambda_Coul[iState], box);
+          }
         }
-        double rhoDeltaIJ_2 = 2.0 * (double)(molNum)*currentAxes.volInv[box];
-        energyDiff[s].tailCorrection +=
-            mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
-            rhoDeltaIJ_2 * (lambdaVDW - lambda_istate);
-        if (s == iState) {
-          // Calculate du/dl in VDW LRC for current state
-          dUdL_VDW.tailCorrection +=
-              mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
-              rhoDeltaIJ_2;
+
+        for (int s = 0; s < (int)lambdaSize; s++) {
+          // Calculate the energy of other state
+          tempLJEnDiff[s] += forcefield.particles->CalcEn(
+              distSq, particleKind[atom], particleKind[nIndex[i]],
+              lambda_VDW[s]);
+          tempLJEnDiff[s] += -energyOldVDW;
+          if (electrostatic && qi_qj_fact != 0.0) {
+            tempREnDiff[s] += forcefield.particles->CalcCoulomb(
+                distSq, particleKind[atom], particleKind[nIndex[i]], qi_qj_fact,
+                lambda_Coul[s], box);
+            tempREnDiff[s] += -energyOldCoul;
+          }
         }
       }
+    }
+  }
+
+  dUdL_VDW.inter = dudl_VDW;
+  dUdL_Coul.real = dudl_Coul;
+  for (int s = 0; s < (int)lambdaSize; s++) {
+    energyDiff[s].inter += tempLJEnDiff[s];
+    energyDiff[s].real += tempREnDiff[s];
+  }
+  delete[] tempLJEnDiff;
+  delete[] tempREnDiff;
+
+  if (forcefield.useLRC) {
+    // Need to calculate change in LRC
+    ChangeLRC(energyDiff, dUdL_VDW, lambda_VDW, iState, molIndex, box);
+  }
+  // Need to calculate change in self
+  calcEwald->ChangeSelf(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
+                        box);
+  // Need to calculate change in correction
+  calcEwald->ChangeCorrection(energyDiff, dUdL_Coul, lambda_Coul, iState,
+                              molIndex, box);
+  // Need to calculate change in Reciprocal
+  calcEwald->ChangeRecip(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
+                         box);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::FREE_ENERGY);
+}
+
+// Calculate the change in LRC for each state
+void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
+                                const std::vector<double> &lambda_VDW,
+                                const uint iState, const uint molIndex,
+                                const uint box) const {
+  // Get the kind and lambda value
+  uint fk = mols.GetMolKind(molIndex);
+  double lambda_istate = lambda_VDW[iState];
+
+  // Add the LRC for fractional molecule
+  for (size_t s = 0; s < lambda_VDW.size(); s++) {
+    double lambdaVDW = lambda_VDW[s];
+    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+      uint molNum = molLookup.NumKindInBox(i, box);
+      if (i == fk) {
+        --molNum; // We have one less molecule (it is fractional molecule)
+      }
+      double rhoDeltaIJ_2 = 2.0 * (double)(molNum)*currentAxes.volInv[box];
       energyDiff[s].tailCorrection +=
-          mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
-          currentAxes.volInv[box] * (lambdaVDW - lambda_istate);
+          mols.pairEnCorrections[fk * mols.GetKindsCount() + i] * rhoDeltaIJ_2 *
+          (lambdaVDW - lambda_istate);
       if (s == iState) {
         // Calculate du/dl in VDW LRC for current state
         dUdL_VDW.tailCorrection +=
-            mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
-            currentAxes.volInv[box];
+            mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
+            rhoDeltaIJ_2;
       }
     }
+    energyDiff[s].tailCorrection +=
+        mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+        currentAxes.volInv[box] * (lambdaVDW - lambda_istate);
+    if (s == iState) {
+      // Calculate du/dl in VDW LRC for current state
+      dUdL_VDW.tailCorrection +=
+          mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+          currentAxes.volInv[box];
+    }
   }
+}

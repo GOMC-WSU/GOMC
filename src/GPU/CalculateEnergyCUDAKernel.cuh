@@ -33,9 +33,9 @@ __global__ void CalculateTorqueGPU(
     const int *__restrict__ gpu_startAtomIndex, // atom indices
     const int *__restrict__ gpu_moleculeIndex,  // molecule indices
 
-    const double *__restrict__ gpu_cx, // x coordinates
-    const double *__restrict__ gpu_cy, // y coordinates
-    const double *__restrict__ gpu_cz, // z coordinates
+    const double *__restrict__ gpu_x, // x coordinates
+    const double *__restrict__ gpu_y, // y coordinates
+    const double *__restrict__ gpu_z, // z coordinates
 
     const double *__restrict__ gpu_comx, // x center of mass
     const double *__restrict__ gpu_comy, // y center of mass
@@ -53,13 +53,12 @@ __global__ void CalculateTorqueGPU(
     double *__restrict__ gpu_moltorquey, // y molecule torque
     double *__restrict__ gpu_moltorquez, // z molecule torque
 
-    const uint box,         // box number
+    const uint box,          // box number
     const uint numMolecules, // number of molecules, if index is above this
-                            // number we should just return
-    const double3 axis,     // lengths in each dimension
-    const double3 halfAx    // half of axis
+                             // number we should just return
+    const double3 axis,      // lengths in each dimension
+    const double3 halfAx     // half of axis
 );
-
 
 __device__ inline double3 CrossProductGPU(const double3 &a, const double3 &b);
 
