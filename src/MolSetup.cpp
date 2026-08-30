@@ -1169,7 +1169,8 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nangles) {
   unsigned int atom0, atom1, atom2;
-  std::vector<bool> defined(firstAtom.size(), false);
+  std::vector<char> defined(firstAtom.size(), 0);
+  uint definedCount = 0;
   for (uint n = 0; n < nangles; n++) {
     int num = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
     if (num != 3) {
@@ -1180,22 +1181,24 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
       return errors::READ_ERROR;
     }
 
-    // loop to find the molecule kind with this angles
+    // loop to find the molecule kind with this angle
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
-      // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
-      // assign the angle
       if (atom0 >= molBegin && atom0 < molEnd) {
         currentMol.angles.emplace_back(
             atom0 - molBegin, atom1 - molBegin, atom2 - molBegin);
-        // once we found the molecule kind, break from the loop
-        defined[i] = true;
+        if (!defined[i]) {
+          defined[i] = 1;
+          ++definedCount;
+        }
         break;
       }
     }
+    // early exit once all molecule kinds have been defined
+    if (definedCount == firstAtom.size())
+      break;
   }
   // Check if we defined all angles
   for (unsigned int i = 0; i < firstAtom.size(); ++i) {
@@ -1230,7 +1233,8 @@ int ReadPSFDihedrals(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint ndihedrals) {
   Dihedral dih(0, 0, 0, 0);
-  std::vector<bool> defined(firstAtom.size(), false);
+  std::vector<char> defined(firstAtom.size(), 0);
+  uint definedCount = 0;
   for (uint n = 0; n < ndihedrals; n++) {
     int num = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
     if (num != 4) {
@@ -1261,10 +1265,16 @@ int ReadPSFDihedrals(
           currentMol.dihedrals.push_back(dih);
         }
         // once we found the molecule kind, break from the loop
-        defined[i] = true;
+        if (!defined[i]) {
+          defined[i] = 1;
+          ++definedCount;
+        }
         break;
       }
     }
+    // early exit once all molecule kinds have been defined
+    if (definedCount == firstAtom.size())
+      break;
   }
   // Check if we defined all dihedrals
   for (unsigned int i = 0; i < firstAtom.size(); ++i) {
@@ -1286,7 +1296,8 @@ int ReadPSFImpropers(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nimpropers) {
   Improper imp(0, 0, 0, 0);
-  std::vector<bool> defined(firstAtom.size(), false);
+  std::vector<char> defined(firstAtom.size(), 0);
+  uint definedCount = 0;
   for (uint n = 0; n < nimpropers; n++) {
     int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if (num != 4) {
@@ -1317,10 +1328,16 @@ int ReadPSFImpropers(
           currentMol.impropers.push_back(imp);
         }
         // once we found the molecule kind, break from the loop
-        defined[i] = true;
+        if (!defined[i]) {
+          defined[i] = 1;
+          ++definedCount;
+        }
         break;
       }
     }
+    // early exit once all molecule kinds have been defined
+    if (definedCount == firstAtom.size())
+      break;
   }
   // Check if we defined all impropers
   for (unsigned int i = 0; i < firstAtom.size(); ++i) {
@@ -1341,7 +1358,8 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nDonors) {
   unsigned int atom0, atom1;
-  std::vector<bool> defined(firstAtom.size(), false);
+  std::vector<char> defined(firstAtom.size(), 0);
+  uint definedCount = 0;
   for (uint n = 0; n < nDonors; n++) {
     int num = fscanf(psf, "%u %u", &atom0, &atom1);
     if (num != 2) {
@@ -1363,10 +1381,16 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
       if (atom0 >= molBegin && atom0 < molEnd) {
         currentMol.donors.emplace_back(atom0 - molBegin, atom1 - molBegin);
         // once we found the molecule kind, break from the loop
-        defined[i] = true;
+        if (!defined[i]) {
+          defined[i] = 1;
+          ++definedCount;
+        }
         break;
       }
     }
+    // early exit once all molecule kinds have been defined
+    if (definedCount == firstAtom.size())
+      break;
   }
   // Check if we defined all donors
   for (unsigned int i = 0; i < firstAtom.size(); ++i) {
@@ -1388,7 +1412,8 @@ int ReadPSFAcceptors(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nAcceptors) {
   unsigned int atom0, atom1;
-  std::vector<bool> defined(firstAtom.size(), false);
+  std::vector<char> defined(firstAtom.size(), 0);
+  uint definedCount = 0;
   for (uint n = 0; n < nAcceptors; n++) {
     int num = fscanf(psf, "%u %u", &atom0, &atom1);
     if (num != 2) {
@@ -1411,10 +1436,16 @@ int ReadPSFAcceptors(
         currentMol.acceptors.emplace_back(
             atom0 - molBegin, atom1 - molBegin);
         // once we found the molecule kind, break from the loop
-        defined[i] = true;
+        if (!defined[i]) {
+          defined[i] = 1;
+          ++definedCount;
+        }
         break;
       }
     }
+    // early exit once all molecule kinds have been defined
+    if (definedCount == firstAtom.size())
+      break;
   }
   // Check if we defined all acceptors
   for (unsigned int i = 0; i < firstAtom.size(); ++i) {
