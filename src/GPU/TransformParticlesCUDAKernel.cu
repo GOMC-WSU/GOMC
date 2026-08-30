@@ -315,12 +315,6 @@ void CallRotateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, newMolPos.z, atomCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_comx, newCOMs.x, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_comy, newCOMs.y, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double),
-             cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_isMolInvolved, &isMoleculeInvolved[0],
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
