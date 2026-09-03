@@ -68,7 +68,8 @@ void InitGPUForceField(VariablesCUDA *vars, double const *sigmaSq,
   cudaMemcpy(vars->gpu_epsilon_Cn, epsilon_Cn, countSq * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_n, n, countSq * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_VDW_Kind, &VDW_Kind, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_VDW_Kind, &VDW_Kind, sizeof(int),
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_isMartini, &isMartini, sizeof(int),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_count, &count, sizeof(int), cudaMemcpyHostToDevice);
