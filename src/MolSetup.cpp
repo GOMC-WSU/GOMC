@@ -1169,8 +1169,6 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nangles) {
   unsigned int atom0, atom1, atom2;
-  std::vector<char> defined(firstAtom.size(), 0);
-  uint definedCount = 0;
   for (uint n = 0; n < nangles; n++) {
     int num = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
     if (num != 3) {
@@ -1189,23 +1187,8 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
       if (atom0 >= molBegin && atom0 < molEnd) {
         currentMol.angles.emplace_back(
             atom0 - molBegin, atom1 - molBegin, atom2 - molBegin);
-        if (!defined[i]) {
-          defined[i] = 1;
-          ++definedCount;
-        }
         break;
       }
-    }
-    // early exit once all molecule kinds have been defined
-    if (definedCount == firstAtom.size())
-      break;
-  }
-  // Check if we defined all angles
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind &currentMol = kindMap[firstAtom[i].second];
-    if (currentMol.atoms.size() > 2 && !defined[i]) {
-      std::cout << "Warning: Angle is missing for " << firstAtom[i].second
-                << " !\n";
     }
   }
   return 0;
