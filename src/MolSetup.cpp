@@ -1216,8 +1216,6 @@ int ReadPSFDihedrals(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint ndihedrals) {
   Dihedral dih(0, 0, 0, 0);
-  std::vector<char> defined(firstAtom.size(), 0);
-  uint definedCount = 0;
   for (uint n = 0; n < ndihedrals; n++) {
     int num = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
     if (num != 4) {
@@ -1247,24 +1245,8 @@ int ReadPSFDihedrals(
                       dih) == currentMol.dihedrals.end()) {
           currentMol.dihedrals.push_back(dih);
         }
-        // once we found the molecule kind, break from the loop
-        if (!defined[i]) {
-          defined[i] = 1;
-          ++definedCount;
-        }
         break;
       }
-    }
-    // early exit once all molecule kinds have been defined
-    if (definedCount == firstAtom.size())
-      break;
-  }
-  // Check if we defined all dihedrals
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind &currentMol = kindMap[firstAtom[i].second];
-    if (currentMol.atoms.size() > 3 && !defined[i]) {
-      std::cout << "Warning: Dihedral is missing for " << firstAtom[i].second
-                << " !\n";
     }
   }
   return 0;
@@ -1279,8 +1261,6 @@ int ReadPSFImpropers(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nimpropers) {
   Improper imp(0, 0, 0, 0);
-  std::vector<char> defined(firstAtom.size(), 0);
-  uint definedCount = 0;
   for (uint n = 0; n < nimpropers; n++) {
     int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if (num != 4) {
@@ -1310,24 +1290,8 @@ int ReadPSFImpropers(
                       imp) == currentMol.impropers.end()) {
           currentMol.impropers.push_back(imp);
         }
-        // once we found the molecule kind, break from the loop
-        if (!defined[i]) {
-          defined[i] = 1;
-          ++definedCount;
-        }
         break;
       }
-    }
-    // early exit once all molecule kinds have been defined
-    if (definedCount == firstAtom.size())
-      break;
-  }
-  // Check if we defined all impropers
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind &currentMol = kindMap[firstAtom[i].second];
-    if (currentMol.atoms.size() > 3 && !defined[i]) {
-      std::cout << "Warning: Improper is missing for " << firstAtom[i].second
-                << " !\n";
     }
   }
   return 0;
@@ -1341,8 +1305,6 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nDonors) {
   unsigned int atom0, atom1;
-  std::vector<char> defined(firstAtom.size(), 0);
-  uint definedCount = 0;
   for (uint n = 0; n < nDonors; n++) {
     int num = fscanf(psf, "%u %u", &atom0, &atom1);
     if (num != 2) {
@@ -1363,24 +1325,8 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
       // assign the bond
       if (atom0 >= molBegin && atom0 < molEnd) {
         currentMol.donors.emplace_back(atom0 - molBegin, atom1 - molBegin);
-        // once we found the molecule kind, break from the loop
-        if (!defined[i]) {
-          defined[i] = 1;
-          ++definedCount;
-        }
         break;
       }
-    }
-    // early exit once all molecule kinds have been defined
-    if (definedCount == firstAtom.size())
-      break;
-  }
-  // Check if we defined all donors
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind &currentMol = kindMap[firstAtom[i].second];
-    if (currentMol.atoms.size() > 1 && !defined[i]) {
-      std::cout << "Warning: Donor is missing for " << firstAtom[i].second
-                << " !\n";
     }
   }
   return 0;
@@ -1395,8 +1341,6 @@ int ReadPSFAcceptors(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nAcceptors) {
   unsigned int atom0, atom1;
-  std::vector<char> defined(firstAtom.size(), 0);
-  uint definedCount = 0;
   for (uint n = 0; n < nAcceptors; n++) {
     int num = fscanf(psf, "%u %u", &atom0, &atom1);
     if (num != 2) {
@@ -1418,24 +1362,8 @@ int ReadPSFAcceptors(
       if (atom0 >= molBegin && atom0 < molEnd) {
         currentMol.acceptors.emplace_back(
             atom0 - molBegin, atom1 - molBegin);
-        // once we found the molecule kind, break from the loop
-        if (!defined[i]) {
-          defined[i] = 1;
-          ++definedCount;
-        }
         break;
       }
-    }
-    // early exit once all molecule kinds have been defined
-    if (definedCount == firstAtom.size())
-      break;
-  }
-  // Check if we defined all acceptors
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind &currentMol = kindMap[firstAtom[i].second];
-    if (currentMol.atoms.size() > 1 && !defined[i]) {
-      std::cout << "Warning: Acceptor is missing for " << firstAtom[i].second
-                << " !\n";
     }
   }
   return 0;
