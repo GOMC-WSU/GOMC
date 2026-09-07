@@ -1069,27 +1069,39 @@ int ReadPSF(const char *psfFilename, const uint box, MoleculeVariables &molVars,
                      "!NTHETA", "angles", ReadPSFAngles) == errors::READ_ERROR)
     return errors::READ_ERROR;
 
+  auto t10 = std::chrono::high_resolution_clock::now();
+  std::cout << "ReadPSFAngles: " << std::chrono::duration<double, std::milli>(t10-t9).count() << "ms\n";
   // find dihedrals header+count
+  auto t11 = std::chrono::high_resolution_clock::now();
   if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
                      "!NPHI", "dihedrals", ReadPSFDihedrals) == errors::READ_ERROR)
     return errors::READ_ERROR;
+  auto t12 = std::chrono::high_resolution_clock::now();
+  std::cout << "ReadPSFDihedrals: " << std::chrono::duration<double, std::milli>(t12-t11).count() << "ms\n";  
 
   // find impropers header+count
+  auto t13 = std::chrono::high_resolution_clock::now();
   if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
                      "!NIMPHI", "impropers", ReadPSFImpropers) == errors::READ_ERROR)
     return errors::READ_ERROR;
+  auto t14 = std::chrono::high_resolution_clock::now();
+  std::cout << "ReadPSFImpropers: " << std::chrono::duration<double, std::milli>(t14-t13).count() << "ms\n";
 
   // find donors header+count
+  auto t15 = std::chrono::high_resolution_clock::now();
   if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
                      "!NDON", "donors", ReadPSFDonors) == errors::READ_ERROR)
     return errors::READ_ERROR;
+  auto t16 = std::chrono::high_resolution_clock::now();
+  std::cout << "ReadPSFDonors: " << std::chrono::duration<double, std::milli>(t16-t15).count() << "ms\n";
 
   // find acceptors header+count
+  auto t17 = std::chrono::high_resolution_clock::now();
   if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
                      "!NACC", "acceptors", ReadPSFAcceptors) == errors::READ_ERROR)
     return errors::READ_ERROR;
-  auto t10 = std::chrono::high_resolution_clock::now();
-  std::cout << "ReadPSFSections: " << std::chrono::duration<double, std::milli>(t10-t9).count() << "ms\n";
+  auto t18 = std::chrono::high_resolution_clock::now();
+  std::cout << "ReadPSFAcceptors: " << std::chrono::duration<double, std::milli>(t18-t17).count() << "ms\n";
   /*
 
    //find explicit nonbond exclusions  header+count
