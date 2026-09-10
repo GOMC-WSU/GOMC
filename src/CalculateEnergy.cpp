@@ -1372,6 +1372,7 @@ void CalculateEnergy::VirialCorrection(Virial &virial,
 #endif
 }
 
+
 //! Calculate Torque
 void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
                                       XYZArray const &coordinates,
@@ -1385,6 +1386,9 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
     double *torquex = molTorque.x;
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;
+
+    auto torqueStart = std::chrono::high_resolution_clock::now();
+
 
 #if defined _OPENMP
 #pragma omp parallel for default(none)                                         \
@@ -1412,6 +1416,14 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
       torquey[mIndex] = ty;
       torquez[mIndex] = tz;
     }
+  auto torqueEnd = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double> torqueElapsed =
+      torqueEnd - torqueStart;
+
+  std::cout << "[TORQUE SOA TIMING] "
+            << torqueElapsed.count()
+            << std::endl;
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::BOX_TORQUE);
 }
@@ -1430,6 +1442,13 @@ void CalculateEnergy::CalculateTorque2(
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;
 
+    auto torqueStart = std::chrono::high_resolution_clock::now();
+
+#if defined _OPENMP
+#pragma omp parallel for default(none)                                         \
+    shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  \
+               torquey, torquez) firstprivate(box)
+#endif
     for (int m = 0; m < (int)moleculeIndex.size(); m++) {
       int mIndex = moleculeIndex[m];
       int length = mols.GetKind(mIndex).NumAtoms();
@@ -1455,6 +1474,14 @@ void CalculateEnergy::CalculateTorque2(
       torquey[mIndex] = ty;
       torquez[mIndex] = tz;
     }
+    auto torqueEnd = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> torqueElapsed =
+        torqueEnd - torqueStart;
+
+    std::cout << "[TORQUE AOS TIMING] "
+              << torqueElapsed.count()
+              << std::endl;
   }
 }
 
