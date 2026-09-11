@@ -1442,12 +1442,15 @@ void CalculateEnergy::CalculateTorque2(
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;
 
+    XYZArray2 coordinates2(coordinates);
+    XYZArray2 com2(com);
+
     auto torqueStart = std::chrono::high_resolution_clock::now();
 
 #if defined _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  \
-               torquey, torquez) firstprivate(box)
+    shared(atomForce, atomForceRec, com2, coordinates2, moleculeIndex, torquex, \
+           torquey, torquez) firstprivate(box)
 #endif
     for (int m = 0; m < (int)moleculeIndex.size(); m++) {
       int mIndex = moleculeIndex[m];
@@ -1459,7 +1462,12 @@ void CalculateEnergy::CalculateTorque2(
       double tz = 0.0;
 
       for (int p = start; p < start + length; p++) {
-        XYZ distFromCOM = coordinates.Difference(p, com, mIndex);
+        XYZ coord = coordinates2[p];
+        XYZ center = com2[mIndex];
+        XYZ distFromCOM =
+            XYZ(coord.x - center.x,
+                coord.y - center.y,
+                coord.z - center.z);
         distFromCOM = currentAxes.MinImage(distFromCOM, box);
 
         XYZ tempTorque =

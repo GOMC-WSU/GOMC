@@ -529,6 +529,14 @@ public:
   explicit XYZArray2(const uint n) : data(nullptr), count(0) {
     Init(n);
   }
+  // make an XYZArray2 constructor that takes an XYZArray as the parameter
+  XYZArray2(const XYZArray &other) : data(nullptr), count(0) {
+    Init(other.Count());
+
+    for (uint i = 0; i < other.Count(); ++i) {
+      data[i] = other[i];
+    }
+  }
 
   ~XYZArray2() {
     delete[] data;
