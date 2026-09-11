@@ -458,29 +458,6 @@ inline void MultiParticle::CalcEn() {
   }
 
 
-  // Compare reciprocal force with XYZArray2
-  XYZArray2 atomForceRecNew2(atomForceRecNew.Count());
-  XYZArray molForceRecNew2(molForceRecNew.Count());
-
-  calcEwald->BoxForceReciprocal2(newMolsPos, atomForceRecNew2,
-                                 molForceRecNew2, bPick);
-
-  MoleculeLookup::box_iterator testMol = molLookup.BoxBegin(bPick);
-  MoleculeLookup::box_iterator testEnd = molLookup.BoxEnd(bPick);
-
-  while (testMol != testEnd) {
-    uint molIndex = *testMol;
-    uint length = molRef.GetKind(molIndex).NumAtoms();
-    uint start = molRef.MolStart(molIndex);
-
-    for (uint p = start; p < start + length; ++p) {
-      if (atomForceRecNew[p] != atomForceRecNew2[p])
-        std::cout << "Reciprocal force mismatch at atom " << p << std::endl;
-    }
-
-    ++testMol;
-  }
-
   GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
 
 }
