@@ -32,21 +32,61 @@ Simulation::Simulation(char const *const configFileName,
   GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
   startStep = 0;
   totalSteps = set.config.sys.step.total;
+  auto t1 = std::chrono::high_resolution_clock::now();
   staticValues = new StaticVals(set);
+  auto t2 = std::chrono::high_resolution_clock::now();
+  std::cout << "StaticVals constructor: "
+            << std::chrono::duration<double, std::milli>(t2 - t1).count()
+            << "ms\n";
+  auto t3 = std::chrono::high_resolution_clock::now();
   system = new System(*staticValues, set, startStep, multisim);
+  auto t4 = std::chrono::high_resolution_clock::now();
+  std::cout << "System constructor: "
+            << std::chrono::duration<double, std::milli>(t4 - t3).count()
+            << "ms\n";
   // Reload from Checkpoint must occur before this line
+  auto t5 = std::chrono::high_resolution_clock::now();
   staticValues->Init(set, *system);
+  auto t6 = std::chrono::high_resolution_clock::now();
+  std::cout << "StaticVals Init: "
+            << std::chrono::duration<double, std::milli>(t6 - t5).count()
+            << "ms\n";
+  auto t7 = std::chrono::high_resolution_clock::now();
   system->Init(set);
+  auto t8 = std::chrono::high_resolution_clock::now();
+  std::cout << "System Init: "
+            << std::chrono::duration<double, std::milli>(t8 - t7).count()
+            << "ms\n";
   // This happens after checkpoint has possible changed startStep
   // Note: InitStep overwrites checkpoint start step
   totalSteps += startStep;
   // recalc Init for static value for initializing ewald since ewald is
   // initialized in system
+  auto t9 = std::chrono::high_resolution_clock::now();
   staticValues->InitOver(set, *system);
+  auto t10 = std::chrono::high_resolution_clock::now();
+  std::cout << "StaticVals InitOver: "
+            << std::chrono::duration<double, std::milli>(t10 - t9).count()
+            << "ms\n";
+  auto t11 = std::chrono::high_resolution_clock::now();
   system->InitOver(set, staticValues->mol);
+  auto t12 = std::chrono::high_resolution_clock::now();
+  std::cout << "System InitOver: "
+            << std::chrono::duration<double, std::milli>(t12 - t11).count()
+            << "ms\n";
+  auto t13 = std::chrono::high_resolution_clock::now();
   cpu = new CPUSide(*system, *staticValues, set);
+  auto t14 = std::chrono::high_resolution_clock::now();
+  std::cout << "CPUSide constructor: "
+            << std::chrono::duration<double, std::milli>(t14 - t13).count()
+            << "ms\n";
+  auto t15 = std::chrono::high_resolution_clock::now();
   cpu->Init(set.pdb, set.config.in, set.config.out, set.config.sys,
             set.config.sys.step.equil, totalSteps, startStep);
+  auto t16 = std::chrono::high_resolution_clock::now();
+  std::cout << "CPUSide Init: "
+            << std::chrono::duration<double, std::milli>(t16 - t15).count()
+            << "ms\n";
 
   if (totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
