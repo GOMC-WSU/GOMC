@@ -38,6 +38,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "TargetedSwap.h"
 #include "Translate.h"
 #include "VolumeTransfer.h"
+#include <chrono>
 
 System::System(StaticVals &statics, Setup &set, ulong &startStep,
                MultiSim const *const &multisim)
@@ -103,6 +104,7 @@ System::~System() {
 }
 
 void System::Init(Setup &set) {
+  auto s1 = std::chrono::steady_clock::now();
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield,
                  set.config.in.restart.restartFromCheckpoint);
@@ -111,9 +113,17 @@ void System::Init(Setup &set) {
                     set.config.in.restart.restartFromCheckpoint);
   // allocate memory for atom's velocity if we read the binVelocities
   vel.Init(set.pdb.atoms, set.config.in);
+  auto s2 = std::chrono::steady_clock::now();
+  std::cout << "System::init molLookup+moveSettings+vel time: "
+            << std::chrono::duration<double, std::milli>(s2 - s1).count()
+            << "ms" << std::endl;
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   // set coordinates and velocities for atoms in system
   xsc.Init(set.pdb, vel, set.config.in, molLookupRef, statV.mol);
+  auto s3 = std::chrono::steady_clock::now();
+  std::cout << "System::init xsc time: "
+            << std::chrono::duration<double, std::milli>(s3 - s2).count()
+            << "ms" << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
   boxDimensions->Init(set.config.in.restart, set.config.sys.volume,
                       set.pdb.cryst, statV.forcefield);
@@ -125,8 +135,16 @@ void System::Init(Setup &set) {
   // Allocate space for reciprocal force
   atomForceRecRef.Init(set.pdb.atoms.beta.size());
   molForceRecRef.Init(com.Count());
+  auto s4 = std::chrono::steady_clock::now();
+  std::cout << "System::init boxDim+coords+com+forces time: "
+            << std::chrono::duration<double, std::milli>(s4 - s3).count()
+            << "ms" << std::endl;
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
+  auto s5 = std::chrono::steady_clock::now();
+  std::cout << "System::init cellList time: "
+            << std::chrono::duration<double, std::milli>(s5 - s4).count()
+            << "ms" << std::endl;
 
   // check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
@@ -146,12 +164,28 @@ void System::Init(Setup &set) {
     calcEwald = new NoEwald(statV, *this);
 #endif
 
+  auto s6 = std::chrono::steady_clock::now();
+  std::cout << "System::init calcEwald setup: "
+            << std::chrono::duration<double, std::milli>(s6 - s5).count()
+            << "ms" << std::endl;
   // Initialize lambda before calling SystemTotal
   InitLambda();
   calcEnergy.Init(*this);
   calcEwald->Init();
+  auto s7 = std::chrono::steady_clock::now();
+  std::cout << "System::init energy init: " 
+            << std::chrono::duration<double, std::milli>(s7 - s6).count()
+            << "ms" << std::endl;
   potential = calcEnergy.SystemTotal();
+  auto s8 = std::chrono::steady_clock::now();
+  std::cout << "System::init systemTotal: "
+            << std::chrono::duration<double, std::milli>(s8 - s7).count()
+            << "ms" << std::endl;
   InitMoves(set);
+  auto s9 = std::chrono::steady_clock::now();
+  std::cout << "System::init moves time: "
+            << std::chrono::duration<double, std::milli>(s9 - s8).count()
+            << "ms" << std::endl;
   for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
     moveTime[m] = 0.0;
 }
