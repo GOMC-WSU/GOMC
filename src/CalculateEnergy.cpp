@@ -165,9 +165,19 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
                                              BoxDimensions const &boxAxes) {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     // calculate LJ interaction and real term of electrostatic interaction
+    auto si1 = std::chrono::steady_clock::now();
     potential = BoxInter(potential, coords, boxAxes, b);
+    auto si2 = std::chrono::steady_clock::now();
+    std::cout << "SystemInter BoxInter box " << b << ": "
+              << std::chrono::duration<double, std::milli>(si2 - si1).count()
+              << "ms" << std::endl;
     // calculate reciprocal term of electrostatic interaction
+    auto si3 = std::chrono::steady_clock::now();
     potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b, false);
+    auto si4 = std::chrono::steady_clock::now();
+    std::cout << "SystemInter BoxReciprocal box " << b << ": "
+              << std::chrono::duration<double, std::milli>(si4 - si3).count()
+              << "ms" << std::endl;
   }
 
   potential.Total();
