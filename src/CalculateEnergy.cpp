@@ -6,6 +6,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "CalculateEnergy.h" //header for this
 
 #include <cassert>
+#include <chrono>
 
 #include "BasicTypes.h" //uint
 #include "BoxDimensions.h"
@@ -83,9 +84,14 @@ void CalculateEnergy::Init(System &sys) {
 
 SystemPotential CalculateEnergy::SystemTotal() {
   GOMC_EVENT_START(1, GomcProfileEvent::EN_SYSTEM_TOTAL);
+  auto st1 = std::chrono::steady_clock::now();
   SystemPotential pot =
       SystemInter(SystemPotential(), currentCoords, currentAxes);
 
+  auto st2 = std::chrono::steady_clock::now();
+  std::cout << "SystemTotal SystemInter time: "
+            << std::chrono::duration<double, std::milli>(st2 - st1).count()
+            << "ms" << std::endl;
   // system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTRA);
@@ -100,6 +106,8 @@ SystemPotential CalculateEnergy::SystemTotal() {
       ++thisMol;
     }
 
+    auto st3 = std::chrono::steady_clock::now();
+
 #ifdef _OPENMP
 #pragma omp parallel for default(none) private(bondEnergy) shared(b, molID)    \
     reduction(+ : bondEn, nonbondEn, correction)
@@ -112,16 +120,30 @@ SystemPotential CalculateEnergy::SystemTotal() {
       // calculate correction term of electrostatic interaction
       correction += calcEwald->MolCorrection(molID[i], b);
     }
+    auto st4 = std::chrono::steady_clock::now();
+    std::cout << "SystemTotal MolIntra loop time: "
+              << std::chrono::duration<double, std::milli>(st4 - st3).count()
+              << "ms" << std::endl;
 
     pot.boxEnergy[b].intraBond = bondEn;
     pot.boxEnergy[b].intraNonbond = nonbondEn;
     // calculate self term of electrostatic interaction
+    auto st5 = std::chrono::steady_clock::now();
     pot.boxEnergy[b].self = calcEwald->BoxSelf(b);
+    auto st6 = std::chrono::steady_clock::now();
+    std::cout << "SystemTotal BoxSelf box: "
+              << std::chrono::duration<double, std::milli>(st6 - st5).count()
+              << "ms" << std::endl;
     pot.boxEnergy[b].correction = correction;
 
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_INTRA);
     // Calculate Virial
+    auto st7 = std::chrono::steady_clock::now();
     pot.boxVirial[b] = VirialCalc(b);
+    auto st8 = std::chrono::steady_clock::now();
+    std::cout << "SystemTotal VirialCalc box: "
+              << std::chrono::duration<double, std::milli>(st8 - st7).count()
+              << "ms" << std::endl;
   }
 
   pot.Total();
