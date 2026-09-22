@@ -189,10 +189,13 @@ void CellList::ResizeGridBox(const BoxDimensions &dims, const uint b) {
 }
 
 void CellList::RebuildNeighbors(int b) {
+  auto rebuildStart = std::chrono::high_resolution_clock::now();
+
   int *eCells = edgeCells[b];
   int nCells = eCells[0] * eCells[1] * eCells[2];
   head[b].resize(nCells);
   neighbors[b].resize(nCells);
+
   for (int i = 0; i < nCells; ++i) {
     neighbors[b][i].clear();
   }
@@ -201,11 +204,12 @@ void CellList::RebuildNeighbors(int b) {
     for (int y = 0; y < eCells[1]; ++y) {
       for (int z = 0; z < eCells[2]; ++z) {
         int cell = x * eCells[2] * eCells[1] + y * eCells[2] + z;
+
         for (int dx = -1; dx <= 1; ++dx) {
           for (int dy = -1; dy <= 1; ++dy) {
             for (int dz = -1; dz <= 1; ++dz) {
               // Cache adjacent cells, wrapping if needed
-              neighbors[b][cell].push_back(
+              neighbors[b][cell].emplace_back(
                   ((x + dx + eCells[0]) % eCells[0]) * eCells[2] * eCells[1] +
                   ((y + dy + eCells[1]) % eCells[1]) * eCells[2] +
                   ((z + dz + eCells[2]) % eCells[2]));
@@ -215,6 +219,15 @@ void CellList::RebuildNeighbors(int b) {
       }
     }
   }
+
+  auto rebuildEnd = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double> rebuildElapsed =
+      rebuildEnd - rebuildStart;
+
+  std::cout << "[REBUILD NEIGHBORS TIMING] "
+            << rebuildElapsed.count()
+            << std::endl;
 }
 
 void CellList::GridAll(BoxDimensions &dims, const XYZArray &pos,
