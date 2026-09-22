@@ -1382,39 +1382,28 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
                                       XYZArray &molTorque, const uint box) {
   if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     GOMC_EVENT_START(1, GomcProfileEvent::BOX_TORQUE);
-    // make a pointer to mol torque for OpenMP
-    double *torquex = molTorque.x;
-    double *torquey = molTorque.y;
-    double *torquez = molTorque.z;
-
+  
     auto torqueStart = std::chrono::high_resolution_clock::now();
-
 
 #if defined _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  \
-               torquey, torquez) firstprivate(box)
+    shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, molTorque) \
+               firstprivate(box)
 #endif
     for (int m = 0; m < (int)moleculeIndex.size(); m++) {
       int mIndex = moleculeIndex[m];
       int length = mols.GetKind(mIndex).NumAtoms();
       int start = mols.MolStart(mIndex);
-      double tx = 0.0;
-      double ty = 0.0;
-      double tz = 0.0;
-      // atom iterator
+      XYZ tempTorque;
+
       for (int p = start; p < start + length; p++) {
         XYZ distFromCOM = coordinates.Difference(p, com, mIndex);
         distFromCOM = currentAxes.MinImage(distFromCOM, box);
-        XYZ tempTorque = Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
 
-        tx += tempTorque.x;
-        ty += tempTorque.y;
-        tz += tempTorque.z;
+        tempTorque += Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
       }
-      torquex[mIndex] = tx;
-      torquey[mIndex] = ty;
-      torquez[mIndex] = tz;
+
+      molTorque.Set(mIndex, tempTorque);
     }
   auto torqueEnd = std::chrono::high_resolution_clock::now();
 
