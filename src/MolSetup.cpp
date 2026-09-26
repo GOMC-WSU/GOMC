@@ -1195,6 +1195,17 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nangles) {
   unsigned int atom0, atom1, atom2;
+
+  // pre-calculate overall atom range across all molecule kinds
+  unsigned int minBegin = UINT_MAX, maxEnd = 0;
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &mol = kindMap[firstAtom[i].second];
+    unsigned int molBegin = firstAtom[i].first;
+    unsigned int molEnd = molBegin + mol.atoms.size();
+    if (molBegin < minBegin) minBegin = molBegin;
+    if (molEnd > maxEnd) maxEnd = molEnd;
+  }
+
   for (uint n = 0; n < nangles; n++) {
     int num = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
     if (num != 3) {
@@ -1204,6 +1215,10 @@ int ReadPSFAngles(FILE *psf, MolMap &kindMap,
       fprintf(stderr, "ERROR: Could not find all angles in PSF file ");
       return errors::READ_ERROR;
     }
+
+    // skip angles outside the range of any molecule kind
+    if (atom0 < minBegin || atom0 >= maxEnd)
+      continue;
 
     // loop to find the molecule kind with this angle
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
@@ -1242,6 +1257,17 @@ int ReadPSFDihedrals(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint ndihedrals) {
   Dihedral dih(0, 0, 0, 0);
+
+  // pre-calculate overall atom range across all molecule kinds
+  unsigned int minBegin = UINT_MAX, maxEnd = 0;
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &mol = kindMap[firstAtom[i].second];
+    unsigned int molBegin = firstAtom[i].first;
+    unsigned int molEnd = molBegin + mol.atoms.size();
+    if (molBegin < minBegin) minBegin = molBegin;
+    if (molEnd > maxEnd) maxEnd = molEnd;
+  }
+
   for (uint n = 0; n < ndihedrals; n++) {
     int num = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
     if (num != 4) {
@@ -1252,21 +1278,19 @@ int ReadPSFDihedrals(
       return errors::READ_ERROR;
     }
 
+    if (dih.a0 < minBegin || dih.a0 >= maxEnd)
+      continue;
+
     // loop to find the molecule kind with this dihedral
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
-      // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
-      // assign dihedral
       if (dih.a0 >= molBegin && dih.a0 < molEnd) {
         dih.a0 -= molBegin;
         dih.a1 -= molBegin;
         dih.a2 -= molBegin;
         dih.a3 -= molBegin;
-        // some xplor PSF files have duplicate dihedrals, we need to ignore
-        // these
         if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(),
                       dih) == currentMol.dihedrals.end()) {
           currentMol.dihedrals.push_back(dih);
@@ -1287,6 +1311,17 @@ int ReadPSFImpropers(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nimpropers) {
   Improper imp(0, 0, 0, 0);
+
+  // pre-calculate overall atom range across all molecule kinds
+  unsigned int minBegin = UINT_MAX, maxEnd = 0;
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &mol = kindMap[firstAtom[i].second];
+    unsigned int molBegin = firstAtom[i].first;
+    unsigned int molEnd = molBegin + mol.atoms.size();
+    if (molBegin < minBegin) minBegin = molBegin;
+    if (molEnd > maxEnd) maxEnd = molEnd;
+  }
+
   for (uint n = 0; n < nimpropers; n++) {
     int num = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if (num != 4) {
@@ -1297,21 +1332,18 @@ int ReadPSFImpropers(
       return errors::READ_ERROR;
     }
 
-    // loop to find the molecule kind with this impropers
+    if (imp.a0 < minBegin || imp.a0 >= maxEnd)
+      continue;
+
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
-      // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
-      // assign impropers
       if (imp.a0 >= molBegin && imp.a0 < molEnd) {
         imp.a0 -= molBegin;
         imp.a1 -= molBegin;
         imp.a2 -= molBegin;
         imp.a3 -= molBegin;
-        // some xplor PSF files have duplicate impropers, we need to ignore
-        // these
         if (std::find(currentMol.impropers.begin(), currentMol.impropers.end(),
                       imp) == currentMol.impropers.end()) {
           currentMol.impropers.push_back(imp);
@@ -1331,6 +1363,17 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
                   std::vector<std::pair<unsigned int, std::string>> &firstAtom,
                   const uint nDonors) {
   unsigned int atom0, atom1;
+
+  // pre-calculate overall atom range across all molecule kinds
+  unsigned int minBegin = UINT_MAX, maxEnd = 0;
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &mol = kindMap[firstAtom[i].second];
+    unsigned int molBegin = firstAtom[i].first;
+    unsigned int molEnd = molBegin + mol.atoms.size();
+    if (molBegin < minBegin) minBegin = molBegin;
+    if (molEnd > maxEnd) maxEnd = molEnd;
+  }
+
   for (uint n = 0; n < nDonors; n++) {
     int num = fscanf(psf, "%u %u", &atom0, &atom1);
     if (num != 2) {
@@ -1341,14 +1384,13 @@ int ReadPSFDonors(FILE *psf, MolMap &kindMap,
       return errors::READ_ERROR;
     }
 
-    // loop to find the molecule kind with this bond
+    if (atom0 < minBegin || atom0 >= maxEnd)
+      continue;
+
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
-      // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
-      // assign the bond
       if (atom0 >= molBegin && atom0 < molEnd) {
         currentMol.donors.emplace_back(atom0 - molBegin, atom1 - molBegin);
         break;
@@ -1367,6 +1409,17 @@ int ReadPSFAcceptors(
     std::vector<std::pair<unsigned int, std::string>> &firstAtom,
     const uint nAcceptors) {
   unsigned int atom0, atom1;
+
+  // pre-calculate overall atom range across all molecule kinds
+  unsigned int minBegin = UINT_MAX, maxEnd = 0;
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind &mol = kindMap[firstAtom[i].second];
+    unsigned int molBegin = firstAtom[i].first;
+    unsigned int molEnd = molBegin + mol.atoms.size();
+    if (molBegin < minBegin) minBegin = molBegin;
+    if (molEnd > maxEnd) maxEnd = molEnd;
+  }
+
   for (uint n = 0; n < nAcceptors; n++) {
     int num = fscanf(psf, "%u %u", &atom0, &atom1);
     if (num != 2) {
@@ -1377,14 +1430,13 @@ int ReadPSFAcceptors(
       return errors::READ_ERROR;
     }
 
-    // loop to find the molecule kind with this bond
+    if (atom0 < minBegin || atom0 >= maxEnd)
+      continue;
+
     for (unsigned int i = 0; i < firstAtom.size(); ++i) {
       MolKind &currentMol = kindMap[firstAtom[i].second];
-      // index of first atom in molecule
       unsigned int molBegin = firstAtom[i].first;
-      // index AFTER last atom in molecule
       unsigned int molEnd = molBegin + currentMol.atoms.size();
-      // assign the bond
       if (atom0 >= molBegin && atom0 < molEnd) {
         currentMol.acceptors.emplace_back(
             atom0 - molBegin, atom1 - molBegin);
