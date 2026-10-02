@@ -196,41 +196,63 @@ void System::InitOver(Setup &set, Molecules &molRef) {
 }
 
 void System::InitMoves(Setup const &set) {
-  moves[mv::DISPLACE] = new Translate(*this, statV);
-  moves[mv::MULTIPARTICLE] = new MultiParticle(*this, statV);
-  moves[mv::MULTIPARTICLE_BM] = new MultiParticleBrownian(*this, statV);
-  moves[mv::ROTATE] = new Rotate(*this, statV);
-  moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
-  moves[mv::REGROWTH] = new Regrowth(*this, statV);
-  moves[mv::CRANKSHAFT] = new CrankShaft(*this, statV);
-  moves[mv::INTRA_TARGETED_SWAP] = new IntraTargetedSwap(*this, statV);
-  if (set.config.sys.intraMemcVal.MEMC1) {
-    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange1(*this, statV);
-  } else if (set.config.sys.intraMemcVal.MEMC2) {
-    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange2(*this, statV);
+  moves[mv::DISPLACE] = set.config.sys.moves.displace > 0.0 ?
+      new Translate(*this, statV) : nullptr;
+  moves[mv::MULTIPARTICLE] = set.config.sys.moves.multiParticle > 0.0 ?
+      new MultiParticle(*this, statV) : nullptr;
+  moves[mv::MULTIPARTICLE_BM] = set.config.sys.moves.multiParticleBrownian > 0.0 ?
+      new MultiParticleBrownian(*this, statV) : nullptr;
+  moves[mv::ROTATE] = set.config.sys.moves.rotate > 0.0 ?
+      new Rotate(*this, statV) : nullptr;
+  moves[mv::INTRA_SWAP] = set.config.sys.moves.intraSwap > 0.0 ?
+      new IntraSwap(*this, statV) : nullptr;
+  moves[mv::REGROWTH] = set.config.sys.moves.regrowth > 0.0 ?
+      new Regrowth(*this, statV) : nullptr;
+  moves[mv::CRANKSHAFT] = set.config.sys.moves.crankShaft > 0.0 ?
+      new CrankShaft(*this, statV) : nullptr;
+  moves[mv::INTRA_TARGETED_SWAP] = set.config.sys.moves.intraTargetedSwap > 0.0 ?
+      new IntraTargetedSwap(*this, statV) : nullptr;
+
+  if (set.config.sys.moves.intraMemc > 0.0) {
+    if (set.config.sys.intraMemcVal.MEMC1) {
+      moves[mv::INTRA_MEMC] = new IntraMoleculeExchange1(*this, statV);
+    } else if (set.config.sys.intraMemcVal.MEMC2) {
+      moves[mv::INTRA_MEMC] = new IntraMoleculeExchange2(*this, statV);
+    } else {
+      moves[mv::INTRA_MEMC] = new IntraMoleculeExchange3(*this, statV);
+    }
   } else {
-    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange3(*this, statV);
+    moves[mv::INTRA_MEMC] = nullptr;
   }
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
+  moves[mv::VOL_TRANSFER] = set.config.sys.moves.volume > 0.0 ?
+      new VolumeTransfer(*this, statV) : nullptr;
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  moves[mv::MOL_TRANSFER] = new MoleculeTransfer(*this, statV);
-  if (set.config.sys.memcVal.MEMC1) {
-    moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
-  } else if (set.config.sys.memcVal.MEMC2) {
-    moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
-  } else if (set.config.sys.memcVal.MEMC2Liq) {
-    moves[mv::MEMC] = new MoleculeExchange2Liq(*this, statV);
-  } else if (set.config.sys.memcVal.MEMC3Liq) {
-    moves[mv::MEMC] = new MoleculeExchange3Liq(*this, statV);
-  } else {
-    moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
-  }
-  moves[mv::NE_MTMC] = new NEMTMC(*this, statV);
-  moves[mv::TARGETED_SWAP] = new TargetedSwap(*this, statV);
+  moves[mv::MOL_TRANSFER] = set.config.sys.moves.transfer > 0.0 ?
+      new MoleculeTransfer(*this, statV) : nullptr;
 
+  if (set.config.sys.moves.memc > 0.0) {
+    if (set.config.sys.memcVal.MEMC1) {
+      moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
+    } else if (set.config.sys.memcVal.MEMC2) {
+      moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+    } else if (set.config.sys.memcVal.MEMC2Liq) {
+      moves[mv::MEMC] = new MoleculeExchange2Liq(*this, statV);
+    } else if (set.config.sys.memcVal.MEMC3Liq) {
+      moves[mv::MEMC] = new MoleculeExchange3Liq(*this, statV);
+    } else {
+      moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
+    }
+  } else {
+    moves[mv::MEMC] = nullptr;
+  }
+
+  moves[mv::NE_MTMC] = set.config.sys.moves.neMolTransfer > 0.0 ?
+      new NEMTMC(*this, statV) : nullptr;
+  moves[mv::TARGETED_SWAP] = set.config.sys.moves.targetedSwap > 0.0 ?
+      new TargetedSwap(*this, statV) : nullptr;
 #endif
 }
 
