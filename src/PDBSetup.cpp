@@ -15,6 +15,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "FixedWidthReader.h" //For fixed width reader
 #include "MoveConst.h"
 #include "StrLib.h" //for string comparison wrapper
+#include <chrono>
 
 #if BOX_TOTAL == 1
 const std::string PDBSetup::pdbAlias[] = {"system PDB coordinate file"};
@@ -214,9 +215,17 @@ void PDBSetup::Init(config_setup::RestartSettings const &restart,
     // Open PDB only once and stay there
     // instead of re-opening it for every frame
     // refer to issue #131
+    auto p1 = std::chrono::steady_clock::now();
     if (frameNum == 1)
       pdb[b].open();
 
+    auto p2 = std::chrono::steady_clock::now();
+    std::cout << "PDB box " << b << " open : "
+              << std::chrono::duration<double, std::milli>(p2 - p1)
+                     .count()
+              << " ms" << std::endl;
+
+    auto p3 = std::chrono::steady_clock::now();
     while (pdb[b].Read(varName, pdb_entry::label::POS)) {
       // If end of frame, and this is the frame we wanted,
       // end read on this file
@@ -239,6 +248,11 @@ void PDBSetup::Init(config_setup::RestartSettings const &restart,
         }
       }
     }
+    auto p4 = std::chrono::steady_clock::now();
+    std::cout << "PDB box " << b << " read loop : "
+              << std::chrono::duration<double, std::milli>(p4 - p3)
+                     .count()
+              << " ms" << std::endl;
     // If the recalcTrajectory is true and reached was still false
     // it means we couldn't find a remark and hence have to exit with error
     if (!remarks.reached[b] && remarks.recalcTrajectory) {
@@ -249,7 +263,13 @@ void PDBSetup::Init(config_setup::RestartSettings const &restart,
     std::cout.width(40);
     std::cout << std::left << "Finished reading: ";
     std::cout << "\t" << name[b] << std::endl;
+    auto p5 = std::chrono::steady_clock::now();
     atoms.GetMinMaxAtoms(b);
+    auto p6 = std::chrono::steady_clock::now();
+    std::cout << "PDB box " << b << " getMinMaxAtoms : "
+              << std::chrono::duration<double, std::milli>(p6 - p5)
+                     .count()
+              << " ms" << std::endl;
   }
 }
 
