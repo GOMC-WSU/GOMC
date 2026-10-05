@@ -144,6 +144,17 @@ void Atoms::Clear() {
   box.clear();
   resNames.clear();
   count = 0;
+
+  // temporary test - reserve for large system
+  chainLetter.reserve(300000);
+  x.reserve(300000);
+  y.reserve(300000);
+  z.reserve(300000);
+  beta.reserve(300000);
+  occ.reserve(300000);
+  box.reserve(300000);
+  resNames.reserve(300000);
+
   for (uint b = 0; b < BOX_TOTAL; b++) {
     numAtomsInBox[b] = 0;
   }
