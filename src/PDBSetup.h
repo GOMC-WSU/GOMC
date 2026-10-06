@@ -85,7 +85,7 @@ public:
   }
   void SetRestart(config_setup::RestartSettings const &r);
   void SetBox(const uint b) { currBox = b; }
-  void Assign(std::string resName, const char l_chain, const double l_x,
+  void Assign(std::string const &resName, const char l_chain, const double l_x,
               const double l_y, const double l_z, const double l_beta,
               const double l_occ);
 
