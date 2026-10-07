@@ -1398,7 +1398,7 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
 
       for (int p = start; p < start + length; p++) {
         XYZ distFromCOM = coordinates.Difference(p, com, mIndex);
-        distFromCOM = currentAxes.MinImage(distFromCOM, box);
+        distFromCOM = currentAxes.MinImage(std::move(distFromCOM), box);
 
         tempTorque += Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
       }
@@ -1407,10 +1407,10 @@ void CalculateEnergy::CalculateTorque(std::vector<uint> &moleculeIndex,
     }
   auto torqueEnd = std::chrono::high_resolution_clock::now();
 
-  std::chrono::duration<double> torqueElapsed =
-      torqueEnd - torqueStart;
+  std::chrono::duration<double, std::milli> torqueElapsed =
+       torqueEnd - torqueStart;
 
-  std::cout << "[TORQUE SOA TIMING] "
+  std::cout << "[TORQUE SOA TIMING MS] "
             << torqueElapsed.count()
             << std::endl;
   }
@@ -1427,9 +1427,6 @@ void CalculateEnergy::CalculateTorque2(
     const uint box) {
 
   if (multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
-    double *torquex = molTorque.x;
-    double *torquey = molTorque.y;
-    double *torquez = molTorque.z;
 
     XYZArray2 coordinates2(coordinates);
     XYZArray2 com2(com);
@@ -1438,45 +1435,40 @@ void CalculateEnergy::CalculateTorque2(
 
 #if defined _OPENMP
 #pragma omp parallel for default(none)                                         \
-    shared(atomForce, atomForceRec, com2, coordinates2, moleculeIndex, torquex, \
-           torquey, torquez) firstprivate(box)
+    shared(atomForce, atomForceRec, com2, coordinates2, moleculeIndex, molTorque) \
+    firstprivate(box)
 #endif
     for (int m = 0; m < (int)moleculeIndex.size(); m++) {
       int mIndex = moleculeIndex[m];
       int length = mols.GetKind(mIndex).NumAtoms();
       int start = mols.MolStart(mIndex);
 
-      double tx = 0.0;
-      double ty = 0.0;
-      double tz = 0.0;
+      XYZ tempTorque;
 
       for (int p = start; p < start + length; p++) {
         XYZ coord = coordinates2[p];
         XYZ center = com2[mIndex];
+
         XYZ distFromCOM =
             XYZ(coord.x - center.x,
                 coord.y - center.y,
                 coord.z - center.z);
-        distFromCOM = currentAxes.MinImage(distFromCOM, box);
 
-        XYZ tempTorque =
+        distFromCOM = currentAxes.MinImage(std::move(distFromCOM), box);
+
+        tempTorque +=
             Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
-
-        tx += tempTorque.x;
-        ty += tempTorque.y;
-        tz += tempTorque.z;
       }
 
-      torquex[mIndex] = tx;
-      torquey[mIndex] = ty;
-      torquez[mIndex] = tz;
+      molTorque.Set(mIndex, tempTorque);
     }
+
     auto torqueEnd = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<double> torqueElapsed =
+    std::chrono::duration<double, std::milli> torqueElapsed =
         torqueEnd - torqueStart;
 
-    std::cout << "[TORQUE AOS TIMING] "
+    std::cout << "[TORQUE AOS TIMING MS] "
               << torqueElapsed.count()
               << std::endl;
   }
