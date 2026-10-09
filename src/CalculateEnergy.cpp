@@ -1066,6 +1066,10 @@ void CalculateEnergy::MolNonbond(double &energy, MoleculeKind const &molKind,
   if (box >= BOXES_WITH_U_B)
     return;
 
+  if (molIndex == 0) {
+    std::cout << "MolNonbond nonBonded.count: " << molKind.nonBonded.count << std::endl;
+  }
+    
   double distSq;
 
   for (uint i = 0; i < molKind.nonBonded.count; ++i) {
