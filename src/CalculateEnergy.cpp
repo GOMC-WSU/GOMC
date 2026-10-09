@@ -873,16 +873,35 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex, const uint box,
   bondEn[0] = 0.0, bondEn[1] = 0.0;
 
   MoleculeKind &molKind = mols.kinds[mols.kIndex[molIndex]];
-  // *2 because we'll be storing inverse bond vectors
   XYZArray bondVec(molKind.bondList.count * 2);
 
+  auto m1 = std::chrono::steady_clock::now();
   BondVectors(bondVec, molKind, molIndex, box);
+  auto m2 = std::chrono::steady_clock::now();
   MolBond(bondEn[0], molKind, bondVec, molIndex, box);
+  auto m3 = std::chrono::steady_clock::now();
   MolAngle(bondEn[0], molKind, bondVec, box);
+  auto m4 = std::chrono::steady_clock::now();
   MolDihedral(bondEn[0], molKind, bondVec, box);
+  auto m5 = std::chrono::steady_clock::now();
   MolNonbond(bondEn[1], molKind, molIndex, box);
+  auto m6 = std::chrono::steady_clock::now();
   MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
+  auto m7 = std::chrono::steady_clock::now();
   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
+  auto m8 = std::chrono::steady_clock::now();
+
+  // only print for first molecule to avoid flooding output
+  if (molIndex == 0) {
+    std::cout << "MolIntra BondVectors: " << std::chrono::duration<double, std::milli>(m2-m1).count() << "ms\n";
+    std::cout << "MolIntra MolBond: " << std::chrono::duration<double, std::milli>(m3-m2).count() << "ms\n";
+    std::cout << "MolIntra MolAngle: " << std::chrono::duration<double, std::milli>(m4-m3).count() << "ms\n";
+    std::cout << "MolIntra MolDihedral: " << std::chrono::duration<double, std::milli>(m5-m4).count() << "ms\n";
+    std::cout << "MolIntra MolNonbond: " << std::chrono::duration<double, std::milli>(m6-m5).count() << "ms\n";
+    std::cout << "MolIntra MolNonbond_1_4: " << std::chrono::duration<double, std::milli>(m7-m6).count() << "ms\n";
+    std::cout << "MolIntra MolNonbond_1_3: " << std::chrono::duration<double, std::milli>(m8-m7).count() << "ms\n";
+  }
+
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTRA);
 }
 
