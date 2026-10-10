@@ -34,6 +34,7 @@ Nonbond::~Nonbond() {
 void Nonbond::Init(const mol_setup::MolKind &molData) {
   unsigned int numAtoms = molData.atoms.size();
   std::cout << "Nonbond::Init numAtoms: " << numAtoms 
+            << " bonds: " << molData.bonds.size()
             << " angles: " << molData.angles.size()
             << " dihedrals: " << molData.dihedrals.size() << std::endl;
   // no nonbonded atoms
