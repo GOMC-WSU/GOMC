@@ -1066,33 +1066,35 @@ void CalculateEnergy::MolNonbond(double &energy, MoleculeKind const &molKind,
   if (box >= BOXES_WITH_U_B)
     return;
 
-  if (molIndex == 0) {
-    std::cout << "MolNonbond nonBonded.count: " << molKind.nonBonded.count << std::endl;
-  }
-    
   double distSq;
+  uint numAtoms = molKind.NumAtoms();
 
-  for (uint i = 0; i < molKind.nonBonded.count; ++i) {
-    uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
-    uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
-      energy += forcefield.particles->CalcEn(
-          distSq, molKind.AtomKind(molKind.nonBonded.part1[i]),
-          molKind.AtomKind(molKind.nonBonded.part2[i]), 1.0);
-      if (electrostatic) {
-        double qi_qj_fact = num::qqFact *
-                            molKind.AtomCharge(molKind.nonBonded.part1[i]) *
-                            molKind.AtomCharge(molKind.nonBonded.part2[i]);
+  for (uint i = 0; i < numAtoms; ++i) {
+    for (uint j = i + 1; j < numAtoms; ++j) {
+      // check if pair is bonded - skip if so
+      uint a = i, b = j;
+      uint64_t key = (uint64_t)a << 32 | b;
+      if (molKind.nonBonded.bondedPairs.count(key))
+        continue;
 
-        if (qi_qj_fact != 0.0) {
-          forcefield.particles->CalcCoulombAdd_1_4(energy, distSq, qi_qj_fact,
-                                                   true);
+      uint p1 = mols.start[molIndex] + i;
+      uint p2 = mols.start[molIndex] + j;
+      if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+        energy += forcefield.particles->CalcEn(
+            distSq, molKind.AtomKind(i), molKind.AtomKind(j), 1.0);
+        if (electrostatic) {
+          double qi_qj_fact = num::qqFact *
+                              molKind.AtomCharge(i) *
+                              molKind.AtomCharge(j);
+          if (qi_qj_fact != 0.0) {
+            forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+                                                     qi_qj_fact, true);
+          }
         }
       }
     }
   }
 }
-
 // Calculate 1-N nonbonded intra energy using pos
 void CalculateEnergy::MolNonbond(double &energy, cbmc::TrialMol const &mol,
                                  MoleculeKind const &molKind) const {
