@@ -9,8 +9,6 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include <assert.h>
 
 #include <vector>
-#include <unordered_set>
-#include <cstdint>
 
 #include "BasicTypes.h"
 #include "SubdividedArray.h"
@@ -35,7 +33,6 @@ struct Nonbond {
   uint *part1;
   uint *part2;
   uint count;
-  std::unordered_set<uint64_t> bondedPairs;
 
   virtual void Init(const mol_setup::MolKind &molData);
   Nonbond();

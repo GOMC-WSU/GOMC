@@ -37,40 +37,51 @@ void Nonbond::Init(const mol_setup::MolKind &molData) {
             << " bonds: " << molData.bonds.size()
             << " angles: " << molData.angles.size()
             << " dihedrals: " << molData.dihedrals.size() << std::endl;
-  
-  count = 0;
-  part1 = nullptr;
-  part2 = nullptr;
-  
+  // no nonbonded atoms
   if (numAtoms < 5) {
     return;
   }
-
-  // Build set of bonded pairs from bonds, angles, and dihedrals
-  // Store as pair (i,j) where i < j encoded as single uint64_t
-  auto addPair = [&](uint a, uint b) {
-    if (a > b) std::swap(a, b);
-    bondedPairs.insert((uint64_t)a << 32 | b);
-  };
-
-  for (const auto &bond : molData.bonds) {
-    addPair(bond.a0, bond.a1);
+  std::vector<unsigned int> part1Vec;
+  std::vector<unsigned int> part2Vec;
+  // because vector<bool> is weird
+  std::vector<char> nonBondedAtoms(numAtoms);
+  // find all the atoms that do not appear in an angle or dihedral
+  // with the target atom (not checking bonds because either it's
+  // diatomic or all bonds are part of angles
+  // Also, ignore any index less than i to avoid double counting
+  for (unsigned int i = 0; i < numAtoms; ++i) {
+    nonBondedAtoms.assign(i, 0);
+    nonBondedAtoms.insert(nonBondedAtoms.end(), numAtoms - i, 1);
+    for (unsigned int j = 0; j < molData.angles.size(); ++j) {
+      const mol_setup::Angle &ang = molData.angles[j];
+      if (ang.a0 == i || ang.a1 == i || ang.a2 == i) {
+        nonBondedAtoms[ang.a0] = 0;
+        nonBondedAtoms[ang.a1] = 0;
+        nonBondedAtoms[ang.a2] = 0;
+      }
+    }
+    for (unsigned int j = 0; j < molData.dihedrals.size(); ++j) {
+      const mol_setup::Dihedral &dih = molData.dihedrals[j];
+      if (dih.a0 == i || dih.a1 == i || dih.a2 == i || dih.a3 == i) {
+        nonBondedAtoms[dih.a0] = 0;
+        nonBondedAtoms[dih.a1] = 0;
+        nonBondedAtoms[dih.a2] = 0;
+        nonBondedAtoms[dih.a3] = 0;
+      }
+    }
+    // starting at i+1 to ignore double counting
+    for (unsigned int j = i + 1; j < nonBondedAtoms.size(); ++j) {
+      if (nonBondedAtoms[j] == 1) {
+        part1Vec.push_back(i);
+        part2Vec.push_back(j);
+      }
+    }
   }
-  for (const auto &ang : molData.angles) {
-    addPair(ang.a0, ang.a1);
-    addPair(ang.a1, ang.a2);
-    addPair(ang.a0, ang.a2);
-  }
-  for (const auto &dih : molData.dihedrals) {
-    addPair(dih.a0, dih.a1);
-    addPair(dih.a1, dih.a2);
-    addPair(dih.a2, dih.a3);
-    addPair(dih.a0, dih.a2);
-    addPair(dih.a1, dih.a3);
-    addPair(dih.a0, dih.a3);
-  }
-
-  std::cout << "Nonbond::Init bondedPairs size: " << bondedPairs.size() << std::endl;
+  count = part1Vec.size();
+  part1 = new uint[count];
+  part2 = new uint[count];
+  std::copy(part1Vec.begin(), part1Vec.end(), part1);
+  std::copy(part2Vec.begin(), part2Vec.end(), part2);
 }
 
 void Nonbond_1_4::Init(const mol_setup::MolKind &molData) {
