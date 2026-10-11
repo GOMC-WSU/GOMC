@@ -1068,6 +1068,15 @@ void CalculateEnergy::MolNonbond(double &energy, MoleculeKind const &molKind,
 
   if (molIndex == 0) {
     std::cout << "MolNonbond nonBonded.count: " << molKind.nonBonded.count << std::endl;
+    uint passed = 0;
+    double tempDistSq;
+    for (uint i = 0; i < molKind.nonBonded.count; ++i) {
+        uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
+        uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
+        if (currentAxes.InRcut(tempDistSq, currentCoords, p1, p2, box))
+            passed++;
+    }
+    std::cout << "Pairs passing InRcut: " << passed << " / " << molKind.nonBonded.count << std::endl;
   }
     
   double distSq;
