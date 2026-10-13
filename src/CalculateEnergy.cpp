@@ -1066,36 +1066,68 @@ void CalculateEnergy::MolNonbond(double &energy, MoleculeKind const &molKind,
   if (box >= BOXES_WITH_U_B)
     return;
 
-  if (molIndex == 0) {
-    std::cout << "MolNonbond nonBonded.count: " << molKind.nonBonded.count << std::endl;
-    uint passed = 0;
-    double tempDistSq;
-    for (uint i = 0; i < molKind.nonBonded.count; ++i) {
-        uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
-        uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
-        if (currentAxes.InRcut(tempDistSq, currentCoords, p1, p2, box))
-            passed++;
-    }
-    std::cout << "Pairs passing InRcut: " << passed << " / " << molKind.nonBonded.count << std::endl;
-  }
-    
   double distSq;
+  uint molStart = mols.start[molIndex];
+  uint numAtoms = molKind.NumAtoms();
 
-  for (uint i = 0; i < molKind.nonBonded.count; ++i) {
-    uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
-    uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
-      energy += forcefield.particles->CalcEn(
-          distSq, molKind.AtomKind(molKind.nonBonded.part1[i]),
-          molKind.AtomKind(molKind.nonBonded.part2[i]), 1.0);
-      if (electrostatic) {
-        double qi_qj_fact = num::qqFact *
-                            molKind.AtomCharge(molKind.nonBonded.part1[i]) *
-                            molKind.AtomCharge(molKind.nonBonded.part2[i]);
+  if (numAtoms > 100) {
+    // Large molecule: use cell list + bonded set for efficiency
+    std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
+    std::vector<std::vector<int>> neighborList;
+    cellList.GetCellListNeighbor(box, currentCoords.Count(), cellVector,
+                                 cellStartIndex, mapParticleToCell);
+    neighborList = cellList.GetNeighborList(box);
 
-        if (qi_qj_fact != 0.0) {
-          forcefield.particles->CalcCoulombAdd_1_4(energy, distSq, qi_qj_fact,
-                                                   true);
+    for (uint local1 = 0; local1 < numAtoms; ++local1) {
+      uint p1 = molStart + local1;
+      int currCell = mapParticleToCell[p1];
+      for (int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
+        int neighborCell = neighborList[currCell][nCellIndex];
+        int endIndex = cellStartIndex[neighborCell + 1];
+        for (int nIdx = cellStartIndex[neighborCell]; nIdx < endIndex; nIdx++) {
+          uint p2 = cellVector[nIdx];
+          if (p2 <= p1 || p2 >= molStart + numAtoms)
+            continue;
+          uint local2 = p2 - molStart;
+          // check if bonded pair - skip if so
+          uint a = local1, b = local2;
+          if (a > b) std::swap(a, b);
+          if (molKind.nonBonded.bondedPairs.count((uint64_t)a << 32 | b))
+            continue;
+          if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+            energy += forcefield.particles->CalcEn(
+                distSq, molKind.AtomKind(local1),
+                molKind.AtomKind(local2), 1.0);
+            if (electrostatic) {
+              double qi_qj_fact = num::qqFact *
+                                  molKind.AtomCharge(local1) *
+                                  molKind.AtomCharge(local2);
+              if (qi_qj_fact != 0.0) {
+                forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+                                                         qi_qj_fact, true);
+              }
+            }
+          }
+        }
+      }
+    }
+  } else {
+    // Small molecule: use original pre-computed non-bonded list
+    for (uint i = 0; i < molKind.nonBonded.count; ++i) {
+      uint p1 = molStart + molKind.nonBonded.part1[i];
+      uint p2 = molStart + molKind.nonBonded.part2[i];
+      if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+        energy += forcefield.particles->CalcEn(
+            distSq, molKind.AtomKind(molKind.nonBonded.part1[i]),
+            molKind.AtomKind(molKind.nonBonded.part2[i]), 1.0);
+        if (electrostatic) {
+          double qi_qj_fact = num::qqFact *
+                              molKind.AtomCharge(molKind.nonBonded.part1[i]) *
+                              molKind.AtomCharge(molKind.nonBonded.part2[i]);
+          if (qi_qj_fact != 0.0) {
+            forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+                                                     qi_qj_fact, true);
+          }
         }
       }
     }
