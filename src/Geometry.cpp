@@ -42,17 +42,13 @@ void Nonbond::Init(const mol_setup::MolKind &molData) {
   part1 = nullptr;
   part2 = nullptr;
 
-  //temp
-  if (numAtoms < 3) {
+  if (numAtoms < 5) {
     return;
   }
 
   auto addPair = [&](uint a, uint b) {
     if (a > b) std::swap(a, b);
-    bool inserted = bondedPairs.insert((uint64_t)a << 32 | b).second;
-    if (inserted) {
-      std::cout << "bonded pair: " << a << " - " << b << std::endl;
-    }
+    bondedPairs.insert((uint64_t)a << 32 | b);
   };
 
   for (const auto &bond : molData.bonds) {
