@@ -621,7 +621,7 @@ void DCCyclic::BuildGrowOld(TrialMol &oldMol, uint molIndex) {
     std::cout << "Error: In MEMC-3 move, atom "
               << oldMol.GetKind().atomNames[oldMol.GetAtomBB(0)] << " in "
               << oldMol.GetKind().name << " must be a node.\n";
-    std::cout << "       This atom must be bounded to two or more atoms! \n";
+    std::cout << "       This atom must be bounded to two or more atoms!\n";
     exit(1);
   }
 
@@ -688,7 +688,7 @@ void DCCyclic::BuildGrowNew(TrialMol &newMol, uint molIndex) {
     std::cout << "Error: In MEMC-3 move, atom "
               << newMol.GetKind().atomNames[newMol.GetAtomBB(0)] << " in "
               << newMol.GetKind().name << " must be a node.\n";
-    std::cout << "       This atom must be bounded to two or more atoms! \n";
+    std::cout << "       This atom must be bounded to two or more atoms!\n";
     exit(1);
   }
 
@@ -768,7 +768,7 @@ void DCCyclic::BuildGrowInCav(TrialMol &oldMol, TrialMol &newMol,
     std::cout << "Error: In TargetedSwap or IntraTargetedSwap move, atom "
               << newMol.GetKind().atomNames[sIndex] << " in "
               << newMol.GetKind().name << " must be a node.\n";
-    std::cout << "       This atom must be bounded to two or more atoms! \n";
+    std::cout << "       This atom must be bounded to two or more atoms!\n";
     exit(1);
   }
 

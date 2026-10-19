@@ -12,19 +12,26 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "FFTabulated.h"
 #include "Setup.h"
 
-Forcefield::Forcefield() {
-  particles = NULL;
-  angles = NULL;
+Forcefield::Forcefield()
+    : useLRC{}, useIPC{}, T_in_K{}, beta{}, rCut{}, rCutSq{}, rCutLow{},
+      rCutLowSq{}, rCutCoulomb{{}}, rCutCoulombSq{{}}, alpha{{}}, alphaSq{{}},
+      recip_rcut{{}}, recip_rcut_Sq{{}}, tolerance{}, rswitch{}, dielectric{},
+      scaling_14{}, sc_alpha{}, sc_sigma{}, sc_sigma_6{}, electrostatic{},
+      ewald{}, vdwGeometricSigma{}, isMartini{}, exp6{}, freeEnergy{},
+      sc_coul{}, vdwKind{}, exckind{}, sc_power{}, isCHARMM{} {
+  particles = nullptr;
+  angles = nullptr;
   OneThree = false; // default behavior is to turn off 1-3 interaction
   OneFour = true;   // to turn on 1-4 interaction
   OneN = true;      // and turn on 1-n interaction
+#if ENSEMBLE == GCMC
+  isFugacity = false;
+#endif
 }
 
 Forcefield::~Forcefield() {
-  if (particles != NULL)
-    delete particles;
-  if (angles != NULL)
-    delete angles;
+  delete particles;
+  delete angles;
 }
 
 void Forcefield::Init(const Setup &set) {
@@ -39,7 +46,7 @@ void Forcefield::Init(const Setup &set) {
   // If using tabulated potentials, pass the NBtable data to particles->Init()
   if (vdwKind == set.config.sys.ff.VDW_TABULATED_KIND) {
     FF_TABULATED *tabParticles = dynamic_cast<FF_TABULATED *>(particles);
-    if (tabParticles != NULL) {
+    if (tabParticles) {
       // Initialize with NBtable data available
       tabParticles->InitWithNBtable(set.ff.mie, set.ff.nbfix, set.ff.nbtable);
     }

@@ -241,7 +241,7 @@ inline void MoleculeExchange1::AdjustExRatio() {
     }
     molInCavCount = 0;
     counter = 0;
-    printf("Average Mol In Cavity: %d. Exchange Ratio: %d \n", exMax,
+    printf("Average Mol In Cavity: %d. Exchange Ratio: %d\n", exMax,
            exchangeRatio);
   }
 }

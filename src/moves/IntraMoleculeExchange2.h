@@ -112,7 +112,7 @@ inline void IntraMoleculeExchange2::AdjustExRatio() {
     }
     molInCavCount = 0;
     counter = 0;
-    printf("ExchangeRatio: %d, Average kindS in cavity: %d \n", exchangeRatio,
+    printf("ExchangeRatio: %d, Average kindS in cavity: %d\n", exchangeRatio,
            exMax);
   }
 }

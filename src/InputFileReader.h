@@ -17,12 +17,12 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 class InputFileReader {
 public:
-  InputFileReader(const std::string& fileName);
+  InputFileReader(const std::string &fileName);
   InputFileReader() : fs{} {}
   ~InputFileReader();
   bool readNextLine(std::vector<std::string> &str);
-  void Open(const std::string& fileName);
-  void Test(const std::string& fileName);
+  void Open(const std::string &fileName);
+  void Test(const std::string &fileName);
 
 private:
   std::ifstream fs;

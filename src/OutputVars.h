@@ -60,7 +60,7 @@ public:
   MoleculeLookup *molLookupRef;
   CalculateEnergy &calc;
 
-  // Local copy of res names.
+  // Local copy of res names
   std::vector<std::string> molKindNames;
   double const *movePercRef;
   MoveSettings *moveSetRef;
@@ -68,7 +68,7 @@ public:
 #if ENSEMBLE == GCMC
   double *chemPot;
 #elif ENSEMBLE == GEMC
-  // Which box is the liquid in gibbs ensemble
+  // Which box is the liquid in Gibbs ensemble
   uint liqBox, vapBox;
   double heatOfVap;
   double heatOfVap_energy_term_box[BOX_TOTAL];

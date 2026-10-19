@@ -31,29 +31,23 @@ class Molecules;
 class MoleculeLookup {
 public:
   MoleculeLookup()
-      : molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL),
-        molIndex(NULL), atomIndex(NULL), molKind(NULL), atomKind(NULL),
-        atomCharge(NULL) {}
+      : molLookup(nullptr), boxAndKindStart(nullptr),
+        boxAndKindSwappableCounts(nullptr), molIndex(nullptr),
+        atomIndex(nullptr), molKind(nullptr), atomKind(nullptr),
+        atomCharge(nullptr) {}
 
   ~MoleculeLookup() {
-    if (molLookup != NULL)
-      delete[] molLookup;
-    if (molIndex != NULL)
-      delete[] molIndex;
-    if (atomIndex != NULL)
-      delete[] atomIndex;
-    if (molKind != NULL)
-      delete[] molKind;
-    if (atomKind != NULL)
-      delete[] atomKind;
-    if (atomCharge != NULL)
-      delete[] atomCharge;
-    if (boxAndKindStart != NULL)
-      delete[] boxAndKindStart;
-    if (boxAndKindSwappableCounts != NULL)
-      delete[] boxAndKindSwappableCounts;
+    delete[] molLookup;
+    delete[] boxAndKindStart;
+    delete[] boxAndKindSwappableCounts;
+    delete[] molIndex;
+    delete[] atomIndex;
+    delete[] molKind;
+    delete[] atomKind;
+    delete[] atomCharge;
   }
 
+  MoleculeLookup(const MoleculeLookup &other) = delete;
   MoleculeLookup &operator=(const MoleculeLookup &rhs);
   bool operator==(const MoleculeLookup &rhs);
 
@@ -71,24 +65,16 @@ public:
 
   // returns true if molecule kind k can transfer between boxes
   bool IsKindSwapable(const uint k) {
-    if (std::find(canSwapKind.begin(), canSwapKind.end(), k) ==
-        canSwapKind.end()) {
-      return false;
-    } else {
-      return true;
-    }
+    auto canSwap = std::find(canSwapKind.begin(), canSwapKind.end(), k);
+    return canSwap != canSwapKind.end();
   }
 
   uint GetCanMoveKind(const uint k) const { return canMoveKind[k]; }
 
   // returns true if molecule kind k can move in it's box
   bool IsKindMoveable(const uint k) {
-    if (std::find(canMoveKind.begin(), canMoveKind.end(), k) ==
-        canMoveKind.end()) {
-      return false;
-    } else {
-      return true;
-    }
+    auto canMove = std::find(canMoveKind.begin(), canMoveKind.end(), k);
+    return canMove != canMoveKind.end();
   }
 
   // Returns number of given kind in given box
@@ -122,7 +108,7 @@ public:
     return (index < boxAndKindStart[box * numKinds + kindIdx + 1]);
   }
 
-  // determine if atom is in this box or not// uses global atom index
+  // determine if atom is in this box or not -- uses global atom index
   bool IsAtomInBox(const uint &aIdx, const uint &box) {
     return IsMoleculeInBox(molIndex[aIdx], molKind[aIdx], box);
   }
@@ -157,8 +143,7 @@ public:
              const uint kind);
 #endif
 
-  // We keep the data stored in raw pointers for vectorization purposes.
-
+  // We keep the data stored in raw pointers for vectorization
   uint32_t molLookupCount;
   uint32_t atomCount;
   uint32_t boxAndKindStartLength;
@@ -239,7 +224,7 @@ public:
 
   box_iterator operator++(int);
   const uint &operator*() const { return *pIt; }
-  box_iterator() : pIt(NULL) {}
+  box_iterator() : pIt(nullptr) {}
 
 private:
   box_iterator(const uint *_pLook, const uint *_pSec);

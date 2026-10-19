@@ -7,7 +7,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 AlphaNum::AlphaNum() {}
 
-/* Alpha numberic A, B, ... Z, AA, AB, ... AZ, */
+/* Alphanumeric A, B, ... Z, AA, AB, ... AZ, */
 /* Index from 0 to A */
 // return true if s1 comes before s2
 
@@ -16,12 +16,10 @@ AlphaNum::AlphaNum() {}
 std::string AlphaNum::uint2String(uint stringSuffix) {
 
   std::stringstream ss;
-  char charSuffix;
   int intermediate = stringSuffix;
-  int remainder = 0;
   do {
-    charSuffix = 'A';
-    remainder = intermediate % 26;
+    char charSuffix = 'A';
+    int remainder = intermediate % 26;
     /* Increment Char A until reach suffix or 27 which will be Z. */
     for (int j = 0; j < remainder; j++) {
       charSuffix++;
@@ -37,13 +35,12 @@ std::string AlphaNum::uint2String(uint stringSuffix) {
   return forwards.assign(backwards.rbegin(), backwards.rend());
 }
 
-uint AlphaNum::string2Uint(std::string stringSuffix) {
+uint AlphaNum::string2Uint(const std::string &stringSuffix) {
 
-  char *char_arr = &stringSuffix[0];
-  char charSuffix = 'A';
+  const char charSuffix = 'A';
   uint index = 0;
   for (int i = 0; i < stringSuffix.length(); ++i) {
-    index += 26 * i + (char_arr[i] - charSuffix);
+    index += 26 * i + (stringSuffix[i] - charSuffix);
   }
   return index;
 }

@@ -17,7 +17,11 @@ A copy of the MIT License can be found in License.txt with this program or at
 class Simulation {
 public:
   explicit Simulation(char const *const configFileName,
-                      MultiSim const *const &multisim = NULL);
+                      MultiSim const *const &multisim = nullptr);
+  // Allow only one Simulation object
+  Simulation(const Simulation &) = delete;
+  Simulation &operator=(const Simulation &) = delete;
+
   ~Simulation();
 
   void RunSimulation(void);

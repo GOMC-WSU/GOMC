@@ -10,7 +10,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "System.h"
 
 CPUSide::CPUSide(System &sys, StaticVals &statV, Setup &set)
-    : varRef(sys, statV, set.mol.molVars.moleculeKindNames), pdb(sys, statV),
+    : equilSteps{}, timer{},
+      varRef(sys, statV, set.mol.molVars.moleculeKindNames), pdb(sys, statV),
       psf(statV.mol, sys, set), xstBinary(sys, statV), console(varRef),
       block(varRef), hist(varRef), checkpoint(sys, statV, set)
 #if ENSEMBLE == GCMC

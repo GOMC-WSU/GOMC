@@ -432,14 +432,14 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
                                          const double qi_qj,
                                          const uint b) const {
   if (forcefield.ewald) {
-    double dist = sqrt(distSq);
+    double dist = std::sqrt(distSq);
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = forcefield.alpha[b] * M_2_SQRTPI;
-    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
-    double temp = 1.0 - erf(forcefield.alpha[b] * dist);
+    double expConstValue = std::exp(-forcefield.alphaSq[b] * distSq);
+    double temp = std::erfc(forcefield.alpha[b] * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
-    double dist = sqrt(distSq);
+    double dist = std::sqrt(distSq);
     double result = qi_qj / (distSq * dist);
     return result;
   }

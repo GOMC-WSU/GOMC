@@ -165,7 +165,6 @@ void EwaldNonbond::Init(const mol_setup::MolKind &molData) {
   unsigned int numAtoms = molData.atoms.size();
   std::vector<unsigned int> part1Vec;
   std::vector<unsigned int> part2Vec;
-  std::vector<char> nonBondedAtoms(numAtoms);
   // find all possible pairs
   for (unsigned int i = 0; i < numAtoms; ++i) {
     // starting at i+1 to ignore double counting

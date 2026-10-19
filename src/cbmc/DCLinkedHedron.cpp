@@ -17,7 +17,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 namespace {
 struct FindA1 {
-  FindA1(uint x) : x(x){};
+  explicit FindA1(uint x) : x(x){};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };
@@ -35,7 +35,9 @@ struct FindDih {
 namespace cbmc {
 DCLinkedHedron::DCLinkedHedron(DCData *data, const mol_setup::MolKind &kind,
                                uint focus, uint prev)
-    : data(data), hed(data, kind, focus, prev) {
+    : data(data), hed(data, kind, focus, prev), nPrevBonds{}, prevBonded{{}},
+      dihKinds{{}}, bondEnergy{}, anchorBond{}, anchorBondOld{}, bondLength{{}},
+      bondLengthOld{{}}, bondKinds{{}} {
   using namespace mol_setup;
   std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
