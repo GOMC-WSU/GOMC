@@ -94,7 +94,7 @@ void Atoms::SetRestart(config_setup::RestartSettings const &r) {
   recalcTrajectory = r.recalcTrajectory;
 }
 
-void Atoms::Assign(std::string const &resName, const char l_chain,
+void Atoms::Assign(std::string &&resName, const char l_chain,
                    const double l_x, const double l_y, const double l_z,
                    const double l_beta, const double l_occ) {
   // box.push_back((bool)(restart?(uint)(l_occ):currBox));
@@ -102,7 +102,7 @@ void Atoms::Assign(std::string const &resName, const char l_chain,
   occ.push_back(l_occ);
   box.push_back(currBox);
   ++numAtomsInBox[currBox];
-  resNames.push_back(resName);
+  resNames.push_back(std::move(resName));
   chainLetter.push_back(l_chain);
 
   // push the coordinates of atoms to x, y, and z
@@ -131,7 +131,7 @@ void Atoms::Read(FixedWidthReader &file) {
   if (recalcTrajectory && (uint)l_occ != currBox) {
     return;
   }
-  Assign(resName, l_chain, l_x, l_y, l_z, l_beta, l_occ);
+  Assign(std::move(resName), l_chain, l_x, l_y, l_z, l_beta, l_occ);
 }
 
 void Atoms::Clear() {
