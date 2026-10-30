@@ -197,7 +197,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   tempLJEn, forcefield.sc_coul, forcefield.sc_sigma_6,
                   forcefield.sc_alpha, forcefield.sc_power, box);
 #else
-#if defined _OPENMP
+#ifdef _OPENMP
 #pragma omp parallel for default(none) shared(                                 \
         cellStartIndex, cellVector, coords, mapParticleToCell, neighborList)   \
     firstprivate(box, boxAxes, num::qqFact) reduction(+ : tempREn, tempLJEn)
@@ -467,7 +467,7 @@ Virial CalculateEnergy::VirialCalc(const uint box) {
                        forcefield.sc_coul, forcefield.sc_sigma_6,
                        forcefield.sc_alpha, forcefield.sc_power, box);
 #else
-#if defined _OPENMP
+#ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
     shared(cellStartIndex, cellVector, mapParticleToCell, neighborList)        \
     firstprivate(box) reduction(+ : vT11, vT12, vT13, vT22, vT23, vT33, rT11,  \
@@ -1418,7 +1418,7 @@ void CalculateEnergy::CalculateTorque(std::vector<int> &moleculeIndex,
     double *torquex = molTorque.x;
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;
-#if defined _OPENMP
+#ifdef _OPENMP
 #pragma omp parallel for default(none)                                         \
     shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, torquex,  \
                torquey, torquez) firstprivate(box)
