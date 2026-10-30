@@ -311,7 +311,7 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const &tracked) {
 }
 #endif
 
-void BlockAverage::printTitle(std::string output) {
+void BlockAverage::printTitle(const std::string &output) {
   if (tot >= 1) {
     if ((*outBlock0).is_open()) {
       (*outBlock0) << std::left << std::scientific << std::setw(OUTPUTWIDTH)

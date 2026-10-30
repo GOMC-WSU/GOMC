@@ -24,11 +24,14 @@ public:
   DCCrankShaftDih(DCData *data, const mol_setup::MolKind &kind, uint a0,
                   uint a1, uint a2, uint a3);
   ~DCCrankShaftDih() { delete[] multiPosRotions; }
+  DCCrankShaftDih(const DCCrankShaftDih &) = delete;
+  DCCrankShaftDih &operator=(const DCCrankShaftDih &) = delete;
   void PrepareNew(TrialMol &newMol, uint molIndex);
   void PrepareOld(TrialMol &oldMol, uint molIndex);
   void BuildOld(TrialMol &oldMol, uint molIndex);
   void BuildNew(TrialMol &newMol, uint molIndex);
-  DCComponent *Clone() { return new DCCrankShaftDih(*this); }
+  // unused -- if needed, define copy constructor
+  // DCComponent *Clone() { return new DCCrankShaftDih(*this); }
 
 private:
   void ChooseTorsion(TrialMol &mol, uint molIndex, RotationMatrix &cross,

@@ -119,7 +119,7 @@ for example in all_examples:
         write_log_data = "The GOMC Example {} {} has finished.\n".format(row['Binary'],row['Example'])
         Log_Template_file.write(str(write_log_data))
         Log_Template_file.flush()
-    
+
     # Create a list of the PDB files in this example
     full_path_pdb_files = sorted(glob.glob(os.path.join(row['PathToExample'],'*.pdb')), key=os.path.getmtime)
     just_file_names = []

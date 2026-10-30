@@ -39,6 +39,8 @@ class MoleculeKind {
 public:
   MoleculeKind();
   ~MoleculeKind();
+  MoleculeKind(const MoleculeKind &) = delete;
+  MoleculeKind &operator=(const MoleculeKind &) = delete;
 
   uint NumAtoms() const { return numAtoms; }
   uint NumBonds() const { return bondList.count; }
@@ -139,12 +141,12 @@ public:
 
   bool oneThree, oneFour;
 
-  // uniqueName - guarunteed to be unique, the map key
-  // name - not guarunteed to be unique
+  // uniqueName - guaranteed to be unique, the map key
+  // name - not guaranteed to be unique
   //  -if a protein, == PROT(A...Z)
   //  -if non-protein, residue name
   std::string name, uniqueName;
-  ;
+
   uint kindIndex;
   std::vector<std::string> atomNames, atomTypeNames, resNames;
   double molMass;

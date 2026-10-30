@@ -20,9 +20,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 class System;
 
 Molecules::Molecules()
-    : start(NULL), restartOrderedStart(NULL), kIndex(NULL), countByKind(NULL),
-      chain(NULL), kinds(NULL), pairEnCorrections(NULL),
-      pairVirCorrections(NULL), printFlag(true) {}
+    : start(nullptr), restartOrderedStart(nullptr), kIndex(nullptr),
+      countByKind(nullptr), chain(nullptr), beta(nullptr), occ(nullptr),
+      kinds(nullptr), pairEnCorrections(nullptr), pairVirCorrections(nullptr),
+      printFlag(true), restartFromCheckpoint{} {}
 
 Molecules::~Molecules(void) {
   delete[] start;
@@ -105,12 +106,12 @@ void Molecules::Init(Setup &setup, Forcefield &forcefield, System &sys) {
                 << std::endl;
       exit(EXIT_FAILURE);
     }
-    kindCPIt++;
+    ++kindCPIt;
   }
 #endif
 
   if (printFlag) {
-    // calculating netcharge of all molecule kind
+    // calculating net charge of all molecule kind
     double netCharge = 0.0;
     for (uint mk = 0; mk < kindsCount; mk++) {
       netCharge += (countByKind[mk] * kinds[mk].GetMoleculeCharge());
@@ -234,17 +235,17 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
     uint size = totAtomKind.size();
     printf("NonBonded 1-4 parameters:\n");
     if (forcefield.exp6) {
-      printf("%-6s %-10s %17s %11s %11s %11s %7s \n", "Type1", "Type2",
+      printf("%-6s %-10s %17s %11s %11s %11s %7s\n", "Type1", "Type2",
              "Epsilon(K)", "Sigma(A)", "Rmax(A)", "Rmin(A)", "alpha");
     } else {
-      printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
+      printf("%-6s %-10s %17s %11s %7s\n", "Type1", "Type2", "Epsilon(K)",
              "Sigma(A)", "N");
     }
     for (uint i = 0; i < size; i++) {
       for (uint j = i; j < size; j++) {
         if (forcefield.exp6) {
           printf(
-              "%-6s %-10s %17.4f %11.4f %11.4f %11.4f %7.2f \n",
+              "%-6s %-10s %17.4f %11.4f %11.4f %11.4f %7.2f\n",
               names[i].c_str(), names[j].c_str(),
               forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
                                                    totAtomKind[j]),
@@ -255,7 +256,7 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
               forcefield.particles->GetN_1_4(totAtomKind[i], totAtomKind[j]));
         } else {
           printf(
-              "%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
+              "%-6s %-10s %17.4f %11.4f %7.2f\n", names[i].c_str(),
               names[j].c_str(),
               forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
                                                    totAtomKind[j]),
@@ -269,17 +270,17 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
     std::cout << std::endl;
     printf("NonBonded parameters:\n");
     if (forcefield.exp6) {
-      printf("%-6s %-10s %17s %11s %11s %11s %7s \n", "Type1", "Type2",
+      printf("%-6s %-10s %17s %11s %11s %11s %7s\n", "Type1", "Type2",
              "Epsilon(K)", "Sigma(A)", "Rmax(A)", "Rmin(A)", "alpha");
     } else {
-      printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
+      printf("%-6s %-10s %17s %11s %7s\n", "Type1", "Type2", "Epsilon(K)",
              "Sigma(A)", "N");
     }
     for (uint i = 0; i < size; i++) {
       for (uint j = i; j < size; j++) {
         if (forcefield.exp6) {
           printf(
-              "%-6s %-10s %17.4f %11.4f %11.4f %11.4f %7.2f \n",
+              "%-6s %-10s %17.4f %11.4f %11.4f %11.4f %7.2f\n",
               names[i].c_str(), names[j].c_str(),
               forcefield.particles->GetEpsilon(totAtomKind[i], totAtomKind[j]),
               forcefield.particles->GetSigma(totAtomKind[i], totAtomKind[j]),
@@ -288,7 +289,7 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
               forcefield.particles->GetN(totAtomKind[i], totAtomKind[j]));
         } else {
           printf(
-              "%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
+              "%-6s %-10s %17.4f %11.4f %7.2f\n", names[i].c_str(),
               names[j].c_str(),
               forcefield.particles->GetEpsilon(totAtomKind[i], totAtomKind[j]),
               forcefield.particles->GetSigma(totAtomKind[i], totAtomKind[j]),

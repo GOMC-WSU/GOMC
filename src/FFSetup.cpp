@@ -205,11 +205,12 @@ std::string FFBase::LoadLine(Reader &param, std::string const &firstVar) {
 }
 
 void Particle::Read(Reader &param, std::string const &firstVar) {
-  double e, s, e_1_4, s_1_4, dummy1, dummy2;
+  double e, s, e_1_4, s_1_4;
   double expN, expN_1_4;
   std::stringstream values(LoadLine(param, firstVar));
   if (isCHARMM()) { // if lj
-    values >> dummy1;
+    double dummy;
+    values >> dummy;
   }
   values >> e >> s;
   if (isCHARMM()) {
@@ -225,7 +226,8 @@ void Particle::Read(Reader &param, std::string const &firstVar) {
   }
 
   if (isCHARMM()) { // if lj
-    values >> dummy2;
+    double dummy;
+    values >> dummy;
   }
   // If undefined in CHARMM, assign 1-4 to full value.
   values >> e_1_4 >> s_1_4;
@@ -364,15 +366,15 @@ void NBtable::Read(Reader &param, std::string const &firstVar) {
             << table_pair_name << std::endl;
 }
 
-void NBtable::Add(std::string atom1, std::string atom2,
-                  std::string table_pair_name) {
+void NBtable::Add(const std::string &atom1, const std::string &atom2,
+                  const std::string &table_pair_name) {
   atomType1.push_back(atom1);
   atomType2.push_back(atom2);
   tableNames.push_back(table_pair_name);
   // Note: The base class 'name' vector is also filled by ReadKind(),
   // but we don't use it. We use our own tableNames vector instead.
 }
-void Bond::Read(Reader &param, std::string const &firstVar) {
+void Bond::Read(Reader &param, const std::string &firstVar) {
   double coeff, def;
   ReadKind(param, firstVar);
   param.file >> coeff >> def;
@@ -472,11 +474,11 @@ void Dihedral::Add(const std::string &fileName, const std::string &merged,
 }
 
 void Improper::Read(Reader &param, std::string const &firstVar) {
-  double coeff, def;
-  uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
   if (validname(merged)) {
+    double coeff, def;
+    uint index;
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "
@@ -493,11 +495,11 @@ void Improper::Add(const double coeff, const double def) {
 
 // Currently dummy method, exact same as improper
 void CMap::Read(Reader &param, std::string const &firstVar) {
-  double coeff, def;
-  uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
   if (validname(merged)) {
+    double coeff, def;
+    uint index;
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "
@@ -515,11 +517,11 @@ void CMap::Add(const double coeff, const double def) {
 
 // Currently dummy method, exactly the same as improper
 void HBond::Read(Reader &param, std::string const &firstVar) {
-  double coeff, def;
-  uint index;
   std::string merged = ReadKind(param, firstVar);
   // If new value
   if (validname(merged)) {
+    double coeff, def;
+    uint index;
     param.file >> coeff >> index >> def;
     if (!param.file.good()) {
       std::cout << "Error: Incomplete Improper parameters was found in "

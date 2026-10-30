@@ -34,35 +34,19 @@ public:
   ExtendedSystemOutput(System &sys, StaticVals const &statV);
 
   ~ExtendedSystemOutput() {
-    if (x) {
-      delete[] x; // y and z are continue of x
-    }
+    delete[] x; // y and z are continue of x
 
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       if (enableOut) {
         close_dcd_write(stateFileFileid[b]);
       }
-      if (restartCoor[b]) {
-        delete[] restartCoor[b];
-      }
-      if (restartVel[b]) {
-        delete[] restartVel[b];
-      }
-      if (outDCDStateFile[b]) {
-        delete[] outDCDStateFile[b];
-      }
-      if (outDCDRestartFile[b]) {
-        delete[] outDCDRestartFile[b];
-      }
-      if (outVelRestartFile[b]) {
-        delete[] outVelRestartFile[b];
-      }
-      if (outXSTFile[b]) {
-        delete[] outXSTFile[b];
-      }
-      if (outXSCFile[b]) {
-        delete[] outXSCFile[b];
-      }
+      delete[] restartCoor[b];
+      delete[] restartVel[b];
+      delete[] outDCDStateFile[b];
+      delete[] outDCDRestartFile[b];
+      delete[] outVelRestartFile[b];
+      delete[] outXSTFile[b];
+      delete[] outXSCFile[b];
     }
   }
 

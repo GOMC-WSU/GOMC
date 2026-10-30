@@ -245,16 +245,54 @@ MoleculeLookup::box_iterator MoleculeLookup::BoxEnd(const uint box) const {
 }
 
 MoleculeLookup &MoleculeLookup::operator=(const MoleculeLookup &rhs) {
-  molLookupCount = rhs.molLookupCount;
-  boxAndKindStartLength = rhs.boxAndKindStartLength;
-  boxAndKindSwappableLength = rhs.boxAndKindSwappableLength;
-  atomCount = rhs.atomCount;
-  numKinds = rhs.numKinds;
+  if (this != &rhs) { // Avoid self-assignment
+    molLookupCount = rhs.molLookupCount;
+    boxAndKindStartLength = rhs.boxAndKindStartLength;
+    boxAndKindSwappableLength = rhs.boxAndKindSwappableLength;
+    atomCount = rhs.atomCount;
+    numKinds = rhs.numKinds;
 
-  fixedMolecule = rhs.fixedMolecule;
-  canSwapKind = rhs.canSwapKind; // Kinds that can move intra and inter box
-  canMoveKind = rhs.canMoveKind; // Kinds that can move intra box only
+    fixedMolecule = rhs.fixedMolecule;
+    canSwapKind = rhs.canSwapKind; // Kinds that can move intra and inter box
+    canMoveKind = rhs.canMoveKind; // Kinds that can move intra box only
 
+    // When setting up a checkpoint, we call this function just to get the
+    // sizes, but the values come from the input file. So, the rhs hasn't
+    // been set up yet. In that case, skip copying the memory.
+    if (rhs.molLookup) {
+      // Deallocate memory currently held
+      delete[] molLookup;
+      delete[] boxAndKindStart;
+      delete[] boxAndKindSwappableCounts;
+      delete[] molIndex;
+      delete[] atomIndex;
+      delete[] molKind;
+      delete[] atomKind;
+      delete[] atomCharge;
+
+      // Reallocate memory with the correct size
+      molLookup = new uint32_t[molLookupCount];
+      boxAndKindStart = new uint32_t[boxAndKindStartLength];
+      boxAndKindSwappableCounts = new uint32_t[boxAndKindSwappableLength];
+      molIndex = new int32_t[atomCount];
+      atomIndex = new int32_t[atomCount];
+      molKind = new int32_t[atomCount];
+      atomKind = new int32_t[atomCount];
+      atomCharge = new double[atomCount];
+
+      // Load arrays with data
+      std::memcpy(molLookup, rhs.molLookup, sizeof(uint32_t) * molLookupCount);
+      std::memcpy(boxAndKindStart, rhs.boxAndKindStart,
+                  sizeof(uint32_t) * boxAndKindStartLength);
+      std::memcpy(boxAndKindSwappableCounts, rhs.boxAndKindSwappableCounts,
+                  sizeof(uint32_t) * boxAndKindSwappableLength);
+      std::memcpy(molIndex, rhs.molIndex, sizeof(int32_t) * atomCount);
+      std::memcpy(atomIndex, rhs.atomIndex, sizeof(int32_t) * atomCount);
+      std::memcpy(molKind, rhs.molKind, sizeof(int32_t) * atomCount);
+      std::memcpy(atomKind, rhs.atomKind, sizeof(int32_t) * atomCount);
+      std::memcpy(atomCharge, rhs.atomCharge, sizeof(double) * atomCount);
+    }
+  }
   return *this;
 }
 

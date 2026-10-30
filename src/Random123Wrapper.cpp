@@ -8,10 +8,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "Random123/boxmuller.hpp"
 #include "Random123/uniform.hpp"
 
-Random123Wrapper::Random123Wrapper() {
-  c = {{}};
-  uk = {{}};
-}
+Random123Wrapper::Random123Wrapper() : c{{}}, uk{{}} {}
 
 inline RNG::ctr_type Random123Wrapper::getRNG(unsigned int counter) {
   // Need to use the localc variable to avoid OpenMP race conditions

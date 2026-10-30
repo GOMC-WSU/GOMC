@@ -438,6 +438,7 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
     return qi_qj * (alphaValue * expValue + erfcValue) / distSq;
   } else {
     return qi_qj / (distSq * dist);
+
   }
 }
 

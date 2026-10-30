@@ -146,7 +146,7 @@ private:
     // Start arrays
     ar & originalStartVec;
     ar & restartedStartVec;
-    // Mollookup
+    // MolLookup
     ar & originalMoleculeLookup;
     // MolSetup
     ar & originalMolSetup;

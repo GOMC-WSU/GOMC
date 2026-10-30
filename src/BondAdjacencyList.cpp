@@ -78,7 +78,7 @@ BondAdjacencyList::BondAdjacencyList(
   /* Sort Atom Indices in N connected components, then sort N connected
    * components by first atom index*/
   for (std::vector<std::vector<uint>>::iterator it = moleculeXAtomIDY.begin();
-       it != moleculeXAtomIDY.end(); it++) {
+       it != moleculeXAtomIDY.end(); ++it) {
     std::sort(it->begin(), it->end());
   }
   std::sort(moleculeXAtomIDY.begin(), moleculeXAtomIDY.end());
@@ -90,7 +90,7 @@ BondAdjacencyList::BondAdjacencyList(
 
   std::cout << "Connected Components" << std::endl;
   for (std::vector<std::vector<uint>>::iterator it = moleculeXAtomIDY.begin();
-       it != moleculeXAtomIDY.end(); it++) {
+       it != moleculeXAtomIDY.end(); ++it) {
     for (std::vector<uint>::iterator it2 = it->begin(); it2 != it->end();
          it2++) {
       std::cout << *it2 << ", ";
@@ -123,8 +123,7 @@ void BondAdjacencyList::display_AdjList(adjNode *ptr, int i) {
   std::cout << std::endl;
 }
 
-// Method to print connected components in an
-// undirected graph
+// Method to print connected components in an undirected graph
 void BondAdjacencyList::connectedComponents(
     std::vector<std::vector<uint>> &moleculeXAtomIDY) {
   // Mark all the vertices as not visited
@@ -133,15 +132,10 @@ void BondAdjacencyList::connectedComponents(
     visited[v] = false;
 
   for (uint v = 0; v < nAtoms; v++) {
-    if (visited[v] == false) {
-      // print all reachable vertices
-      // from v
-      /* For debugging
-      std::cout << "Calling DFSUtil" << std::endl; */
+    if (!visited[v]) {
       std::vector<uint> moleculeX;
       DFSUtil(v, this->head[v], this->head, visited, moleculeX);
       moleculeXAtomIDY.push_back(moleculeX);
-      /* For debugging std::cout << "\n"; */
     }
   }
   delete[] visited;
@@ -151,14 +145,12 @@ void BondAdjacencyList::DFSUtil(int v, adjNode *node, adjNode **head,
                                 bool *visited, std::vector<uint> &moleculeX) {
   // Mark the current node as visited and print it
   visited[v] = true;
-  /* For debugging std::cout << v << " "; */
   moleculeX.push_back(v);
-  // Recur for all the vertices
-  // adjacent to this vertex
+  // Repeat for all the vertices adjacent to this vertex
   while (node != nullptr) {
     // outgoing edge : node->val
     v = node->val;
-    if (visited[v] == false) {
+    if (!visited[v]) {
       visited[v] = true;
       // Evaluate adjacency list of outgoing edge for prev visited
       DFSUtil(v, head[v], head, visited, moleculeX);
