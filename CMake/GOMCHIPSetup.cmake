@@ -1,8 +1,9 @@
 # HIP/ROCm build setup for GOMC
 
-# Add define flags for both CXX and HIP compilation
+# Define flags for both CXX and HIP compilation of the GPU targets only, so
+# the CPU ensembles in the same build stay CPU-only.
 # __HIP_PLATFORM_AMD__ is needed when CXX files include HIP headers
-add_compile_definitions(GOMC_CUDA USE_HIP __HIP_PLATFORM_AMD__)
+set(GPU_HIP_defs GOMC_CUDA USE_HIP __HIP_PLATFORM_AMD__)
 
 # enable_language(HIP) in the top-level CMakeLists already resolved
 # CMAKE_HIP_ARCHITECTURES: it honors an explicit -DCMAKE_HIP_ARCHITECTURES,
@@ -74,7 +75,7 @@ if(ENSEMBLE_GPU_NVT)
         HIP_SEPARABLE_COMPILATION ON
         HIP_ARCHITECTURES "${CMAKE_HIP_ARCHITECTURES}"
         OUTPUT_NAME ${GPU_NVT_name})
-    target_compile_definitions(GPU_NVT PRIVATE ENSEMBLE=1)
+    target_compile_definitions(GPU_NVT PRIVATE ${GPU_HIP_defs} ENSEMBLE=1)
     target_link_libraries(GPU_NVT PRIVATE amdhip64)
     if(WIN32)
         target_link_libraries(GPU_NVT PRIVATE ws2_32)
@@ -96,7 +97,7 @@ if(ENSEMBLE_GPU_GEMC)
         HIP_SEPARABLE_COMPILATION ON
         HIP_ARCHITECTURES "${CMAKE_HIP_ARCHITECTURES}"
         OUTPUT_NAME ${GPU_GE_name})
-    target_compile_definitions(GPU_GEMC PRIVATE ENSEMBLE=2)
+    target_compile_definitions(GPU_GEMC PRIVATE ${GPU_HIP_defs} ENSEMBLE=2)
     target_link_libraries(GPU_GEMC PRIVATE amdhip64)
     if(WIN32)
         target_link_libraries(GPU_GEMC PRIVATE ws2_32)
@@ -118,7 +119,7 @@ if(ENSEMBLE_GPU_GCMC)
         HIP_SEPARABLE_COMPILATION ON
         HIP_ARCHITECTURES "${CMAKE_HIP_ARCHITECTURES}"
         OUTPUT_NAME ${GPU_GC_name})
-    target_compile_definitions(GPU_GCMC PRIVATE ENSEMBLE=3)
+    target_compile_definitions(GPU_GCMC PRIVATE ${GPU_HIP_defs} ENSEMBLE=3)
     target_link_libraries(GPU_GCMC PRIVATE amdhip64)
     if(WIN32)
         target_link_libraries(GPU_GCMC PRIVATE ws2_32)
@@ -140,7 +141,7 @@ if(ENSEMBLE_GPU_NPT)
         HIP_SEPARABLE_COMPILATION ON
         HIP_ARCHITECTURES "${CMAKE_HIP_ARCHITECTURES}"
         OUTPUT_NAME ${GPU_NPT_name})
-    target_compile_definitions(GPU_NPT PRIVATE ENSEMBLE=4)
+    target_compile_definitions(GPU_NPT PRIVATE ${GPU_HIP_defs} ENSEMBLE=4)
     target_link_libraries(GPU_NPT PRIVATE amdhip64)
     if(WIN32)
         target_link_libraries(GPU_NPT PRIVATE ws2_32)
