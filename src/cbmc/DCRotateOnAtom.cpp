@@ -18,7 +18,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 namespace cbmc {
 struct FindA1 {
-  FindA1(uint x) : x(x){};
+  explicit FindA1(uint x) : x(x){};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };
@@ -123,11 +123,11 @@ DCRotateOnAtom::DCRotateOnAtom(DCData *data, const mol_setup::MolKind &kind,
   }
   /*
   for(uint i = 0; i < ang.size(); i++) {
-    printf("R:Angle on %d-%d-%d: %d -> %d -> %d \n", a0, a1, a2, ang[i].a0,
+    printf("R:Angle on %d-%d-%d: %d -> %d -> %d\n", a0, a1, a2, ang[i].a0,
   ang[i].a1, ang[i].a2);
   }
   for(uint i = 0; i < dih.size(); i++) {
-    printf("R:Angle on %d-%d-%d: %d -> %d -> %d -> %d \n", a0, a1, a2,
+    printf("R:Angle on %d-%d-%d: %d -> %d -> %d -> %d\n", a0, a1, a2,
   dih[i].a0, dih[i].a1, dih[i].a2, dih[i].a3);
   } */
 }

@@ -119,7 +119,7 @@ TEST(ConsistentTrajectoryTest, Check_AR_KR) {
   rsN.recalcTrajectory = true;
   rsSingleRun.recalcTrajectory = true;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   uint frameNum = 1;
   pdbBase.Init(rsBase, pdbnamesBase, frameNum);
   pdb1.Init(rs1, pdbnames1, frameNum);
@@ -180,7 +180,7 @@ TEST(ConsistentTrajectoryTest, Check_AR_KR) {
 
   PDBSetup pdbBase_Base_To_K_1, pdb1_Base_To_K_1;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdbBase_Base_To_K_1.Init(rsBase, pdbnamesBase, frameNum);
@@ -234,7 +234,7 @@ TEST(ConsistentTrajectoryTest, Check_AR_KR) {
   }
   PDBSetup pdb1_K_1_To_K_N, pdnN_K_1_To_K_N;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdb1_K_1_To_K_N.Init(rs1, pdbnames1, frameNum);
@@ -409,11 +409,11 @@ TEST(ConsistentTrajectoryTest, Check_PEN_HEX) {
   rsContinued.recalcTrajectory = true;
   rsSingleRun.recalcTrajectory = true;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   uint frameNum = 1;
   PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, frameNum);
@@ -610,7 +610,7 @@ TEST(ConsistentTrajectoryTest, Check_Neo_Pen) {
   rsN.recalcTrajectory = true;
   rsSingleRun.recalcTrajectory = true;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   uint frameNum = 1;
   pdbBase.Init(rsBase, pdbnamesBase, frameNum);
   pdb1.Init(rs1, pdbnames1, frameNum);
@@ -639,7 +639,7 @@ TEST(ConsistentTrajectoryTest, Check_Neo_Pen) {
 
   PDBSetup pdbBase_Base_To_K_1, pdb1_Base_To_K_1;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdbBase_Base_To_K_1.Init(rsBase, pdbnamesBase, frameNum);
@@ -672,7 +672,7 @@ TEST(ConsistentTrajectoryTest, Check_Neo_Pen) {
 
   PDBSetup pdb1_K_1_To_K_N, pdnN_K_1_To_K_N;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdb1_K_1_To_K_N.Init(rs1, pdbnames1, frameNum);
@@ -750,6 +750,9 @@ TEST(ConsistentTrajectoryTest, Check_Neo_Pen) {
     exit(1);
   }
   result = chdir("../../../..");
+  if (result) {
+    std::cout << "System call failed!" << std::endl;
+    exit(1);
 }
 
 TEST(ConsistentTrajectoryTest, Check_BPTI_TIP3) {
@@ -819,11 +822,11 @@ TEST(ConsistentTrajectoryTest, Check_BPTI_TIP3) {
   rsContinued.recalcTrajectory = true;
   rsSingleRun.recalcTrajectory = true;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   uint frameNum = 1;
   PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, frameNum);
@@ -990,11 +993,11 @@ TEST(ConsistentTrajectoryTest, Check_K_CHANNEL_TIP3) {
   rsContinued.recalcTrajectory = true;
   rsSingleRun.recalcTrajectory = true;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   uint frameNum = 1;
   PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, frameNum);
@@ -1099,7 +1102,6 @@ TEST(ConsistentTrajectoryTest, Check_FORCE_SWAP_BPTI_TIP3) {
   ulong base_runsteps, Continued_runsteps;
   ulong Continued_true_step;
   std::string fs("forceSwap.conf");
-  std::string inputFileString("in.conf");
   int result = chdir("./test/input/Systems/BPTI_TIP3/Base/");
   if (result) {
     std::cout << "System call failed!" << std::endl;
@@ -1162,11 +1164,11 @@ TEST(ConsistentTrajectoryTest, Check_FORCE_SWAP_BPTI_TIP3) {
   rsContinued.recalcTrajectory = true;
   rsSingleRun.recalcTrajectory = true;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   uint frameNum = 1;
   PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, frameNum);
@@ -1271,7 +1273,6 @@ TEST(ConsistentTrajectoryTest, Check_FORCE_SWAP_K_CHANNEL_TIP3) {
   ulong base_runsteps, Continued_runsteps;
   ulong Continued_true_step;
   std::string fs("forceSwap.conf");
-  std::string inputFileString("in.conf");
   int result = chdir("./test/input/Systems/K_CHANNEL_TIP3/Base/");
   if (result) {
     std::cout << "System call failed!" << std::endl;
@@ -1334,11 +1335,11 @@ TEST(ConsistentTrajectoryTest, Check_FORCE_SWAP_K_CHANNEL_TIP3) {
   rsContinued.recalcTrajectory = true;
   rsSingleRun.recalcTrajectory = true;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   uint frameNum = 1;
   PDBSetup pdbBase_Base_To_Continued, pdbContinued_Base_To_Continued;
 
-  // This is needed to get passed Remark
+  // This is needed to get past Remark
   // Not sure why.
   frameNum = 1;
   pdbBase_Base_To_Continued.Init(rsBase, pdbnamesBase, frameNum);

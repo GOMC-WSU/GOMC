@@ -44,7 +44,7 @@ Simulation::Simulation(char const *const configFileName,
   if (totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
-
+  remarksCount = 0;
 #if GOMC_LIB_MPI
   // set.config.sys.step.parallelTemp is a boolean for enabling/disabling
   // parallel tempering
@@ -55,6 +55,7 @@ Simulation::Simulation(char const *const configFileName,
                       set.config.sys.step.parallelTemperingAttemptsPerExchange)
                 : NULL;
   exchangeResults.resize(ms->worldSize, false);
+  parity = 0;
 #endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::INITIALIZE);
 }
@@ -111,7 +112,7 @@ void Simulation::RunSimulation(void) {
       double currEnergy = system->potential.totalEnergy.total;
       if (std::fabs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Recalculating the total energies to insure the accuracy"
-               " of the computed \n"
+               " of the computed\n"
                "      running energies.\n\n");
         system->calcEwald->UpdateVectorsAndRecipTerms(true);
         system->potential = system->calcEnergy.SystemTotal();

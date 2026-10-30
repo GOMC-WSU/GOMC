@@ -104,6 +104,7 @@ set(headers
    src/FFShift.h
    src/FFSwitch.h
    src/FFSwitchMartini.h
+   src/FFTabulated.h
    src/FixedWidthReader.h
    src/Forcefield.h
    src/FreeEnergyOutput.h

@@ -18,7 +18,7 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor(int argc,
   // Get the rank of the process
   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
 
-  // CHECK IF ARGS/FILE PROVIDED IN CMD LINE
+  // Check if args/filename provided in command line
   if (argc < 2) {
     std::cout << "Error: Input parameter file (*.dat or *.conf) not specified "
                  "on command line!\n";
@@ -26,10 +26,10 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor(int argc,
     exit(EXIT_FAILURE);
   } else {
     if (argc == 2) {
-      // FIRST PARAMETER WILL BE FILE NAME
+      // First parameter will be filename
       inputFileStringMPI = argv[1];
     } else {
-      // SECOND PARAMETER WILL BE FILE NAME
+      // Second parameter will be filename
       inputFileStringMPI = argv[2];
 
       if (argv[1][0] == '+' && argv[1][1] == 'p') {
@@ -41,20 +41,9 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor(int argc,
         exit(EXIT_FAILURE);
       }
     }
-    // OPEN FILE
-    inputFileReaderMPI.open(inputFileStringMPI.c_str(),
-                            std::ios::in | std::ios::out);
 
-    // CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
-    if (!inputFileReaderMPI.is_open()) {
-      std::cout << "Error: Cannot open/find " << inputFileStringMPI
-                << " in the directory provided!\n";
-      MPI_Finalize();
-      exit(EXIT_FAILURE);
-    }
-
-    // CLOSE FILE TO NOW PASS TO SIMULATION
-    inputFileReaderMPI.close();
+    // Test whether the provided configuration filename can be open for reading
+    inputFileReaderMPI.Test(inputFileStringMPI);
 
     if (checkIfExpandedEnsemble(inputFileStringMPI.c_str())) {
       checkIfValid(inputFileStringMPI.c_str());
@@ -415,8 +404,8 @@ bool ParallelTemperingPreprocessor::checkIfRestartFromCheckpoint(
 }
 
 void ParallelTemperingPreprocessor::
-    setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle,
-                                                   std::string temperature) {
+    setupReplicaDirectoriesAndRedirectSTDOUTToFile(
+        const std::string &multiSimTitle, const std::string &temperature) {
   std::stringstream replicaTemp;
   replicaTemp << "temp_" << temperature;
   std::string replicaDirectory = replicaTemp.str();
@@ -424,9 +413,9 @@ void ParallelTemperingPreprocessor::
 }
 
 void ParallelTemperingPreprocessor::
-    setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle,
-                                                   std::string temperature,
-                                                   std::string chemPot) {
+    setupReplicaDirectoriesAndRedirectSTDOUTToFile(
+        const std::string &multiSimTitle, const std::string &temperature,
+        const std::string &chemPot) {
   std::stringstream replicaTemp;
   replicaTemp << "temp_" << temperature << chemPot;
   std::string replicaDirectory = replicaTemp.str();
@@ -434,7 +423,8 @@ void ParallelTemperingPreprocessor::
 }
 
 void ParallelTemperingPreprocessor::mkdirWrapper(
-    std::string multisimDirectoryName, std::string replicaDirectoryName) {
+    const std::string &multisimDirectoryName,
+    const std::string &replicaDirectoryName) {
   std::string multiSimInputFolder;
   std::string multiSimOutputFolder;
 

@@ -37,6 +37,8 @@ public:
   BondAdjacencyList(FILE *psf, uint nAtoms, uint nBonds,
                     std::vector<std::vector<uint>> &moleculeXAtomIDY);
   ~BondAdjacencyList();
+  BondAdjacencyList(const BondAdjacencyList &) = delete;
+  BondAdjacencyList &operator=(const BondAdjacencyList &) = delete;
   adjNode *getAdjListNode(int value, int weight, adjNode *head);
   void display_AdjList(adjNode *ptr, int i);
   void connectedComponents(std::vector<std::vector<uint>> &moleculeXAtomIDY);

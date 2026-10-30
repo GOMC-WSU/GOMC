@@ -129,6 +129,7 @@ BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const &other) {
     volInv[b] = other.volInv[b];
     rCut[b] = other.rCut[b];
     rCutSq[b] = other.rCutSq[b];
+    minVol[b] = other.minVol[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
     for (uint i = 0; i < 3; i++) {

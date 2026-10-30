@@ -37,7 +37,7 @@ class AlphaNum {
 public:
   AlphaNum();
   std::string uint2String(uint stringSuffix);
-  uint string2Uint(std::string stringSuffix);
+  uint string2Uint(const std::string &stringSuffix);
   struct icompare_char;
   struct compare;
 };

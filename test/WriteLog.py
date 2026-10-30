@@ -15,10 +15,6 @@ def substring_after(s, delim):
 import os
 import glob
 import pandas as pd
-import time
-import datetime
-import subprocess
-from subprocess import STDOUT
 from filecmp import cmp
 binaries_dict = {}
 GPU_binaries_dict = {}

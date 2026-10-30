@@ -17,8 +17,13 @@ FreeEnergyOutput::FreeEnergyOutput(OutputVars &v, System &sys)
       lambdaRef(sys.lambdaRef) {
   this->var = &v;
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    energyDiff[b] = NULL;
+    energyDiff[b] = nullptr;
   }
+  stepsPerSample = freeEnVal.frequency;
+  PV = 0.0;
+  Etotal = 0.0;
+  lambdaSize = freeEnVal.lambdaVDW.size();
+  iState = freeEnVal.iState;
 #if ENSEMBLE == NPT
   // unit is K * molecule / A3
   imposedP = sys.statV.pressure;
@@ -71,10 +76,7 @@ FreeEnergyOutput::~FreeEnergyOutput() {
     if (outF[b].is_open()) {
       outF[b].close();
     }
-
-    if (energyDiff[b] != NULL) {
-      delete[] energyDiff[b];
-    }
+    delete[] energyDiff[b];
   }
 }
 

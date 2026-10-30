@@ -13,6 +13,9 @@ struct SimEventFrequency {
   ulong total, perAdjust, tillEquil, pCalcFreq, parallelTempFreq;
   bool pressureCalc, parallelTemp;
 
+  SimEventFrequency()
+      : total(0), perAdjust(0), tillEquil(0), pCalcFreq(0), parallelTempFreq(0),
+        pressureCalc(false), parallelTemp(false) {}
   void Init(config_setup::Step const &s) {
     total = s.total;
     perAdjust = s.adjustment;

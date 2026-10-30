@@ -21,6 +21,8 @@ class DCRotateCOM : public DCComponent {
 public:
   DCRotateCOM(DCData *data, const mol_setup::MolKind kind);
   ~DCRotateCOM() { delete[] multiPosRotions; }
+  DCRotateCOM(const DCRotateCOM &) = delete;
+  DCRotateCOM &operator=(const DCRotateCOM &) = delete;
   void PrepareNew(TrialMol &newMol, uint molIndex);
   void PrepareOld(TrialMol &oldMol, uint molIndex);
   void PickTransferCOMNew(TrialMol &newMol, uint molIndex);
@@ -28,7 +30,8 @@ public:
   void BuildOld(TrialMol &oldMol, uint molIndex);
   void BuildNew(TrialMol &newMol, uint molIndex);
   void RandRotateZ();
-  DCComponent *Clone() { return new DCRotateCOM(*this); };
+  // unused -- if needed, define copy constructor
+  // DCComponent *Clone() { return new DCRotateCOM(*this); };
 
 private:
   DCData *data;

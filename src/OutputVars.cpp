@@ -16,14 +16,21 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 OutputVars::OutputVars(System &sys, StaticVals const &statV,
                        const std::vector<std::string> &molKindNames)
-    : T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy),
-      molKindNames(molKindNames) {
+    : numByBox{}, numByKindBox{}, molFractionByKindBox{}, densityByKindBox{},
+      pressure{{}}, densityTot{{}}, compressibility{{}}, enthalpy{{}},
+      pressureTens{{}}, surfaceTens{{}}, pCalcFreq{}, pressureCalc{},
+      numKinds{}, T_in_K(statV.forcefield.T_in_K), volumeRef{}, axisRef{},
+      volInvRef{}, energyRef{}, energyTotRef{}, virialRef{}, virial{},
+      virialTotRef{}, kindsRef{}, molLookupRef{}, calc(sys.calcEnergy),
+      molKindNames(molKindNames), movePercRef{}, moveSetRef{} {
   InitRef(sys, statV);
   for (int b = 0; b < BOXES_WITH_U_NB; ++b) {
     compressibility[b] = 0.0;
     enthalpy[b] = 0.0;
   }
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GCMC
+  chemPot = nullptr;
+#elif ENSEMBLE == GEMC
   liqBox = 0;
   vapBox = 0;
   heatOfVap = 0.0;
@@ -87,16 +94,11 @@ void OutputVars::Init() {
 }
 
 OutputVars::~OutputVars(void) {
-  if (numByBox != NULL)
-    delete[] numByBox;
-  if (numByKindBox != NULL)
-    delete[] numByKindBox;
-  if (numKinds > 1 && molFractionByKindBox != NULL)
-    delete[] molFractionByKindBox;
-  if (densityByKindBox != NULL)
-    delete[] densityByKindBox;
-  if (virial != NULL)
-    delete[] virial;
+  delete[] numByBox;
+  delete[] numByKindBox;
+  delete[] molFractionByKindBox;
+  delete[] densityByKindBox;
+  delete[] virial;
 }
 
 void OutputVars::CalcAndConvert(ulong step) {

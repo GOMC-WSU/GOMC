@@ -14,7 +14,6 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "TransformParticlesCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
 #endif
-#include <fstream>
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30

@@ -1,5 +1,7 @@
 # GOMC - GPU Optimized Monte Carlo
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/dd6e226443b948f2a8f9cfb607ed9f9d)](https://app.codacy.com/gh/GOMC-WSU/GOMC/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 GOMC is an acronym for GPU Optimized Monte Carlo. GOMC is a parallel molecular simulation code designed for high-performance simulation of large systems that runs on both CPUs, with or without OpenMP, and NVIDIA GPUs.
 
 Current Release: 2.80 (12/03/2025)
@@ -37,7 +39,17 @@ If you are using some more recent features of GOMC, such as the MultiParticle mo
   `./metamake.sh` accepts a list of which ensembles to compile. Default behavior, listing no ensembles, is to compile all CPU ensembles and, if CUDA is available, all GPU ensembles. Multiple ensemble names must be separated by spaces. Current accepted values are: `CPU` to compile all CPU ensembles, `GPU` to compile all GPU ensembles, or you can compile ensembles individually by using any of the following keywords:
   `NVT`, `NPT`, `GCMC`, `GEMC`, `GPU_NVT`, `GPU_NPT`, `GPU_GCMC`, `GPU_GEMC`.
 
-> NOTE: Building GOMC requires [CMake](https://cmake.org/) version 3.18 or newer. CMake is available in most Linux distributions (as cmake). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/) "User Manual".
+> NOTE: Building GOMC requires [CMake](https://cmake.org/) version 3.18 or newer. CMake is available in most Linux distributions (as cmake) and on macOS via [Homebrew](https://brew.sh/) (`brew install cmake`). If you wish to utilize NVIDIA graphics cards you will need to install the NVIDIA toolkit before compiling. The metamake file will automatically detect the location of your CUDA installation. More detailed info can be found in the [user manual](https://gomc-wsu.github.io/Manual/) "User Manual".
+
+### macOS Notes
+
+GOMC fully supports macOS, including Apple Silicon (M-series) Macs. Both the **AppleClang** compiler (bundled with Xcode Command Line Tools) and standard **Clang** are recognized by the build system.
+
+- **Xcode Command Line Tools** are required. Install them with:
+  ```bash
+  xcode-select --install
+  ```
+- **CUDA / GPU ensembles** are not available on Apple Silicon Macs, as NVIDIA does not provide CUDA support for ARM-based macOS. The build system will automatically skip GPU targets and emit a warning. Only CPU ensembles (`NVT`, `NPT`, `GCMC`, `GEMC`) will be built.
 
 ## Building GOMC on Windows:
 

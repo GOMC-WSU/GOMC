@@ -64,7 +64,7 @@ private:
     samples = 0;
   }
   void DoWrite(uint precision);
-  void printTitle(std::string output);
+  void printTitle(const std::string &output);
 
   std::ofstream *outBlock0;
   std::ofstream *outBlock1;

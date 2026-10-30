@@ -23,8 +23,10 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifdef _WIN32
 #include <Winsock2.h>
 #define HOSTNAME
-#elif defined(__linux__) || defined(__apple__) || defined(__FreeBSD__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#ifdef __linux__
 #include <sys/sysinfo.h>
+#endif
 #include <sys/utsname.h>
 #include <unistd.h>
 #define HOSTNAME
@@ -68,23 +70,23 @@ int main(int argc, char *argv[]) {
 #endif
   // Only run if valid ensemble was detected.
   if (CheckAndPrintEnsemble()) {
-    // FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
+    // Following lines added to obtain input parameter file.
     std::string inputFileString;
-    std::fstream inputFileReader;
+    InputFileReader inputFileReader;
     int numThreads;
 
-    // CHECK IF ARGS/FILE PROVIDED IN CMD LINE
+    // Check if args/filename provided in command line.
     if (argc < 2) {
       std::cout << "Error: Input parameter file (*.dat or *.conf) not "
                    "specified on command line!\n";
       exit(EXIT_FAILURE);
     } else {
       if (argc == 2) {
-        // FIRST PARAMETER WILL BE FILE NAME
+        // First parameter will be filename.
         inputFileString = argv[1];
         numThreads = 1;
       } else {
-        // SECOND PARAMETER WILL BE FILE NAME
+        // Second parameter will be filename.
         inputFileString = argv[2];
 
         if (argv[1][0] == '+' && argv[1][1] == 'p') {
@@ -97,17 +99,27 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // SET NUMBER OF THREADS
+    // Set number of threads with some error checking.
 #ifdef _OPENMP
+    // OpenMP correctly handles a request for less than 1 thread, but we need
+    // to write the correct number of threads to the log file, so check anyway
+    numThreads = std::max(1, numThreads);
     omp_set_num_threads(numThreads);
-    printf("%-40s %-d \n", "Info: Number of OpenMP threads:", numThreads);
 #else
-    printf("%-40s %-d \n", "Info: Number of OpenMP threads", 1);
+    // Can't use multiple threads without OpenMP. Assume this is erroneous user
+    // input, so exit with an error message.
+    if (numThreads > 1) {
+      printf("Error: Attempting to use %d threads, but compiled without "
+             "OpenMP.\n",
+             numThreads);
+      exit(EXIT_FAILURE);
+    }
 #endif
+    printf("%-40s %-d\n", "Info: Number of OpenMP threads:", numThreads);
 #if defined _OPENMP && _OPENMP < 201511
     printf("Warning: OpenMP version < 4.5. GOMC will not run optimally!\n");
 #endif
-    // Print the OpenMP version if recognized or instead the OpenMP date code.
+    // Print the OpenMP version if recognized or instead the OpenMP date code
 #ifdef _OPENMP
     std::unordered_map<int, std::string> omp_map{
         {200505, "2.5"}, {200805, "3.0"}, {201107, "3.1"},
@@ -122,21 +134,12 @@ int main(int argc, char *argv[]) {
              "Info: Compiled with OpenMP Version:", match->second.c_str());
 #endif
 
-    // OPEN FILE
-    inputFileReader.open(inputFileString.c_str(), std::ios::in | std::ios::out);
+    // Test whether the provided configuration filename can be opened for
+    // reading
+    inputFileReader.Test(inputFileString);
 
-    // CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
-    if (!inputFileReader.is_open()) {
-      std::cout << "Error: Cannot open/find " << inputFileString
-                << " in the directory provided!\n";
-      exit(EXIT_FAILURE);
-    }
-
-    // CLOSE FILE TO NOW PASS TO SIMULATION
-    inputFileReader.close();
-
-    // ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
-    // HANDLE PDB|PSF FILE
+    // If the file found is found, pass the filename to the simulation class to
+    // read and handle pdb|psf files
 #if GOMC_LIB_MPI
     if (multisim != NULL) {
       Simulation sim(inputFileString.c_str(), multisim);
@@ -162,7 +165,7 @@ void PrintSimulationHeader() {
   std::cout << PrintVersion << '\n'
             << "Info: Start Time: " << PrintTime
 #ifdef HOSTNAME
-            << "Info: Host Name: " << PrintHostname
+            << "Info: Hostname: " << PrintHostname
 #endif
             << "\n";
 }
@@ -198,8 +201,11 @@ void PrintDebugMode() {
 
 void PrintSimulationFooter() {
   std::cout << PrintVersion << '\n'
-            << "Info: Completed at: " << PrintTime
-            << "Info: On hostname: " << PrintHostname << '\n';
+            << "Info: Finish Time: " << PrintTime
+#ifdef HOSTNAME
+            << "Info: Hostname: " << PrintHostname
+#endif
+            << '\n';
 }
 
 std::ostream &PrintVersion(std::ostream &stream) {
@@ -265,7 +271,7 @@ void PrintHardwareInfo() {
   std::cout << "Info: Model name:" << std::flush;
   if (system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo") == -1)
     std::cout << "Error: Couldn't retrieve CPU information\n";
-  std::cout << "Info: System name: " << name.sysname << "\n";
+  std::cout << "Info: System Name: " << name.sysname << "\n";
   std::cout << "Info: Release: " << name.release << "\n";
   std::cout << "Info: Version: " << name.version << "\n";
   std::cout << "Info: Kernel Architecture: " << name.machine << "\n";

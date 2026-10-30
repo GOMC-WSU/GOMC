@@ -13,12 +13,13 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 Histogram::Histogram(OutputVars &v) {
   this->var = &v;
-  total = NULL;
+  total = nullptr;
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    molCount[b] = NULL;
-    outF[b] = NULL;
-    name[b] = NULL;
+    molCount[b] = nullptr;
+    outF[b] = nullptr;
+    name[b] = nullptr;
   }
+  stepsPerSample = 0;
 }
 
 void Histogram::Init(pdb_setup::Atoms const &atoms,
@@ -72,19 +73,16 @@ void Histogram::Init(pdb_setup::Atoms const &atoms,
 }
 
 Histogram::~Histogram() {
-  if (total != NULL)
-    delete[] total;
+  delete[] total;
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    if (name[b] != NULL)
-      delete[] name[b];
-    if (molCount[b] != NULL) {
+    delete[] name[b];
+    if (molCount[b] != nullptr) {
       for (uint k = 0; k < var->numKinds; ++k) {
         delete[] molCount[b][k];
       }
       delete[] molCount[b];
     }
-    if (outF[b] != NULL)
-      delete[] outF[b];
+    delete[] outF[b];
   }
 }
 
@@ -139,19 +137,13 @@ std::string Histogram::GetFName(std::string const &histName,
                                 std::string const &histNum,
                                 std::string const &histLetter, const uint box,
                                 const uint kind) {
-  std::stringstream sstrm;
-  std::string strKind, fName = "n", strBox;
-  sstrm << (kind + 1);
-  sstrm >> strKind;
-  fName += strKind;
+  std::string fName = "n";
+  fName += std::to_string(kind + 1);
   fName += histName;
   fName += histNum;
   fName += histLetter;
   if (BOXES_WITH_U_NB > 1) {
-    fName += "_box";
-    sstrm << box;
-    sstrm >> strBox;
-    fName += strBox;
+    fName += "_box" + std::to_string(box);
   }
   fName += ".dat";
   return fName;

@@ -133,15 +133,11 @@ std::string EnPartCntSample::GetFName(std::string const &sampleName,
                                       std::string const &histNum,
                                       std::string const &histLetter,
                                       const uint box) {
-  std::stringstream sstrm;
-  std::string fName = sampleName, strBox;
+  std::string fName = sampleName;
   fName += histNum;
   fName += histLetter;
   if (BOXES_WITH_U_NB > 1) {
-    fName += "_box";
-    sstrm << box;
-    sstrm >> strBox;
-    fName += strBox;
+    fName += "_box" + std::to_string(box);
   }
   fName += ".dat";
   return fName;

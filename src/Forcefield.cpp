@@ -9,26 +9,52 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "FFShift.h"
 #include "FFSwitch.h"
 #include "FFSwitchMartini.h"
+#include "FFTabulated.h"
 #include "Setup.h"
 
-Forcefield::Forcefield() {
-  particles = NULL;
-  angles = NULL;
+Forcefield::Forcefield()
+    : useLRC{}, useIPC{}, T_in_K{}, beta{}, rCut{}, rCutSq{}, rCutLow{},
+      rCutLowSq{}, rCutCoulomb{{}}, rCutCoulombSq{{}}, alpha{{}}, alphaSq{{}},
+      recip_rcut{{}}, recip_rcut_Sq{{}}, tolerance{}, rswitch{}, dielectric{},
+      scaling_14{}, sc_alpha{}, sc_sigma{}, sc_sigma_6{}, electrostatic{},
+      ewald{}, vdwGeometricSigma{}, isMartini{}, exp6{}, freeEnergy{},
+      sc_coul{}, vdwKind{}, exckind{}, sc_power{}, isCHARMM{} {
+  particles = nullptr;
+  angles = nullptr;
   OneThree = false; // default behavior is to turn off 1-3 interaction
   OneFour = true;   // to turn on 1-4 interaction
   OneN = true;      // and turn on 1-n interaction
+#if ENSEMBLE == GCMC
+  isFugacity = false;
+#endif
 }
 
 Forcefield::~Forcefield() {
-  if (particles != NULL)
-    delete particles;
-  if (angles != NULL)
-    delete angles;
+  delete particles;
+  delete angles;
 }
 
 void Forcefield::Init(const Setup &set) {
   InitBasicVals(set.config.sys, set.config.in.ffKind);
-  particles->Init(set.ff.mie, set.ff.nbfix);
+  // Store tabulated potential file name if available
+  if (set.config.in.files.tabulated_potential.size() > 0) {
+    tabulatedPotentialFile = set.config.in.files.tabulated_potential[0].name;
+  }
+  // Store interpolation type for tabulated potential
+  interpolationType = set.config.sys.ff.interpolationType;
+
+  // If using tabulated potentials, pass the NBtable data to particles->Init()
+  if (vdwKind == set.config.sys.ff.VDW_TABULATED_KIND) {
+    FF_TABULATED *tabParticles = dynamic_cast<FF_TABULATED *>(particles);
+    if (tabParticles) {
+      // Initialize with NBtable data available
+      tabParticles->InitWithNBtable(set.ff.mie, set.ff.nbfix, set.ff.nbtable);
+    }
+  } else {
+    // For non-tabulated forcefields, use regular Init
+    particles->Init(set.ff.mie, set.ff.nbfix);
+  }
+
   bonds.Init(set.ff.bond);
   angles->Init(set.ff.angle);
   dihedrals.Init(set.ff.dih);
@@ -86,6 +112,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
   vdwGeometricSigma = val.ff.vdwGeometricSigma;
   isMartini = ffKind.isMARTINI;
   exp6 = (vdwKind == val.ff.VDW_EXP6_KIND);
+  isCHARMM = ffKind.isCHARMM;
 
 #if ENSEMBLE == GCMC
   isFugacity = val.chemPot.isFugacity;
@@ -97,6 +124,8 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const &val,
     particles = new FF_EXP6(*this);
   else if (vdwKind == val.ff.VDW_SHIFT_KIND)
     particles = new FF_SHIFT(*this);
+  else if (vdwKind == val.ff.VDW_TABULATED_KIND)
+    particles = new FF_TABULATED(*this);
   else if (vdwKind == val.ff.VDW_SWITCH_KIND && ffKind.isMARTINI)
     particles = new FF_SWITCH_MARTINI(*this);
   else if (vdwKind == val.ff.VDW_SWITCH_KIND && !ffKind.isMARTINI)

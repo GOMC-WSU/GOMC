@@ -312,7 +312,7 @@ public:
 
   static void copyBondInfoIntoMapEntry(const BondAdjacencyList &bondAdjList,
                                        mol_setup::MolMap &kindMap,
-                                       std::string fragName);
+                                       const std::string &fragName);
 
   // reads BoxTotal PSFs and merges the data, placing the results in kindMap
   // returns 0 if read is successful, -1 on a failure

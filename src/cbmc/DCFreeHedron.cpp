@@ -14,14 +14,16 @@ A copy of the MIT License can be found in License.txt with this program or at
 namespace cbmc {
 
 struct FindA1 {
-  FindA1(uint x) : x(x){};
+  explicit FindA1(uint x) : x(x){};
   bool operator()(const mol_setup::Bond &b) { return (b.a1 == x); }
   uint x;
 };
 
 DCFreeHedron::DCFreeHedron(DCData *data, const mol_setup::MolKind &kind,
                            uint focus, uint prev)
-    : data(data), seed(data, focus), hed(data, kind, focus, prev) {
+    : data(data), seed(data, focus), hed(data, kind, focus, prev), anchorBond{},
+      anchorBondOld{}, bondEnergy{}, anchorKind{}, bondLength{{}},
+      bondLengthOld{{}}, bondKinds{{}} {
   using namespace mol_setup;
   std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   for (uint i = 0; i < onFocus.size(); ++i) {
@@ -112,12 +114,11 @@ void DCFreeHedron::BuildNew(TrialMol &newMol, uint molIndex) {
   positions[hed.NumBond()].Set(0, newMol.RawRectCoords(anchorBond, 0, 0));
 
   // counting backward to preserve prototype
-  double u1, u2, u3;
   for (uint lj = nLJTrials; lj-- > 0;) {
     // convert chosen torsion to 3D positions
-    u1 = prng();
-    u2 = prng();
-    u3 = prng();
+    double u1 = prng();
+    double u2 = prng();
+    double u3 = prng();
     RotationMatrix spin = RotationMatrix::UniformRandom(u1, u2, u3);
     for (uint b = 0; b < hed.NumBond() + 1; ++b) {
       // find positions
@@ -194,12 +195,11 @@ void DCFreeHedron::BuildOld(TrialMol &oldMol, uint molIndex) {
   positions[hed.NumBond()].Add(0, -center);
 
   // counting backward to preserve prototype
-  double u1, u2, u3;
   for (uint lj = nLJTrials; lj-- > 1;) {
     // convert chosen torsion to 3D positions
-    u1 = prng();
-    u2 = prng();
-    u3 = prng();
+    double u1 = prng();
+    double u2 = prng();
+    double u3 = prng();
     RotationMatrix spin = RotationMatrix::UniformRandom(u1, u2, u3);
     for (uint b = 0; b < hed.NumBond() + 1; ++b) {
       // find positions
