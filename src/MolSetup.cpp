@@ -919,6 +919,17 @@ void mol_setup::PrintMolMapBrief(const MolMap &kindMap) {
 }
 
 namespace {
+
+// scan forward from current file position until a line containing
+// 'header' is found. Return false if EOF is reacfhed first.
+
+bool ScanForHeader(FILE *psf, char *input, const char *header) {
+  while (strstr(input, header) == NULL) {
+    if (fgets(input, 511, psf) == NULL)
+      return false;
+  }
+  return true;
+}
 // Initializes system from PSF file (does not include coordinates)
 // returns number of atoms in the file, or errors::READ_ERROR if the read failed
 // somehow
@@ -930,14 +941,24 @@ int ReadPSFSection(FILE *psf, char *input, const char *psfFilename, MolMap &kind
                    const char *sectionName, std::function<int(FILE*, MolMap&,
                    std::vector<std::pair<uint, std::string>>&, uint)> readFunction) 
 {
-  fseek(psf, 0, SEEK_SET);
-  while (strstr(input, header) == NULL) {
-    if(fgets(input, 511, psf) == NULL) {
-      fprintf(stderr, "ERROR: Unable to read %s from PSF file %s\n", sectionName, psfFilename);
-      fclose(psf);
-      return errors::READ_ERROR;
-    }
+  auto tScan0 = std::chrono::steady_clock::now();
+  // PSF sections normally appear in order, so search forward first.
+  bool found = ScanForHeader(psf, input, header);
+  if (!found) {
+    // Section is out of order (or missing): rewind and search from the top.
+    fseek(psf, 0, SEEK_SET);
+    input[0] = '\0';
+    found = ScanForHeader(psf, input, header);
   }
+  if (!found) {
+    fprintf(stderr, "ERROR: Unable to read %s from PSF file %s\n", sectionName, psfFilename);
+    fclose(psf);
+    return errors::READ_ERROR;
+  }
+  auto tScan1 = std::chrono::steady_clock::now();
+  std::cout << "PSF: " << sectionName << " header scan: "
+            << std::chrono::duration<double, std::milli>(tScan1 - tScan0).count()
+            << "ms" << std::endl;
 
   uint count = atoi(input);
   if(readFunction(psf, kindMap, firstAtom, count) == errors::READ_ERROR) {
