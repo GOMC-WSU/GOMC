@@ -12,13 +12,14 @@ set(GPU_HIP_defs GOMC_CUDA USE_HIP __HIP_PLATFORM_AMD__)
 # below (auto-detection lists an arch once per GPU agent).
 list(REMOVE_DUPLICATES CMAKE_HIP_ARCHITECTURES)
 
-# On Windows with Clang, add WIN32 (source guards) and _USE_MATH_DEFINES (M_2_SQRTPI etc.)
+# On Windows with Clang, add WIN32 (source guards), _USE_MATH_DEFINES (M_2_SQRTPI etc.)
+# and NOMINMAX (keeps the windows.h min/max macros away from std::max).
 # Also override the HIP device-link rule: CMake 4.x Windows-Clang injects
 # -fuse-ld=lld-link into <LINK_FLAGS>, which the --hip-link device-link mode
 # rejects as an invalid linker name. Route through hip_link_win.py, which
 # strips -fuse-ld=* and converts MSVC-style linker flags for the GCC driver.
 if(WIN32)
-    add_compile_definitions(WIN32 _USE_MATH_DEFINES)
+    add_compile_definitions(WIN32 _USE_MATH_DEFINES NOMINMAX)
     set(_HIP_LINK_WRAP "${CMAKE_CURRENT_SOURCE_DIR}/CMake/hip_link_win.py")
     set(CMAKE_HIP_LINK_EXECUTABLE
         "python3 ${_HIP_LINK_WRAP} ${CMAKE_HIP_COMPILER} --offload-arch=${CMAKE_HIP_ARCHITECTURES} <OBJECTS> -fgpu-rdc --hip-link -o <TARGET> <LINK_FLAGS> <LINK_LIBRARIES>")
