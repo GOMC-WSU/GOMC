@@ -920,50 +920,58 @@ void mol_setup::PrintMolMapBrief(const MolMap &kindMap) {
 
 namespace {
 
-// scan forward from current file position until a line containing
-// 'header' is found. Return false if EOF is reacfhed first.
+// Reads the angle, dihedral, improper, donor and acceptor sections in a single
+// pass over the rest of the PSF file. Each line is checked against the section
+// tags, and a matching section is handed to its read function, which consumes
+// that section's entries. The sections may therefore appear in any order.
+int ReadPSFSection(FILE *psf, char *input, const char *psfFilename,
+                    MolMap &kindMap,
+                    std::vector<std::pair<uint, std::string>> &firstAtom) {
+  typedef int (*SectionReader)(FILE *, MolMap &,
+                               std::vector<std::pair<uint, std::string>> &,
+                               uint);
+  struct Section {
+    const char *header;
+    const char *name;
+    SectionReader read;
+    bool done;
+  };
+  Section sections[] = {{"!NTHETA", "angles", ReadPSFAngles, false},
+                        {"!NPHI", "dihedrals", ReadPSFDihedrals, false},
+                        {"!NIMPHI", "impropers", ReadPSFImpropers, false},
+                        {"!NDON", "donors", ReadPSFDonors, false},
+                        {"!NACC", "acceptors", ReadPSFAcceptors, false}};
+  const size_t nSections = sizeof(sections) / sizeof(sections[0]);
+  size_t remaining = nSections;
 
-bool ScanForHeader(FILE *psf, char *input, const char *header) {
-  while (strstr(input, header) == NULL) {
-    if (fgets(input, 511, psf) == NULL)
-      return false;
+  // First pass starts at the current position. A second pass from the top of
+  // the file only happens if a section was not found after that point.
+  for (int pass = 0; pass < 2 && remaining > 0; ++pass) {
+    if (pass == 1)
+      fseek(psf, 0, SEEK_SET);
+    while (remaining > 0 && fgets(input, 511, psf) != NULL) {
+      for (size_t s = 0; s < nSections; ++s) {
+        if (!sections[s].done && strstr(input, sections[s].header) != NULL) {
+          if (sections[s].read(psf, kindMap, firstAtom, atoi(input)) ==
+              errors::READ_ERROR) {
+            fclose(psf);
+            return errors::READ_ERROR;
+          }
+          sections[s].done = true;
+          --remaining;
+          break;
+        }
+      }
+    }
   }
-  return true;
-}
-// Initializes system from PSF file (does not include coordinates)
-// returns number of atoms in the file, or errors::READ_ERROR if the read failed
-// somehow
 
-// Helper to seek to a PSF section, read its count, and call the appropriate read fucntion. 
-// returns errors::read_error if the read failed somehow, or 0 on success
-int ReadPSFSection(FILE *psf, char *input, const char *psfFilename, MolMap &kindMap,
-                   std::vector<std::pair<uint, std::string>> &firstAtom, const char *header,
-                   const char *sectionName, std::function<int(FILE*, MolMap&,
-                   std::vector<std::pair<uint, std::string>>&, uint)> readFunction) 
-{
-  auto tScan0 = std::chrono::steady_clock::now();
-  // PSF sections normally appear in order, so search forward first.
-  bool found = ScanForHeader(psf, input, header);
-  if (!found) {
-    // Section is out of order (or missing): rewind and search from the top.
-    fseek(psf, 0, SEEK_SET);
-    input[0] = '\0';
-    found = ScanForHeader(psf, input, header);
-  }
-  if (!found) {
-    fprintf(stderr, "ERROR: Unable to read %s from PSF file %s\n", sectionName, psfFilename);
-    fclose(psf);
-    return errors::READ_ERROR;
-  }
-  auto tScan1 = std::chrono::steady_clock::now();
-  std::cout << "PSF: " << sectionName << " header scan: "
-            << std::chrono::duration<double, std::milli>(tScan1 - tScan0).count()
-            << "ms" << std::endl;
-
-  uint count = atoi(input);
-  if(readFunction(psf, kindMap, firstAtom, count) == errors::READ_ERROR) {
-    fclose(psf);
-    return errors::READ_ERROR;
+  for (size_t s = 0; s < nSections; ++s) {
+    if (!sections[s].done) {
+      fprintf(stderr, "ERROR: Unable to read %s from PSF file %s\n",
+              sections[s].name, psfFilename);
+      fclose(psf);
+      return errors::READ_ERROR;
+    }
   }
   return 0;
 }
@@ -1085,44 +1093,13 @@ int ReadPSF(const char *psfFilename, const uint box, MoleculeVariables &molVars,
   // make sure molecule has bonds, appears before !NBOND
   
   auto t9 = std::chrono::high_resolution_clock::now();
-  // find angle header+count
-  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
-                     "!NTHETA", "angles", ReadPSFAngles) == errors::READ_ERROR)
+  if (ReadPSFSection(psf, input, psfFilename, kindMap, firstAtomLookup) ==
+      errors::READ_ERROR)
     return errors::READ_ERROR;
-
   auto t10 = std::chrono::high_resolution_clock::now();
-  std::cout << "ReadPSFAngles: " << std::chrono::duration<double, std::milli>(t10-t9).count() << "ms\n";
-  // find dihedrals header+count
-  auto t11 = std::chrono::high_resolution_clock::now();
-  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
-                     "!NPHI", "dihedrals", ReadPSFDihedrals) == errors::READ_ERROR)
-    return errors::READ_ERROR;
-  auto t12 = std::chrono::high_resolution_clock::now();
-  std::cout << "ReadPSFDihedrals: " << std::chrono::duration<double, std::milli>(t12-t11).count() << "ms\n";  
-
-  // find impropers header+count
-  auto t13 = std::chrono::high_resolution_clock::now();
-  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
-                     "!NIMPHI", "impropers", ReadPSFImpropers) == errors::READ_ERROR)
-    return errors::READ_ERROR;
-  auto t14 = std::chrono::high_resolution_clock::now();
-  std::cout << "ReadPSFImpropers: " << std::chrono::duration<double, std::milli>(t14-t13).count() << "ms\n";
-
-  // find donors header+count
-  auto t15 = std::chrono::high_resolution_clock::now();
-  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
-                     "!NDON", "donors", ReadPSFDonors) == errors::READ_ERROR)
-    return errors::READ_ERROR;
-  auto t16 = std::chrono::high_resolution_clock::now();
-  std::cout << "ReadPSFDonors: " << std::chrono::duration<double, std::milli>(t16-t15).count() << "ms\n";
-
-  // find acceptors header+count
-  auto t17 = std::chrono::high_resolution_clock::now();
-  if (ReadPSFSection(psf,input,psfFilename,kindMap,firstAtomLookup,
-                     "!NACC", "acceptors", ReadPSFAcceptors) == errors::READ_ERROR)
-    return errors::READ_ERROR;
-  auto t18 = std::chrono::high_resolution_clock::now();
-  std::cout << "ReadPSFAcceptors: " << std::chrono::duration<double, std::milli>(t18-t17).count() << "ms\n";
+  std::cout << "ReadPSFSection (angles+dihedrals+impropers+donors+acceptors): "
+            << std::chrono::duration<double, std::milli>(t10 - t9).count()
+            << "ms\n";
   /*
 
    //find explicit nonbond exclusions  header+count
