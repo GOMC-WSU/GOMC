@@ -55,7 +55,7 @@ void CheckpointOutput::saveCheckpointFile(const ulong &step,
                                           MoveSettings &movSetRef, PRNG &prng,
                                           const Molecules &molRef,
                                           MoleculeLookup &molLookRef) {
-  std::ofstream ofs(filename);
+  std::ofstream ofs(filename, std::ios::binary);
   if (!ofs.is_open()) {
     fprintf(stderr, "Error writing checkpoint output file %s\n",
             filename.c_str());
