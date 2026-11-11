@@ -211,11 +211,11 @@ void InitPartVariablesCUDA(VariablesCUDA *vars,
                            const std::vector<int> &particleKind,
                            const std::vector<int> &particleMol,
                            const std::vector<double> &particleCharge) {
-  cudaMemcpy(vars->gpu_particleKind, &particleKind[0],
+  cudaMemcpy(vars->gpu_particleKind, particleKind.data(),
              particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleMol, &particleMol[0],
+  cudaMemcpy(vars->gpu_particleMol, particleMol.data(),
              particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_particleCharge, &particleCharge[0],
+  cudaMemcpy(vars->gpu_particleCharge, particleCharge.data(),
              particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -452,7 +452,7 @@ void RebuildNeighborsCUDA(VariablesCUDA *vars,
       neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELLS + j] = neighbors[i][j];
     }
   }
-  cudaMemcpy(vars->gpu_neighborList[b], &neighborlist1D[0],
+  cudaMemcpy(vars->gpu_neighborList[b], neighborlist1D.data(),
              numCellPairs * sizeof(int), cudaMemcpyHostToDevice);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);

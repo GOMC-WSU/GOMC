@@ -247,7 +247,7 @@ void CallTranslateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_isMolInvolved, &isMoleculeInvolved[0],
+  cudaMemcpy(vars->gpu_isMolInvolved, isMoleculeInvolved.data(),
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
 #ifndef NDEBUG
@@ -287,7 +287,7 @@ void CallTranslateParticlesGPU(
              cudaMemcpyDeviceToHost);
   cudaMemcpy(rt_k.z, vars->gpu_rt_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(&inForceRange[0], vars->gpu_inForceRange,
+  cudaMemcpy(inForceRange.data(), vars->gpu_inForceRange,
              molCount * sizeof(int8_t), cudaMemcpyDeviceToHost);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -315,7 +315,7 @@ void CallRotateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, newMolPos.z, atomCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_isMolInvolved, &isMoleculeInvolved[0],
+  cudaMemcpy(vars->gpu_isMolInvolved, isMoleculeInvolved.data(),
              isMoleculeInvolved.size() * sizeof(int8_t),
              cudaMemcpyHostToDevice);
 #ifndef NDEBUG
@@ -348,7 +348,7 @@ void CallRotateParticlesGPU(
              cudaMemcpyDeviceToHost);
   cudaMemcpy(rt_k.z, vars->gpu_rt_k_z, molCount * sizeof(double),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(&inForceRange[0], vars->gpu_inForceRange,
+  cudaMemcpy(inForceRange.data(), vars->gpu_inForceRange,
              molCount * sizeof(int8_t), cudaMemcpyDeviceToHost);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -548,7 +548,7 @@ void BrownianMotionRotateParticlesGPU(
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_molInvolved, &moleculeInvolved[0],
+  cudaMemcpy(vars->gpu_molInvolved, moleculeInvolved.data(),
              molCountInBox * sizeof(int), cudaMemcpyHostToDevice);
 #ifndef NDEBUG
   checkLastErrorCUDA(__FILE__, __LINE__);

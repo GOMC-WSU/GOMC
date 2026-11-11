@@ -37,11 +37,11 @@ void CallBoxInterForceGPU(
 
   UpdateEnergyVecsCUDA(vars, energyVectorLen, electrostatic);
 
-  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
+  cudaMemcpy(vars->gpu_mapParticleToCell, mapParticleToCell.data(),
              atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_cellStartIndex[box], &cellStartIndex[0],
+  cudaMemcpy(vars->gpu_cellStartIndex[box], cellStartIndex.data(),
              cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int),
+  cudaMemcpy(vars->gpu_cellVector, cellVector.data(), atomNumber * sizeof(int),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, currentCoords.x, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -190,11 +190,11 @@ void CallBoxForceGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
   }
 
   // Copy necessary data to GPU
-  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
+  cudaMemcpy(vars->gpu_mapParticleToCell, mapParticleToCell.data(),
              atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_cellStartIndex[box], &cellStartIndex[0],
+  cudaMemcpy(vars->gpu_cellStartIndex[box], cellStartIndex.data(),
              cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int),
+  cudaMemcpy(vars->gpu_cellVector, cellVector.data(), atomNumber * sizeof(int),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -276,7 +276,7 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars, XYZArray const &currentCoords,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_dz, currentCOMDiff.z, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_molCharge, &molCharge[0],
+  cudaMemcpy(vars->gpu_molCharge, molCharge.data(),
              molCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 
   // Initialize the virial terms to zero
