@@ -10,6 +10,7 @@ jobs:
     steps:
 
     - name: Checkout Branch / Pull Request
+      run: git config --global init.defaultBranch main
       uses: actions/checkout@v7.0.1
     - name: Install clang-openmp
       run: sudo apt install -y libomp-14-dev
