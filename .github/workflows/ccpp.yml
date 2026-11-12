@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+
+    - name: Checkout Branch / Pull Request
+      uses: actions/checkout@v7.0.1
     - name: Install clang-openmp
       run: sudo apt install -y libomp-14-dev
     - name: metamake
