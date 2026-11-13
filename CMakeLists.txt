@@ -139,15 +139,23 @@ if(GOMC_GTEST OR GOMC_GTEST_MPI)
   include(test/GoogleTest.cmake)
 endif()
 
-# Check if CUDA exists and, if so, set the host compiler and enable CUDA
-include(CheckLanguage)
-check_language(CUDA)
-if(CMAKE_CUDA_COMPILER)
-   set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-   enable_language(CUDA)
-   include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
+# GPU backend selection: USE_HIP for AMD, otherwise CUDA
+option(USE_HIP "Build with HIP for AMD GPUs" OFF)
+
+if(USE_HIP)
+   enable_language(HIP)
+   include(${PROJECT_SOURCE_DIR}/CMake/GOMCHIPSetup.cmake)
 else()
-   message(WARNING "No CUDA support for this compiler")
+   # Check if CUDA exists and, if so, set the host compiler and enable CUDA
+   include(CheckLanguage)
+   check_language(CUDA)
+   if(CMAKE_CUDA_COMPILER)
+      set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+      enable_language(CUDA)
+      include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
+   else()
+      message(WARNING "No CUDA support for this compiler")
+   endif()
 endif()
 
 # Set up Serial version

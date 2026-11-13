@@ -25,8 +25,7 @@ CellList::CellList(const Molecules &mols, BoxDimensions &dims) : mols(&mols) {
 }
 
 CellList::CellList(const CellList &other)
-    : mols(other.mols), list(other.list), neighbors(other.neighbors),
-      head(other.head) {
+    : mols(other.mols), list(other.list) {
   dimensions = other.dimensions;
   isBuilt = true;
   for (uint b = 0; b < BOX_TOTAL; b++) {
@@ -34,6 +33,8 @@ CellList::CellList(const CellList &other)
     edgeCells[b][1] = other.edgeCells[b][1];
     edgeCells[b][2] = other.edgeCells[b][2];
     cutoff[b] = other.cutoff[b];
+    neighbors[b] = other.neighbors[b];
+    head[b] = other.head[b];
   }
 }
 

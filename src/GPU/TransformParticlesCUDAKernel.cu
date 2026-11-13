@@ -4,6 +4,21 @@ A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
 ******************************************************************************/
 #ifdef GOMC_CUDA
+// Define R123 macros before including Random123 so device code works on HIP
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+#ifndef R123_CUDA_DEVICE
+#define R123_CUDA_DEVICE __device__
+#endif
+// Disable exceptions in device code
+#ifndef R123_THROW
+#define R123_THROW(x) abort()
+#endif
+// Disable SSE intrinsics for AMD GPU device code
+#define R123_USE_SSE 0
+#define R123_USE_SSE4_1 0
+#define R123_USE_SSE4_2 0
+#define R123_USE_AES_NI 0
+#endif
 #include "CUDAMemoryManager.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "Random123/boxmuller.hpp"
@@ -52,7 +67,7 @@ __device__ inline double randomGaussianGPU(unsigned int counter, ulong step,
   RNG::key_type k = uk;
   c[0] = counter;
   RNG::ctr_type r = philox4x64(c, k);
-  double2 normal2 = r123::boxmuller(r[0], r[1]);
+  r123::double2 normal2 = r123::boxmuller(r[0], r[1]);
   double shiftedVal = mean + normal2.x * stdDev;
   return shiftedVal;
 }
@@ -69,8 +84,8 @@ __device__ inline double3 randomGaussianCoordsGPU(unsigned int counter,
   c[0] = counter;
   c[1] = key;
   RNG::ctr_type r = philox4x64(c, k);
-  double2 normal1 = r123::boxmuller(r[0], r[1]);
-  double2 normal2 = r123::boxmuller(r[2], r[3]);
+  r123::double2 normal1 = r123::boxmuller(r[0], r[1]);
+  r123::double2 normal2 = r123::boxmuller(r[2], r[3]);
 
   double3 normals =
       make_double3(mean + normal1.x * stdDev, mean + normal1.y * stdDev,

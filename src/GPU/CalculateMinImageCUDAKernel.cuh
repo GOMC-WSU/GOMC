@@ -9,8 +9,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifdef GOMC_CUDA
 
 #include "ConstantDefinitionsCUDAKernel.cuh"
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_to_hip.h"
 
 __device__ inline double3 Difference3(const double *x, const double *y,
                                       const double *z, uint i, uint j) {
@@ -262,7 +261,8 @@ DeviceGetLambdaCoulomb(int mol, int box, const bool *gpu_isFraction,
 
 // Add atomic operations for GPUs that do not support it
 // atomicAdd and atomicSub only support double for Compute Capability >= 6.0
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 600
+// HIP natively supports double atomicAdd on all AMD architectures
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 600 && !defined(__HIP_PLATFORM_AMD__)
 static __inline__ __device__ double atomicAdd(double *address, double val) {
   unsigned long long int *address_as_ull = (unsigned long long int *)address;
   unsigned long long int old = *address_as_ull, assumed;

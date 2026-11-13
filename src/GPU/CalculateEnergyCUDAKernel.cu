@@ -4,7 +4,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
 ******************************************************************************/
 #ifdef GOMC_CUDA
-#include <cuda.h>
+#include "cuda_to_hip.h"
 #include <stdio.h>
 
 #include <vector>
@@ -14,10 +14,14 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "CalculateForceCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+#include <hipcub/hipcub.hpp>
+using namespace hipcub;
+#else
 #include "cub/cub.cuh"
-#define NUMBER_OF_NEIGHBOR_CELL 27
-
 using namespace cub;
+#endif
+#define NUMBER_OF_NEIGHBOR_CELL 27
 
 void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,
                      const std::vector<int> &cellStartIndex,

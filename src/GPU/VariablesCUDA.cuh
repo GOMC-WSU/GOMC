@@ -9,8 +9,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifdef GOMC_CUDA
 #include "EnsemblePreprocessor.h"
 #include "NumLib.h"
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_to_hip.h"
 #include <stdio.h>
 
 // Need a separate float constant for device code with the MSVC compiler

@@ -51,6 +51,16 @@ GOMC fully supports macOS, including Apple Silicon (M-series) Macs. Both the **A
   ```
 - **CUDA / GPU ensembles** are not available on Apple Silicon Macs, as NVIDIA does not provide CUDA support for ARM-based macOS. The build system will automatically skip GPU targets and emit a warning. Only CPU ensembles (`NVT`, `NPT`, `GCMC`, `GEMC`) will be built.
 
+## Building GOMC for AMD GPUs with ROCm:
+
+  The GPU ensembles can also be built for AMD GPUs using HIP. This requires ROCm, including hipCUB and rocPRIM. `metamake.sh` only detects CUDA, so configure with CMake directly:
+  ```bash
+  mkdir build_hip && cd build_hip
+  cmake .. -DUSE_HIP=ON -DCMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang++
+  make -j8 GPU_NVT GPU_NPT GPU_GCMC GPU_GEMC
+  ```
+  The GPU architecture is detected from the installed GPU. To build for a different GPU, set it explicitly, for example `-DCMAKE_HIP_ARCHITECTURES=gfx90a`.
+
 ## Building GOMC on Windows:
 
 1.  If building GPU executables and the CUDA version is older than CUDA 11, download the [CUB library](https://nvlabs.github.io/cub/download_cub.html).

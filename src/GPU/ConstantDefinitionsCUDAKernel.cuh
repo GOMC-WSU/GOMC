@@ -10,8 +10,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "EnsemblePreprocessor.h"
 #include "GeomLib.h"
 #include "VariablesCUDA.cuh"
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_to_hip.h"
 
 #define GPU_VDW_STD_KIND 0
 #define GPU_VDW_SHIFT_KIND 1
