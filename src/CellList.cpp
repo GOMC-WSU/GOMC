@@ -15,8 +15,8 @@ A copy of the MIT License can be found in License.txt with this program or at
 
 const int CellList::END_CELL;
 
-CellList::CellList(const Molecules &mols, BoxDimensions &dims) : mols(mols), 
-  dimensions(dims) {
+CellList::CellList(const Molecules &mols, BoxDimensions &dims)
+    : mols(mols), dimensions(dims) {
   isBuilt = false;
   for (uint b = 0; b < BOX_TOTAL; b++) {
     edgeCells[b][0] = edgeCells[b][1] = edgeCells[b][2] = 0;
