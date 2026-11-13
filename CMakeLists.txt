@@ -147,7 +147,7 @@ if(CMAKE_CUDA_COMPILER)
    enable_language(CUDA)
    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
 else()
-   message(WARNING "No CUDA compiler found for this system")
+   message(WARNING "No CUDA compiler found on this system")
 endif()
 
 # Set up Serial version
