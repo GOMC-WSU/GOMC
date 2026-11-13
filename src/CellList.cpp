@@ -27,9 +27,8 @@ CellList::CellList(Forcefield &forcefield, const Molecules &mols,
 }
 
 CellList::CellList(const CellList &other)
-    // : list{other.list}, neighbors{other.neighbors}, head{other.head},
-    : list{other.list},
-      mols(other.mols), dimensions(other.dimensions), ff(other.ff) {
+    : list{other.list}, mols(other.mols), dimensions(other.dimensions),
+      ff(other.ff) {
   isBuilt = true;
   for (uint b = 0; b < BOX_TOTAL; b++) {
     neighbors[b] = other.neighbors[b];
