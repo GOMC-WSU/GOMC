@@ -18,8 +18,7 @@ const int CellList::END_CELL;
 
 CellList::CellList(Forcefield &forcefield, const Molecules &mols,
                    BoxDimensions &dims)
-    : mols(&mols), ff(forcefield) {
-  dimensions = &dims;
+    : mols(mols), dimensions(dims), ff(forcefield) {
   isBuilt = false;
   for (uint b = 0; b < BOX_TOTAL; b++) {
     edgeCells[b][0] = edgeCells[b][1] = edgeCells[b][2] = 0;
@@ -28,11 +27,13 @@ CellList::CellList(Forcefield &forcefield, const Molecules &mols,
 }
 
 CellList::CellList(const CellList &other)
-    : mols(other.mols), list(other.list), neighbors(other.neighbors),
-      head(other.head), ff(other.ff) {
-  dimensions = other.dimensions;
+    // : list{other.list}, neighbors{other.neighbors}, head{other.head},
+    : list{other.list},
+      mols(other.mols), dimensions(other.dimensions), ff(other.ff) {
   isBuilt = true;
   for (uint b = 0; b < BOX_TOTAL; b++) {
+    neighbors[b] = other.neighbors[b];
+    head[b] = other.head[b];
     edgeCells[b][0] = other.edgeCells[b][0];
     edgeCells[b][1] = other.edgeCells[b][1];
     edgeCells[b][2] = other.edgeCells[b][2];
@@ -50,7 +51,7 @@ void CellList::Init() { SetCutoff(); }
 
 void CellList::SetCutoff() {
   for (uint b = 0; b < BOX_TOTAL; b++) {
-    cutoff[b] = dimensions->rCut[b];
+    cutoff[b] = dimensions.rCut[b];
   }
 }
 
@@ -72,8 +73,8 @@ bool CellList::IsExhaustive() const {
 void CellList::RemoveMol(const int molIndex, const int box,
                          const XYZArray &pos) {
   // For each atom in molecule
-  int p = mols->MolStart(molIndex);
-  int end = mols->MolEnd(molIndex);
+  int p = mols.MolStart(molIndex);
+  int end = mols.MolEnd(molIndex);
   while (p != end) {
     int cell = PositionToCell(pos[p], box);
     int at = head[box][cell];
@@ -102,8 +103,8 @@ void CellList::RemoveMol(const int molIndex, const int box,
 
 void CellList::AddMol(const int molIndex, const int box, const XYZArray &pos) {
   // For each atom in molecule
-  int p = mols->MolStart(molIndex);
-  int end = mols->MolEnd(molIndex);
+  int p = mols.MolStart(molIndex);
+  int end = mols.MolEnd(molIndex);
 
   // Note: GridAll assigns everything to END_CELL
   // so list should point to that
@@ -114,7 +115,7 @@ void CellList::AddMol(const int molIndex, const int box, const XYZArray &pos) {
     if (cell >= static_cast<int>(head[box].size())) {
       std::cout << "CellList.cpp:129: box " << box
                 << ", pos out of cell: " << pos[p] << std::endl;
-      std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
+      std::cout << "AxisDimensions: " << dimensions.GetAxis(box) << std::endl;
     }
 #endif
     // Make the current head index the index the new head points at.
@@ -213,7 +214,7 @@ void CellList::RebuildNeighbors(const uint b) {
 
 void CellList::GridAll(BoxDimensions &dims, const XYZArray &pos,
                        const MoleculeLookup &lookup) {
-  dimensions = &dims;
+  dimensions = dims;
   list.resize(pos.Count());
   ResizeGrid(dims);
   for (int b = 0; b < BOX_TOTAL; ++b) {
@@ -232,7 +233,7 @@ void CellList::GridAll(BoxDimensions &dims, const XYZArray &pos,
 
 void CellList::GridBox(BoxDimensions &dims, const XYZArray &pos,
                        const MoleculeLookup &lookup, const uint b) {
-  dimensions = &dims;
+  dimensions = dims;
   list.resize(pos.Count());
   ResizeGridBox(dims, b);
   head[b].assign(edgeCells[b][0] * edgeCells[b][1] * edgeCells[b][2], END_CELL);

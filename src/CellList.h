@@ -87,8 +87,8 @@ private:
 
   XYZ cellSize[BOX_TOTAL];
   int edgeCells[BOX_TOTAL][3];
-  const Molecules *mols;
-  BoxDimensions *dimensions;
+  const Molecules &mols;
+  BoxDimensions &dimensions;
   double cutoff[BOX_TOTAL];
   bool isBuilt;
   const Forcefield &ff;
@@ -96,7 +96,7 @@ private:
 
 inline int CellList::PositionToCell(const XYZ &posRef, int box) const {
   // Transfer to unslant coordinates to find the neighbor
-  XYZ pos = dimensions->TransformUnSlant(posRef, box);
+  XYZ pos = dimensions.TransformUnSlant(posRef, box);
   int x = (int)(pos.x / cellSize[box].x);
   int y = (int)(pos.y / cellSize[box].y);
   int z = (int)(pos.z / cellSize[box].z);
@@ -157,7 +157,7 @@ inline CellList::Neighbors CellList::EnumerateLocal(int cell, int box) const {
 #ifndef NDEBUG
   if (cell >= static_cast<int>(head[box].size())) {
     std::cout << "CellList.h:162: box " << box << ", Out of cell" << std::endl;
-    std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
+    std::cout << "AxisDimensions: " << dimensions.GetAxis(box) << std::endl;
   }
 #endif
   return CellList::Neighbors(list, head[box], neighbors[box][cell]);
@@ -169,7 +169,7 @@ inline CellList::Neighbors CellList::EnumerateLocal(const XYZ &pos,
 #ifndef NDEBUG
   if (cell >= static_cast<int>(head[box].size())) {
     std::cout << "CellList.h:172: box " << box << ", pos: " << pos << std::endl;
-    std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
+    std::cout << "AxisDimensions: " << dimensions.GetAxis(box) << std::endl;
   }
 #endif
   return EnumerateLocal(cell, box);
