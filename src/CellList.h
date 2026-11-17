@@ -95,7 +95,7 @@ private:
 };
 
 inline int CellList::PositionToCell(const XYZ &posRef, int box) const {
-  // Transfer to unslant coordinates to find the neighbor
+  // Translate to unslant coordinates to find the neighbor
   XYZ pos = dimensions.TransformUnSlant(posRef, box);
   int x = (int)(pos.x / cellSize[box].x);
   int y = (int)(pos.y / cellSize[box].y);

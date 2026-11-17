@@ -4,16 +4,17 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     
     steps:
-
     - name: Point git to the main branch
       run: git config --global init.defaultBranch main
+
     - name: Checkout Branch / Pull Request
       uses: actions/checkout@v7.0.1
+
     - name: Install clang-openmp
       run: sudo apt-get install -y libomp-dev
+
     - name: metamake
       run: ./metamake.sh
