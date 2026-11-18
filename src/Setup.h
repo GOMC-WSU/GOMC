@@ -32,12 +32,12 @@ public:
   void Init(char const *const configFileName, MultiSim const *const &multisim) {
     // Read in all config data
     config.Init(configFileName, multisim);
-    // Read in FF data.
-    ff.Init(config.in.files.param, config.in.ffKind.isCHARMM);
-    // Read in PDB data
-    pdb.Init(config.in.restart, config.in.files.pdb.name);
-    // Initialize PRNG
-    prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
+
+    ff.Init(config.in.files.param, config.in.ffKind.isCHARMM); //read in ff data
+
+    pdb.Init(config.in.restart, config.in.files.pdb.name); //read in PDB data
+
+    prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name); //read in PRNG data
 #if GOMC_LIB_MPI
     if (multisim->parallelTemperingEnabled)
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering,
@@ -47,7 +47,7 @@ public:
     if (!config.in.restart.restartFromCheckpoint) {
       // Read molecule data from psf
       if (mol.Init(config.in.files.psf.name, config.in.files.psf.defined,
-                   pdb.atoms) != 0) {
+                  pdb.atoms) != 0) {
         exit(EXIT_FAILURE);
       }
       mol.AssignKinds(mol.molVars, ff);

@@ -269,11 +269,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const *const &multisim) {
       }
     } else if (CheckString(line[0], "Parameters")) {
       if (line.size() > 1) {
-        in.files.param.push_back(config_setup::FileName(line[1], true));
+        in.files.param.emplace_back(config_setup::FileName(line[1], true));
       }
     } else if (CheckString(line[0], "TabulatedEnergiesFile")) {
       if (line.size() > 1) {
-        in.files.tabulated_potential.push_back(
+        in.files.tabulated_potential.emplace_back(
             config_setup::FileName(line[1], true));
       }
     } else if (CheckString(line[0], "tableInterpType")) {
@@ -1745,10 +1745,7 @@ void ConfigSetup::fillDefaults(void) {
   out.state.files.psf.name =
       out.statistics.settings.uniqueStr.val + "_merged.psf";
   for (int i = 0; i < BOX_TOTAL; i++) {
-    sstrm::Converter toStr;
-    std::string numStr = "";
-    toStr << i;
-    toStr >> numStr;
+    std::string numStr = std::to_string(i);
     out.state.files.pdb.name[i] =
         out.statistics.settings.uniqueStr.val + "_BOX_" + numStr + ".pdb";
     out.restart.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +

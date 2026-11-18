@@ -40,11 +40,8 @@ void FreeEnergyOutput::Init(pdb_setup::Atoms const &atoms,
 
   if (enableOut) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-      std::stringstream sstrm;
-      std::string strKind, fileName;
-      sstrm << (b);
-      sstrm >> strKind;
-      fileName = "Free_Energy_BOX_";
+      std::string strKind = std::to_string(b);
+      std::string fileName = "Free_Energy_BOX_";
       fileName += strKind;
       fileName += "_";
       fileName += uniqueName;
