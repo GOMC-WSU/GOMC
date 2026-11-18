@@ -43,8 +43,9 @@ void Nonbond::Init(const mol_setup::MolKind &molData) {
   }
 
   if (numAtoms > 100) {
-    // Large molecule: MolNonbond uses the cell list and skips bonded pairs,
-    // so only the set of bonded pairs is needed.
+    // Large molecule: also build the set of bonded pairs for the cell-list
+    // path in MolNonbond. The pair list below is still built for all
+    // molecules because the CBMC moves read it.
     auto addPair = [&](uint a, uint b) {
       if (a > b) std::swap(a, b);
       bondedPairs.insert((uint64_t)a << 32 | b);
@@ -66,10 +67,9 @@ void Nonbond::Init(const mol_setup::MolKind &molData) {
       addPair(dih.a1, dih.a3);
       addPair(dih.a0, dih.a3);
     }
-    return;
   }
 
-  // Small molecule: pre-computed list of nonbonded pairs (original code)
+  // Pre-computed list of nonbonded pairs (original code), built for all sizes
   std::vector<unsigned int> part1Vec;
   std::vector<unsigned int> part2Vec;
   // because vector<bool> is weird
