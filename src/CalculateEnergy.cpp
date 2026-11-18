@@ -84,14 +84,9 @@ void CalculateEnergy::Init(System &sys) {
 
 SystemPotential CalculateEnergy::SystemTotal() {
   GOMC_EVENT_START(1, GomcProfileEvent::EN_SYSTEM_TOTAL);
-  auto st1 = std::chrono::steady_clock::now();
   SystemPotential pot =
       SystemInter(SystemPotential(), currentCoords, currentAxes);
 
-  auto st2 = std::chrono::steady_clock::now();
-  std::cout << "SystemTotal SystemInter time: "
-            << std::chrono::duration<double, std::milli>(st2 - st1).count()
-            << "ms" << std::endl;
   // system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTRA);
@@ -106,7 +101,6 @@ SystemPotential CalculateEnergy::SystemTotal() {
       ++thisMol;
     }
 
-    auto st3 = std::chrono::steady_clock::now();
 
 #ifdef _OPENMP
 #pragma omp parallel for default(none) private(bondEnergy) shared(b, molID)    \
@@ -120,30 +114,16 @@ SystemPotential CalculateEnergy::SystemTotal() {
       // calculate correction term of electrostatic interaction
       correction += calcEwald->MolCorrection(molID[i], b);
     }
-    auto st4 = std::chrono::steady_clock::now();
-    std::cout << "SystemTotal MolIntra loop time: "
-              << std::chrono::duration<double, std::milli>(st4 - st3).count()
-              << "ms" << std::endl;
 
     pot.boxEnergy[b].intraBond = bondEn;
     pot.boxEnergy[b].intraNonbond = nonbondEn;
     // calculate self term of electrostatic interaction
-    auto st5 = std::chrono::steady_clock::now();
     pot.boxEnergy[b].self = calcEwald->BoxSelf(b);
-    auto st6 = std::chrono::steady_clock::now();
-    std::cout << "SystemTotal BoxSelf box: "
-              << std::chrono::duration<double, std::milli>(st6 - st5).count()
-              << "ms" << std::endl;
     pot.boxEnergy[b].correction = correction;
 
     GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_INTRA);
     // Calculate Virial
-    auto st7 = std::chrono::steady_clock::now();
     pot.boxVirial[b] = VirialCalc(b);
-    auto st8 = std::chrono::steady_clock::now();
-    std::cout << "SystemTotal VirialCalc box: "
-              << std::chrono::duration<double, std::milli>(st8 - st7).count()
-              << "ms" << std::endl;
   }
 
   pot.Total();
@@ -165,19 +145,9 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
                                              BoxDimensions const &boxAxes) {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     // calculate LJ interaction and real term of electrostatic interaction
-    auto si1 = std::chrono::steady_clock::now();
     potential = BoxInter(potential, coords, boxAxes, b);
-    auto si2 = std::chrono::steady_clock::now();
-    std::cout << "SystemInter BoxInter box " << b << ": "
-              << std::chrono::duration<double, std::milli>(si2 - si1).count()
-              << "ms" << std::endl;
     // calculate reciprocal term of electrostatic interaction
-    auto si3 = std::chrono::steady_clock::now();
     potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b, false);
-    auto si4 = std::chrono::steady_clock::now();
-    std::cout << "SystemInter BoxReciprocal box " << b << ": "
-              << std::chrono::duration<double, std::milli>(si4 - si3).count()
-              << "ms" << std::endl;
   }
 
   potential.Total();
@@ -875,32 +845,13 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex, const uint box,
   MoleculeKind &molKind = mols.kinds[mols.kIndex[molIndex]];
   XYZArray bondVec(molKind.bondList.count * 2);
 
-  auto m1 = std::chrono::steady_clock::now();
   BondVectors(bondVec, molKind, molIndex, box);
-  auto m2 = std::chrono::steady_clock::now();
   MolBond(bondEn[0], molKind, bondVec, molIndex, box);
-  auto m3 = std::chrono::steady_clock::now();
   MolAngle(bondEn[0], molKind, bondVec, box);
-  auto m4 = std::chrono::steady_clock::now();
   MolDihedral(bondEn[0], molKind, bondVec, box);
-  auto m5 = std::chrono::steady_clock::now();
   MolNonbond(bondEn[1], molKind, molIndex, box);
-  auto m6 = std::chrono::steady_clock::now();
   MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
-  auto m7 = std::chrono::steady_clock::now();
   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
-  auto m8 = std::chrono::steady_clock::now();
-
-  // only print for first molecule to avoid flooding output
-  if (molIndex == 0) {
-    std::cout << "MolIntra BondVectors: " << std::chrono::duration<double, std::milli>(m2-m1).count() << "ms\n";
-    std::cout << "MolIntra MolBond: " << std::chrono::duration<double, std::milli>(m3-m2).count() << "ms\n";
-    std::cout << "MolIntra MolAngle: " << std::chrono::duration<double, std::milli>(m4-m3).count() << "ms\n";
-    std::cout << "MolIntra MolDihedral: " << std::chrono::duration<double, std::milli>(m5-m4).count() << "ms\n";
-    std::cout << "MolIntra MolNonbond: " << std::chrono::duration<double, std::milli>(m6-m5).count() << "ms\n";
-    std::cout << "MolIntra MolNonbond_1_4: " << std::chrono::duration<double, std::milli>(m7-m6).count() << "ms\n";
-    std::cout << "MolIntra MolNonbond_1_3: " << std::chrono::duration<double, std::milli>(m8-m7).count() << "ms\n";
-  }
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTRA);
 }
