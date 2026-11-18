@@ -93,7 +93,7 @@ void Atoms::SetRestart(config_setup::RestartSettings const &r) {
   recalcTrajectory = r.recalcTrajectory;
 }
 
-void Atoms::Assign(std::string const &resName, const char l_chain,
+void Atoms::Assign(std::string &&resName, const char l_chain,
                    const double l_x, const double l_y, const double l_z,
                    const double l_beta, const double l_occ) {
   // box.push_back((bool)(restart?(uint)(l_occ):currBox));
@@ -101,7 +101,7 @@ void Atoms::Assign(std::string const &resName, const char l_chain,
   occ.push_back(l_occ);
   box.push_back(currBox);
   ++numAtomsInBox[currBox];
-  resNames.push_back(resName);
+  resNames.push_back(std::move(resName));
   chainLetter.push_back(l_chain);
 
   // push the coordinates of atoms to x, y, and z
@@ -130,7 +130,7 @@ void Atoms::Read(FixedWidthReader &file) {
   if (recalcTrajectory && (uint)l_occ != currBox) {
     return;
   }
-  Assign(resName, l_chain, l_x, l_y, l_z, l_beta, l_occ);
+  Assign(std::move(resName), l_chain, l_x, l_y, l_z, l_beta, l_occ);
 }
 
 void Atoms::Clear() {
@@ -143,6 +143,7 @@ void Atoms::Clear() {
   box.clear();
   resNames.clear();
   count = 0;
+
   for (uint b = 0; b < BOX_TOTAL; b++) {
     numAtomsInBox[b] = 0;
   }
@@ -205,15 +206,9 @@ void PDBSetup::Init(config_setup::RestartSettings const &restart,
     remarks.SetFrameNumber(b, frameNum);
     cryst.SetBox(b);
     atoms.SetBox(b);
-    std::string alias;
+    std::string alias = pdbAlias[b];
     if (remarks.recalcTrajectory) {
-      sstrm::Converter toStr;
-      std::string numStr = "";
-      toStr << frameNum;
-      toStr >> numStr;
-      alias = pdbAlias[b] + " frame " + numStr;
-    } else {
-      alias = pdbAlias[b];
+      alias += " frame " + std::to_string(frameNum);
     }
     pdb[b].SetData(name[b], alias);
 
@@ -232,11 +227,17 @@ void PDBSetup::Init(config_setup::RestartSettings const &restart,
 
       // Call reader function if remarks were reached,
       // or it is a remark
-      dataKind = dataKinds.find(varName);
-      if (dataKind != dataKinds.end() &&
-          (remarks.reached[b] ||
-           str::compare(dataKind->first, pdb_entry::label::REMARK))) {
-        dataKind->second->Read(pdb[b]);
+      if (varName == pdb_entry::label::ATOM) {
+        if (remarks.reached[b]) {
+          atoms.Read(pdb[b]);
+        }
+      } else {
+        dataKind = dataKinds.find(varName);
+        if (dataKind != dataKinds.end() &&
+            (remarks.reached[b] ||
+             str::compare(dataKind->first, pdb_entry::label::REMARK))) {
+          dataKind->second->Read(pdb[b]);
+        }
       }
     }
     // If the recalcTrajectory is true and reached was still false
