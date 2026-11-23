@@ -154,7 +154,7 @@ else()
       enable_language(CUDA)
       include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
    else()
-      message(WARNING "No CUDA support for this compiler")
+      message(WARNING "No CUDA compiler found on this system")
    endif()
 endif()
 

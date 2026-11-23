@@ -44,7 +44,7 @@ std::string CheckpointSetup::getFileName() { return filename; }
 
 void CheckpointSetup::loadCheckpointFile() {
   // create and open a character archive for input
-  std::ifstream ifs(filename);
+  std::ifstream ifs(filename, std::ios::binary);
   if (!ifs.is_open()) {
     fprintf(stderr, "Error opening checkpoint input file %s\n",
             filename.c_str());
