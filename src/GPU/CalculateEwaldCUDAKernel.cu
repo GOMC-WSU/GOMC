@@ -5,8 +5,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 ******************************************************************************/
 #ifdef GOMC_CUDA
 
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_to_hip.h"
 
 #include <vector>
 
@@ -15,9 +14,13 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "CalculateEwaldCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+#include <hipcub/hipcub.hpp>
+using namespace hipcub;
+#else
 #include "cub/cub.cuh"
-
 using namespace cub;
+#endif
 
 #define IMAGES_PER_BLOCK 64
 #define PARTICLES_PER_BLOCK 64

@@ -11,8 +11,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "ParallelTemperingPreprocessor.h"
 #endif
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <cuda_runtime_api.h>
+#include "GPU/cuda_to_hip.h"
 #endif
 #ifdef _OPENMP
 #include <unordered_map>
@@ -312,7 +311,10 @@ void PrintGPUHardwareInfo() {
       printf("Info: Device Streaming MultiProcessors: %d\n",
              prop.multiProcessorCount);
       // CUDA 13 moved the memoryClockRate to a different structure
-#if CUDART_VERSION < 13000
+      // HIP always has memoryClockRate in hipDeviceProp_t
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+      memoryClockRate = prop.memoryClockRate;
+#elif CUDART_VERSION < 13000
       memoryClockRate = prop.memoryClockRate;
 #else
       cudaDeviceGetAttribute(&memoryClockRate, cudaDevAttrMemoryClockRate, i);

@@ -14,8 +14,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "GPU/cuda_to_hip.h"
 #endif
 // Defining lambda class to handle fractional molecule
 class Lambda {

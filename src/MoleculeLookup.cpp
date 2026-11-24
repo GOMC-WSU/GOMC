@@ -14,9 +14,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "PDBSetup.h"             //For init.
 #include "PRNG.h"                 //For index selection
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
-
+#include "GPU/cuda_to_hip.h"
 #include "CUDAMemoryManager.cuh"
 #include "VariablesCUDA.cuh"
 #endif

@@ -7,8 +7,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #define CUDA_MEMORY_MANAGER_H
 
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_to_hip.h"
 #include <iostream>
 #include <unordered_map>
 

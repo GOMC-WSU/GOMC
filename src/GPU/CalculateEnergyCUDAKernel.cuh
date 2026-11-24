@@ -10,8 +10,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "BoxDimensions.h"
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_to_hip.h"
 #include <vector>
 
 void CallBoxInterGPU(VariablesCUDA *vars, const std::vector<int> &cellVector,

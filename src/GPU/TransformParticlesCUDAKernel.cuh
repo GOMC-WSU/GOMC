@@ -7,6 +7,21 @@ A copy of the MIT License can be found in License.txt with this program or at
 #define TRANSFORM_PARTICLES_CUDA_KERNEL_H
 
 #ifdef GOMC_CUDA
+// Define R123 macros before including Random123 so device code works on HIP
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+#ifndef R123_CUDA_DEVICE
+#define R123_CUDA_DEVICE __device__
+#endif
+// Disable exceptions in device code
+#ifndef R123_THROW
+#define R123_THROW(x) abort()
+#endif
+// Disable SSE intrinsics for AMD GPU device code
+#define R123_USE_SSE 0
+#define R123_USE_SSE4_1 0
+#define R123_USE_SSE4_2 0
+#define R123_USE_AES_NI 0
+#endif
 #include "Random123/philox.h"
 #include <vector>
 typedef r123::Philox4x64 RNG;
@@ -14,8 +29,7 @@ typedef r123::Philox4x64 RNG;
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
 #include "math.h"
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_to_hip.h"
 
 void CallTranslateParticlesGPU(
     VariablesCUDA *vars, const std::vector<int8_t> &isMoleculeInvolved, int box,

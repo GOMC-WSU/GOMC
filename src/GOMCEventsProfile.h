@@ -40,8 +40,9 @@ char const *const GomcProfileEventStr[] = {
 //
 // Enable NVTX instrumentation for nsys profiling of GOMC_CUDA builds by
 // defining GOMC_NVTX_ENABLED in CMake (using the metamake -p option)
+// NVTX is NVIDIA-specific; disabled on HIP/ROCm builds (use rocprof instead)
 //
-#if defined(GOMC_CUDA) && defined(GOMC_NVTX_ENABLED)
+#if defined(GOMC_CUDA) && defined(GOMC_NVTX_ENABLED) && !defined(USE_HIP)
 // Not sure how else to get the CUDA version, since we don't use nvcc to compile
 // this file
 #include <cuda_runtime_api.h>

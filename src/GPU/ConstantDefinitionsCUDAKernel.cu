@@ -4,8 +4,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 <https://opensource.org/licenses/MIT>.
 ******************************************************************************/
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_to_hip.h"
 #include <stdio.h>
 
 #include <iostream>

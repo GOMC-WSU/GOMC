@@ -5,7 +5,7 @@ A copy of the MIT License can be found in License.txt with this program or at
 ******************************************************************************/
 #ifdef GOMC_CUDA
 
-#include <cuda.h>
+#include "cuda_to_hip.h"
 #include <stdio.h>
 
 #include "CUDAMemoryManager.cuh"
@@ -13,11 +13,15 @@ A copy of the MIT License can be found in License.txt with this program or at
 #include "CalculateForceCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+#include <hipcub/hipcub.hpp>
+using namespace hipcub;
+#else
 #include "cub/cub.cuh"
+using namespace cub;
+#endif
 #define NUMBER_OF_NEIGHBOR_CELLS 27
 #define PARTICLES_PER_BLOCK 64
-
-using namespace cub;
 
 void CallBoxInterForceGPU(
     VariablesCUDA *vars, const std::vector<int> &cellVector,
