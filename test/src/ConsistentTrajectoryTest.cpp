@@ -753,6 +753,7 @@ TEST(ConsistentTrajectoryTest, Check_Neo_Pen) {
   if (result) {
     std::cout << "System call failed!" << std::endl;
     exit(1);
+  }
 }
 
 TEST(ConsistentTrajectoryTest, Check_BPTI_TIP3) {
