@@ -59,113 +59,50 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 #####################################
 #####################################
+function(add_GPU_ensemble_test name ENSEMBLE_ID)
+    set(flags "-DENSEMBLE=${ENSEMBLE_ID}")
+    add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
+        ${TestHeaders} ${TestSources})
+    # Set compiler and linker flags for NVCC and the host compiler
+    target_compile_options(${name}
+       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
+              $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
+    target_link_options(${name}
+       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
+              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS}>)
+    set_target_properties(${name} PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        OUTPUT_NAME ${name}
+        COMPILE_FLAGS "${flags}")
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		message("-- Debug build type detected, ${name} setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
+    	set_property(TARGET ${name} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+	endif()
+    target_link_libraries(${name} gtest_main ${FFTW3_LIBRARIES})
+    target_include_directories(${name} PRIVATE ${FFTW3_INCLUDE_DIRS})
+    if(WIN32)
+        target_link_libraries(${name} ws2_32)
+    endif()
+    if(MPI_FOUND)
+	    target_link_libraries(${name} ${MPI_LIBRARIES})
+    endif()
+endfunction(add_GPU_ensemble_test)
+
 function(add_GPU_NVT_test name)
-    add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
-        ${TestHeaders} ${TestSources})
-    # Set compiler and linker flags for NVCC and the host compiler
-    target_compile_options(${name}
-       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
-              $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
-    target_link_options(${name}
-       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
-              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS}>)
-    set_target_properties(${name} PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON
-        OUTPUT_NAME ${name}
-        COMPILE_FLAGS "${GPU_NVT_flags}")
-	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		message("-- Debug build type detected, ${name} setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
-    	set_property(TARGET ${name} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-	endif()
-    target_link_libraries(${name} gtest_main)
-    if(WIN32)
-        target_link_libraries(${name} ws2_32)
-    endif()
-    if(MPI_FOUND)
-	    target_link_libraries(${name} ${MPI_LIBRARIES})
-    endif()
-endfunction(add_GPU_NVT_test)
-
-function(add_GPU_GEMC_test name)
-    add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
-        ${TestHeaders} ${TestSources})
-    # Set compiler and linker flags for NVCC and the host compiler
-    target_compile_options(${name}
-       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
-              $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
-    target_link_options(${name}
-       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
-              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS}>)
-    set_target_properties(${name} PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON
-        OUTPUT_NAME ${name}
-        COMPILE_FLAGS "${GPU_GE_flags}")
-	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		message("-- Debug build type detected, ${name} setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
-    	set_property(TARGET ${name} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-	endif()
-    target_link_libraries(${name} gtest_main)
-    if(WIN32)
-        target_link_libraries(${name} ws2_32)
-    endif()
-    if(MPI_FOUND)
-	    target_link_libraries(${name} ${MPI_LIBRARIES})
-    endif()
-endfunction(add_GPU_GEMC_test)
-
-function(add_GPU_GCMC_test name)
-    add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
-        ${TestHeaders} ${TestSources})
-    # Set compiler and linker flags for NVCC and the host compiler
-    target_compile_options(${name}
-       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
-              $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
-    target_link_options(${name}
-       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
-              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS}>)
-    set_target_properties(${name} PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON
-        OUTPUT_NAME ${name}
-        COMPILE_FLAGS "${GPU_GC_flags}")
-	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		message("-- Debug build type detected, ${name} setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
-    	set_property(TARGET ${name} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-	endif()
-    target_link_libraries(${name} gtest_main)
-    if(WIN32)
-        target_link_libraries(${name} ws2_32)
-    endif()
-    if(MPI_FOUND)
-	    target_link_libraries(${name} ${MPI_LIBRARIES})
-    endif()
-endfunction(add_GPU_GCMC_test)
+    add_GPU_ensemble_test(${name} 1)
+endfunction()
 
 function(add_GPU_NPT_test name)
-    add_executable(${name} ${cudaSources} ${cudaHeaders} ${GOMCHeaders} ${GOMCSources} ${libHeaders} ${libSources}
-        ${TestHeaders} ${TestSources})
-    # Set compiler and linker flags for NVCC and the host compiler
-    target_compile_options(${name}
-       PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_HOST_COMP_FLAGS}>
-              $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CUDA_COMP_FLAGS}>)
-    target_link_options(${name}
-       PUBLIC $<HOST_LINK:${CMAKE_LINK_FLAGS}>
-              $<DEVICE_LINK:${CMAKE_CUDA_LINK_FLAGS}>)
-    set_target_properties(${name} PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON
-        OUTPUT_NAME ${name}
-        COMPILE_FLAGS "${GPU_NPT_flags}")
-	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		message("-- Debug build type detected, ${name} setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
-    	set_property(TARGET ${name} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-	endif()
-    target_link_libraries(${name} gtest_main)
-    if(WIN32)
-        target_link_libraries(${name} ws2_32)
-    endif()
-    if(MPI_FOUND)
-	    target_link_libraries(${name} ${MPI_LIBRARIES})
-    endif()
-endfunction(add_GPU_NPT_test)
+    add_GPU_ensemble_test(${name} 4)
+endfunction()
+
+function(add_GPU_GCMC_test name)
+    add_GPU_ensemble_test(${name} 3)
+endfunction()
+
+function(add_GPU_GEMC_test name)
+    add_GPU_ensemble_test(${name} 2)
+endfunction()
 
 # Register all test executables
 if(GOMC_GTEST_MPI)
