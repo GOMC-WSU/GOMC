@@ -16,5 +16,5 @@ jobs:
     - name: Install clang-openmp
       run: sudo apt-get install -y libomp-dev
 
-    - name: metamake
-      run: ./metamake.sh
+    - name: Build all ensembles including tests
+      run: ./metamake.sh -t
